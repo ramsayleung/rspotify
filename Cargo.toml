@@ -1,0 +1,8 @@
+[package]
+name = "rspotify"
+version = "0.1.0"
+authors = ["wb-lzr345319 <wb-lzr345319@alibaba-inc.com>"]
+
+[dependencies]
+reqwest = "0.8.2"
+serde_json = "1.0"

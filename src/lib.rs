@@ -1,0 +1,4 @@
+struct Spotify{
+    prefix:String,
+    
+}
