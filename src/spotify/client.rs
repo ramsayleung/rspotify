@@ -10,5 +10,7 @@ impl Spotify {
     fn auth_headers(&self) -> HashMap {
         HashMap::new()
     }
-    fn internal_call(&self,method:Method,)
+    fn internal_call(&self,method:Method,url:String)->HashMap{
+
+    }
 }

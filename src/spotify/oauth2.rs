@@ -41,7 +41,7 @@ impl SpotifyOAuth {
             Err(why) => panic!("couldn't read {}: {}", display, why.description()),
             Ok(_) => {
                 let token_info: Value = serde_json::from_str(token_info_string).unwrap();
-                
+
             }
         }
     }
