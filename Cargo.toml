@@ -1,20 +1,24 @@
 [package]
+authors = ["wb-lzr345319 <wb-lzr345319@alibaba-inc.com>"]
 name = "rspotify"
 version = "0.1.0"
-authors = ["wb-lzr345319 <wb-lzr345319@alibaba-inc.com>"]
 
 [dependencies]
+base64 = "~0.6.0"
+derive_builder = "0.5.1"
+hyper = "0.11"
+log = "0.4"
+percent-encoding = "1.0.1"
+rand = "0.4.2"
+random = "0.12.2"
 reqwest = "0.8.2"
 rocket = "0.3.5"
 rocket_codegen = "0.3.5"
-url = "1.6.0"
-percent-encoding = "1.0.1"
-random = "0.12.2"
-rand = "0.4.2"
-base64 = "~0.6.0"
-log = "0.4"
-hyper = "0.11"
-
 serde = "1.0"
-serde_json = "1.0"
 serde_derive = "1.0"
+serde_json = "1.0"
+url = "1.6.0"
+
+[dependencies.chrono]
+features = ["serde", "rustc-serialize"]
+version = "0.4"

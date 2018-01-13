@@ -6,7 +6,7 @@ extern crate rocket;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
-
+extern crate chrono;
 #[macro_use]
 extern crate serde_derive;
 
@@ -18,29 +18,31 @@ extern crate base64;
 #[macro_use]
 extern crate hyper;
 
+#[macro_use]
+extern crate derive_builder;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use rocket::response::Redirect;
 use reqwest::header::{Authorization, Basic, Bearer};
 use reqwest::Client;
-use rand::Rng;
+// use rand::Rng;
 
 use std::io::Read;
 use std::collections::HashMap;
 mod spotify;
-use spotify::oauth2;
-
+use spotify::oauth2::TokenInfo;
+use spotify::util::{generate_random_string, datetime_to_timestamp};
 static CLIENT_ID: &'static str = "3a205160926f4b719170b1ad97c2ad01";
 static CLIENT_SECRET: &'static str = "1449bf2c59164f2b97f21322362fe4cd";
 static REDIRECT_URI: &'static str = "http://localhost:8888/callback";
 
-#[derive(Clone,Debug,Serialize, Deserialize)]
-pub struct TokenInfo {
-    pub access_token: String,
-    pub token_type: String,
-    pub expires_in: u32,
-    pub refresh_token: String,
-    pub scope: String,
-}
+// #[derive(Clone,Debug,Serialize, Deserialize)]
+// pub struct TokenInfo {
+//     pub access_token: String,
+//     pub token_type: String,
+//     pub expires_in: u32,
+//     pub refresh_token: String,
+//     pub scope: String,
+// }
 
 #[get("/")]
 fn index() -> &'static str {
@@ -63,9 +65,9 @@ fn login() -> Redirect {
     Redirect::to(&redirect_url)
 }
 
-fn generate_random_string(length: usize) -> String {
-    rand::thread_rng().gen_ascii_chars().take(length).collect()
-}
+// fn generate_random_string(length: usize) -> String {
+//     rand::thread_rng().gen_ascii_chars().take(length).collect()
+// }
 #[derive(Debug,Clone)]
 enum GrantType {
     AuthorizationCode,
@@ -97,11 +99,14 @@ fn callback(query: &str) -> &str {
         .read_to_string(&mut buf)
         .expect("failed to read response");
     if response.status().is_success() {
-        let token_info: TokenInfo = serde_json::from_str(&buf)
+        let mut token_info: TokenInfo = serde_json::from_str(&buf)
             .expect("parsing response content to tokenInfo error");
+        let expires_in = token_info.expires_in;
+        token_info.set_expires_at(&datetime_to_timestamp(expires_in));
         let access_token = token_info.access_token;
         let refresh_token = token_info.refresh_token;
         let bearer_credentials = Bearer { token: access_token };
+        println!("expires_at:{:?}", token_info.expires_at);
         let mut me_response = client
             .get("https://api.spotify.com/v1/me")
             .header(Authorization(bearer_credentials))
