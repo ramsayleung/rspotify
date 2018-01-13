@@ -65,7 +65,7 @@ impl SpotifyOAuth {
     //    "expires_in": 3600,
     //    "refresh_token": "NgAagA...Um_SHo"
     // }
-    fn get_cached_token(&self) -> Option<TokenInfo> {
+    fn get_cached_token(&mut self) -> Option<TokenInfo> {
         let display = self.cache_path.display();
         let mut file = match File::open(&self.cache_path) {
             Err(why) => panic!("couldn't open {}: {}", display, why.description()),
@@ -75,15 +75,17 @@ impl SpotifyOAuth {
         match file.read_to_string(&mut token_info_string) {
             Err(why) => panic!("couldn't read {}: {}", display, why.description()),
             Ok(_) => {
-                let token_info: TokenInfo = serde_json::from_str(&token_info_string).unwrap();
-                Some(token_info)
-                // if (!self.is_scope_subset(&mut self.scope, &mut token_info.scope)) {
-                //     return None;
-                // }
-
-                // if is_token_expired(token_info) {
-
-                // }
+                let mut token_info: TokenInfo = serde_json::from_str(&token_info_string).unwrap();
+                // Some(token_info)
+                if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
+                    return None;
+                } else {
+                    if SpotifyOAuth::is_token_expired(&token_info) {
+                        self.refresh_access_token(&token_info.refresh_token)
+                    } else {
+                        None
+                    }
+                }
             }
         }
     }
@@ -134,11 +136,6 @@ impl SpotifyOAuth {
             .expect("error");
         file.write_all(token_info.as_bytes())
             .expect("error when write file");
-        // match file.write_all(buffer){
-        //     Ok(_)=>{
-        //     }
-        //     Err(why)=>
-        // }
     }
     fn is_scope_subset(needle_scope: &mut str, haystack_scope: &mut str) -> bool {
         let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
@@ -148,7 +145,7 @@ impl SpotifyOAuth {
         // needle_set - haystack_set
         needle_set.is_subset(&haystack_set)
     }
-    fn is_token_expired(token_info: TokenInfo) -> bool {
+    fn is_token_expired(token_info: &TokenInfo) -> bool {
         let now: DateTime<Utc> = Utc::now();
         // 10s as buffer time
         match token_info.expires_at {
