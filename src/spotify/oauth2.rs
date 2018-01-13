@@ -87,7 +87,7 @@ impl SpotifyOAuth {
             }
         }
     }
-    fn refresh_access_token(&self, refresh_token: &str) -> Result<TokenInfo, SpotifyAuthError> {
+    fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
@@ -115,14 +115,15 @@ impl SpotifyOAuth {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     self.save_token_info(&token_info_string);
-                    Ok(token_info)
+                    Some(token_info)
                 }
                 Err(why) => {
-                    Err(SpotifyAuthError::FileHandleError);
-                    // panic!("couldn't convert token_info to string: {} ",
-                    //        why.description());
+                    panic!("couldn't convert token_info to string: {} ",
+                           why.description());
                 }
             }
+        } else {
+            None
         }
     }
     fn save_token_info(&self, token_info: &str) {
