@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate log;
 extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
@@ -24,12 +26,14 @@ use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use rocket::response::Redirect;
 use reqwest::header::{Authorization, Basic, Bearer};
 use reqwest::Client;
+use rocket_contrib::{Json, Value};
 // use rand::Rng;
 
 use std::io::Read;
+use std::path::PathBuf;
 use std::collections::HashMap;
 mod spotify;
-use spotify::oauth2::TokenInfo;
+use spotify::oauth2::{TokenInfo, SpotifyOAuth};
 use spotify::util::{generate_random_string, datetime_to_timestamp};
 static CLIENT_ID: &'static str = "3a205160926f4b719170b1ad97c2ad01";
 static CLIENT_SECRET: &'static str = "1449bf2c59164f2b97f21322362fe4cd";
@@ -68,12 +72,6 @@ fn login() -> Redirect {
 // fn generate_random_string(length: usize) -> String {
 //     rand::thread_rng().gen_ascii_chars().take(length).collect()
 // }
-#[derive(Debug,Clone)]
-enum GrantType {
-    AuthorizationCode,
-    ClientCredentials,
-    ImplicitGrant,
-}
 #[get("/callback?<query>")]
 fn callback(query: &str) -> &str {
     println!("{:?}", query);
@@ -104,21 +102,53 @@ fn callback(query: &str) -> &str {
         let expires_in = token_info.expires_in;
         token_info.set_expires_at(&datetime_to_timestamp(expires_in));
         let access_token = token_info.access_token;
-        let refresh_token = token_info.refresh_token;
         let bearer_credentials = Bearer { token: access_token };
         println!("expires_at:{:?}", token_info.expires_at);
+
+        let oauth = SpotifyOAuth {
+            client_id: CLIENT_ID.to_owned(),
+            client_secret: CLIENT_SECRET.to_owned(),
+            redirect_uri: REDIRECT_URI.to_owned(),
+            state: generate_random_string(16),
+            cache_path: PathBuf::from(".token_cache"),
+            scope: "read_private".to_owned(),
+            proxies: None,
+        };
+        if let Some(refresh_token) = token_info.refresh_token {
+            oauth.refresh_access_token(&refresh_token);
+        }
         let mut me_response = client
             .get("https://api.spotify.com/v1/me")
             .header(Authorization(bearer_credentials))
             .send()
             .expect("failed to sent get request");
         buf.clear();
+
         me_response
             .read_to_string(&mut buf)
             .expect("failed to read response");
         println!("{:?}", buf);
     }
     println!("content: {}", buf);
+    "helloworld"
+}
+#[get("/oauth")]
+fn oauth() -> &'static str {
+    let mut oauth = SpotifyOAuth {
+        client_id: CLIENT_ID.to_owned(),
+        client_secret: CLIENT_SECRET.to_owned(),
+        redirect_uri: REDIRECT_URI.to_owned(),
+        state: generate_random_string(16),
+        cache_path: PathBuf::from(".token_cache"),
+        scope: "user-read-email".to_owned(),
+        proxies: None,
+    };
+    match oauth.get_cached_token() {
+        Some(token_info) => {
+            println!("{:?}", token_info);
+        }
+        None => println!("nothing"),
+    }
     "helloworld"
 }
 
@@ -144,6 +174,6 @@ fn convert_map_to_string(map: &HashMap<&str, &str>) -> String {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, login, callback])
+        .mount("/", routes![index, login, callback, oauth])
         .launch();
 }
