@@ -12,6 +12,7 @@ extern crate chrono;
 #[macro_use]
 extern crate serde_derive;
 
+extern crate dotenv;
 use serde_json::Error;
 extern crate url;
 extern crate percent_encoding;
@@ -29,6 +30,9 @@ use reqwest::Client;
 use rocket_contrib::{Json, Value};
 // use rand::Rng;
 
+use dotenv::dotenv;
+use std::env;
+
 use std::io::Read;
 use std::path::PathBuf;
 use std::collections::HashMap;
@@ -39,14 +43,6 @@ static CLIENT_ID: &'static str = "3a205160926f4b719170b1ad97c2ad01";
 static CLIENT_SECRET: &'static str = "1449bf2c59164f2b97f21322362fe4cd";
 static REDIRECT_URI: &'static str = "http://localhost:8888/callback";
 
-// #[derive(Clone,Debug,Serialize, Deserialize)]
-// pub struct TokenInfo {
-//     pub access_token: String,
-//     pub token_type: String,
-//     pub expires_in: u32,
-//     pub refresh_token: String,
-//     pub scope: String,
-// }
 
 #[get("/")]
 fn index() -> &'static str {
@@ -69,9 +65,6 @@ fn login() -> Redirect {
     Redirect::to(&redirect_url)
 }
 
-// fn generate_random_string(length: usize) -> String {
-//     rand::thread_rng().gen_ascii_chars().take(length).collect()
-// }
 #[get("/callback?<query>")]
 fn callback(query: &str) -> &str {
     println!("{:?}", query);

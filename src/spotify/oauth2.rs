@@ -2,6 +2,8 @@ use chrono::prelude::*;
 use serde_json;
 use reqwest::Client;
 use reqwest::header::{Authorization, Basic, Bearer};
+use dotenv::dotenv;
+use std::env;
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -33,9 +35,9 @@ pub enum SpotifyAuthError {
     FileHandleError,
 }
 
-static CLIENT_ID: &'static str = "3a205160926f4b719170b1ad97c2ad01";
-static CLIENT_SECRET: &'static str = "1449bf2c59164f2b97f21322362fe4cd";
-static REDIRECT_URI: &'static str = "http://localhost:8888/callback";
+// static CLIENT_ID: &'static str = &env::var("CLIENT_ID").unwrap_or_default();
+// static CLIENT_SECRET: &'static str = &env::var("CLIENT_SECRET").unwrap_or_default();
+// static REDIRECT_URI: &'static str = &env::var("REDIRECT_URI").unwrap_or_default();
 
 #[derive(Clone,Debug,Serialize,Deserialize)]
 pub struct TokenInfo {
@@ -100,6 +102,78 @@ impl SpotifyOAuth {
     //    "expires_in": 3600,
     //    "refresh_token": "NgAagA...Um_SHo"
     // }
+
+    pub fn default() -> SpotifyOAuth {
+        dotenv().ok();
+        let client_id = env::var("CLIENT_ID").unwrap_or_default();
+        let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
+        let redirect_uri = env::var("REDIRECT_URI").unwrap_or_default();
+        SpotifyOAuth {
+            client_id: client_id,
+            client_secret: client_secret,
+            redirect_uri: redirect_uri,
+            state: generate_random_string(16),
+            scope: String::new(),
+            cache_path: PathBuf::from(".token_cache"),
+            proxies: None,
+        }
+    }
+    pub fn client_id(mut self, client_id: &str) -> SpotifyOAuth {
+        self.client_id = client_id.to_owned();
+        self
+    }
+    pub fn client_secret(mut self, client_secret: &str) -> SpotifyOAuth {
+        self.client_secret = client_secret.to_owned();
+        self
+    }
+    pub fn redirect_uri(mut self, redirect_uri: &str) -> SpotifyOAuth {
+        self.redirect_uri = redirect_uri.to_owned();
+        self
+    }
+    pub fn scope(mut self, scope: &str) -> SpotifyOAuth {
+        self.scope = scope.to_owned();
+        self
+    }
+    pub fn state(mut self, state: &str) -> SpotifyOAuth {
+        self.state = state.to_owned();
+        self
+    }
+    pub fn cache_path(mut self, cache_path: PathBuf) -> SpotifyOAuth {
+        self.cache_path = cache_path;
+        self
+    }
+    pub fn proxies(mut self, proxies: &str) -> SpotifyOAuth {
+        self.proxies = Some(proxies.to_owned());
+        self
+    }
+    pub fn build(self) -> SpotifyOAuth {
+        const ERROR_MESSAGE: &str = "
+    You need to set your Spotify API credentials. You can do this by
+    setting environment variables in `.env` file:
+    CLIENT_ID='your-spotify-client-id'
+    CLIENT_SECRET='your-spotify-client-secret'
+    REDIRECT_URI='your-app-redirect-url'
+    Get your credentials at `https://developer.spotify.com/my-applications`";
+        let mut flag = false;
+        if self.client_secret.is_empty() {
+            flag = true;
+        }
+        if self.client_id.is_empty() {
+            flag = true;
+        }
+        if self.redirect_uri.is_empty() {
+            flag = true;
+        }
+        if flag {
+            eprintln!("{}", ERROR_MESSAGE);
+        } else {
+            println!("client_id:{:?}, client_secret:{:?}, redirect_uri:{:?}",
+                     self.client_id,
+                     self.client_secret,
+                     self.redirect_uri);
+        }
+        self
+    }
     pub fn get_cached_token(&mut self) -> Option<TokenInfo> {
         let display = self.cache_path.display();
         let mut file = match File::open(&self.cache_path) {
@@ -141,9 +215,11 @@ impl SpotifyOAuth {
     /// fetch access_token
     fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> Option<TokenInfo> {
         let client = Client::new();
+        let client_id = self.client_id.clone();
+        let client_secret = self.client_secret.clone();
         let credentials = Basic {
-            username: CLIENT_ID.to_owned(),
-            password: Some(CLIENT_SECRET.to_owned()),
+            username: client_id,
+            password: Some(client_secret),
         };
         let url = "https://accounts.spotify.com/api/token";
         let mut response = client
@@ -233,15 +309,11 @@ mod tests {
     }
     #[test]
     fn test_save_token_info() {
-        let spotify_oauth = SpotifyOAuth {
-            client_id: "this_is_test".to_owned(),
-            client_secret: "this_is_test".to_owned(),
-            redirect_uri: "this_is_test".to_owned(),
-            state: "this_is_test".to_owned(),
-            cache_path: PathBuf::from(".spotify_token_cache"),
-            scope: "this_is_test".to_owned(),
-            proxies: None,
-        };
+        let spotify_oauth = SpotifyOAuth::default()
+            .state(&generate_random_string(16))
+            .scope("user-read-mail")
+            .cache_path(PathBuf::from(".test_token"))
+            .build();
         let token_info = TokenInfo::new()
             .access_token("test-access_token")
             .token_type("code")
@@ -249,7 +321,6 @@ mod tests {
             .expires_at(1515841743)
             .scope("user-read-email")
             .refresh_token("fghjklrftyhujkuiovbnm");
-
         match serde_json::to_string(&token_info) {
             Ok(token_info_string) => {
                 spotify_oauth.save_token_info(&token_info_string);
