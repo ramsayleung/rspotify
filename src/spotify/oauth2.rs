@@ -17,8 +17,7 @@ pub struct SpotifyClientCredentials {
     pub client_secret: String,
     pub token_info: TokenInfo,
 }
-#[derive(Clone,Debug,Serialize,Deserialize,Builder)]
-#[builder(setter(into))]
+#[derive(Clone,Debug,Serialize,Deserialize)]
 pub struct SpotifyOAuth {
     pub client_id: String,
     pub client_secret: String,
@@ -38,8 +37,7 @@ static CLIENT_ID: &'static str = "3a205160926f4b719170b1ad97c2ad01";
 static CLIENT_SECRET: &'static str = "1449bf2c59164f2b97f21322362fe4cd";
 static REDIRECT_URI: &'static str = "http://localhost:8888/callback";
 
-#[derive(Clone,Debug,Serialize,Deserialize,Builder)]
-#[builder(setter(into))]
+#[derive(Clone,Debug,Serialize,Deserialize)]
 pub struct TokenInfo {
     pub access_token: String,
     pub token_type: String,
@@ -49,6 +47,40 @@ pub struct TokenInfo {
     pub scope: String,
 }
 impl TokenInfo {
+    pub fn new() -> TokenInfo {
+        TokenInfo {
+            access_token: String::new(),
+            token_type: String::new(),
+            expires_in: 0u32,
+            expires_at: None,
+            refresh_token: None,
+            scope: String::new(),
+        }
+    }
+    pub fn access_token(mut self, access_token: &str) -> TokenInfo {
+        self.access_token = access_token.to_owned();
+        self
+    }
+    pub fn token_type(mut self, token_type: &str) -> TokenInfo {
+        self.token_type = token_type.to_owned();
+        self
+    }
+    pub fn expires_in(mut self, expires_in: u32) -> TokenInfo {
+        self.expires_in = expires_in;
+        self
+    }
+    pub fn scope(mut self, scope: &str) -> TokenInfo {
+        self.scope = scope.to_owned();
+        self
+    }
+    pub fn expires_at(mut self, expires_at: i64) -> TokenInfo {
+        self.expires_at = Some(expires_at);
+        self
+    }
+    pub fn refresh_token(mut self, refresh_token: &str) -> TokenInfo {
+        self.refresh_token = Some(refresh_token.to_owned());
+        self
+    }
     pub fn set_expires_at(&mut self, expires_at: &i64) {
         self.expires_at = Some(*expires_at);
     }
@@ -133,7 +165,7 @@ impl SpotifyOAuth {
             if token_info.refresh_token.is_none() {
                 match payload.get("refresh_token") {
                     Some(payload_refresh_token) => {
-                        token_info.set_refresh_token(&payload_refresh_token)
+                        token_info.set_refresh_token(&payload_refresh_token);
                     }
                     None => {}
                 }
@@ -210,14 +242,13 @@ mod tests {
             scope: "this_is_test".to_owned(),
             proxies: None,
         };
-        let token_info = TokenInfo {
-            access_token: "this-access_token".to_owned(),
-            token_type: "code".to_owned(),
-            expires_in: 3600,
-            expires_at: Some(1515841743),
-            refresh_token: "refresh-token".to_owned(),
-            scope: "scope".to_owned(),
-        };
+        let token_info = TokenInfo::new()
+            .access_token("test-access_token")
+            .token_type("code")
+            .expires_in(3600)
+            .expires_at(1515841743)
+            .scope("user-read-email")
+            .refresh_token("fghjklrftyhujkuiovbnm");
 
         match serde_json::to_string(&token_info) {
             Ok(token_info_string) => {
