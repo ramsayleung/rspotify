@@ -1,10 +1,14 @@
+// use 3rd party library
 use chrono::prelude::*;
 use serde_json;
 use reqwest::Client;
 use reqwest::header::{Authorization, Basic, Bearer};
 use dotenv::dotenv;
-use std::env;
+use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
+use url::Url;
 
+// use built-in library
+use std::env;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::error::Error;
@@ -13,7 +17,8 @@ use std::iter::FromIterator;
 use std::io::prelude::*;
 use std::fs::OpenOptions;
 
-use super::util::{datetime_to_timestamp, generate_random_string};
+// use customized library
+use super::util::{datetime_to_timestamp, generate_random_string, convert_map_to_string};
 pub struct SpotifyClientCredentials {
     pub client_id: String,
     pub client_secret: String,
@@ -260,7 +265,41 @@ impl SpotifyOAuth {
             None
         }
     }
-    /// After refresh access_token, the response may be empty when refresh_token again
+    /// Parse the response code in the given response url
+    // pub fn parse_response_code(&self,url:&mut str)=>Option<HashMap>{
+    //     match Url::parse("data:text/plain,Hello?World#"){
+    //         Ok(data_url)=>{
+    //             if let Some(query)= data_url.query(){
+                    
+    //             }
+    //         },
+    //         Err(why)=>{
+    //             println!("[{:?}] parse url error",why.description())
+    //         }
+    //     }
+
+    // }
+    /// Gets the URL to use to authorize this app
+    pub fn get_authorize_url(&self, state: Option<&str>, show_dialog: Option<bool>) -> String {
+        let mut payload: HashMap<&str, &str> = HashMap::new();
+        payload.insert("client_id", &self.client_id);
+        payload.insert("response_type", "code");
+        payload.insert("redirect_uri", &self.redirect_uri);
+        if let Some(state) = state {
+            payload.insert("state", state);
+        }
+        if let Some(show_dialog) = show_dialog {
+            payload.insert("show_diaload", "true");
+        }
+
+        let query_str = convert_map_to_string(&payload);
+        let mut authorize_url = String::from("https://accounts.spotify.com/authorize?");
+        authorize_url
+            .push_str(&utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET).to_string());
+        authorize_url
+
+    }
+    /// after refresh access_token, the response may be empty when refresh_token again
     pub fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);

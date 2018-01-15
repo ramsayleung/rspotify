@@ -11,6 +11,7 @@ extern crate serde_json;
 extern crate chrono;
 #[macro_use]
 extern crate serde_derive;
+extern crate webbrowser;
 
 extern crate dotenv;
 use serde_json::Error;
