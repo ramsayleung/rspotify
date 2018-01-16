@@ -119,7 +119,7 @@ impl SpotifyOAuth {
             redirect_uri: redirect_uri,
             state: generate_random_string(16),
             scope: String::new(),
-            cache_path: PathBuf::from(".token_cache"),
+            cache_path: PathBuf::from(".spotify_token_cache.json"),
             proxies: None,
         }
     }
