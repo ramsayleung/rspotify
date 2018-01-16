@@ -1,6 +1,7 @@
 use rand::{self, Rng};
 use chrono::prelude::*;
 use webbrowser;
+use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET, percent_decode};
 
 use std::io;
 use std::path::PathBuf;
@@ -50,55 +51,70 @@ pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
         .filter(|token| !token.is_empty())
         .collect();
     for token in tokens {
-        // match token {
-        //     &Some(key_value_pair) => {
         let vec: Vec<&str> = token.split("=").collect();
         map.insert(vec[0], vec[1]);
-        // }
-        // &None => println!("Nothing here"),
-        // }
     }
     map
 }
-// pub fn prompt_for_user_token(client_id: &str,
-//                              client_secret: &str,
-//                              redirect_uri: &str,
-//                              cache_path: PathBuf)
-//                              -> TokenInfo {
-//     let oauth = SpotifyOAuth::default()
-//         .client_id(client_id)
-//         .client_secret(client_secret)
-//         .redirect_uri(redirect_uri)
-//         .cache_path(cache_path)
-//         .build();
+pub fn prompt_for_user_token_argv(client_id: &str,
+                                  client_secret: &str,
+                                  redirect_uri: &str,
+                                  cache_path: PathBuf)
+                                  -> TokenInfo {
+    let mut oauth = SpotifyOAuth::default()
+        .client_id(client_id)
+        .client_secret(client_secret)
+        .redirect_uri(redirect_uri)
+        .cache_path(cache_path)
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => token_info,
+        None => panic!("Could not find code in input url,get spotify token failed"),
+    }
 
-// }
-// pub fn get_token(spotify_oauth: &SpotifyOAuth) -> TokenInfo {
-//     match spotify_oauth.get_cached_token() {
-//         Some(token_info) => token_info,
-//         None => {
-//             let auth_url = spotify_oauth.get_authorize_url(None, None);
-//             match webbrowser::open(&auth_url) {
-//                 Ok(_) => println!("Opened {} in your browser", auth_url),
-//                 Err(why) => {
-//                     println!("Error:[{:?}],Please naviage here: {}",
-//                              why.description(),
-//                              auth_url)
-//                 }
-//             }
+}
+pub fn prompt_for_user_token() -> TokenInfo {
+    let mut oauth = SpotifyOAuth::default().build();
+    match get_token(&mut oauth) {
+        Some(token_info) => token_info,
+        None => panic!("Could not find code in input url,get spotify token failed"),
+    }
+}
+fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+    match spotify_oauth.get_cached_token() {
+        Some(token_info) => Some(token_info),
+        None => {
+            let auth_url = spotify_oauth.get_authorize_url(None, None);
+            match webbrowser::open(&auth_url) {
+                Ok(_) => println!("Opened {} in your browser", auth_url),
+                Err(why) => println!("Error:Please naviage here [{:?}] ", auth_url),
+            }
 
-//             let mut input = String::new();
-//             match io::stdin().read_line(&mut input) {
-//                 Ok(n) => {
-//                     println!("{} bytes read", n);
-//                     println!("{}", input);
-//                 }
-//                 Err(error) => println!("error: {}", error),
-//             }
-//         }
-//     }
+            let mut input = String::new();
+            match io::stdin().read_line(&mut input) {
+                Ok(_) => {
+                    let mut decoded_url = percent_decode(input.as_bytes())
+                        .decode_utf8()
+                        .unwrap()
+                        .to_string();
+                    let query_parameter = convert_str_to_map(&mut decoded_url);
+                    match query_parameter.get("code") {
+                        Some(code) => {
+                            let token_info = spotify_oauth.get_access_token(&code);
+                            token_info
+                        }
+                        None => None,
+                    }
+                }
+                Err(error) => {
+                    println!("error: {:?}", error);
+                    None
+                }
+            }
+        }
+    }
 
-// }
+}
 
 #[cfg(test)]
 mod tests {
@@ -123,7 +139,7 @@ mod tests {
         map.insert("scope", "test-scope");
         let result = convert_map_to_string(&map);
         // hashmap is not sorted, so the order of key-value-pairs will not
-        // follow the insert order 
+        // follow the insert order
         assert!(result.contains("redirect_uri=my_uri&"));
         assert!(result.contains("state=my-state&"));
         assert!(result.contains("scope=test-scope&"));

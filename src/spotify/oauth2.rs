@@ -207,7 +207,7 @@ impl SpotifyOAuth {
         }
     }
     /// gets the access_token for the app given the code
-    fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
+    pub fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("redirect_uri", &self.redirect_uri);
         payload.insert("code", code);
@@ -270,7 +270,6 @@ impl SpotifyOAuth {
     //     match Url::parse("data:text/plain,Hello?World#"){
     //         Ok(data_url)=>{
     //             if let Some(query)= data_url.query(){
-                    
     //             }
     //         },
     //         Err(why)=>{
