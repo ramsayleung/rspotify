@@ -182,8 +182,11 @@ impl SpotifyOAuth {
     pub fn get_cached_token(&mut self) -> Option<TokenInfo> {
         let display = self.cache_path.display();
         let mut file = match File::open(&self.cache_path) {
-            Err(why) => panic!("couldn't open {}: {}", display, why.description()),
             Ok(file) => file,
+            Err(why) => {
+                println!("couldn't open {}: {:?}", display, why.description());
+                return None;
+            }
         };
         let mut token_info_string = String::new();
         match file.read_to_string(&mut token_info_string) {
@@ -295,6 +298,7 @@ impl SpotifyOAuth {
         let mut authorize_url = String::from("https://accounts.spotify.com/authorize?");
         authorize_url
             .push_str(&utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET).to_string());
+        println!("{:?}", &authorize_url);
         authorize_url
 
     }

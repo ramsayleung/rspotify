@@ -84,12 +84,13 @@ fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
         None => {
-            let auth_url = spotify_oauth.get_authorize_url(None, None);
+            let state = generate_random_string(16);
+            let auth_url = spotify_oauth.get_authorize_url(Some(&state), None);
             match webbrowser::open(&auth_url) {
                 Ok(_) => println!("Opened {} in your browser", auth_url),
                 Err(why) => println!("Error:Please naviage here [{:?}] ", auth_url),
             }
-
+            println!("Enter the URL you were redirected to: ");
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {
