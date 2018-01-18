@@ -22,7 +22,7 @@ use super::util::{datetime_to_timestamp, generate_random_string, convert_map_to_
 pub struct SpotifyClientCredentials {
     pub client_id: String,
     pub client_secret: String,
-    pub token_info: TokenInfo,
+    pub token_info: Option<TokenInfo>,
 }
 #[derive(Clone,Debug,Serialize,Deserialize)]
 pub struct SpotifyOAuth {
@@ -96,7 +96,47 @@ impl TokenInfo {
     }
 }
 
-impl SpotifyClientCredentials {}
+impl SpotifyClientCredentials {
+    pub fn get_access_token(&self) -> String {
+        let mut access_token = String::new();
+        match self.token_info {
+            Some(ref token_info) => {
+                if !self.is_token_expired(&token_info) {
+                    access_token = token_info.access_token.to_owned();
+                }
+                access_token
+            }
+            None => {
+                match self.request_access_token() {
+                    Some(new_token_info) => new_token_info.access_token,
+                    None => String::new(),
+                }
+            }
+        }
+    }
+    fn is_token_expired(&self, token_info: &TokenInfo) -> bool {
+        is_token_expired(token_info)
+    }
+    fn request_access_token(&self) -> Option<TokenInfo> {
+        let mut payload = HashMap::new();
+        payload.insert("grant_type", "client_credentials");
+        if let Some(mut token_info) =
+            self.fetch_access_token(&self.client_id, &self.client_secret, &payload) {
+            let expires_in = token_info.expires_in;
+            token_info.set_expires_at(&datetime_to_timestamp(expires_in));
+            Some(token_info)
+        } else {
+            None
+        }
+    }
+    fn fetch_access_token(&self,
+                          client_id: &str,
+                          client_secret: &str,
+                          payload: &HashMap<&str, &str>)
+                          -> Option<TokenInfo> {
+        fetch_access_token(client_id, client_secret, payload)
+    }
+}
 
 impl SpotifyOAuth {
     // spotify token example:
@@ -196,7 +236,7 @@ impl SpotifyOAuth {
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
                     return None;
                 } else {
-                    if SpotifyOAuth::is_token_expired(&token_info) {
+                    if self.is_token_expired(&token_info) {
                         if let Some(refresh_token) = token_info.refresh_token {
                             self.refresh_access_token(&refresh_token)
                         } else {
@@ -217,49 +257,13 @@ impl SpotifyOAuth {
         payload.insert("grant_type", "authorization_code");
         payload.insert("scope", &self.scope);
         payload.insert("state", &self.state);
-        self.fetch_access_token(&payload)
-
-    }
-    /// fetch access_token
-    fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> Option<TokenInfo> {
-        let client = Client::new();
-        let client_id = self.client_id.clone();
-        let client_secret = self.client_secret.clone();
-        let credentials = Basic {
-            username: client_id,
-            password: Some(client_secret),
-        };
-        let url = "https://accounts.spotify.com/api/token";
-        let mut response = client
-            .post(url)
-            .header(Authorization(credentials))
-            .form(&payload)
-            .send()
-            .expect("send request failed");
-        let mut buf = String::new();
-        response
-            .read_to_string(&mut buf)
-            .expect("failed to read response");
-        if response.status().is_success() {
-            println!("{:?}", buf);
-            let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
-            // .expect("parsing response content to tokenInfo error");
-            let expires_in = token_info.expires_in;
-            token_info.set_expires_at(&datetime_to_timestamp(expires_in));
-            if token_info.refresh_token.is_none() {
-                match payload.get("refresh_token") {
-                    Some(payload_refresh_token) => {
-                        token_info.set_refresh_token(&payload_refresh_token);
-                    }
-                    None => {
-                        println!("could not find refresh_token");
-                    }
-                }
-            }
+        if let Some(token_info) = self.fetch_access_token(&self.client_id,
+                                                          &self.client_secret,
+                                                          &payload) {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     self.save_token_info(&token_info_string);
-                    Some(token_info)
+                    return Some(token_info);
                 }
                 Err(why) => {
                     panic!("couldn't convert token_info to string: {} ",
@@ -267,10 +271,17 @@ impl SpotifyOAuth {
                 }
             }
         } else {
-            println!("fetch access token request failed, payload:{:?}", &payload);
-            println!("{:?}", response);
             None
         }
+
+    }
+    /// fetch access_token
+    fn fetch_access_token(&self,
+                          client_id: &str,
+                          client_secret: &str,
+                          payload: &HashMap<&str, &str>)
+                          -> Option<TokenInfo> {
+        fetch_access_token(client_id, client_secret, payload)
     }
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
@@ -306,16 +317,25 @@ impl SpotifyOAuth {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
-        self.fetch_access_token(&payload)
+        if let Some(token_info) = self.fetch_access_token(&self.client_id,
+                                                          &self.client_secret,
+                                                          &payload) {
+            match serde_json::to_string(&token_info) {
+                Ok(token_info_string) => {
+                    self.save_token_info(&token_info_string);
+                    return Some(token_info);
+                }
+                Err(why) => {
+                    panic!("couldn't convert token_info to string: {} ",
+                           why.description());
+                }
+            }
+        } else {
+            None
+        }
     }
     fn save_token_info(&self, token_info: &str) {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(self.cache_path.as_path())
-            .expect("error");
-        file.write_all(token_info.as_bytes())
-            .expect("error when write file");
+        save_token_info(token_info, self.cache_path.as_path())
     }
     fn is_scope_subset(needle_scope: &mut str, haystack_scope: &mut str) -> bool {
         let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
@@ -325,13 +345,73 @@ impl SpotifyOAuth {
         // needle_set - haystack_set
         needle_set.is_subset(&haystack_set)
     }
-    fn is_token_expired(token_info: &TokenInfo) -> bool {
-        let now: DateTime<Utc> = Utc::now();
-        // 10s as buffer time
-        match token_info.expires_at {
-            Some(expires_at) => now.timestamp() > expires_at - 10,
-            None => true,
+    fn is_token_expired(&self, token_info: &TokenInfo) -> bool {
+        is_token_expired(token_info)
+    }
+}
+
+fn is_token_expired(token_info: &TokenInfo) -> bool {
+    let now: DateTime<Utc> = Utc::now();
+    // 10s as buffer time
+    match token_info.expires_at {
+        Some(expires_at) => now.timestamp() > expires_at - 10,
+        None => true,
+    }
+}
+fn save_token_info(token_info: &str, path: &Path) {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(path)
+        .expect("error");
+    file.write_all(token_info.as_bytes())
+        .expect("error when write file");
+}
+
+fn fetch_access_token(_client_id: &str,
+                      _client_secret: &str,
+                      payload: &HashMap<&str, &str>)
+                      -> Option<TokenInfo> {
+    let client = Client::new();
+    let client_id = _client_id.to_owned();
+    let client_secret = _client_secret.to_owned();
+    let credentials = Basic {
+        username: client_id,
+        password: Some(client_secret),
+    };
+    let url = "https://accounts.spotify.com/api/token";
+    let mut response = client
+        .post(url)
+        .header(Authorization(credentials))
+        .form(&payload)
+        .send()
+        .expect("send request failed");
+    let mut buf = String::new();
+    response
+        .read_to_string(&mut buf)
+        .expect("failed to read response");
+    if response.status().is_success() {
+        println!("{:?}", buf);
+        let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
+        // .expect("parsing response content to tokenInfo error");
+        let expires_in = token_info.expires_in;
+        token_info.set_expires_at(&datetime_to_timestamp(expires_in));
+        if token_info.refresh_token.is_none() {
+            match payload.get("refresh_token") {
+                Some(payload_refresh_token) => {
+                    token_info.set_refresh_token(&payload_refresh_token);
+                    return Some(token_info);
+                }
+                None => {
+                    println!("could not find refresh_token");
+                }
+            }
         }
+        Some(token_info)
+    } else {
+        println!("fetch access token request failed, payload:{:?}", &payload);
+        println!("{:?}", response);
+        None
     }
 }
 
