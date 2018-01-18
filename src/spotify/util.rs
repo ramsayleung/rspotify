@@ -69,7 +69,7 @@ pub fn prompt_for_user_token_argv(client_id: &str,
         .build();
     match get_token(&mut oauth) {
         Some(token_info) => token_info,
-        None => panic!("Could not find code in input url,get spotify token failed"),
+        None => panic!("Could not get token info"),
     }
 
 }
@@ -77,10 +77,11 @@ pub fn prompt_for_user_token() -> TokenInfo {
     let mut oauth = SpotifyOAuth::default().build();
     match get_token(&mut oauth) {
         Some(token_info) => token_info,
-        None => panic!("Could not find code in input url,get spotify token failed"),
+        None => panic!("Could not get token info"),
     }
 }
 fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+    error!("debug message");
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
         None => {
@@ -94,12 +95,7 @@ fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {
-                    let mut decoded_url = percent_decode(input.as_bytes())
-                        .decode_utf8()
-                        .unwrap()
-                        .to_string();
-                    let query_parameter = convert_str_to_map(&mut decoded_url);
-                    match query_parameter.get("code") {
+                    match spotify_oauth.parse_response_code(&mut input) {
                         Some(code) => {
                             let token_info = spotify_oauth.get_access_token(&code);
                             token_info
@@ -107,10 +103,7 @@ fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
                         None => None,
                     }
                 }
-                Err(error) => {
-                    println!("error: {:?}", error);
-                    None
-                }
+                Err(error) => None,
             }
         }
     }

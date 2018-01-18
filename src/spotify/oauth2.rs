@@ -251,7 +251,9 @@ impl SpotifyOAuth {
                     Some(payload_refresh_token) => {
                         token_info.set_refresh_token(&payload_refresh_token);
                     }
-                    None => {}
+                    None => {
+                        println!("could not find refresh_token");
+                    }
                 }
             }
             match serde_json::to_string(&token_info) {
@@ -265,22 +267,18 @@ impl SpotifyOAuth {
                 }
             }
         } else {
+            println!("fetch access token request failed, payload:{:?}", &payload);
+            println!("{:?}", response);
             None
         }
     }
     /// Parse the response code in the given response url
-    // pub fn parse_response_code(&self,url:&mut str)=>Option<HashMap>{
-    //     match Url::parse("data:text/plain,Hello?World#"){
-    //         Ok(data_url)=>{
-    //             if let Some(query)= data_url.query(){
-    //             }
-    //         },
-    //         Err(why)=>{
-    //             println!("[{:?}] parse url error",why.description())
-    //         }
-    //     }
-
-    // }
+    pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
+        let tokens: Vec<&str> = url.split("?code=").collect();
+        let strings: Vec<&str> = tokens[1].split("&").collect();
+        let code = strings[0];
+        Some(code.to_owned())
+    }
     /// Gets the URL to use to authorize this app
     pub fn get_authorize_url(&self, state: Option<&str>, show_dialog: Option<bool>) -> String {
         let mut payload: HashMap<&str, &str> = HashMap::new();
@@ -302,7 +300,8 @@ impl SpotifyOAuth {
         authorize_url
 
     }
-    /// after refresh access_token, the response may be empty when refresh_token again
+    /// after refresh access_token, the response may be empty
+    /// when refresh_token again
     pub fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
@@ -386,4 +385,18 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_parse_response_code() {
+        let mut url = String::from("http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_");
+        let spotify_oauth = SpotifyOAuth::default()
+            .state(&generate_random_string(16))
+            .scope("user-read-mail")
+            .cache_path(PathBuf::from(".test_token"))
+            .build();
+        match spotify_oauth.parse_response_code(&mut url) {
+            Some(code) => assert_eq!(code, "AQD0yXvFEOvw"),
+            None => panic!("failed"),
+        }
+
+    }
 }
