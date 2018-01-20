@@ -18,13 +18,13 @@ use std::io::prelude::*;
 use std::fs::OpenOptions;
 
 // use customized library
-use super::util::{datetime_to_timestamp, generate_random_string, convert_map_to_string};
+use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 pub struct SpotifyClientCredentials {
     pub client_id: String,
     pub client_secret: String,
     pub token_info: Option<TokenInfo>,
 }
-#[derive(Clone,Debug,Serialize,Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SpotifyOAuth {
     pub client_id: String,
     pub client_secret: String,
@@ -40,11 +40,7 @@ pub enum SpotifyAuthError {
     FileHandleError,
 }
 
-// static CLIENT_ID: &'static str = &env::var("CLIENT_ID").unwrap_or_default();
-// static CLIENT_SECRET: &'static str = &env::var("CLIENT_SECRET").unwrap_or_default();
-// static REDIRECT_URI: &'static str = &env::var("REDIRECT_URI").unwrap_or_default();
-
-#[derive(Clone,Debug,Serialize,Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TokenInfo {
     pub access_token: String,
     pub token_type: String,
@@ -97,6 +93,57 @@ impl TokenInfo {
 }
 
 impl SpotifyClientCredentials {
+    /// build default SpotifyClientCredentials
+    pub fn default(&self) -> SpotifyClientCredentials {
+        dotenv().ok();
+        let client_id = env::var("CLIENT_ID").unwrap_or_default();
+        let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
+        SpotifyClientCredentials {
+            client_id: client_id,
+            client_secret: client_secret,
+            token_info: None,
+        }
+    }
+
+    pub fn client_id(mut self, client_id: &str) -> SpotifyClientCredentials {
+        self.client_id = client_id.to_owned();
+        self
+    }
+    pub fn client_secret(mut self, client_secret: &str) -> SpotifyClientCredentials {
+        self.client_secret = client_secret.to_owned();
+        self
+    }
+    pub fn token_info(mut self, token_info: TokenInfo) -> SpotifyClientCredentials {
+        self.token_info = Some(token_info);
+        self
+    }
+    pub fn build(self) -> SpotifyClientCredentials {
+        const ERROR_MESSAGE: &str = "
+    You need to set your Spotify API credentials. You can do this by
+    setting environment variables in `.env` file:
+    CLIENT_ID='your-spotify-client-id'
+    CLIENT_SECRET='your-spotify-client-secret'
+    REDIRECT_URI='your-app-redirect-url'
+    Get your credentials at `https://developer.spotify.com/my-applications`";
+        let mut flag = false;
+        if self.client_secret.is_empty() {
+            flag = true;
+        }
+        if self.client_id.is_empty() {
+            flag = true;
+        }
+
+        if flag {
+            eprintln!("{}", ERROR_MESSAGE);
+        } else {
+            debug!("client_id:{:?}, client_secret:{:?}",
+                   self.client_id,
+                   self.client_secret);
+        }
+        self
+
+    }
+
     pub fn get_access_token(&self) -> String {
         let mut access_token = String::new();
         match self.token_info {
@@ -273,7 +320,6 @@ impl SpotifyOAuth {
         } else {
             None
         }
-
     }
     /// fetch access_token
     fn fetch_access_token(&self,
@@ -309,7 +355,6 @@ impl SpotifyOAuth {
             .push_str(&utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET).to_string());
         println!("{:?}", &authorize_url);
         authorize_url
-
     }
     /// after refresh access_token, the response may be empty
     /// when refresh_token again
@@ -477,6 +522,5 @@ mod tests {
             Some(code) => assert_eq!(code, "AQD0yXvFEOvw"),
             None => panic!("failed"),
         }
-
     }
 }
