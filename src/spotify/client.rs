@@ -11,6 +11,7 @@ use std::borrow::Cow;
 
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
+use super::model::album::Albums;
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
@@ -63,7 +64,8 @@ impl Spotify {
                      method: Method,
                      url: &str,
                      payload: Option<&HashMap<&str, &str>>,
-                     params: &mut HashMap<&str, String>) {
+                     params: &mut HashMap<&str, String>)
+                     -> Option<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
@@ -95,17 +97,19 @@ impl Spotify {
             .read_to_string(&mut buf)
             .expect("failed to read response");
         if response.status().is_success() {
-            println!("{:?}", buf);
+            Some(buf)
         } else {
-            println!("response: {:?}", response);
+            eprintln!("response: {:?}", response);
+            None
         }
 
     }
     fn get(&self,
            url: &mut str,
            payload: Option<&HashMap<&str, &str>>,
-           params: &mut HashMap<&str, String>) {
-        self.internal_call(Get, url, payload, params);
+           params: &mut HashMap<&str, String>)
+           -> Option<String> {
+        self.internal_call(Get, url, payload, params)
     }
 
     ///  Get Spotify catalog information about an artist's albums
@@ -120,7 +124,8 @@ impl Spotify {
                          album_type: Option<ALBUM_TYPE>,
                          country: Option<&str>,
                          limit: Option<u32>,
-                         offset: Option<u32>) {
+                         offset: Option<u32>)
+                         -> Option<Albums> {
         let mut params: HashMap<&str, String> = HashMap::new();
         if let Some(_limit) = limit {
             params.insert("limit", _limit.to_string());
@@ -138,7 +143,19 @@ impl Spotify {
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/albums");
-        self.get(&mut url, None, &mut params);
+        match self.get(&mut url, None, &mut params) {
+            Some(result) => {
+                // let mut albums: Albums = ;
+                match serde_json::from_str::<Albums>(&result) {
+                    Ok(_albums) => Some(_albums),
+                    Err(why) => {
+                        eprintln!("convert albums from String to Albums failed {:?}", why);
+                        None
+                    }
+                }
+            }
+            None => None,
+        }
     }
     fn get_id(&self, artist_type: TYPE, artist_id: &mut str) -> String {
         let mut fields: Vec<&str> = artist_id.split(":").collect();
