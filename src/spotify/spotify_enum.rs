@@ -36,3 +36,42 @@ impl fmt::Debug for ALBUM_TYPE {
         }
     }
 }
+
+//  ‘artist’, ‘album’,‘track’ or ‘playlist’
+pub enum TYPE {
+    ARTIST,
+    ALBUM,
+    TRACK,
+    PLAYLIST,
+}
+
+impl TYPE {
+    pub fn from_str(s: &str) -> Option<TYPE> {
+        match s {
+            "artist" => Some(TYPE::ARTIST),
+            "album" => Some(TYPE::ALBUM),
+            "track" => Some(TYPE::TRACK),
+            "playlist" => Some(TYPE::PLAYLIST),
+            _ => None,
+        }
+    }
+    pub fn as_str(&self) -> &str {
+        match self {
+            &TYPE::ALBUM => "album",
+            &TYPE::ARTIST => "artist",
+            &TYPE::TRACK => "track",
+            &TYPE::PLAYLIST => "playtlist",
+        }
+    }
+}
+
+impl fmt::Debug for TYPE {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TYPE::ALBUM => write!(f, "album"),
+            TYPE::ARTIST => write!(f, "artist"),
+            TYPE::TRACK => write!(f, "track"),
+            TYPE::PLAYLIST => write!(f, "playlist"),
+        }
+    }
+}

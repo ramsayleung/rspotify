@@ -6,16 +6,18 @@ use reqwest::Method::{self, Put, Get, Post, Delete};
 //  built-in battery
 use std::collections::HashMap;
 use std::io::Read;
+use std::borrow::Cow;
+
 
 use super::oauth2::SpotifyClientCredentials;
-use super::model::ALBUM_TYPE;
+use super::spotify_enum::{ALBUM_TYPE, TYPE};
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
     pub client_credentials_manager: Option<SpotifyClientCredentials>,
 }
 impl Spotify {
-    pub fn default(&self) -> Spotify {
+    pub fn default() -> Spotify {
         Spotify {
             prefix: "https://api.spotify.com/v1/".to_owned(),
             access_token: None,
@@ -59,12 +61,12 @@ impl Spotify {
     }
     fn internal_call(&self,
                      method: Method,
-                     url: &mut str,
+                     url: &str,
                      payload: Option<&HashMap<&str, &str>>,
                      params: &mut HashMap<&str, String>) {
+        let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
-            let mut prefix_url = self.prefix.clone();
-            let url = prefix_url.push_str(url);
+            url = ["https://api.spotify.com/v1/", &url].concat().into();
         }
         if let Some(data) = payload {
             match serde_json::to_string(&data) {
@@ -82,7 +84,7 @@ impl Spotify {
         headers.set(self.auth_headers());
         headers.set(ContentType::json());
         let mut response = client
-            .request(method, &url.to_owned())
+            .request(method, &url.into_owned())
             .headers(headers)
             .json(&payload)
             .send()
@@ -94,6 +96,8 @@ impl Spotify {
             .expect("failed to read response");
         if response.status().is_success() {
             println!("{:?}", buf);
+        } else {
+            println!("response: {:?}", response);
         }
 
     }
@@ -104,5 +108,90 @@ impl Spotify {
         self.internal_call(Get, url, payload, params);
     }
 
-    pub fn artist_albums(&self, artist_id: &str, album_type: ALBUM_TYPE) {}
+    ///  Get Spotify catalog information about an artist's albums
+    /// - artist_id - the artist ID, URI or URL
+    /// - album_type - 'album', 'single', 'appears_on', 'compilation'
+    /// - country - limit the response to one particular country.
+    /// - limit  - the number of albums to return
+    /// - offset - the index of the first album to return
+
+    pub fn artist_albums(&self,
+                         artist_id: &mut str,
+                         album_type: Option<ALBUM_TYPE>,
+                         country: Option<&str>,
+                         limit: Option<u32>,
+                         offset: Option<u32>) {
+        let mut params: HashMap<&str, String> = HashMap::new();
+        if let Some(_limit) = limit {
+            params.insert("limit", _limit.to_string());
+        }
+        if let Some(_album_type) = album_type {
+            params.insert("album_type", _album_type.as_str().to_owned());
+        }
+        if let Some(_offset) = offset {
+            params.insert("offset", _offset.to_string());
+        }
+        if let Some(_country) = country {
+            params.insert("country", _country.to_string());
+        }
+        let trid = self.get_id(TYPE::ARTIST, artist_id);
+        let mut url = String::from("artists/");
+        url.push_str(&trid);
+        url.push_str("/albums");
+        self.get(&mut url, None, &mut params);
+    }
+    fn get_id(&self, artist_type: TYPE, artist_id: &mut str) -> String {
+        let mut fields: Vec<&str> = artist_id.split(":").collect();
+        let mut len = fields.len();
+        if len >= 3 {
+            if artist_type.as_str() != fields[len - 2] {
+                eprintln!("expected id of type {:?} but found type {:?} {:?}",
+                          artist_type,
+                          fields[len - 2],
+                          artist_id);
+            } else {
+                return fields[len - 1].to_owned();
+            }
+        }
+        let sfields: Vec<&str> = artist_id.split("/").collect();
+        let len: usize = sfields.len();
+        if len >= 3 {
+            if artist_type.as_str() != sfields[len - 2] {
+                eprintln!("expected id of type {:?} but found type {:?} {:?}",
+                          artist_type,
+                          sfields[len - 2],
+                          artist_id);
+            } else {
+                return sfields[len - 1].to_owned();
+            }
+        }
+        return artist_id.to_owned();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_get_id() {
+        // assert artist
+        let spotify = Spotify::default().access_token("test-access").build();
+        let mut artist_id = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
+        let id = spotify.get_id(TYPE::ARTIST, &mut artist_id);
+        assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
+        // assert album
+        let mut artist_id_a = String::from("spotify/album/2WX2uTcsvV5OnS0inACecP");
+        assert_eq!("2WX2uTcsvV5OnS0inACecP",
+                   &spotify.get_id(TYPE::ALBUM, &mut artist_id_a));
+
+        // mismatch type
+        let mut artist_id_b = String::from("spotify:album:2WX2uTcsvV5OnS0inACecP");
+        assert_eq!("spotify:album:2WX2uTcsvV5OnS0inACecP",
+                   &spotify.get_id(TYPE::ARTIST, &mut artist_id_b));
+
+        // could not split
+        let mut artist_id_c = String::from("spotify-album-2WX2uTcsvV5OnS0inACecP");
+        assert_eq!("spotify-album-2WX2uTcsvV5OnS0inACecP",
+                   &spotify.get_id(TYPE::ARTIST, &mut artist_id_c));
+    }
 }

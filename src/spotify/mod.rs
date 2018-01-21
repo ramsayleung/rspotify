@@ -1,4 +1,4 @@
 pub mod oauth2;
 pub mod client;
 pub mod util;
-pub mod model;
+pub mod spotify_enum;
