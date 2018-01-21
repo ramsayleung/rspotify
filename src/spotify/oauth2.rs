@@ -2,10 +2,9 @@
 use chrono::prelude::*;
 use serde_json;
 use reqwest::Client;
-use reqwest::header::{Authorization, Basic, Bearer};
+use reqwest::header::{Authorization, Basic};
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
-use url::Url;
 
 // use built-in library
 use std::env;
@@ -94,7 +93,7 @@ impl TokenInfo {
 
 impl SpotifyClientCredentials {
     /// build default SpotifyClientCredentials
-    pub fn default(&self) -> SpotifyClientCredentials {
+    pub fn default() -> SpotifyClientCredentials {
         dotenv().ok();
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
@@ -104,7 +103,6 @@ impl SpotifyClientCredentials {
             token_info: None,
         }
     }
-
     pub fn client_id(mut self, client_id: &str) -> SpotifyClientCredentials {
         self.client_id = client_id.to_owned();
         self
@@ -141,21 +139,25 @@ impl SpotifyClientCredentials {
                    self.client_secret);
         }
         self
-
     }
-
+    /// get access token from self.token_info, if self.token_info is none or is
+    /// expired. fetch token info by HTTP request
     pub fn get_access_token(&self) -> String {
         let mut access_token = String::new();
         match self.token_info {
             Some(ref token_info) => {
                 if !self.is_token_expired(&token_info) {
+                    debug!("token info: {:?}", &token_info);
                     access_token = token_info.access_token.to_owned();
                 }
                 access_token
             }
             None => {
                 match self.request_access_token() {
-                    Some(new_token_info) => new_token_info.access_token,
+                    Some(new_token_info) => {
+                        debug!("token info: {:?}", &new_token_info);
+                        new_token_info.access_token
+                    }
                     None => String::new(),
                 }
             }
@@ -345,7 +347,7 @@ impl SpotifyOAuth {
         if let Some(state) = state {
             payload.insert("state", state);
         }
-        if let Some(show_dialog) = show_dialog {
+        if show_dialog.is_some() {
             payload.insert("show_diaload", "true");
         }
 
@@ -436,7 +438,7 @@ fn fetch_access_token(_client_id: &str,
         .read_to_string(&mut buf)
         .expect("failed to read response");
     if response.status().is_success() {
-        println!("{:?}", buf);
+        debug!("response content: {:?}", buf);
         let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
         // .expect("parsing response content to tokenInfo error");
         let expires_in = token_info.expires_in;
@@ -448,14 +450,14 @@ fn fetch_access_token(_client_id: &str,
                     return Some(token_info);
                 }
                 None => {
-                    println!("could not find refresh_token");
+                    debug!("could not find refresh_token");
                 }
             }
         }
         Some(token_info)
     } else {
-        println!("fetch access token request failed, payload:{:?}", &payload);
-        println!("{:?}", response);
+        error!("fetch access token request failed, payload:{:?}", &payload);
+        error!("{:?}", response);
         None
     }
 }

@@ -1,5 +1,5 @@
 use serde_json;
-use reqwest::header::{Authorization, Basic, Bearer, ContentType, Headers};
+use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
 use reqwest::Method;
 
