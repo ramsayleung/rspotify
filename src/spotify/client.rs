@@ -1,13 +1,14 @@
 use serde_json;
 use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
-use reqwest::Method;
+use reqwest::Method::{self, Put, Get, Post, Delete};
 
 //  built-in battery
 use std::collections::HashMap;
 use std::io::Read;
 
 use super::oauth2::SpotifyClientCredentials;
+use super::model::ALBUM_TYPE;
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
@@ -81,9 +82,9 @@ impl Spotify {
         headers.set(self.auth_headers());
         headers.set(ContentType::json());
         let mut response = client
-            .post(&url.to_owned())
+            .request(method, &url.to_owned())
             .headers(headers)
-            .form(&payload)
+            .json(&payload)
             .send()
             .expect("send request failed");
 
@@ -96,4 +97,12 @@ impl Spotify {
         }
 
     }
+    fn get(&self,
+           url: &mut str,
+           payload: Option<&HashMap<&str, &str>>,
+           params: &mut HashMap<&str, String>) {
+        self.internal_call(Get, url, payload, params);
+    }
+
+    pub fn artist_albums(&self, artist_id: &str, album_type: ALBUM_TYPE) {}
 }
