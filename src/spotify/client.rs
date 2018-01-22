@@ -12,6 +12,7 @@ use std::borrow::Cow;
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
 use super::model::album::Albums;
+use super::model::track::Tracks;
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
@@ -157,9 +158,42 @@ impl Spotify {
             None => None,
         }
     }
+
+    /// Get Spotify catalog information about an artist's top 10 tracks
+    ///    by country.
+
+    ///    Parameters:
+    ///        - artist_id - the artist ID, URI or URL
+    ///        - country - limit the response to one particular country.
+    pub fn artist_top_tracks(&self, artist_id: &mut str, country: Option<&str>) -> Option<Tracks> {
+        let mut params: HashMap<&str, String> = HashMap::new();
+        if let Some(_country) = country {
+            params.insert("country", _country.to_string());
+        } else {
+            params.insert("country", "US".to_owned());
+        }
+        let trid = self.get_id(TYPE::ARTIST, artist_id);
+        let mut url = String::from("artists/");
+        url.push_str(&trid);
+        url.push_str("/top-tracks");
+        match self.get(&mut url, None, &mut params) {
+            Some(result) => {
+                // let mut albums: Albums = ;
+                match serde_json::from_str::<Tracks>(&result) {
+                    Ok(_tracks) => Some(_tracks),
+                    Err(why) => {
+                        eprintln!("convert albums from String to Albums failed {:?}", why);
+                        None
+                    }
+                }
+            }
+            None => None,
+        }
+    }
+
     fn get_id(&self, artist_type: TYPE, artist_id: &mut str) -> String {
-        let mut fields: Vec<&str> = artist_id.split(":").collect();
-        let mut len = fields.len();
+        let fields: Vec<&str> = artist_id.split(":").collect();
+        let len = fields.len();
         if len >= 3 {
             if artist_type.as_str() != fields[len - 2] {
                 eprintln!("expected id of type {:?} but found type {:?} {:?}",
