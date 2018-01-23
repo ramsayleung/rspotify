@@ -1,4 +1,3 @@
-use serde_json;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Image {

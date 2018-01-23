@@ -100,7 +100,8 @@ impl Spotify {
         if response.status().is_success() {
             Some(buf)
         } else {
-            eprintln!("response: {:?}", response);
+            eprintln!("response: {:?}", &response);
+            eprintln!("content: {:?}", &buf);
             None
         }
 
