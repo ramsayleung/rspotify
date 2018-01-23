@@ -4,6 +4,9 @@ use webbrowser;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET, percent_decode};
 
 use std::io;
+use std::string::ToString;
+use std::fmt::Debug;
+use std::hash::Hash;
 use std::path::PathBuf;
 use std::collections::HashMap;
 
@@ -26,12 +29,13 @@ pub fn generate_random_string(length: usize) -> String {
 /// `redirect_uri=my_uri&state=my-state&scope=test-scope`
 /// Since hashmap is not sorted, so the order of key-value-pairs
 /// may differ from times
-pub fn convert_map_to_string(map: &HashMap<&str, &str>) -> String {
+pub fn convert_map_to_string<K: Debug + Eq + Hash+ ToString,
+V: Debug+ToString>(map: &HashMap<K, V>) -> String{
     let mut string: String = String::new();
-    for (key, &value) in map.iter() {
-        string.push_str(key);
+    for (key, value) in map.iter() {
+        string.push_str(&key.to_string());
         string.push_str("=");
-        string.push_str(value);
+        string.push_str(&value.to_string());
         string.push_str("&");
     }
     string

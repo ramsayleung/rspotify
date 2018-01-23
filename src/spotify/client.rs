@@ -13,6 +13,7 @@ use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
 use super::model::album::Albums;
 use super::model::track::Tracks;
+use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
@@ -81,6 +82,7 @@ impl Spotify {
                 }
             }
         }
+        println!("{:?}", &url);
         let client = Client::new();
 
         let mut headers = Headers::new();
@@ -111,7 +113,11 @@ impl Spotify {
            payload: Option<&HashMap<&str, &str>>,
            params: &mut HashMap<&str, String>)
            -> Option<String> {
-        self.internal_call(Get, url, payload, params)
+        let param: String = convert_map_to_string(params);
+        let mut url_with_params = String::from(url.to_owned());
+        url_with_params.push('?');
+        url_with_params.push_str(&param);
+        self.internal_call(Get, &url_with_params, payload, params)
     }
 
     ///  Get Spotify catalog information about an artist's albums
@@ -173,6 +179,7 @@ impl Spotify {
         } else {
             params.insert("country", "US".to_owned());
         }
+        println!("{:?}", &params);
         let trid = self.get_id(TYPE::ARTIST, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
