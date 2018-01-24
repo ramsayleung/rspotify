@@ -2,11 +2,11 @@
 use std::collections::HashMap;
 
 use super::artist::Artist;
-use super::album::Item;
+use super::album::Album;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
-    pub album: Item,
+    pub album: Album,
     pub artists: Vec<Artist>,
     pub available_markets: Vec<String>,
     pub disc_number: i32,

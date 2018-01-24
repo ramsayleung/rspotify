@@ -1,4 +1,5 @@
 use serde_json;
+use serde::de::Deserialize;
 use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
 use reqwest::Method::{self, Put, Get, Post, Delete};
@@ -11,14 +12,19 @@ use std::borrow::Cow;
 
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
-use super::model::album::Albums;
-use super::model::track::Tracks;
+use super::model::album::{Albums, Album};
+use super::model::track::{Tracks, Track};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
     pub client_credentials_manager: Option<SpotifyClientCredentials>,
 }
+// struct Converter<T>;
+
+// impl Converter{
+//     pub fn convert_result(input:Option<String>)
+// }
 impl Spotify {
     pub fn default() -> Spotify {
         Spotify {
@@ -120,6 +126,39 @@ impl Spotify {
         self.internal_call(Get, &url_with_params, payload, params)
     }
 
+    fn post(&self,
+            url: &mut str,
+            payload: Option<&HashMap<&str, &str>>,
+            params: &mut HashMap<&str, String>)
+            -> Option<String> {
+        self.internal_call(Post, url, payload, params)
+    }
+    fn put(&self,
+           url: &mut str,
+           payload: Option<&HashMap<&str, &str>>,
+           params: &mut HashMap<&str, String>)
+           -> Option<String> {
+        self.internal_call(Put, url, payload, params)
+    }
+    fn delete(&self,
+              url: &mut str,
+              payload: Option<&HashMap<&str, &str>>,
+              params: &mut HashMap<&str, String>)
+              -> Option<String> {
+        self.internal_call(Delete, url, payload, params)
+    }
+
+    pub fn track(&self, track_id: &mut str) -> Option<Track> {
+        let trid = self.get_id(TYPE::TRACK, track_id);
+        let mut url = String::from("tracks/");
+        url.push_str(&trid);
+        let result = self.get(&mut url, None, &mut HashMap::new());
+        println!("{:?}", &result);
+        self.convert_result::<Track>(&result.unwrap_or_default())
+    }
+
+
+
     ///  Get Spotify catalog information about an artist's albums
     /// - artist_id - the artist ID, URI or URL
     /// - album_type - 'album', 'single', 'appears_on', 'compilation'
@@ -151,18 +190,17 @@ impl Spotify {
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/albums");
-        match self.get(&mut url, None, &mut params) {
-            Some(result) => {
-                // let mut albums: Albums = ;
-                match serde_json::from_str::<Albums>(&result) {
-                    Ok(_albums) => Some(_albums),
-                    Err(why) => {
-                        eprintln!("convert albums from String to Albums failed {:?}", why);
-                        None
-                    }
-                }
+        let result = self.get(&mut url, None, &mut params);
+        self.convert_result::<Albums>(&result.unwrap_or_default())
+
+    }
+    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
+        match serde_json::from_str::<T>(input) {
+            Ok(result) => Some(result),
+            Err(why) => {
+                println!("convert result failed {:?}", why);
+                None
             }
-            None => None,
         }
     }
 

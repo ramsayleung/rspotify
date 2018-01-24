@@ -5,7 +5,7 @@ use super::image::Image;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Albums {
     pub href: String,
-    pub items: Vec<Item>,
+    pub items: Vec<Album>,
     pub limit: u16,
     pub next: String,
     pub offset: i32,
@@ -13,9 +13,9 @@ pub struct Albums {
     pub total: u32,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Item {
-    pub album_type: String,
+pub struct Album {
     pub artists: Vec<Artist>,
+    pub album_type: String,
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
