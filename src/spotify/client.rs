@@ -119,11 +119,16 @@ impl Spotify {
            payload: Option<&HashMap<&str, &str>>,
            params: &mut HashMap<&str, String>)
            -> Option<String> {
-        let param: String = convert_map_to_string(params);
-        let mut url_with_params = String::from(url.to_owned());
-        url_with_params.push('?');
-        url_with_params.push_str(&param);
-        self.internal_call(Get, &url_with_params, payload, params)
+        if !params.is_empty() {
+            let param: String = convert_map_to_string(params);
+            let mut url_with_params = String::from(url.to_owned());
+            url_with_params.push('?');
+            url_with_params.push_str(&param);
+            self.internal_call(Get, &url_with_params, payload, params)
+        } else {
+
+            self.internal_call(Get, url, payload, params)
+        }
     }
 
     fn post(&self,
@@ -153,11 +158,24 @@ impl Spotify {
         let mut url = String::from("tracks/");
         url.push_str(&trid);
         let result = self.get(&mut url, None, &mut HashMap::new());
-        println!("{:?}", &result);
         self.convert_result::<Track>(&result.unwrap_or_default())
     }
 
-
+    pub fn tracks(&self, tracks: Vec<String>, market: Option<&str>) -> Option<Tracks> {
+        let mut ids: Vec<String> = vec![];
+        for mut track_id in tracks {
+            ids.push(self.get_id(TYPE::TRACK, &mut track_id));
+        }
+        let mut url = String::from("tracks/?ids=");
+        url.push_str(&ids.join(","));
+        let mut params: HashMap<&str, String> = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("market", _market.to_owned());
+        }
+        println!("{:?}", &url);
+        let result = self.get(&mut url, None, &mut params);
+        self.convert_result::<Tracks>(&result.unwrap_or_default())
+    }
 
     ///  Get Spotify catalog information about an artist's albums
     /// - artist_id - the artist ID, URI or URL

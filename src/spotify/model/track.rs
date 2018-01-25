@@ -17,7 +17,7 @@ pub struct Track {
     pub id: String,
     pub name: String,
     pub popularity: i32,
-    pub preview_url: String,
+    pub preview_url: Option<String>,
     pub track_number: u32,
     #[serde(rename = "type")]
     pub _type: String,
