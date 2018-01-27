@@ -38,11 +38,15 @@ impl fmt::Debug for ALBUM_TYPE {
 }
 
 //  ‘artist’, ‘album’,‘track’ or ‘playlist’
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
 pub enum TYPE {
+    #[serde(rename = "artist")]
     ARTIST,
+    #[serde(rename = "album")]
     ALBUM,
+    #[serde(rename = "track")]
     TRACK,
+    #[serde(rename = "playlist")]
     PLAYLIST,
 }
 
