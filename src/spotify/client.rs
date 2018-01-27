@@ -157,7 +157,7 @@ impl Spotify {
     ///Parameters:
     ///- track_id - a spotify URI, URL or ID
     pub fn track(&self, track_id: &mut str) -> Option<Track> {
-        let trid = self.get_id(TYPE::TRACK, track_id);
+        let trid = self.get_id(TYPE::Track, track_id);
         let mut url = String::from("tracks/");
         url.push_str(&trid);
         let result = self.get(&mut url, None, &mut HashMap::new());
@@ -171,7 +171,7 @@ impl Spotify {
     pub fn tracks(&self, tracks: Vec<String>, market: Option<&str>) -> Option<Tracks> {
         let mut ids: Vec<String> = vec![];
         for mut track_id in tracks {
-            ids.push(self.get_id(TYPE::TRACK, &mut track_id));
+            ids.push(self.get_id(TYPE::Track, &mut track_id));
         }
         let mut url = String::from("tracks/?ids=");
         url.push_str(&ids.join(","));
@@ -187,7 +187,7 @@ impl Spotify {
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
     pub fn artist(&self, artist_id: &mut str) -> Option<ArtistDetailed> {
-        let trid = self.get_id(TYPE::ARTIST, artist_id);
+        let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         let result = self.get(&mut url, None, &mut HashMap::new());
@@ -200,7 +200,7 @@ impl Spotify {
     pub fn artists(&self, artist_ids: Vec<String>) -> Option<Artists> {
         let mut ids: Vec<String> = vec![];
         for mut artist_id in artist_ids {
-            ids.push(self.get_id(TYPE::ARTIST, &mut artist_id));
+            ids.push(self.get_id(TYPE::Artist, &mut artist_id));
         }
         let mut url = String::from("artists/?ids=");
         url.push_str(&ids.join(","));
@@ -235,7 +235,7 @@ impl Spotify {
         if let Some(_country) = country {
             params.insert("country", _country.to_string());
         }
-        let trid = self.get_id(TYPE::ARTIST, artist_id);
+        let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/albums");
@@ -268,7 +268,7 @@ impl Spotify {
             params.insert("country", "US".to_owned());
         }
         println!("{:?}", &params);
-        let trid = self.get_id(TYPE::ARTIST, artist_id);
+        let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/top-tracks");
@@ -324,21 +324,21 @@ mod tests {
         // assert artist
         let spotify = Spotify::default().access_token("test-access").build();
         let mut artist_id = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-        let id = spotify.get_id(TYPE::ARTIST, &mut artist_id);
+        let id = spotify.get_id(TYPE::Artist, &mut artist_id);
         assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
         // assert album
         let mut artist_id_a = String::from("spotify/album/2WX2uTcsvV5OnS0inACecP");
         assert_eq!("2WX2uTcsvV5OnS0inACecP",
-                   &spotify.get_id(TYPE::ALBUM, &mut artist_id_a));
+                   &spotify.get_id(TYPE::Album, &mut artist_id_a));
 
         // mismatch type
         let mut artist_id_b = String::from("spotify:album:2WX2uTcsvV5OnS0inACecP");
         assert_eq!("spotify:album:2WX2uTcsvV5OnS0inACecP",
-                   &spotify.get_id(TYPE::ARTIST, &mut artist_id_b));
+                   &spotify.get_id(TYPE::Artist, &mut artist_id_b));
 
         // could not split
         let mut artist_id_c = String::from("spotify-album-2WX2uTcsvV5OnS0inACecP");
         assert_eq!("spotify-album-2WX2uTcsvV5OnS0inACecP",
-                   &spotify.get_id(TYPE::ARTIST, &mut artist_id_c));
+                   &spotify.get_id(TYPE::Artist, &mut artist_id_c));
     }
 }

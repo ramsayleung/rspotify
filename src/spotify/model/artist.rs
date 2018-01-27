@@ -10,7 +10,7 @@ pub struct Artist {
     pub id: String,
     pub name: String,
     #[serde(rename = "type")]
-    pub _type: String,
+    pub _type: TYPE,
     pub uri: String,
 }
 

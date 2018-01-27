@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use super::artist::Artist;
 use super::album::Album;
+use spotify::spotify_enum::TYPE;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
@@ -20,7 +21,7 @@ pub struct Track {
     pub preview_url: Option<String>,
     pub track_number: u32,
     #[serde(rename = "type")]
-    pub _type: String,
+    pub _type: TYPE,
     pub uri: String,
 }
 

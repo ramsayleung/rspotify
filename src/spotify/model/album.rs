@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use spotify::spotify_enum::TYPE;
 use super::artist::Artist;
 use super::image::Image;
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,6 +24,6 @@ pub struct Album {
     pub images: Vec<Image>,
     pub name: String,
     #[serde(rename = "type")]
-    pub _type: String,
+    pub _type: TYPE,
     pub uri: String,
 }
