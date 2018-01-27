@@ -1,6 +1,6 @@
 use std::fmt;
 // album_type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
-// #[derive(Debug)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ALBUM_TYPE {
     ALBUM,
     SINGLE,
@@ -38,6 +38,7 @@ impl fmt::Debug for ALBUM_TYPE {
 }
 
 //  ‘artist’, ‘album’,‘track’ or ‘playlist’
+#[derive(Clone, Serialize, Deserialize)]
 pub enum TYPE {
     ARTIST,
     ALBUM,
