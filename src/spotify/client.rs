@@ -243,16 +243,6 @@ impl Spotify {
         self.convert_result::<Albums>(&result.unwrap_or_default())
 
     }
-    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
-        match serde_json::from_str::<T>(input) {
-            Ok(result) => Some(result),
-            Err(why) => {
-                eprintln!("convert result failed {:?}", why);
-                eprintln!("content: {:?}", &input);
-                None
-            }
-        }
-    }
 
     /// Get Spotify catalog information about an artist's top 10 tracks
     ///    by country.
@@ -286,6 +276,32 @@ impl Spotify {
             None => None,
         }
     }
+
+    ///Get Spotify catalog information about artists similar to an
+    ///identified artist. Similarity is based on analysis of the
+    ///Spotify community's listening history.
+    ///Parameters:
+    ///- artist_id - the artist ID, URI or URL
+    pub fn artist_related_artists(&self, artist_id: &mut str) -> Option<Artists> {
+        let trid = self.get_id(TYPE::Artist, artist_id);
+        let mut url = String::from("artists/");
+        url.push_str(&trid);
+        url.push_str("/related-artists");
+        let result = self.get(&mut url, None, &mut HashMap::new());
+        self.convert_result::<Artists>(&result.unwrap_or_default())
+    }
+
+    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
+        match serde_json::from_str::<T>(input) {
+            Ok(result) => Some(result),
+            Err(why) => {
+                eprintln!("convert result failed {:?}", why);
+                eprintln!("content: {:?}", &input);
+                None
+            }
+        }
+    }
+
 
     fn get_id(&self, artist_type: TYPE, artist_id: &mut str) -> String {
         let fields: Vec<&str> = artist_id.split(":").collect();
