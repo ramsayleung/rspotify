@@ -3,3 +3,4 @@ pub mod image;
 pub mod album;
 pub mod track;
 pub mod page;
+pub mod user;

@@ -1,3 +1,4 @@
+https://developer.spotify.com/web-api/object-model/#paging-object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Page<T> {
     pub href: String,

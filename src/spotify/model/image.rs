@@ -1,7 +1,7 @@
-
+///https://developer.spotify.com/web-api/object-model/#image-object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Image {
-    pub height: u32,
+    pub height: Option<u32>,
     pub url: String,
-    pub width: u32,
+    pub width: Option<u32>,
 }

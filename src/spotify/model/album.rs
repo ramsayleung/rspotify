@@ -5,6 +5,7 @@ use super::track::TrackSimplified;
 use super::artist::ArtistSimplified;
 use super::image::Image;
 use super::page::Page;
+///https://developer.spotify.com/web-api/object-model/#album-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AlbumSimplified {
     pub artists: Vec<ArtistSimplified>,
@@ -19,6 +20,7 @@ pub struct AlbumSimplified {
     pub _type: TYPE,
     pub uri: String,
 }
+///https://developer.spotify.com/web-api/object-model/#album-object-full
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AlbumFull {
     pub artists: Vec<ArtistSimplified>,

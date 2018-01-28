@@ -46,6 +46,7 @@ pub enum TYPE {
     Album,
     Track,
     Playlist,
+    User,
 }
 
 impl TYPE {
@@ -55,6 +56,7 @@ impl TYPE {
             "album" => Some(TYPE::Album),
             "track" => Some(TYPE::Track),
             "playlist" => Some(TYPE::Playlist),
+            "user" => Some(TYPE::User),
             _ => None,
         }
     }
@@ -64,6 +66,7 @@ impl TYPE {
             &TYPE::Artist => "artist",
             &TYPE::Track => "track",
             &TYPE::Playlist => "playtlist",
+            &TYPE::User => "user",
         }
     }
 }
@@ -75,6 +78,7 @@ impl fmt::Debug for TYPE {
             TYPE::Artist => write!(f, "artist"),
             TYPE::Track => write!(f, "track"),
             TYPE::Playlist => write!(f, "playlist"),
+            TYPE::User => write!(f, "user"),
         }
     }
 }

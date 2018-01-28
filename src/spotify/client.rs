@@ -16,6 +16,7 @@ use super::model::album::{AlbumSimplified, AlbumFull, AlbumFulls};
 use super::model::page::Page;
 use super::model::track::{TrackFulls, TrackFull, TrackSimplified};
 use super::model::artist::{ArtistFull, ArtistFulls};
+use super::model::user::PublicUser;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -342,6 +343,18 @@ impl Spotify {
         self.convert_result::<Page<TrackSimplified>>(&result.unwrap_or_default())
 
     }
+
+    ///Gets basic profile information about a Spotify User
+    ///Parameters:
+    ///- user - the id of the usr
+    pub fn user(&self, user_id: &str) -> Option<PublicUser> {
+        let mut url = String::from("users/");
+        url.push_str(&user_id);
+        let result = self.get(&mut url, None, &mut HashMap::new());
+        self.convert_result::<PublicUser>(&result.unwrap_or_default())
+    }
+
+
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {

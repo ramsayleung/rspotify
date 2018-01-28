@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use serde_json::Value;
 use spotify::spotify_enum::TYPE;
 use super::image::Image;
+///https://developer.spotify.com/web-api/object-model/#artist-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ArtistSimplified {
     pub external_urls: HashMap<String, String>,
@@ -14,7 +15,7 @@ pub struct ArtistSimplified {
     pub uri: String,
 }
 
-
+///https://developer.spotify.com/web-api/object-model/#artist-object-full
 #[derive(Clone, Debug,Serialize, Deserialize)]
 pub struct ArtistFull {
     pub external_urls: HashMap<String, String>,
