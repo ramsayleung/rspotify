@@ -12,7 +12,7 @@ use std::borrow::Cow;
 
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
-use super::model::album::{AlbumSimplified, AlbumFull};
+use super::model::album::{AlbumSimplified, AlbumFull, AlbumFulls};
 use super::model::page::Page;
 use super::model::track::{TrackFulls, TrackFull, TrackSimplified};
 use super::model::artist::{ArtistFull, ArtistFulls};
@@ -162,11 +162,11 @@ impl Spotify {
 
     ///returns a list of tracks given a list of track IDs, URIs, or URLs
     ///Parameters:
-    ///- tracks - a list of spotify URIs, URLs or IDs
+    ///- track_ids - a list of spotify URIs, URLs or IDs
     ///- market - an ISO 3166-1 alpha-2 country code.
-    pub fn tracks(&self, tracks: Vec<String>, market: Option<&str>) -> Option<TrackFulls> {
+    pub fn tracks(&self, track_ids: Vec<String>, market: Option<&str>) -> Option<TrackFulls> {
         let mut ids: Vec<String> = vec![];
-        for mut track_id in tracks {
+        for mut track_id in track_ids {
             ids.push(self.get_id(TYPE::Track, &mut track_id));
         }
         let mut url = String::from("tracks/?ids=");
@@ -192,7 +192,7 @@ impl Spotify {
 
     ///returns a list of artists given the artist IDs, URIs, or URLs
     ///Parameters:
-    ///- artists - a list of  artist IDs, URIs or URLs
+    ///- artist_ids - a list of  artist IDs, URIs or URLs
     pub fn artists(&self, artist_ids: Vec<String>) -> Option<ArtistFulls> {
         let mut ids: Vec<String> = vec![];
         for mut artist_id in artist_ids {
@@ -299,13 +299,25 @@ impl Spotify {
         self.convert_result::<AlbumFull>(&result.unwrap_or_default())
 
     }
+    ///returns a list of albums given the album IDs, URIs, or URLs
+    ///Parameters:
+    ///- albums_ids - a list of  album IDs, URIs or URLs
+    pub fn albums(&self, album_ids: Vec<String>) -> Option<AlbumFulls> {
+        let mut ids: Vec<String> = vec![];
+        for mut album_id in album_ids {
+            ids.push(self.get_id(TYPE::Album, &mut album_id));
+        }
+        let mut url = String::from("albums/?ids=");
+        url.push_str(&ids.join(","));
+        let result = self.get(&mut url, None, &mut HashMap::new());
+        self.convert_result::<AlbumFulls>(&result.unwrap_or_default())
+    }
 
     ///Get Spotify catalog information about an album's tracks
     ///Parameters:
     ///- album_id - the album ID, URI or URL
     ///- limit  - the number of items to return
     ///- offset - the index of the first item to return
-
     pub fn album_track(&self,
                        album_id: &mut str,
                        limit: Option<u16>,

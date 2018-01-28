@@ -40,3 +40,8 @@ pub struct AlbumFull {
     pub _type: TYPE,
     pub uri: String,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AlbumFulls {
+    pub albums: Vec<AlbumFull>,
+}
