@@ -355,6 +355,10 @@ impl Spotify {
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
+    ///Get current user playlists without required getting his profile
+    ///Parameters:
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
     pub fn current_user_playlists(&self,
                                   limit: Option<u32>,
                                   offset: Option<u32>)
