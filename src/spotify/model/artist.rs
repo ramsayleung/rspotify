@@ -30,6 +30,6 @@ pub struct ArtistFull {
     pub uri: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Artists {
+pub struct ArtistFulls {
     pub artists: Vec<ArtistFull>,
 }

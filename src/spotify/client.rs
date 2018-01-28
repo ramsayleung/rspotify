@@ -12,9 +12,10 @@ use std::borrow::Cow;
 
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
-use super::model::album::{Albums, AlbumSimplified};
-use super::model::track::{TrackFulls, TrackFull};
-use super::model::artist::{ArtistFull, Artists};
+use super::model::album::{AlbumSimplified, AlbumFull};
+use super::model::page::Page;
+use super::model::track::{TrackFulls, TrackFull, TrackSimplified};
+use super::model::artist::{ArtistFull, ArtistFulls};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -192,7 +193,7 @@ impl Spotify {
     ///returns a list of artists given the artist IDs, URIs, or URLs
     ///Parameters:
     ///- artists - a list of  artist IDs, URIs or URLs
-    pub fn artists(&self, artist_ids: Vec<String>) -> Option<Artists> {
+    pub fn artists(&self, artist_ids: Vec<String>) -> Option<ArtistFulls> {
         let mut ids: Vec<String> = vec![];
         for mut artist_id in artist_ids {
             ids.push(self.get_id(TYPE::Artist, &mut artist_id));
@@ -200,7 +201,7 @@ impl Spotify {
         let mut url = String::from("artists/?ids=");
         url.push_str(&ids.join(","));
         let result = self.get(&mut url, None, &mut HashMap::new());
-        self.convert_result::<Artists>(&result.unwrap_or_default())
+        self.convert_result::<ArtistFulls>(&result.unwrap_or_default())
     }
 
     ///  Get Spotify catalog information about an artist's albums
@@ -216,7 +217,7 @@ impl Spotify {
                          country: Option<&str>,
                          limit: Option<u32>,
                          offset: Option<u32>)
-                         -> Option<Albums> {
+                         -> Option<Page<AlbumSimplified>> {
         let mut params: HashMap<&str, String> = HashMap::new();
         if let Some(_limit) = limit {
             params.insert("limit", _limit.to_string());
@@ -235,13 +236,11 @@ impl Spotify {
         url.push_str(&trid);
         url.push_str("/albums");
         let result = self.get(&mut url, None, &mut params);
-        self.convert_result::<Albums>(&result.unwrap_or_default())
+        self.convert_result::<Page<AlbumSimplified>>(&result.unwrap_or_default())
 
     }
 
-    /// Get Spotify catalog information about an artist's top 10 tracks
-    ///    by country.
-
+    /// Get Spotify catalog information about an artist's top 10 tracks by country.
     ///    Parameters:
     ///        - artist_id - the artist ID, URI or URL
     ///        - country - limit the response to one particular country.
@@ -280,19 +279,57 @@ impl Spotify {
     ///Spotify community's listening history.
     ///Parameters:
     ///- artist_id - the artist ID, URI or URL
-    pub fn artist_related_artists(&self, artist_id: &mut str) -> Option<Artists> {
+    pub fn artist_related_artists(&self, artist_id: &mut str) -> Option<ArtistFulls> {
         let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/related-artists");
         let result = self.get(&mut url, None, &mut HashMap::new());
-        self.convert_result::<Artists>(&result.unwrap_or_default())
+        self.convert_result::<ArtistFulls>(&result.unwrap_or_default())
     }
 
     ///returns a single album given the album's ID, URIs or URL
     ///Parameters:
     ///- album_id - the album ID, URI or URL
-    // pub fn album(&self,album_id:&mut str)->Option<>
+    pub fn album(&self, album_id: &mut str) -> Option<AlbumFull> {
+        let trid = self.get_id(TYPE::Album, album_id);
+        let mut url = String::from("albums/");
+        url.push_str(&trid);
+        let result = self.get(&mut url, None, &mut HashMap::new());
+        self.convert_result::<AlbumFull>(&result.unwrap_or_default())
+
+    }
+
+    ///Get Spotify catalog information about an album's tracks
+    ///Parameters:
+    ///- album_id - the album ID, URI or URL
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
+
+    pub fn album_track(&self,
+                       album_id: &mut str,
+                       limit: Option<u16>,
+                       offset: Option<u32>)
+                       -> Option<Page<TrackSimplified>> {
+        let mut params = HashMap::new();
+        let trid = self.get_id(TYPE::Album, album_id);
+        let mut url = String::from("albums/");
+        url.push_str(&trid);
+        url.push_str("/tracks");
+        if let Some(_limit) = limit {
+            params.insert("limit", _limit.to_string());
+        } else {
+            params.insert("limit", "50".to_string());
+        }
+        if let Some(_offset) = offset {
+            params.insert("offset", _offset.to_string());
+        } else {
+            params.insert("offset", "0".to_string());
+        }
+        let result = self.get(&mut url, None, &mut params);
+        self.convert_result::<Page<TrackSimplified>>(&result.unwrap_or_default())
+
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {

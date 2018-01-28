@@ -29,3 +29,21 @@ pub struct TrackFull {
 pub struct TrackFulls {
     pub tracks: Vec<TrackFull>,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TrackSimplified {
+    pub artists: Vec<ArtistSimplified>,
+    pub available_markets: Vec<String>,
+    pub disc_number: i32,
+    pub duration_ms: u32,
+    pub explicit: bool,
+    pub external_urls: HashMap<String, String>,
+    pub href: String,
+    pub id: String,
+    pub name: String,
+    pub preview_url: Option<String>,
+    pub track_number: u32,
+    #[serde(rename = "type")]
+    pub _type: TYPE,
+    pub uri: String,
+}

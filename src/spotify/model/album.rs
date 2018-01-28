@@ -1,18 +1,10 @@
 use std::collections::HashMap;
 
 use spotify::spotify_enum::{TYPE, ALBUM_TYPE};
+use super::track::TrackSimplified;
 use super::artist::ArtistSimplified;
 use super::image::Image;
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Albums {
-    pub href: String,
-    pub items: Vec<AlbumSimplified>,
-    pub limit: u16,
-    pub next: String,
-    pub offset: i32,
-    pub previous: Option<String>,
-    pub total: u32,
-}
+use super::page::Page;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AlbumSimplified {
     pub artists: Vec<ArtistSimplified>,
@@ -43,7 +35,7 @@ pub struct AlbumFull {
     pub popularity: u32,
     pub release_date: String,
     pub release_date_precision: String,
-
+    pub tracks: Page<TrackSimplified>,
     #[serde(rename = "type")]
     pub _type: TYPE,
     pub uri: String,
