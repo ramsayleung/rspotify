@@ -12,20 +12,15 @@ use std::borrow::Cow;
 
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
-use super::model::album::Albums;
-use super::model::track::{Tracks, Track};
-use super::model::artist::{ArtistDetailed, Artists};
+use super::model::album::{Albums, AlbumSimplified};
+use super::model::track::{TrackFulls, TrackFull};
+use super::model::artist::{ArtistFull, Artists};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
     pub client_credentials_manager: Option<SpotifyClientCredentials>,
 }
-// struct Converter<T>;
-
-// impl Converter{
-//     pub fn convert_result(input:Option<String>)
-// }
 impl Spotify {
     pub fn default() -> Spotify {
         Spotify {
@@ -156,19 +151,19 @@ impl Spotify {
     ///returns a single track given the track's ID, URI or URL
     ///Parameters:
     ///- track_id - a spotify URI, URL or ID
-    pub fn track(&self, track_id: &mut str) -> Option<Track> {
+    pub fn track(&self, track_id: &mut str) -> Option<TrackFull> {
         let trid = self.get_id(TYPE::Track, track_id);
         let mut url = String::from("tracks/");
         url.push_str(&trid);
         let result = self.get(&mut url, None, &mut HashMap::new());
-        self.convert_result::<Track>(&result.unwrap_or_default())
+        self.convert_result::<TrackFull>(&result.unwrap_or_default())
     }
 
     ///returns a list of tracks given a list of track IDs, URIs, or URLs
     ///Parameters:
     ///- tracks - a list of spotify URIs, URLs or IDs
     ///- market - an ISO 3166-1 alpha-2 country code.
-    pub fn tracks(&self, tracks: Vec<String>, market: Option<&str>) -> Option<Tracks> {
+    pub fn tracks(&self, tracks: Vec<String>, market: Option<&str>) -> Option<TrackFulls> {
         let mut ids: Vec<String> = vec![];
         for mut track_id in tracks {
             ids.push(self.get_id(TYPE::Track, &mut track_id));
@@ -181,17 +176,17 @@ impl Spotify {
         }
         println!("{:?}", &url);
         let result = self.get(&mut url, None, &mut params);
-        self.convert_result::<Tracks>(&result.unwrap_or_default())
+        self.convert_result::<TrackFulls>(&result.unwrap_or_default())
     }
     ///returns a single artist given the artist's ID, URI or URL
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
-    pub fn artist(&self, artist_id: &mut str) -> Option<ArtistDetailed> {
+    pub fn artist(&self, artist_id: &mut str) -> Option<ArtistFull> {
         let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         let result = self.get(&mut url, None, &mut HashMap::new());
-        self.convert_result::<ArtistDetailed>(&result.unwrap_or_default())
+        self.convert_result::<ArtistFull>(&result.unwrap_or_default())
     }
 
     ///returns a list of artists given the artist IDs, URIs, or URLs
@@ -250,7 +245,10 @@ impl Spotify {
     ///    Parameters:
     ///        - artist_id - the artist ID, URI or URL
     ///        - country - limit the response to one particular country.
-    pub fn artist_top_tracks(&self, artist_id: &mut str, country: Option<&str>) -> Option<Tracks> {
+    pub fn artist_top_tracks(&self,
+                             artist_id: &mut str,
+                             country: Option<&str>)
+                             -> Option<TrackFulls> {
         let mut params: HashMap<&str, String> = HashMap::new();
         if let Some(_country) = country {
             params.insert("country", _country.to_string());
@@ -265,7 +263,7 @@ impl Spotify {
         match self.get(&mut url, None, &mut params) {
             Some(result) => {
                 // let mut albums: Albums = ;
-                match serde_json::from_str::<Tracks>(&result) {
+                match serde_json::from_str::<TrackFulls>(&result) {
                     Ok(_tracks) => Some(_tracks),
                     Err(why) => {
                         eprintln!("convert albums from String to Albums failed {:?}", why);
@@ -290,6 +288,12 @@ impl Spotify {
         let result = self.get(&mut url, None, &mut HashMap::new());
         self.convert_result::<Artists>(&result.unwrap_or_default())
     }
+
+    ///returns a single album given the album's ID, URIs or URL
+    ///Parameters:
+    ///- album_id - the album ID, URI or URL
+    // pub fn album(&self,album_id:&mut str)->Option<>
+
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {

@@ -1,14 +1,14 @@
 
 use std::collections::HashMap;
 
-use super::artist::Artist;
-use super::album::Album;
+use super::artist::ArtistSimplified;
+use super::album::AlbumSimplified;
 use spotify::spotify_enum::TYPE;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Track {
-    pub album: Album,
-    pub artists: Vec<Artist>,
+pub struct TrackFull {
+    pub album: AlbumSimplified,
+    pub artists: Vec<ArtistSimplified>,
     pub available_markets: Vec<String>,
     pub disc_number: i32,
     pub duration_ms: u32,
@@ -26,6 +26,6 @@ pub struct Track {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Tracks {
-    pub tracks: Vec<Track>,
+pub struct TrackFulls {
+    pub tracks: Vec<TrackFull>,
 }

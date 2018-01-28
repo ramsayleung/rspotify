@@ -4,7 +4,7 @@ use serde_json::Value;
 use spotify::spotify_enum::TYPE;
 use super::image::Image;
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Artist {
+pub struct ArtistSimplified {
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: String,
@@ -16,7 +16,7 @@ pub struct Artist {
 
 
 #[derive(Clone, Debug,Serialize, Deserialize)]
-pub struct ArtistDetailed {
+pub struct ArtistFull {
     pub external_urls: HashMap<String, String>,
     pub followers: HashMap<String, Option<Value>>,
     pub genres: Vec<String>,
@@ -31,5 +31,5 @@ pub struct ArtistDetailed {
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Artists {
-    pub artists: Vec<ArtistDetailed>,
+    pub artists: Vec<ArtistFull>,
 }

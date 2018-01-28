@@ -1,7 +1,7 @@
 use std::fmt;
 // album_type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
 #[derive(Clone, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ALBUM_TYPE {
     Album,
     Single,
@@ -40,7 +40,7 @@ impl fmt::Debug for ALBUM_TYPE {
 
 //  ‘artist’, ‘album’,‘track’ or ‘playlist’
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum TYPE {
     Artist,
     Album,
