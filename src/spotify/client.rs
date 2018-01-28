@@ -17,6 +17,7 @@ use super::model::page::Page;
 use super::model::track::{TrackFulls, TrackFull, TrackSimplified};
 use super::model::artist::{ArtistFull, ArtistFulls};
 use super::model::user::PublicUser;
+use super::model::playlist::PlaylistSimplified;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -354,7 +355,26 @@ impl Spotify {
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
+    pub fn current_user_playlists(&self,
+                                  limit: Option<u32>,
+                                  offset: Option<u32>)
+                                  -> Option<Page<PlaylistSimplified>> {
+        let mut params = HashMap::new();
+        if let Some(_limit) = limit {
+            params.insert("limit", _limit.to_string());
+        } else {
+            params.insert("limit", "50".to_string());
+        }
+        if let Some(_offset) = offset {
+            params.insert("offset", _offset.to_string());
+        } else {
+            params.insert("offset", "0".to_string());
+        }
+        let mut url = String::from("me/playlists");
+        let result = self.get(&mut url, None, &mut params);
+        self.convert_result::<Page<PlaylistSimplified>>(&result.unwrap_or_default())
 
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {

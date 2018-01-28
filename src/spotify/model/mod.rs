@@ -4,3 +4,4 @@ pub mod album;
 pub mod track;
 pub mod page;
 pub mod user;
+pub mod playlist;
