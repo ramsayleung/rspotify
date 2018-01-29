@@ -5,7 +5,7 @@ use spotify::spotify_enum::TYPE;
 use super::image::Image;
 ///https://developer.spotify.com/web-api/object-model/#artist-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ArtistSimplified {
+pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: String,
@@ -17,7 +17,7 @@ pub struct ArtistSimplified {
 
 ///https://developer.spotify.com/web-api/object-model/#artist-object-full
 #[derive(Clone, Debug,Serialize, Deserialize)]
-pub struct ArtistFull {
+pub struct FullArtist {
     pub external_urls: HashMap<String, String>,
     pub followers: HashMap<String, Option<Value>>,
     pub genres: Vec<String>,
@@ -31,6 +31,6 @@ pub struct ArtistFull {
     pub uri: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ArtistFulls {
-    pub artists: Vec<ArtistFull>,
+pub struct FullArtists {
+    pub artists: Vec<FullArtist>,
 }

@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use spotify::spotify_enum::{TYPE, ALBUM_TYPE};
-use super::track::TrackSimplified;
-use super::artist::ArtistSimplified;
+use super::track::SimplifiedTrack;
+use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
 ///https://developer.spotify.com/web-api/object-model/#album-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AlbumSimplified {
-    pub artists: Vec<ArtistSimplified>,
+pub struct SimplifiedAlbum {
+    pub artists: Vec<SimplifiedArtist>,
     pub album_type: String,
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
@@ -22,8 +22,8 @@ pub struct AlbumSimplified {
 }
 ///https://developer.spotify.com/web-api/object-model/#album-object-full
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AlbumFull {
-    pub artists: Vec<ArtistSimplified>,
+pub struct FullAlbum {
+    pub artists: Vec<SimplifiedArtist>,
     pub album_type: ALBUM_TYPE,
     pub available_markets: Vec<String>,
     pub copyrights: Vec<HashMap<String, String>>,
@@ -37,13 +37,13 @@ pub struct AlbumFull {
     pub popularity: u32,
     pub release_date: String,
     pub release_date_precision: String,
-    pub tracks: Page<TrackSimplified>,
+    pub tracks: Page<SimplifiedTrack>,
     #[serde(rename = "type")]
     pub _type: TYPE,
     pub uri: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AlbumFulls {
-    pub albums: Vec<AlbumFull>,
+pub struct FullAlbums {
+    pub albums: Vec<FullAlbum>,
 }

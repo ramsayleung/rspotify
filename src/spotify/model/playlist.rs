@@ -7,7 +7,7 @@ use super::user::PublicUser;
 use spotify::spotify_enum::TYPE;
 ///https://developer.spotify.com/web-api/object-model/#playlist-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PlaylistSimplified {
+pub struct SimplifiedPlaylist {
     pub collaborative: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,

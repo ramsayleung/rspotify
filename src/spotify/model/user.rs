@@ -9,10 +9,10 @@ use spotify::spotify_enum::TYPE;
 pub struct PublicUser {
     pub display_name: String,
     pub external_urls: HashMap<String, String>,
-    pub followers: HashMap<String, Option<Value>>,
+    pub followers: Option<HashMap<String, Option<Value>>>,
     pub href: String,
     pub id: String,
-    pub images: Vec<Image>,
+    pub images: Option<Vec<Image>>,
     #[serde(rename = "type")]
     pub _type: TYPE,
     pub uri: String,
