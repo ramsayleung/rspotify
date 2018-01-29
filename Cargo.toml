@@ -22,7 +22,6 @@ serde_derive = "1.0"
 serde_json = "1.0"
 url = "1.6.0"
 webbrowser = "0.2.2"
-
 [dependencies.chrono]
 features = ["serde", "rustc-serialize"]
 version = "0.4"

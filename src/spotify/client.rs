@@ -404,6 +404,14 @@ impl Spotify {
         let result = self.get(&mut url, None, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
+    ///Gets playlist of a user
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- fields - which fields to return
+
+    // pub fn user_playlist(&self,user_id:&str, playlist_id: Option<&str>,fields: Option<&str>){}
+
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
