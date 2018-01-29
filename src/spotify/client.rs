@@ -412,18 +412,12 @@ impl Spotify {
 
     pub fn user_playlist(&self,
                          user_id: &str,
-                         limit: Option<u32>,
                          playlist_id: Option<&mut str>,
                          fields: Option<&str>)
                          -> Option<FullPlaylist> {
         let mut params = HashMap::new();
         if let Some(_fields) = fields {
             params.insert("fields", _fields.to_string());
-        }
-        if let Some(_limit) = limit {
-            params.insert("limit", _limit.to_string());
-        } else {
-            params.insert("limit", "50".to_string());
         }
         match playlist_id {
             Some(_playlist_id) => {
