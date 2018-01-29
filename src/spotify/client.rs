@@ -17,7 +17,7 @@ use super::model::page::Page;
 use super::model::track::{FullTracks, FullTrack, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
-use super::model::playlist::SimplifiedPlaylist;
+use super::model::playlist::{SimplifiedPlaylist, FullPlaylist};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -410,7 +410,35 @@ impl Spotify {
     ///- playlist_id - the id of the playlist
     ///- fields - which fields to return
 
-    // pub fn user_playlist(&self,user_id:&str, playlist_id: Option<&str>,fields: Option<&str>){}
+    pub fn user_playlist(&self,
+                         user_id: &str,
+                         limit: Option<u32>,
+                         playlist_id: Option<&mut str>,
+                         fields: Option<&str>)
+                         -> Option<FullPlaylist> {
+        let mut params = HashMap::new();
+        if let Some(_fields) = fields {
+            params.insert("fields", _fields.to_string());
+        }
+        if let Some(_limit) = limit {
+            params.insert("limit", _limit.to_string());
+        } else {
+            params.insert("limit", "50".to_string());
+        }
+        match playlist_id {
+            Some(_playlist_id) => {
+                let plid = self.get_id(TYPE::Playlist, _playlist_id);
+                let mut url = String::from(format!("users/{}/playlists/{}", user_id, plid));
+                let result = self.get(&mut url, None, &mut params);
+                self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+            }
+            None => {
+                let mut url = String::from(format!("users/{}/starred", user_id));
+                let result = self.get(&mut url, None, &mut params);
+                self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+            }
+        }
+    }
 
 
 

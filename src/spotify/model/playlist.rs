@@ -1,6 +1,5 @@
 use serde_json::Value;
-use chrono::NaiveDateTime;
-
+use chrono::prelude::*;
 use std::collections::HashMap;
 
 use super::image::Image;
@@ -48,8 +47,8 @@ pub struct FullPlaylist {
 ///https://developer.spotify.com/web-api/object-model/#playlist-track-object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlaylistTrack {
-    pub added_at: NaiveDateTime,
-    pub added_by: PublicUser,
+    pub added_at: DateTime<Utc>,
+    pub added_by: Option<PublicUser>,
     pub is_local: bool,
     pub track: FullTrack,
 }
