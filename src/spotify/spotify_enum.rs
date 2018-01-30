@@ -65,7 +65,7 @@ impl TYPE {
             &TYPE::Album => "album",
             &TYPE::Artist => "artist",
             &TYPE::Track => "track",
-            &TYPE::Playlist => "playtlist",
+            &TYPE::Playlist => "playlist",
             &TYPE::User => "user",
         }
     }

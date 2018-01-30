@@ -17,7 +17,7 @@ use super::model::page::Page;
 use super::model::track::{FullTracks, FullTrack, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
-use super::model::playlist::{SimplifiedPlaylist, FullPlaylist};
+use super::model::playlist::{SimplifiedPlaylist, FullPlaylist,PlaylistTrack};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -349,8 +349,8 @@ impl Spotify {
     ///Parameters:
     ///- user - the id of the usr
     pub fn user(&self, user_id: &str) -> Option<PublicUser> {
-        let mut url = String::from("users/");
-        url.push_str(&user_id);
+        let mut url = String::from(format!("users/{}", user_id));
+        // url.push_str(&user_id);
         let result = self.get(&mut url, None, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
@@ -434,6 +434,44 @@ impl Spotify {
         }
     }
 
+    ///Get full details of the tracks of a playlist owned by a user
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- fields - which fields to return
+    ///- limit - the maximum number of tracks to return
+    ///- offset - the index of the first track to return
+    ///- market - an ISO 3166-1 alpha-2 country code.
+    pub fn user_playlist_tracks(&self,
+                                user_id: &str,
+                                playlist_id: &mut str,
+                                fields: Option<&str>,
+                                limit: Option<u32>,
+                                offset: Option<u32>,
+                                market: Option<&str>)
+                                -> Option<Page<PlaylistTrack>> {
+        let mut params = HashMap::new();
+        if let Some(_limit) = limit {
+            params.insert("limit", _limit.to_string());
+        } else {
+            params.insert("limit", "50".to_string());
+        }
+        if let Some(_offset) = offset {
+            params.insert("offset", _offset.to_string());
+        } else {
+            params.insert("offset", "0".to_string());
+        }
+        if let Some(_market) = market {
+            params.insert("market", _market.to_owned());
+        }
+        if let Some(_fields) = fields {
+            params.insert("fields", _fields.to_string());
+        }
+        let plid = self.get_id(TYPE::Playlist, playlist_id);
+        let mut url = String::from(format!("users/{}/playlists/{}/tracks", user_id, plid));
+        let result = self.get(&mut url, None, &mut params);
+        self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
@@ -501,5 +539,9 @@ mod tests {
         let mut artist_id_c = String::from("spotify-album-2WX2uTcsvV5OnS0inACecP");
         assert_eq!("spotify-album-2WX2uTcsvV5OnS0inACecP",
                    &spotify.get_id(TYPE::Artist, &mut artist_id_c));
+
+        let mut playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
+        assert_eq!("59ZbFPES4DQwEjBpWHzrtC",
+                   &spotify.get_id(TYPE::Playlist, &mut playlist_id));
     }
 }
