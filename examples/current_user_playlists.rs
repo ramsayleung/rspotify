@@ -31,7 +31,7 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let playlists = spotify.current_user_playlists(Some(10), None);
+            let playlists = spotify.current_user_playlists(10, None);
             println!("{:?}", playlists);
 
         }

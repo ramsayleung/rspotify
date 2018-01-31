@@ -17,7 +17,7 @@ use super::model::page::Page;
 use super::model::track::{FullTracks, FullTrack, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
-use super::model::playlist::{SimplifiedPlaylist, FullPlaylist,PlaylistTrack};
+use super::model::playlist::{SimplifiedPlaylist, FullPlaylist, PlaylistTrack};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -248,15 +248,10 @@ impl Spotify {
     ///        - country - limit the response to one particular country.
     pub fn artist_top_tracks(&self,
                              artist_id: &mut str,
-                             country: Option<&str>)
+                             country: impl Into<Option<String>>)
                              -> Option<FullTracks> {
         let mut params: HashMap<&str, String> = HashMap::new();
-        if let Some(_country) = country {
-            params.insert("country", _country.to_string());
-        } else {
-            params.insert("country", "US".to_owned());
-        }
-        println!("{:?}", &params);
+        params.insert("country", country.into().unwrap_or("US".to_owned()));
         let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
@@ -322,24 +317,16 @@ impl Spotify {
     ///- offset - the index of the first item to return
     pub fn album_track(&self,
                        album_id: &mut str,
-                       limit: Option<u16>,
-                       offset: Option<u32>)
+                       limit: impl Into<Option<u32>>,
+                       offset: impl Into<Option<u32>>)
                        -> Option<Page<SimplifiedTrack>> {
         let mut params = HashMap::new();
         let trid = self.get_id(TYPE::Album, album_id);
         let mut url = String::from("albums/");
         url.push_str(&trid);
         url.push_str("/tracks");
-        if let Some(_limit) = limit {
-            params.insert("limit", _limit.to_string());
-        } else {
-            params.insert("limit", "50".to_string());
-        }
-        if let Some(_offset) = offset {
-            params.insert("offset", _offset.to_string());
-        } else {
-            params.insert("offset", "0".to_string());
-        }
+        params.insert("limit", limit.into().unwrap_or(50).to_string());
+        params.insert("offset", offset.into().unwrap_or(0).to_string());
         let result = self.get(&mut url, None, &mut params);
         self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
 
@@ -350,7 +337,6 @@ impl Spotify {
     ///- user - the id of the usr
     pub fn user(&self, user_id: &str) -> Option<PublicUser> {
         let mut url = String::from(format!("users/{}", user_id));
-        // url.push_str(&user_id);
         let result = self.get(&mut url, None, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
@@ -360,20 +346,13 @@ impl Spotify {
     ///- limit  - the number of items to return
     ///- offset - the index of the first item to return
     pub fn current_user_playlists(&self,
-                                  limit: Option<u32>,
-                                  offset: Option<u32>)
+                                  limit: impl Into<Option<u32>>,
+                                  offset: impl Into<Option<u32>>)
                                   -> Option<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
-        if let Some(_limit) = limit {
-            params.insert("limit", _limit.to_string());
-        } else {
-            params.insert("limit", "50".to_string());
-        }
-        if let Some(_offset) = offset {
-            params.insert("offset", _offset.to_string());
-        } else {
-            params.insert("offset", "0".to_string());
-        }
+        params.insert("limit", limit.into().unwrap_or(50).to_string());
+        params.insert("offset", offset.into().unwrap_or(0).to_string());
+
         let mut url = String::from("me/playlists");
         let result = self.get(&mut url, None, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
@@ -386,20 +365,12 @@ impl Spotify {
     ///- offset - the index of the first item to return
     pub fn user_playlists(&self,
                           user_id: &str,
-                          limit: Option<u32>,
-                          offset: Option<u32>)
+                          limit: impl Into<Option<u32>>,
+                          offset: impl Into<Option<u32>>)
                           -> Option<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
-        if let Some(_limit) = limit {
-            params.insert("limit", _limit.to_string());
-        } else {
-            params.insert("limit", "50".to_string());
-        }
-        if let Some(_offset) = offset {
-            params.insert("offset", _offset.to_string());
-        } else {
-            params.insert("offset", "0".to_string());
-        }
+        params.insert("limit", limit.into().unwrap_or(50).to_string());
+        params.insert("offset", offset.into().unwrap_or(0).to_string());
         let mut url = String::from(format!("users/{}/playlists", user_id));
         let result = self.get(&mut url, None, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
@@ -446,21 +417,13 @@ impl Spotify {
                                 user_id: &str,
                                 playlist_id: &mut str,
                                 fields: Option<&str>,
-                                limit: Option<u32>,
-                                offset: Option<u32>,
+                                limit: impl Into<Option<u32>>,
+                                offset: impl Into<Option<u32>>,
                                 market: Option<&str>)
                                 -> Option<Page<PlaylistTrack>> {
         let mut params = HashMap::new();
-        if let Some(_limit) = limit {
-            params.insert("limit", _limit.to_string());
-        } else {
-            params.insert("limit", "50".to_string());
-        }
-        if let Some(_offset) = offset {
-            params.insert("offset", _offset.to_string());
-        } else {
-            params.insert("offset", "0".to_string());
-        }
+        params.insert("limit", limit.into().unwrap_or(50).to_string());
+        params.insert("offset", offset.into().unwrap_or(0).to_string());
         if let Some(_market) = market {
             params.insert("market", _market.to_owned());
         }
