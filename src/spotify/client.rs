@@ -1,4 +1,6 @@
 use serde_json;
+use serde_json::Value;
+use serde_json::map::Map;
 use serde::de::Deserialize;
 use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
@@ -71,7 +73,7 @@ impl Spotify {
                      method: Method,
                      url: &str,
                      payload: Option<&HashMap<&str, &str>>,
-                     params: &mut HashMap<&str, String>)
+                     params: &mut Map<String, Value>)
                      -> Option<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
@@ -80,7 +82,7 @@ impl Spotify {
         if let Some(data) = payload {
             match serde_json::to_string(&data) {
                 Ok(payload_string) => {
-                    params.insert("data", payload_string);
+                    params.insert("data".to_owned(), payload_string.into());
                 }
                 Err(why) => {
                     panic!("couldn't convert payload to string: {} ", why);
@@ -123,31 +125,31 @@ impl Spotify {
             let mut url_with_params = String::from(url.to_owned());
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, payload, params)
+            self.internal_call(Get, &url_with_params, payload, &mut Map::new())
         } else {
 
-            self.internal_call(Get, url, payload, params)
+            self.internal_call(Get, url, payload, &mut Map::new())
         }
     }
 
     fn post(&self,
             url: &mut str,
             payload: Option<&HashMap<&str, &str>>,
-            params: &mut HashMap<&str, String>)
+            params: &mut Map<String, Value>)
             -> Option<String> {
         self.internal_call(Post, url, payload, params)
     }
     fn put(&self,
            url: &mut str,
            payload: Option<&HashMap<&str, &str>>,
-           params: &mut HashMap<&str, String>)
+           params: &mut Map<String, Value>)
            -> Option<String> {
         self.internal_call(Put, url, payload, params)
     }
     fn delete(&self,
               url: &mut str,
               payload: Option<&HashMap<&str, &str>>,
-              params: &mut HashMap<&str, String>)
+              params: &mut Map<String, Value>)
               -> Option<String> {
         self.internal_call(Delete, url, payload, params)
     }
@@ -436,6 +438,12 @@ impl Spotify {
         self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
     }
 
+    ///Creates a playlist for a user
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- name - the name of the playlist
+    ///- public - is the created playlist public
+    ///- description - the description of the playlist
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
