@@ -20,6 +20,7 @@ use super::model::track::{FullTracks, FullTrack, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
 use super::model::playlist::{SimplifiedPlaylist, FullPlaylist, PlaylistTrack};
+use super::model::cud_result::Result;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -72,7 +73,7 @@ impl Spotify {
     fn internal_call(&self,
                      method: Method,
                      url: &str,
-                     payload: Option<&HashMap<&str, &str>>,
+                     payload: Option<Map<String, Value>>,
                      params: &mut Map<String, Value>)
                      -> Option<String> {
         let mut url: Cow<str> = url.into();
@@ -98,7 +99,7 @@ impl Spotify {
         let mut response = client
             .request(method, &url.into_owned())
             .headers(headers)
-            .json(&payload)
+            .json(&params)
             .send()
             .expect("send request failed");
 
@@ -115,40 +116,36 @@ impl Spotify {
         }
 
     }
-    fn get(&self,
-           url: &mut str,
-           payload: Option<&HashMap<&str, &str>>,
-           params: &mut HashMap<&str, String>)
-           -> Option<String> {
+    fn get(&self, url: &mut str, params: &mut HashMap<&str, String>) -> Option<String> {
         if !params.is_empty() {
             let param: String = convert_map_to_string(params);
             let mut url_with_params = String::from(url.to_owned());
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, payload, &mut Map::new())
+            self.internal_call(Get, &url_with_params, None, &mut Map::new())
         } else {
 
-            self.internal_call(Get, url, payload, &mut Map::new())
+            self.internal_call(Get, url, None, &mut Map::new())
         }
     }
 
     fn post(&self,
             url: &mut str,
-            payload: Option<&HashMap<&str, &str>>,
+            payload: Option<Map<String, Value>>,
             params: &mut Map<String, Value>)
             -> Option<String> {
         self.internal_call(Post, url, payload, params)
     }
     fn put(&self,
            url: &mut str,
-           payload: Option<&HashMap<&str, &str>>,
+           payload: Option<Map<String, Value>>,
            params: &mut Map<String, Value>)
            -> Option<String> {
         self.internal_call(Put, url, payload, params)
     }
     fn delete(&self,
               url: &mut str,
-              payload: Option<&HashMap<&str, &str>>,
+              payload: Option<Map<String, Value>>,
               params: &mut Map<String, Value>)
               -> Option<String> {
         self.internal_call(Delete, url, payload, params)
@@ -160,7 +157,7 @@ impl Spotify {
         let trid = self.get_id(TYPE::Track, track_id);
         let mut url = String::from("tracks/");
         url.push_str(&trid);
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullTrack>(&result.unwrap_or_default())
     }
 
@@ -180,7 +177,7 @@ impl Spotify {
             params.insert("market", _market.to_owned());
         }
         println!("{:?}", &url);
-        let result = self.get(&mut url, None, &mut params);
+        let result = self.get(&mut url, &mut params);
         self.convert_result::<FullTracks>(&result.unwrap_or_default())
     }
     ///returns a single artist given the artist's ID, URI or URL
@@ -190,7 +187,7 @@ impl Spotify {
         let trid = self.get_id(TYPE::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullArtist>(&result.unwrap_or_default())
     }
 
@@ -204,7 +201,7 @@ impl Spotify {
         }
         let mut url = String::from("artists/?ids=");
         url.push_str(&ids.join(","));
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
@@ -239,7 +236,7 @@ impl Spotify {
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/albums");
-        let result = self.get(&mut url, None, &mut params);
+        let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedAlbum>>(&result.unwrap_or_default())
 
     }
@@ -258,7 +255,7 @@ impl Spotify {
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/top-tracks");
-        match self.get(&mut url, None, &mut params) {
+        match self.get(&mut url, &mut params) {
             Some(result) => {
                 // let mut albums: Albums = ;
                 match serde_json::from_str::<FullTracks>(&result) {
@@ -283,7 +280,7 @@ impl Spotify {
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/related-artists");
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
@@ -294,7 +291,7 @@ impl Spotify {
         let trid = self.get_id(TYPE::Album, album_id);
         let mut url = String::from("albums/");
         url.push_str(&trid);
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullAlbum>(&result.unwrap_or_default())
 
     }
@@ -308,7 +305,7 @@ impl Spotify {
         }
         let mut url = String::from("albums/?ids=");
         url.push_str(&ids.join(","));
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullAlbums>(&result.unwrap_or_default())
     }
 
@@ -329,7 +326,7 @@ impl Spotify {
         url.push_str("/tracks");
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
-        let result = self.get(&mut url, None, &mut params);
+        let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
 
     }
@@ -339,7 +336,7 @@ impl Spotify {
     ///- user - the id of the usr
     pub fn user(&self, user_id: &str) -> Option<PublicUser> {
         let mut url = String::from(format!("users/{}", user_id));
-        let result = self.get(&mut url, None, &mut HashMap::new());
+        let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
@@ -356,7 +353,7 @@ impl Spotify {
         params.insert("offset", offset.into().unwrap_or(0).to_string());
 
         let mut url = String::from("me/playlists");
-        let result = self.get(&mut url, None, &mut params);
+        let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
 
@@ -374,7 +371,7 @@ impl Spotify {
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
         let mut url = String::from(format!("users/{}/playlists", user_id));
-        let result = self.get(&mut url, None, &mut params);
+        let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
     ///Gets playlist of a user
@@ -396,12 +393,12 @@ impl Spotify {
             Some(_playlist_id) => {
                 let plid = self.get_id(TYPE::Playlist, _playlist_id);
                 let mut url = String::from(format!("users/{}/playlists/{}", user_id, plid));
-                let result = self.get(&mut url, None, &mut params);
+                let result = self.get(&mut url, &mut params);
                 self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
             }
             None => {
                 let mut url = String::from(format!("users/{}/starred", user_id));
-                let result = self.get(&mut url, None, &mut params);
+                let result = self.get(&mut url, &mut params);
                 self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
             }
         }
@@ -434,7 +431,7 @@ impl Spotify {
         }
         let plid = self.get_id(TYPE::Playlist, playlist_id);
         let mut url = String::from(format!("users/{}/playlists/{}/tracks", user_id, plid));
-        let result = self.get(&mut url, None, &mut params);
+        let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
     }
 
@@ -444,6 +441,22 @@ impl Spotify {
     ///- name - the name of the playlist
     ///- public - is the created playlist public
     ///- description - the description of the playlist
+    // pub fn user_playlist_create(&self,
+    //                             user_id: &str,
+    //                             name: &str,
+    //                             public: impl Into<Option<bool>>,
+    //                             description: Into<Option<bool>>)
+    //                             -> Option<FullPlaylist> {
+    //     let public = public.into().unwrap_or(true);
+    //     let description = description.into().unwrap_or("");
+    //     let params = json!({
+    //         "name": name,
+    //         "public": public,
+    //         "description": description
+    //     });
+    //     let url= String::from(format!("users/{}/playlists",user_id));
+    //     let result =self.post(&mut url, )
+    // }
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
