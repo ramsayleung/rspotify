@@ -73,7 +73,7 @@ impl Spotify {
     fn internal_call(&self,
                      method: Method,
                      url: &str,
-                     payload: Option<Map<String, Value>>,
+                     payload: Option<Value>,
                      params: &mut Map<String, Value>)
                      -> Option<String> {
         let mut url: Cow<str> = url.into();
@@ -81,14 +81,8 @@ impl Spotify {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
         }
         if let Some(data) = payload {
-            match serde_json::to_string(&data) {
-                Ok(payload_string) => {
-                    params.insert("data".to_owned(), payload_string.into());
-                }
-                Err(why) => {
-                    panic!("couldn't convert payload to string: {} ", why);
-                }
-            }
+            params.insert("data".to_owned(), data);
+
         }
         println!("{:?}", &url);
         let client = Client::new();
@@ -131,21 +125,21 @@ impl Spotify {
 
     fn post(&self,
             url: &mut str,
-            payload: Option<Map<String, Value>>,
+            payload: Option<Value>,
             params: &mut Map<String, Value>)
             -> Option<String> {
         self.internal_call(Post, url, payload, params)
     }
     fn put(&self,
            url: &mut str,
-           payload: Option<Map<String, Value>>,
+           payload: Option<Value>,
            params: &mut Map<String, Value>)
            -> Option<String> {
         self.internal_call(Put, url, payload, params)
     }
     fn delete(&self,
               url: &mut str,
-              payload: Option<Map<String, Value>>,
+              payload: Option<Value>,
               params: &mut Map<String, Value>)
               -> Option<String> {
         self.internal_call(Delete, url, payload, params)
@@ -441,22 +435,23 @@ impl Spotify {
     ///- name - the name of the playlist
     ///- public - is the created playlist public
     ///- description - the description of the playlist
-    // pub fn user_playlist_create(&self,
-    //                             user_id: &str,
-    //                             name: &str,
-    //                             public: impl Into<Option<bool>>,
-    //                             description: Into<Option<bool>>)
-    //                             -> Option<FullPlaylist> {
-    //     let public = public.into().unwrap_or(true);
-    //     let description = description.into().unwrap_or("");
-    //     let params = json!({
-    //         "name": name,
-    //         "public": public,
-    //         "description": description
-    //     });
-    //     let url= String::from(format!("users/{}/playlists",user_id));
-    //     let result =self.post(&mut url, )
-    // }
+    pub fn user_playlist_create(&self,
+                                user_id: &str,
+                                name: &str,
+                                public: impl Into<Option<bool>>,
+                                description: impl Into<Option<String>>)
+                                -> Option<FullPlaylist> {
+        let public = public.into().unwrap_or(true);
+        let description = description.into().unwrap_or("".to_owned());
+        let params = json!({
+            "name": name,
+            "public": public,
+            "description": description
+        });
+        let mut url = String::from(format!("users/{}/playlists",user_id));
+        let result = self.post(&mut url, Some(params), &mut Map::new());
+        self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+    }
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
