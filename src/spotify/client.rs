@@ -70,19 +70,10 @@ impl Spotify {
             }
         }
     }
-    fn internal_call(&self,
-                     method: Method,
-                     url: &str,
-                     payload: Option<Value>,
-                     params: &mut Map<String, Value>)
-                     -> Option<String> {
+    fn internal_call(&self, method: Method, url: &str, payload: Value) -> Option<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
-        }
-        if let Some(data) = payload {
-            params.insert("data".to_owned(), data);
-
         }
         println!("{:?}", &url);
         let client = Client::new();
@@ -93,7 +84,7 @@ impl Spotify {
         let mut response = client
             .request(method, &url.into_owned())
             .headers(headers)
-            .json(&params)
+            .json(&payload)
             .send()
             .expect("send request failed");
 
@@ -116,33 +107,20 @@ impl Spotify {
             let mut url_with_params = String::from(url.to_owned());
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, None, &mut Map::new())
+            self.internal_call(Get, &url_with_params, json!({}))
         } else {
-
-            self.internal_call(Get, url, None, &mut Map::new())
+            self.internal_call(Get, url, json!({}))
         }
     }
 
-    fn post(&self,
-            url: &mut str,
-            payload: Option<Value>,
-            params: &mut Map<String, Value>)
-            -> Option<String> {
-        self.internal_call(Post, url, payload, params)
+    fn post(&self, url: &mut str, payload: Value) -> Option<String> {
+        self.internal_call(Post, url, payload)
     }
-    fn put(&self,
-           url: &mut str,
-           payload: Option<Value>,
-           params: &mut Map<String, Value>)
-           -> Option<String> {
-        self.internal_call(Put, url, payload, params)
+    fn put(&self, url: &mut str, payload: Value) -> Option<String> {
+        self.internal_call(Put, url, payload)
     }
-    fn delete(&self,
-              url: &mut str,
-              payload: Option<Value>,
-              params: &mut Map<String, Value>)
-              -> Option<String> {
-        self.internal_call(Delete, url, payload, params)
+    fn delete(&self, url: &mut str, payload: Value) -> Option<String> {
+        self.internal_call(Delete, url, payload)
     }
     ///returns a single track given the track's ID, URI or URL
     ///Parameters:
@@ -449,7 +427,7 @@ impl Spotify {
             "description": description
         });
         let mut url = String::from(format!("users/{}/playlists",user_id));
-        let result = self.post(&mut url, Some(params), &mut Map::new());
+        let result = self.post(&mut url, params);
         self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
     }
 

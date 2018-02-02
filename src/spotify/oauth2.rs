@@ -273,13 +273,16 @@ impl SpotifyOAuth {
         let mut file = match File::open(&self.cache_path) {
             Ok(file) => file,
             Err(why) => {
-                println!("couldn't open {}: {:?}", display, why.description());
+                eprintln!("couldn't open {}: {:?}", display, why.description());
                 return None;
             }
         };
         let mut token_info_string = String::new();
         match file.read_to_string(&mut token_info_string) {
-            Err(why) => panic!("couldn't read {}: {}", display, why.description()),
+            Err(why) => {
+                eprintln!("couldn't read {}: {}", display, why.description());
+                None
+            }
             Ok(_) => {
                 let mut token_info: TokenInfo = serde_json::from_str(&token_info_string).unwrap();
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
@@ -329,6 +332,7 @@ impl SpotifyOAuth {
                           client_secret: &str,
                           payload: &HashMap<&str, &str>)
                           -> Option<TokenInfo> {
+        println!("fetch_access_token->payload {:?}", &payload);
         fetch_access_token(client_id, client_secret, payload)
     }
     /// Parse the response code in the given response url
@@ -344,6 +348,7 @@ impl SpotifyOAuth {
         payload.insert("client_id", &self.client_id);
         payload.insert("response_type", "code");
         payload.insert("redirect_uri", &self.redirect_uri);
+        payload.insert("scope", &self.scope);
         if let Some(state) = state {
             payload.insert("state", state);
         }
@@ -358,6 +363,7 @@ impl SpotifyOAuth {
         println!("{:?}", &authorize_url);
         authorize_url
     }
+
     /// after refresh access_token, the response may be empty
     /// when refresh_token again
     pub fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {

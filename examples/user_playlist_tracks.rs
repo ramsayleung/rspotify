@@ -1,5 +1,6 @@
 extern crate rspotify;
 
+use rspotify::spotify::util::get_token;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 
@@ -17,7 +18,7 @@ fn main() {
     //     .build();
 
     let mut spotify_oauth = SpotifyOAuth::default().build();
-    match spotify_oauth.get_cached_token() {
+    match get_token(&mut spotify_oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)

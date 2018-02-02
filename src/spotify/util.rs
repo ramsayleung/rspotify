@@ -4,6 +4,7 @@ use webbrowser;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET, percent_decode};
 
 use std::io;
+use std::env;
 use std::string::ToString;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -77,14 +78,39 @@ pub fn prompt_for_user_token_argv(client_id: &str,
     }
 
 }
-pub fn prompt_for_user_token() -> TokenInfo {
-    let mut oauth = SpotifyOAuth::default().build();
+pub fn prompt_for_user_token(client_id: impl Into<Option<String>>,
+                             scope: impl Into<Option<String>>,
+                             client_secret: impl Into<Option<String>>,
+                             redirect_uri: impl Into<Option<String>>,
+                             cache_path: impl Into<Option<String>>)
+                             -> Option<TokenInfo> {
+    let scope = scope.into().unwrap_or("".to_owned());
+    let client_id = client_id
+        .into()
+        .unwrap_or(env::var("CLIENT_ID").unwrap_or_default().to_owned());
+    let client_secret = client_secret
+        .into()
+        .unwrap_or(env::var("CLIENT_SECRET").unwrap_or_default().to_owned());
+    let redirect_uri = redirect_uri
+        .into()
+        .unwrap_or(env::var("REDIRECT_URI").unwrap_or_default().to_owned());
+    let cache_path = cache_path
+        .into()
+        .unwrap_or(".spotify-token-cache.json".to_owned());
+    let mut oauth = SpotifyOAuth::default()
+        .scope(&scope)
+        .client_id(&client_id)
+        .client_secret(&client_secret)
+        .redirect_uri(&redirect_uri)
+        .cache_path(PathBuf::from((&cache_path)))
+        .build();
+    println!("scope {:?}", &scope);
     match get_token(&mut oauth) {
-        Some(token_info) => token_info,
-        None => panic!("Could not get token info"),
+        Some(token_info) => Some(token_info),
+        None => None,
     }
 }
-fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     error!("debug message");
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
@@ -93,7 +119,7 @@ fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             let auth_url = spotify_oauth.get_authorize_url(Some(&state), None);
             match webbrowser::open(&auth_url) {
                 Ok(_) => println!("Opened {} in your browser", auth_url),
-                Err(why) => println!("Error:Please naviage here [{:?}] ", auth_url),
+                Err(why) => eprintln!("Error:Please naviage here [{:?}] ", auth_url),
             }
             println!("Enter the URL you were redirected to: ");
             let mut input = String::new();
