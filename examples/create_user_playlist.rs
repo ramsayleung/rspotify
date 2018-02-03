@@ -37,7 +37,7 @@ fn main() {
             //you may occur an 403 error with "Insufficient client scope" message
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let mut playlist_name = String::from("A New Playlist");
-            let playlists = spotify.user_playlist_create(user_id, &mut playlist_name, false, None);
+            let playlists = spotify.create_user_playlist(user_id, &mut playlist_name, false, None);
             println!("{:?}", playlists);
 
         }

@@ -4,22 +4,21 @@ use serde_json::map::Map;
 use serde::de::Deserialize;
 use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
-use reqwest::Method::{self, Put, Get, Post, Delete};
+use reqwest::Method::{self, Delete, Get, Post, Put};
 
 //  built-in battery
 use std::collections::HashMap;
 use std::io::Read;
 use std::borrow::Cow;
 
-
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{ALBUM_TYPE, TYPE};
-use super::model::album::{SimplifiedAlbum, FullAlbum, FullAlbums};
+use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::Page;
-use super::model::track::{FullTracks, FullTrack, SimplifiedTrack};
+use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
-use super::model::playlist::{SimplifiedPlaylist, FullPlaylist, PlaylistTrack};
+use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::cud_result::Result;
 use super::util::convert_map_to_string;
 pub struct Spotify {
@@ -99,7 +98,6 @@ impl Spotify {
             eprintln!("content: {:?}", &buf);
             None
         }
-
     }
     fn get(&self, url: &mut str, params: &mut HashMap<&str, String>) -> Option<String> {
         if !params.is_empty() {
@@ -122,6 +120,8 @@ impl Spotify {
     fn delete(&self, url: &mut str, payload: Value) -> Option<String> {
         self.internal_call(Delete, url, payload)
     }
+
+    ///https://developer.spotify.com/web-api/get-track/
     ///returns a single track given the track's ID, URI or URL
     ///Parameters:
     ///- track_id - a spotify URI, URL or ID
@@ -133,6 +133,7 @@ impl Spotify {
         self.convert_result::<FullTrack>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-several-tracks/
     ///returns a list of tracks given a list of track IDs, URIs, or URLs
     ///Parameters:
     ///- track_ids - a list of spotify URIs, URLs or IDs
@@ -152,6 +153,8 @@ impl Spotify {
         let result = self.get(&mut url, &mut params);
         self.convert_result::<FullTracks>(&result.unwrap_or_default())
     }
+
+    ///https://developer.spotify.com/web-api/get-artist/
     ///returns a single artist given the artist's ID, URI or URL
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
@@ -163,6 +166,7 @@ impl Spotify {
         self.convert_result::<FullArtist>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-several-artists/
     ///returns a list of artists given the artist IDs, URIs, or URLs
     ///Parameters:
     ///- artist_ids - a list of  artist IDs, URIs or URLs
@@ -177,13 +181,13 @@ impl Spotify {
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-artists-albums/
     ///  Get Spotify catalog information about an artist's albums
     /// - artist_id - the artist ID, URI or URL
     /// - album_type - 'album', 'single', 'appears_on', 'compilation'
     /// - country - limit the response to one particular country.
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
-
     pub fn artist_albums(&self,
                          artist_id: &mut str,
                          album_type: Option<ALBUM_TYPE>,
@@ -210,9 +214,9 @@ impl Spotify {
         url.push_str("/albums");
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedAlbum>>(&result.unwrap_or_default())
-
     }
 
+    ///https://developer.spotify.com/web-api/get-artists-top-tracks/
     /// Get Spotify catalog information about an artist's top 10 tracks by country.
     ///    Parameters:
     ///        - artist_id - the artist ID, URI or URL
@@ -242,6 +246,7 @@ impl Spotify {
         }
     }
 
+    ///https://developer.spotify.com/web-api/get-related-artists/
     ///Get Spotify catalog information about artists similar to an
     ///identified artist. Similarity is based on analysis of the
     ///Spotify community's listening history.
@@ -256,6 +261,7 @@ impl Spotify {
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-album/
     ///returns a single album given the album's ID, URIs or URL
     ///Parameters:
     ///- album_id - the album ID, URI or URL
@@ -265,8 +271,9 @@ impl Spotify {
         url.push_str(&trid);
         let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<FullAlbum>(&result.unwrap_or_default())
-
     }
+
+    ///https://developer.spotify.com/web-api/get-several-albums/
     ///returns a list of albums given the album IDs, URIs, or URLs
     ///Parameters:
     ///- albums_ids - a list of  album IDs, URIs or URLs
@@ -281,6 +288,7 @@ impl Spotify {
         self.convert_result::<FullAlbums>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-albums-tracks/
     ///Get Spotify catalog information about an album's tracks
     ///Parameters:
     ///- album_id - the album ID, URI or URL
@@ -300,9 +308,9 @@ impl Spotify {
         params.insert("offset", offset.into().unwrap_or(0).to_string());
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
-
     }
 
+    ///https://developer.spotify.com/web-api/get-users-profile/
     ///Gets basic profile information about a Spotify User
     ///Parameters:
     ///- user - the id of the usr
@@ -312,6 +320,7 @@ impl Spotify {
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/
     ///Get current user playlists without required getting his profile
     ///Parameters:
     ///- limit  - the number of items to return
@@ -329,6 +338,7 @@ impl Spotify {
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-list-users-playlists/
     ///Gets playlists of a user
     ///Parameters:
     ///- user_id - the id of the usr
@@ -346,12 +356,13 @@ impl Spotify {
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
+
+    ///https://developer.spotify.com/web-api/get-list-users-playlists/
     ///Gets playlist of a user
     ///Parameters:
     ///- user_id - the id of the user
     ///- playlist_id - the id of the playlist
     ///- fields - which fields to return
-
     pub fn user_playlist(&self,
                          user_id: &str,
                          playlist_id: Option<&mut str>,
@@ -376,6 +387,7 @@ impl Spotify {
         }
     }
 
+    ///https://developer.spotify.com/web-api/get-playlists-tracks/
     ///Get full details of the tracks of a playlist owned by a user
     ///Parameters:
     ///- user_id - the id of the user
@@ -406,14 +418,14 @@ impl Spotify {
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
     }
-
+    ///https://developer.spotify.com/web-api/create-playlist/
     ///Creates a playlist for a user
     ///Parameters:
     ///- user_id - the id of the user
     ///- name - the name of the playlist
     ///- public - is the created playlist public
     ///- description - the description of the playlist
-    pub fn user_playlist_create(&self,
+    pub fn create_user_playlist(&self,
                                 user_id: &str,
                                 name: &str,
                                 public: impl Into<Option<bool>>,
@@ -426,9 +438,28 @@ impl Spotify {
             "public": public,
             "description": description
         });
-        let mut url = String::from(format!("users/{}/playlists",user_id));
+        let mut url = String::from(format!("users/{}/playlists", user_id));
         let result = self.post(&mut url, params);
         self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+    }
+    ///https://developer.spotify.com/web-api/change-playlist-details/
+    ///Changes a playlist's name and/or public/private state
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- name - optional name of the playlist
+    ///- public - optional is the playlist public
+    ///- collaborative - optional is the playlist collaborative
+    ///- description - optional description of the playlist
+
+
+    pub fn change_user_playlist_detail(user_id: &str,
+                                       playlist_id: &str,
+                                       name: impl Into<Option<String>>,
+                                       public: impl Into<Option<bool>>,
+                                       description: impl Into<Option<String>>,
+                                       collaborative: impl Into<Option<bool>>) {
+
     }
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
@@ -442,16 +473,17 @@ impl Spotify {
         }
     }
 
-
     fn get_id(&self, artist_type: TYPE, artist_id: &mut str) -> String {
         let fields: Vec<&str> = artist_id.split(":").collect();
         let len = fields.len();
         if len >= 3 {
             if artist_type.as_str() != fields[len - 2] {
-                eprintln!("expected id of type {:?} but found type {:?} {:?}",
-                          artist_type,
-                          fields[len - 2],
-                          artist_id);
+                eprintln!(
+                                        "expected id of type {:?} but found type {:?} {:?}",
+                                        artist_type,
+                                        fields[len - 2],
+                                        artist_id
+                                );
             } else {
                 return fields[len - 1].to_owned();
             }
@@ -460,10 +492,12 @@ impl Spotify {
         let len: usize = sfields.len();
         if len >= 3 {
             if artist_type.as_str() != sfields[len - 2] {
-                eprintln!("expected id of type {:?} but found type {:?} {:?}",
-                          artist_type,
-                          sfields[len - 2],
-                          artist_id);
+                eprintln!(
+                                        "expected id of type {:?} but found type {:?} {:?}",
+                                        artist_type,
+                                        sfields[len - 2],
+                                        artist_id
+                                );
             } else {
                 return sfields[len - 1].to_owned();
             }
@@ -484,21 +518,29 @@ mod tests {
         assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
         // assert album
         let mut artist_id_a = String::from("spotify/album/2WX2uTcsvV5OnS0inACecP");
-        assert_eq!("2WX2uTcsvV5OnS0inACecP",
-                   &spotify.get_id(TYPE::Album, &mut artist_id_a));
+        assert_eq!(
+                        "2WX2uTcsvV5OnS0inACecP",
+                        &spotify.get_id(TYPE::Album, &mut artist_id_a)
+                );
 
         // mismatch type
         let mut artist_id_b = String::from("spotify:album:2WX2uTcsvV5OnS0inACecP");
-        assert_eq!("spotify:album:2WX2uTcsvV5OnS0inACecP",
-                   &spotify.get_id(TYPE::Artist, &mut artist_id_b));
+        assert_eq!(
+                        "spotify:album:2WX2uTcsvV5OnS0inACecP",
+                        &spotify.get_id(TYPE::Artist, &mut artist_id_b)
+                );
 
         // could not split
         let mut artist_id_c = String::from("spotify-album-2WX2uTcsvV5OnS0inACecP");
-        assert_eq!("spotify-album-2WX2uTcsvV5OnS0inACecP",
-                   &spotify.get_id(TYPE::Artist, &mut artist_id_c));
+        assert_eq!(
+                        "spotify-album-2WX2uTcsvV5OnS0inACecP",
+                        &spotify.get_id(TYPE::Artist, &mut artist_id_c)
+                );
 
         let mut playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
-        assert_eq!("59ZbFPES4DQwEjBpWHzrtC",
-                   &spotify.get_id(TYPE::Playlist, &mut playlist_id));
+        assert_eq!(
+                        "59ZbFPES4DQwEjBpWHzrtC",
+                        &spotify.get_id(TYPE::Playlist, &mut playlist_id)
+                );
     }
 }
