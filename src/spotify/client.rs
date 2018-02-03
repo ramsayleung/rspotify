@@ -453,13 +453,28 @@ impl Spotify {
     ///- description - optional description of the playlist
 
 
-    pub fn change_user_playlist_detail(user_id: &str,
+    pub fn change_user_playlist_detail(&self,
+                                       user_id: &str,
                                        playlist_id: &str,
-                                       name: impl Into<Option<String>>,
-                                       public: impl Into<Option<bool>>,
-                                       description: impl Into<Option<String>>,
-                                       collaborative: impl Into<Option<bool>>) {
-
+                                       name: Option<&str>,
+                                       public: Option<bool>,
+                                       description: Option<String>,
+                                       collaborative: Option<bool>) {
+        let mut params = Map::new();
+        if let Some(_name) = name {
+            params.insert("name".to_owned(), _name.into());
+        }
+        if let Some(_public) = public {
+            params.insert("public".to_owned(), _public.into());
+        }
+        if let Some(_collaborative) = collaborative {
+            params.insert("collaborative".to_owned(), _collaborative.into());
+        }
+        if let Some(_description) = description {
+            params.insert("description".to_owned(), _description.into());
+        }
+        let mut url = String::from(format!("users/{}/playlists/{}", user_id,playlist_id));
+        self.put(&mut url, Value::Object(params));
     }
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
