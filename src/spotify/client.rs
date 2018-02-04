@@ -114,9 +114,11 @@ impl Spotify {
     fn post(&self, url: &mut str, payload: Value) -> Option<String> {
         self.internal_call(Post, url, payload)
     }
+
     fn put(&self, url: &mut str, payload: Value) -> Option<String> {
         self.internal_call(Put, url, payload)
     }
+
     fn delete(&self, url: &mut str, payload: Value) -> Option<String> {
         self.internal_call(Delete, url, payload)
     }
@@ -478,6 +480,16 @@ impl Spotify {
         self.put(&mut url, Value::Object(params));
     }
 
+    ///https://developer.spotify.com/web-api/unfollow-playlist/
+    ///Unfollows (deletes) a playlist for a user
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    pub fn unfollow_user_playlist(&self, user_id: &str, playlist_id: &str) {
+        let mut url = String::from(format!("users/{}/playlists/{}/followers",user_id,playlist_id));
+        self.delete(&mut url, json!({}));
+    }
+
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
             Ok(result) => Some(result),
@@ -494,12 +506,10 @@ impl Spotify {
         let len = fields.len();
         if len >= 3 {
             if artist_type.as_str() != fields[len - 2] {
-                eprintln!(
-                                        "expected id of type {:?} but found type {:?} {:?}",
+                eprintln!("expected id of type {:?} but found type {:?} {:?}",
                                         artist_type,
                                         fields[len - 2],
-                                        artist_id
-                                );
+                                        artist_id);
             } else {
                 return fields[len - 1].to_owned();
             }
