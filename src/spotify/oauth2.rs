@@ -49,7 +49,7 @@ pub struct TokenInfo {
     pub scope: String,
 }
 impl TokenInfo {
-    pub fn new() -> TokenInfo {
+    pub fn default() -> TokenInfo {
         TokenInfo {
             access_token: String::new(),
             token_type: String::new(),
@@ -488,7 +488,7 @@ mod tests {
             .scope("user-read-mail")
             .cache_path(PathBuf::from(".test_token"))
             .build();
-        let token_info = TokenInfo::new()
+        let token_info = TokenInfo::default()
             .access_token("test-access_token")
             .token_type("code")
             .expires_in(3600)

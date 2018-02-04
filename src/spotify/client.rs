@@ -12,7 +12,7 @@ use std::io::Read;
 use std::borrow::Cow;
 
 use super::oauth2::SpotifyClientCredentials;
-use super::spotify_enum::{ALBUM_TYPE, TYPE};
+use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::Page;
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
@@ -126,7 +126,7 @@ impl Spotify {
     ///Parameters:
     ///- track_id - a spotify URI, URL or ID
     pub fn track(&self, track_id: &mut str) -> Option<FullTrack> {
-        let trid = self.get_id(TYPE::Track, track_id);
+        let trid = self.get_id(Type::Track, track_id);
         let mut url = String::from("tracks/");
         url.push_str(&trid);
         let result = self.get(&mut url, &mut HashMap::new());
@@ -141,7 +141,7 @@ impl Spotify {
     pub fn tracks(&self, track_ids: Vec<String>, market: Option<&str>) -> Option<FullTracks> {
         let mut ids: Vec<String> = vec![];
         for mut track_id in track_ids {
-            ids.push(self.get_id(TYPE::Track, &mut track_id));
+            ids.push(self.get_id(Type::Track, &mut track_id));
         }
         let mut url = String::from("tracks/?ids=");
         url.push_str(&ids.join(","));
@@ -159,7 +159,7 @@ impl Spotify {
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
     pub fn artist(&self, artist_id: &mut str) -> Option<FullArtist> {
-        let trid = self.get_id(TYPE::Artist, artist_id);
+        let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         let result = self.get(&mut url, &mut HashMap::new());
@@ -173,7 +173,7 @@ impl Spotify {
     pub fn artists(&self, artist_ids: Vec<String>) -> Option<FullArtists> {
         let mut ids: Vec<String> = vec![];
         for mut artist_id in artist_ids {
-            ids.push(self.get_id(TYPE::Artist, &mut artist_id));
+            ids.push(self.get_id(Type::Artist, &mut artist_id));
         }
         let mut url = String::from("artists/?ids=");
         url.push_str(&ids.join(","));
@@ -190,7 +190,7 @@ impl Spotify {
     /// - offset - the index of the first album to return
     pub fn artist_albums(&self,
                          artist_id: &mut str,
-                         album_type: Option<ALBUM_TYPE>,
+                         album_type: Option<AlbumType>,
                          country: Option<&str>,
                          limit: Option<u32>,
                          offset: Option<u32>)
@@ -208,7 +208,7 @@ impl Spotify {
         if let Some(_country) = country {
             params.insert("country", _country.to_string());
         }
-        let trid = self.get_id(TYPE::Artist, artist_id);
+        let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/albums");
@@ -227,7 +227,7 @@ impl Spotify {
                              -> Option<FullTracks> {
         let mut params: HashMap<&str, String> = HashMap::new();
         params.insert("country", country.into().unwrap_or("US".to_owned()));
-        let trid = self.get_id(TYPE::Artist, artist_id);
+        let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/top-tracks");
@@ -253,7 +253,7 @@ impl Spotify {
     ///Parameters:
     ///- artist_id - the artist ID, URI or URL
     pub fn artist_related_artists(&self, artist_id: &mut str) -> Option<FullArtists> {
-        let trid = self.get_id(TYPE::Artist, artist_id);
+        let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/related-artists");
@@ -266,7 +266,7 @@ impl Spotify {
     ///Parameters:
     ///- album_id - the album ID, URI or URL
     pub fn album(&self, album_id: &mut str) -> Option<FullAlbum> {
-        let trid = self.get_id(TYPE::Album, album_id);
+        let trid = self.get_id(Type::Album, album_id);
         let mut url = String::from("albums/");
         url.push_str(&trid);
         let result = self.get(&mut url, &mut HashMap::new());
@@ -280,7 +280,7 @@ impl Spotify {
     pub fn albums(&self, album_ids: Vec<String>) -> Option<FullAlbums> {
         let mut ids: Vec<String> = vec![];
         for mut album_id in album_ids {
-            ids.push(self.get_id(TYPE::Album, &mut album_id));
+            ids.push(self.get_id(Type::Album, &mut album_id));
         }
         let mut url = String::from("albums/?ids=");
         url.push_str(&ids.join(","));
@@ -300,7 +300,7 @@ impl Spotify {
                        offset: impl Into<Option<u32>>)
                        -> Option<Page<SimplifiedTrack>> {
         let mut params = HashMap::new();
-        let trid = self.get_id(TYPE::Album, album_id);
+        let trid = self.get_id(Type::Album, album_id);
         let mut url = String::from("albums/");
         url.push_str(&trid);
         url.push_str("/tracks");
@@ -374,7 +374,7 @@ impl Spotify {
         }
         match playlist_id {
             Some(_playlist_id) => {
-                let plid = self.get_id(TYPE::Playlist, _playlist_id);
+                let plid = self.get_id(Type::Playlist, _playlist_id);
                 let mut url = String::from(format!("users/{}/playlists/{}", user_id, plid));
                 let result = self.get(&mut url, &mut params);
                 self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
@@ -413,11 +413,13 @@ impl Spotify {
         if let Some(_fields) = fields {
             params.insert("fields", _fields.to_string());
         }
-        let plid = self.get_id(TYPE::Playlist, playlist_id);
+        let plid = self.get_id(Type::Playlist, playlist_id);
         let mut url = String::from(format!("users/{}/playlists/{}/tracks", user_id, plid));
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
     }
+
+
     ///https://developer.spotify.com/web-api/create-playlist/
     ///Creates a playlist for a user
     ///Parameters:
@@ -442,6 +444,7 @@ impl Spotify {
         let result = self.post(&mut url, params);
         self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
     }
+
     ///https://developer.spotify.com/web-api/change-playlist-details/
     ///Changes a playlist's name and/or public/private state
     ///Parameters:
@@ -451,8 +454,6 @@ impl Spotify {
     ///- public - optional is the playlist public
     ///- collaborative - optional is the playlist collaborative
     ///- description - optional description of the playlist
-
-
     pub fn change_user_playlist_detail(&self,
                                        user_id: &str,
                                        playlist_id: &str,
@@ -488,7 +489,7 @@ impl Spotify {
         }
     }
 
-    fn get_id(&self, artist_type: TYPE, artist_id: &mut str) -> String {
+    fn get_id(&self, artist_type: Type, artist_id: &mut str) -> String {
         let fields: Vec<&str> = artist_id.split(":").collect();
         let len = fields.len();
         if len >= 3 {
@@ -529,33 +530,33 @@ mod tests {
         // assert artist
         let spotify = Spotify::default().access_token("test-access").build();
         let mut artist_id = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-        let id = spotify.get_id(TYPE::Artist, &mut artist_id);
+        let id = spotify.get_id(Type::Artist, &mut artist_id);
         assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
         // assert album
         let mut artist_id_a = String::from("spotify/album/2WX2uTcsvV5OnS0inACecP");
         assert_eq!(
                         "2WX2uTcsvV5OnS0inACecP",
-                        &spotify.get_id(TYPE::Album, &mut artist_id_a)
+                        &spotify.get_id(Type::Album, &mut artist_id_a)
                 );
 
         // mismatch type
         let mut artist_id_b = String::from("spotify:album:2WX2uTcsvV5OnS0inACecP");
         assert_eq!(
                         "spotify:album:2WX2uTcsvV5OnS0inACecP",
-                        &spotify.get_id(TYPE::Artist, &mut artist_id_b)
+                        &spotify.get_id(Type::Artist, &mut artist_id_b)
                 );
 
         // could not split
         let mut artist_id_c = String::from("spotify-album-2WX2uTcsvV5OnS0inACecP");
         assert_eq!(
                         "spotify-album-2WX2uTcsvV5OnS0inACecP",
-                        &spotify.get_id(TYPE::Artist, &mut artist_id_c)
+                        &spotify.get_id(Type::Artist, &mut artist_id_c)
                 );
 
         let mut playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
         assert_eq!(
                         "59ZbFPES4DQwEjBpWHzrtC",
-                        &spotify.get_id(TYPE::Playlist, &mut playlist_id)
+                        &spotify.get_id(Type::Playlist, &mut playlist_id)
                 );
     }
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use super::artist::SimplifiedArtist;
 use super::album::SimplifiedAlbum;
-use spotify::spotify_enum::TYPE;
+use spotify::spotify_enum::Type;
 ///https://developer.spotify.com/web-api/object-model/#track-object-full
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullTrack {
@@ -21,7 +21,7 @@ pub struct FullTrack {
     pub preview_url: Option<String>,
     pub track_number: u32,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 
@@ -44,6 +44,6 @@ pub struct SimplifiedTrack {
     pub preview_url: Option<String>,
     pub track_number: u32,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }

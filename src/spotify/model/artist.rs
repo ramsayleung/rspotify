@@ -1,7 +1,7 @@
 
 use std::collections::HashMap;
 use serde_json::Value;
-use spotify::spotify_enum::TYPE;
+use spotify::spotify_enum::Type;
 use super::image::Image;
 ///https://developer.spotify.com/web-api/object-model/#artist-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -11,7 +11,7 @@ pub struct SimplifiedArtist {
     pub id: String,
     pub name: String,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 
@@ -27,7 +27,7 @@ pub struct FullArtist {
     pub name: String,
     pub popularity: u32,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]

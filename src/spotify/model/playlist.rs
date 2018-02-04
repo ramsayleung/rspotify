@@ -6,7 +6,7 @@ use super::image::Image;
 use super::user::PublicUser;
 use super::track::FullTrack;
 use super::page::Page;
-use spotify::spotify_enum::TYPE;
+use spotify::spotify_enum::Type;
 ///https://developer.spotify.com/web-api/object-model/#playlist-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlaylist {
@@ -21,7 +21,7 @@ pub struct SimplifiedPlaylist {
     pub snapshot_id: String,
     pub tracks: HashMap<String, Value>,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 
@@ -40,7 +40,7 @@ pub struct FullPlaylist {
     pub snapshot_id: String,
     pub tracks: Page<PlaylistTrack>,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 

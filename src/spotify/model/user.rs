@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use super::image::Image;
-use spotify::spotify_enum::TYPE;
+use spotify::spotify_enum::Type;
 ///https://developer.spotify.com/web-api/object-model/#user-object-public
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PublicUser {
@@ -14,6 +14,6 @@ pub struct PublicUser {
     pub id: String,
     pub images: Option<Vec<Image>>,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }

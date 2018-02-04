@@ -1,39 +1,41 @@
+use hyper::StatusCode;
+
 use std::fmt;
 // album_type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ALBUM_TYPE {
+pub enum AlbumType {
     Album,
     Single,
     AppearsOn,
     Compilcation,
 }
-impl ALBUM_TYPE {
-    pub fn from_str(s: &str) -> Option<ALBUM_TYPE> {
+impl AlbumType {
+    pub fn from_str(s: &str) -> Option<AlbumType> {
         match s {
-            "album" => Some(ALBUM_TYPE::Album),
-            "single" => Some(ALBUM_TYPE::Single),
-            "appears_on" => Some(ALBUM_TYPE::AppearsOn),
-            "compilation" => Some(ALBUM_TYPE::Compilcation),
+            "album" => Some(AlbumType::Album),
+            "single" => Some(AlbumType::Single),
+            "appears_on" => Some(AlbumType::AppearsOn),
+            "compilation" => Some(AlbumType::Compilcation),
             _ => None,
         }
     }
     pub fn as_str(&self) -> &str {
         match self {
-            &ALBUM_TYPE::Album => "album",
-            &ALBUM_TYPE::Single => "single",
-            &ALBUM_TYPE::AppearsOn => "appears_on",
-            &ALBUM_TYPE::Compilcation => "compilation",
+            &AlbumType::Album => "album",
+            &AlbumType::Single => "single",
+            &AlbumType::AppearsOn => "appears_on",
+            &AlbumType::Compilcation => "compilation",
         }
     }
 }
-impl fmt::Debug for ALBUM_TYPE {
+impl fmt::Debug for AlbumType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ALBUM_TYPE::Album => write!(f, "album"),
-            ALBUM_TYPE::Single => write!(f, "single"),
-            ALBUM_TYPE::AppearsOn => write!(f, "appears_on"),
-            ALBUM_TYPE::Compilcation => write!(f, "compilation"),
+            AlbumType::Album => write!(f, "album"),
+            AlbumType::Single => write!(f, "single"),
+            AlbumType::AppearsOn => write!(f, "appears_on"),
+            AlbumType::Compilcation => write!(f, "compilation"),
         }
     }
 }
@@ -41,7 +43,7 @@ impl fmt::Debug for ALBUM_TYPE {
 //  ‘artist’, ‘album’,‘track’ or ‘playlist’
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum TYPE {
+pub enum Type {
     Artist,
     Album,
     Track,
@@ -49,36 +51,36 @@ pub enum TYPE {
     User,
 }
 
-impl TYPE {
-    pub fn from_str(s: &str) -> Option<TYPE> {
+impl Type {
+    pub fn from_str(s: &str) -> Option<Type> {
         match s {
-            "artist" => Some(TYPE::Artist),
-            "album" => Some(TYPE::Album),
-            "track" => Some(TYPE::Track),
-            "playlist" => Some(TYPE::Playlist),
-            "user" => Some(TYPE::User),
+            "artist" => Some(Type::Artist),
+            "album" => Some(Type::Album),
+            "track" => Some(Type::Track),
+            "playlist" => Some(Type::Playlist),
+            "user" => Some(Type::User),
             _ => None,
         }
     }
     pub fn as_str(&self) -> &str {
         match self {
-            &TYPE::Album => "album",
-            &TYPE::Artist => "artist",
-            &TYPE::Track => "track",
-            &TYPE::Playlist => "playlist",
-            &TYPE::User => "user",
+            &Type::Album => "album",
+            &Type::Artist => "artist",
+            &Type::Track => "track",
+            &Type::Playlist => "playlist",
+            &Type::User => "user",
         }
     }
 }
 
-impl fmt::Debug for TYPE {
+impl fmt::Debug for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            TYPE::Album => write!(f, "album"),
-            TYPE::Artist => write!(f, "artist"),
-            TYPE::Track => write!(f, "track"),
-            TYPE::Playlist => write!(f, "playlist"),
-            TYPE::User => write!(f, "user"),
+            Type::Album => write!(f, "album"),
+            Type::Artist => write!(f, "artist"),
+            Type::Track => write!(f, "track"),
+            Type::Playlist => write!(f, "playlist"),
+            Type::User => write!(f, "user"),
         }
     }
 }

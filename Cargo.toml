@@ -11,6 +11,7 @@ env_logger = "0.5.3"
 hyper = "0.11"
 log = "0.4"
 percent-encoding = "1.0.1"
+quick-error = "1.2.1"
 rand = "0.4.2"
 random = "0.12.2"
 reqwest = "0.8.2"
@@ -22,6 +23,7 @@ serde_derive = "1.0"
 serde_json = "1.0"
 url = "1.6.0"
 webbrowser = "0.2.2"
+
 [dependencies.chrono]
 features = ["serde", "rustc-serialize"]
 version = "0.4"

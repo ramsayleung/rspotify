@@ -1,6 +1,8 @@
 #![feature(universal_impl_trait)]
 #![allow(dead_code)]
 #[macro_use]
+extern crate quick_error;
+#[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate reqwest;

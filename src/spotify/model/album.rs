@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use spotify::spotify_enum::{TYPE, ALBUM_TYPE};
+use spotify::spotify_enum::{Type, AlbumType};
 use super::track::SimplifiedTrack;
 use super::artist::SimplifiedArtist;
 use super::image::Image;
@@ -17,14 +17,14 @@ pub struct SimplifiedAlbum {
     pub images: Vec<Image>,
     pub name: String,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 ///https://developer.spotify.com/web-api/object-model/#album-object-full
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
-    pub album_type: ALBUM_TYPE,
+    pub album_type: AlbumType,
     pub available_markets: Vec<String>,
     pub copyrights: Vec<HashMap<String, String>>,
     pub external_ids: HashMap<String, String>,
@@ -39,7 +39,7 @@ pub struct FullAlbum {
     pub release_date_precision: String,
     pub tracks: Page<SimplifiedTrack>,
     #[serde(rename = "type")]
-    pub _type: TYPE,
+    pub _type: Type,
     pub uri: String,
 }
 
