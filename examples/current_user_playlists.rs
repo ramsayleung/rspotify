@@ -17,8 +17,10 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut spotify_oauth = SpotifyOAuth::default().build();
-    match get_token(&mut spotify_oauth){
+    let mut spotify_oauth = SpotifyOAuth::default()
+        .scope("playlist-read-private")
+        .build();
+    match get_token(&mut spotify_oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)

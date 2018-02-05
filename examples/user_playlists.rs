@@ -17,7 +17,9 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut spotify_oauth = SpotifyOAuth::default().build();
+    let mut spotify_oauth = SpotifyOAuth::default()
+        .scope("playlist-read-private, playlist-read-collaborative")
+        .build();
     match get_token(&mut spotify_oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -32,7 +34,9 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let user_id = "wizzler";
+            //this is my(samray's) user_id, so just change
+            // user_id to yours, or you will get a 403 forbidden error
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlists = spotify.user_playlists(user_id, Some(10), None);
             println!("{:?}", playlists);
 

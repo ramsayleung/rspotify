@@ -33,8 +33,9 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            //I'm not entirely sure how it will function if you aren't a premium user
-            //you may occur an 403 error with "Insufficient client scope" message
+            //this is my(samray's) user_id, so just change
+            // user_id to yours, or you will get a 403 forbidden error
+
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let mut playlist_name = String::from("A New Playlist");
             let playlists = spotify.create_user_playlist(user_id, &mut playlist_name, false, None);
