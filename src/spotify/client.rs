@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::borrow::Cow;
 
+use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
@@ -19,7 +20,6 @@ use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use super::model::cud_result::Result;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -69,7 +69,7 @@ impl Spotify {
             }
         }
     }
-    fn internal_call(&self, method: Method, url: &str, payload: Value) -> Option<String> {
+    fn internal_call(&self, method: Method, url: &str, payload: Value) -> Result<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
@@ -92,14 +92,16 @@ impl Spotify {
             .read_to_string(&mut buf)
             .expect("failed to read response");
         if response.status().is_success() {
-            Some(buf)
+            Ok(buf)
         } else {
             eprintln!("response: {:?}", &response);
             eprintln!("content: {:?}", &buf);
-            None
+            bail!("send request failed, http code:{}, error message:{}",
+                  response.status(),
+                  &buf);
         }
     }
-    fn get(&self, url: &mut str, params: &mut HashMap<&str, String>) -> Option<String> {
+    fn get(&self, url: &mut str, params: &mut HashMap<&str, String>) -> Result<String> {
         if !params.is_empty() {
             let param: String = convert_map_to_string(params);
             let mut url_with_params = String::from(url.to_owned());
@@ -111,15 +113,15 @@ impl Spotify {
         }
     }
 
-    fn post(&self, url: &mut str, payload: Value) -> Option<String> {
+    fn post(&self, url: &mut str, payload: Value) -> Result<String> {
         self.internal_call(Post, url, payload)
     }
 
-    fn put(&self, url: &mut str, payload: Value) -> Option<String> {
+    fn put(&self, url: &mut str, payload: Value) -> Result<String> {
         self.internal_call(Put, url, payload)
     }
 
-    fn delete(&self, url: &mut str, payload: Value) -> Option<String> {
+    fn delete(&self, url: &mut str, payload: Value) -> Result<String> {
         self.internal_call(Delete, url, payload)
     }
 
@@ -234,7 +236,7 @@ impl Spotify {
         url.push_str(&trid);
         url.push_str("/top-tracks");
         match self.get(&mut url, &mut params) {
-            Some(result) => {
+            Ok(result) => {
                 // let mut albums: Albums = ;
                 match serde_json::from_str::<FullTracks>(&result) {
                     Ok(_tracks) => Some(_tracks),
@@ -244,7 +246,7 @@ impl Spotify {
                     }
                 }
             }
-            None => None,
+            Err(_) => None,
         }
     }
 

@@ -1,8 +1,6 @@
 #![feature(universal_impl_trait)]
 #![allow(dead_code)]
 #[macro_use]
-extern crate quick_error;
-#[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate reqwest;
@@ -13,6 +11,8 @@ extern crate chrono;
 #[macro_use]
 extern crate serde_derive;
 extern crate webbrowser;
+#[macro_use]
+extern crate error_chain;
 
 extern crate dotenv;
 // use serde_json::Error;
@@ -37,6 +37,8 @@ extern crate hyper;
 // use std::path::PathBuf;
 // use std::collections::HashMap;
 pub mod spotify;
+mod errors;
+pub use errors::{Result, Error, ErrorKind};
 // use spotify::client::Spotify;
 // use spotify::model::album_item::Item;
 // use spotify::oauth2::{TokenInfo, SpotifyOAuth, SpotifyClientCredentials};
