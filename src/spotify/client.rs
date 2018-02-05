@@ -492,6 +492,24 @@ impl Spotify {
         self.delete(&mut url, json!({}));
     }
 
+    ///https://developer.spotify.com/web-api/add-tracks-to-playlist/
+    ///Adds tracks to a playlist
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- track_ids - a list of track URIs, URLs or IDs
+    ///- position - the position to add the tracks
+    pub fn add_tracks_to_playlist(&self,
+                                  user_id: &str,
+                                  playlist_id: &mut str,
+                                  track_ids: Vec<String>,
+                                  position: Option<i32>) {
+        let plid = self.get_id(Type::Playlist, playlist_id);
+
+    }
+
+
+
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
             Ok(result) => Some(result),
