@@ -75,7 +75,6 @@ impl Spotify {
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
         }
-        println!("{:?}", &url);
         let client = Client::new();
 
         let mut headers = Headers::new();
@@ -95,6 +94,7 @@ impl Spotify {
         if response.status().is_success() {
             Ok(buf)
         } else {
+            eprintln!("parameters: {:?}\n", &payload);
             eprintln!("response: {:?}", &response);
             eprintln!("content: {:?}", &buf);
             bail!("send request failed, http code:{}, error message:{}",
@@ -508,14 +508,10 @@ impl Spotify {
                                   position: Option<i32>)
                                   -> Option<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris = track_ids
+        let uris: Vec<String> = track_ids
             .iter_mut()
             .map(|id| self.get_uri(Type::Track, id))
-            .collect::<String>();
-        // let mut uris = vec![];
-        // for track_id in track_ids{
-        //     uris.push(self.get_uri(Type::Track, &mut track_id));
-        // }
+            .collect();
         let mut params = Map::new();
         if let Some(_position) = position {
             params.insert("position".to_owned(), _position.into());
@@ -615,5 +611,15 @@ mod tests {
                         "59ZbFPES4DQwEjBpWHzrtC",
                         &spotify.get_id(Type::Playlist, &mut playlist_id)
                 );
+    }
+    #[test]
+    fn test_get_uri() {
+        let spotify = Spotify::default().access_token("test-access").build();
+        let mut track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+        let mut track_id2 = String::from("1301WleyT98MSxVHPZCA6M");
+        let uri1 = spotify.get_uri(Type::Track, &mut track_id1);
+        let uri2 = spotify.get_uri(Type::Track, &mut track_id2);
+        assert_eq!(track_id1,uri1);
+        assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M",&uri2);
     }
 }
