@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::borrow::Cow;
 
-use errors::{Result, ResultExt};
+use errors::Result;
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
@@ -20,6 +20,7 @@ use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::PublicUser;
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
+use super::model::cud_result::CUDResult;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -464,7 +465,8 @@ impl Spotify {
                                        name: Option<&str>,
                                        public: Option<bool>,
                                        description: Option<String>,
-                                       collaborative: Option<bool>) {
+                                       collaborative: Option<bool>)
+                                       -> Result<String> {
         let mut params = Map::new();
         if let Some(_name) = name {
             params.insert("name".to_owned(), _name.into());
@@ -479,7 +481,7 @@ impl Spotify {
             params.insert("description".to_owned(), _description.into());
         }
         let mut url = String::from(format!("users/{}/playlists/{}", user_id,playlist_id));
-        self.put(&mut url, Value::Object(params));
+        self.put(&mut url, Value::Object(params))
     }
 
     ///https://developer.spotify.com/web-api/unfollow-playlist/
@@ -487,9 +489,9 @@ impl Spotify {
     ///Parameters:
     ///- user_id - the id of the user
     ///- playlist_id - the id of the playlist
-    pub fn unfollow_user_playlist(&self, user_id: &str, playlist_id: &str) {
+    pub fn unfollow_user_playlist(&self, user_id: &str, playlist_id: &str) -> Result<String> {
         let mut url = String::from(format!("users/{}/playlists/{}/followers",user_id,playlist_id));
-        self.delete(&mut url, json!({}));
+        self.delete(&mut url, json!({}))
     }
 
     ///https://developer.spotify.com/web-api/add-tracks-to-playlist/
@@ -502,9 +504,26 @@ impl Spotify {
     pub fn add_tracks_to_playlist(&self,
                                   user_id: &str,
                                   playlist_id: &mut str,
-                                  track_ids: Vec<String>,
-                                  position: Option<i32>) {
+                                  mut track_ids: Vec<String>,
+                                  position: Option<i32>)
+                                  -> Option<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
+        let uris = track_ids
+            .iter_mut()
+            .map(|id| self.get_uri(Type::Track, id))
+            .collect::<String>();
+        // let mut uris = vec![];
+        // for track_id in track_ids{
+        //     uris.push(self.get_uri(Type::Track, &mut track_id));
+        // }
+        let mut params = Map::new();
+        if let Some(_position) = position {
+            params.insert("position".to_owned(), _position.into());
+        }
+        params.insert("uris".to_owned(), uris.into());
+        let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
+        let result = self.post(&mut url, Value::Object(params));
+        self.convert_result::<CUDResult>(&result.unwrap_or_default())
 
     }
 
@@ -521,34 +540,42 @@ impl Spotify {
         }
     }
 
-    fn get_id(&self, artist_type: Type, artist_id: &mut str) -> String {
-        let fields: Vec<&str> = artist_id.split(":").collect();
+    fn get_uri(&self, _type: Type, _id: &mut str) -> String {
+        let mut uri = String::from("spotify:");
+        uri.push_str(_type.as_str());
+        uri.push(':');
+        uri.push_str(&self.get_id(_type, _id));
+        uri
+    }
+    /// get spotify id by type and id
+    fn get_id(&self, _type: Type, _id: &mut str) -> String {
+        let fields: Vec<&str> = _id.split(":").collect();
         let len = fields.len();
         if len >= 3 {
-            if artist_type.as_str() != fields[len - 2] {
+            if _type.as_str() != fields[len - 2] {
                 eprintln!("expected id of type {:?} but found type {:?} {:?}",
-                                        artist_type,
+                                        _type,
                                         fields[len - 2],
-                                        artist_id);
+                                        _id);
             } else {
                 return fields[len - 1].to_owned();
             }
         }
-        let sfields: Vec<&str> = artist_id.split("/").collect();
+        let sfields: Vec<&str> = _id.split("/").collect();
         let len: usize = sfields.len();
         if len >= 3 {
-            if artist_type.as_str() != sfields[len - 2] {
+            if _type.as_str() != sfields[len - 2] {
                 eprintln!(
                                         "expected id of type {:?} but found type {:?} {:?}",
-                                        artist_type,
+                                        _type,
                                         sfields[len - 2],
-                                        artist_id
+                                        _id
                                 );
             } else {
                 return sfields[len - 1].to_owned();
             }
         }
-        return artist_id.to_owned();
+        return _id.to_owned();
     }
 }
 
