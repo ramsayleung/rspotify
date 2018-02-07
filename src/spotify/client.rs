@@ -522,7 +522,34 @@ impl Spotify {
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
 
     }
+    ///https://developer.spotify.com/web-api/replace-playlists-tracks/
+    ///Replace all tracks in a playlist
+    ///Parameters:
+    ///- user - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- tracks - the list of track ids to add to the playlist
 
+    pub fn replace_tracks_in_playlist(&self,
+                                      user_id: &str,
+                                      playlist_id: &mut str,
+                                      mut track_ids: Vec<String>)
+                                      -> Result<()> {
+        let plid = self.get_id(Type::Playlist, playlist_id);
+        let uris: Vec<String> = track_ids
+            .iter_mut()
+            .map(|id| self.get_uri(Type::Track, id))
+            .collect();
+        // let mut params = Map::new();
+        // params.insert("uris".to_owned(), uris.into());
+        let params = json!({
+            "uris": uris
+        });
+        let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
+        match self.put(&mut url, params) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
