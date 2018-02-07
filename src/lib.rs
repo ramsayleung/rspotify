@@ -20,7 +20,6 @@ extern crate url;
 extern crate percent_encoding;
 extern crate rand;
 extern crate base64;
-#[macro_use]
 extern crate hyper;
 
 pub mod spotify;
