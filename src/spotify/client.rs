@@ -550,7 +550,34 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
-
+    ///https://developer.spotify.com/web-api/reorder-playlists-tracks/
+    ///Reorder tracks in a playlist
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- range_start - the position of the first track to be reordered
+    ///- range_length - optional the number of tracks to be reordered (default: 1)
+    ///- insert_before - the position where the tracks should be inserted
+    ///- snapshot_id - optional playlist's snapshot ID
+    pub fn recorder_tracks_in_playlist(&self,
+                                       user_id: &str,
+                                       playlist_id: &mut str,
+                                       range_start: i32,
+                                       range_length: i32,
+                                       insert_before: i32,
+                                       snapshot_id: Option<String>)
+                                       -> Option<CUDResult> {
+        let plid = self.get_id(Type::Playlist, playlist_id);
+        let payload = json!({
+            "range_start": range_start,
+            "range_length": range_length,
+            "insert_before": insert_before,
+            "snapshot_id": snapshot_id
+        });
+        let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
+        let result = self.put(&mut url, payload);
+        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+    }
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
