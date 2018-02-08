@@ -563,11 +563,12 @@ impl Spotify {
                                        user_id: &str,
                                        playlist_id: &mut str,
                                        range_start: i32,
-                                       range_length: i32,
+                                       range_length: impl Into<Option<i32>>,
                                        insert_before: i32,
                                        snapshot_id: Option<String>)
                                        -> Option<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
+        let range_length = range_length.into().unwrap_or(1);
         let payload = json!({
             "range_start": range_start,
             "range_length": range_length,
