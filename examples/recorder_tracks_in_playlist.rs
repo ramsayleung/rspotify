@@ -38,7 +38,7 @@ fn main() {
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let mut playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
             let range_start = 0;
-            let insert_before = 3;
+            let insert_before = 1;
             let range_length = 1;
             let result = spotify.recorder_tracks_in_playlist(user_id,
                                                              &mut playlist_id,

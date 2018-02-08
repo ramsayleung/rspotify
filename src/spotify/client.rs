@@ -569,14 +569,15 @@ impl Spotify {
                                        -> Option<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let range_length = range_length.into().unwrap_or(1);
-        let payload = json!({
-            "range_start": range_start,
-            "range_length": range_length,
-            "insert_before": insert_before,
-            "snapshot_id": snapshot_id
-        });
+        let mut params = Map::new();
+        if let Some(_snapshot_id) = snapshot_id {
+            params.insert("snapshot_id".to_owned(), _snapshot_id.into());
+        }
+        params.insert("range_start".to_owned(), range_start.into());
+        params.insert("range_length".to_owned(), range_length.into());
+        params.insert("insert_before".to_owned(), insert_before.into());
         let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
-        let result = self.put(&mut url, payload);
+        let result = self.put(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
