@@ -1,7 +1,6 @@
 use rand::{self, Rng};
 use chrono::prelude::*;
 use webbrowser;
-use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET, percent_decode};
 
 use std::io;
 use std::env;
@@ -102,7 +101,7 @@ pub fn prompt_for_user_token(client_id: impl Into<Option<String>>,
         .client_id(&client_id)
         .client_secret(&client_secret)
         .redirect_uri(&redirect_uri)
-        .cache_path(PathBuf::from((&cache_path)))
+        .cache_path(PathBuf::from(&cache_path))
         .build();
     println!("scope {:?}", &scope);
     match get_token(&mut oauth) {
@@ -119,7 +118,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             let auth_url = spotify_oauth.get_authorize_url(Some(&state), None);
             match webbrowser::open(&auth_url) {
                 Ok(_) => println!("Opened {} in your browser", auth_url),
-                Err(why) => eprintln!("Error:Please naviage here [{:?}] ", auth_url),
+                Err(why) => eprintln!("Error {:?};Please naviage here [{:?}] ", why, auth_url),
             }
             println!("Enter the URL you were redirected to: ");
             let mut input = String::new();
@@ -133,7 +132,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
                         None => None,
                     }
                 }
-                Err(error) => None,
+                Err(_) => None,
             }
         }
     }

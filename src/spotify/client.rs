@@ -1,3 +1,4 @@
+// 3rd-part library
 use serde_json;
 use serde_json::Value;
 use serde_json::map::Map;
@@ -40,22 +41,26 @@ impl Spotify {
         self.prefix = prefix.to_owned();
         self
     }
+
     pub fn access_token(mut self, access_token: &str) -> Spotify {
         self.access_token = Some(access_token.to_owned());
         self
     }
+
     pub fn client_credentials_manager(mut self,
                                       client_credential_manager: SpotifyClientCredentials)
                                       -> Spotify {
         self.client_credentials_manager = Some(client_credential_manager);
         self
     }
+
     pub fn build(self) -> Spotify {
         if self.access_token.is_none() && self.client_credentials_manager.is_none() {
             panic!("access_token and client_credentials_manager are none!!!");
         }
         self
     }
+
     fn auth_headers(&self) -> Authorization<Bearer> {
         match self.access_token {
             Some(ref token) => Authorization(Bearer { token: token.to_owned() }),
@@ -70,6 +75,7 @@ impl Spotify {
             }
         }
     }
+
     fn internal_call(&self, method: Method, url: &str, payload: Value) -> Result<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
@@ -102,6 +108,7 @@ impl Spotify {
                   &buf);
         }
     }
+    ///send get request
     fn get(&self, url: &mut str, params: &mut HashMap<&str, String>) -> Result<String> {
         if !params.is_empty() {
             let param: String = convert_map_to_string(params);
@@ -114,14 +121,16 @@ impl Spotify {
         }
     }
 
+    ///send post request
     fn post(&self, url: &mut str, payload: Value) -> Result<String> {
         self.internal_call(Post, url, payload)
     }
-
+    ///send put request
     fn put(&self, url: &mut str, payload: Value) -> Result<String> {
         self.internal_call(Put, url, payload)
     }
 
+    /// send delete request
     fn delete(&self, url: &mut str, payload: Value) -> Result<String> {
         self.internal_call(Delete, url, payload)
     }

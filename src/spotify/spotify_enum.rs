@@ -1,5 +1,3 @@
-use hyper::StatusCode;
-
 use std::fmt;
 // album_type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
 #[derive(Clone, Serialize, Deserialize)]
