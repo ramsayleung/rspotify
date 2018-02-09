@@ -559,6 +559,7 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+
     ///https://developer.spotify.com/web-api/reorder-playlists-tracks/
     ///Reorder tracks in a playlist
     ///Parameters:
@@ -589,6 +590,35 @@ impl Spotify {
         let result = self.put(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
+    ///https://developer.spotify.com/web-api/remove-tracks-playlist/
+    ///Removes all occurrences of the given tracks from the given playlist
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- track_ids - the list of track ids to add to the playlist
+    ///- snapshot_id - optional id of the playlist snapshot
+    pub fn user_playlist_remove_all_occurrences_of_tracks(&self,
+                                                          user_id: &str,
+                                                          playlist_id: &mut str,
+                                                          mut track_ids: Vec<String>,
+                                                          snapshot_id: Option<String>)
+                                                          -> Option<CUDResult> {
+        let plid = self.get_id(Type::Playlist, playlist_id);
+        let uris: Vec<String> = track_ids
+            .iter_mut()
+            .map(|id| self.get_uri(Type::Track, id))
+            .collect();
+        let mut params = Map::new();
+        params.insert("tracks".to_owned(), uris.into());
+        if let Some(_snapshot_id) = snapshot_id {
+            params.insert("snapshot_id".to_owned(), _snapshot_id.into());
+        }
+        let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
+        let result = self.delete(&mut url, Value::Object(params));
+        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+
+    }
+
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
         match serde_json::from_str::<T>(input) {
