@@ -36,14 +36,15 @@ fn main() {
             //this is my(samray's) user_id and playlist_id, so just change
             // user_id and playlist_id to yours, or you will get a 403 forbidden error
             let user_id = "2257tjys2e2u2ygfke42niy2q";
-            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
-            let mut playlist_name = "A New Playlist-update";
-            spotify.change_user_playlist_detail(user_id,
-                                                playlist_id,
-                                                Some(playlist_name),
-                                                Some(false),
-                                                None,
-                                                None);
+            let mut playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
+            let mut tracks_ids = vec![];
+            let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+            tracks_ids.push(track_id1);
+            let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
+            tracks_ids.push(track_id2);
+            let result = spotify
+                .user_playlist_add_tracks(user_id, &mut playlist_id, tracks_ids, None);
+            println!("{:?}", result);
 
         }
         None => println!("auth failed"),

@@ -441,7 +441,7 @@ impl Spotify {
     ///- name - the name of the playlist
     ///- public - is the created playlist public
     ///- description - the description of the playlist
-    pub fn create_user_playlist(&self,
+    pub fn user_playlist_create(&self,
                                 user_id: &str,
                                 name: &str,
                                 public: impl Into<Option<bool>>,
@@ -468,7 +468,7 @@ impl Spotify {
     ///- public - optional is the playlist public
     ///- collaborative - optional is the playlist collaborative
     ///- description - optional description of the playlist
-    pub fn change_user_playlist_detail(&self,
+    pub fn user_playlist_change_detail(&self,
                                        user_id: &str,
                                        playlist_id: &str,
                                        name: Option<&str>,
@@ -498,7 +498,7 @@ impl Spotify {
     ///Parameters:
     ///- user_id - the id of the user
     ///- playlist_id - the id of the playlist
-    pub fn unfollow_user_playlist(&self, user_id: &str, playlist_id: &str) -> Result<String> {
+    pub fn user_playlist_unfollow(&self, user_id: &str, playlist_id: &str) -> Result<String> {
         let mut url = String::from(format!("users/{}/playlists/{}/followers",user_id,playlist_id));
         self.delete(&mut url, json!({}))
     }
@@ -510,12 +510,12 @@ impl Spotify {
     ///- playlist_id - the id of the playlist
     ///- track_ids - a list of track URIs, URLs or IDs
     ///- position - the position to add the tracks
-    pub fn add_tracks_to_playlist(&self,
-                                  user_id: &str,
-                                  playlist_id: &mut str,
-                                  mut track_ids: Vec<String>,
-                                  position: Option<i32>)
-                                  -> Option<CUDResult> {
+    pub fn user_playlist_add_tracks(&self,
+                                    user_id: &str,
+                                    playlist_id: &mut str,
+                                    mut track_ids: Vec<String>,
+                                    position: Option<i32>)
+                                    -> Option<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .iter_mut()
@@ -538,11 +538,11 @@ impl Spotify {
     ///- playlist_id - the id of the playlist
     ///- tracks - the list of track ids to add to the playlist
 
-    pub fn replace_tracks_in_playlist(&self,
-                                      user_id: &str,
-                                      playlist_id: &mut str,
-                                      mut track_ids: Vec<String>)
-                                      -> Result<()> {
+    pub fn user_playlist_replace_tracks(&self,
+                                        user_id: &str,
+                                        playlist_id: &mut str,
+                                        mut track_ids: Vec<String>)
+                                        -> Result<()> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .iter_mut()
@@ -569,14 +569,14 @@ impl Spotify {
     ///- range_length - optional the number of tracks to be reordered (default: 1)
     ///- insert_before - the position where the tracks should be inserted
     ///- snapshot_id - optional playlist's snapshot ID
-    pub fn recorder_tracks_in_playlist(&self,
-                                       user_id: &str,
-                                       playlist_id: &mut str,
-                                       range_start: i32,
-                                       range_length: impl Into<Option<i32>>,
-                                       insert_before: i32,
-                                       snapshot_id: Option<String>)
-                                       -> Option<CUDResult> {
+    pub fn user_playlist_recorder_tracks(&self,
+                                         user_id: &str,
+                                         playlist_id: &mut str,
+                                         range_start: i32,
+                                         range_length: impl Into<Option<i32>>,
+                                         insert_before: i32,
+                                         snapshot_id: Option<String>)
+                                         -> Option<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let range_length = range_length.into().unwrap_or(1);
         let mut params = Map::new();

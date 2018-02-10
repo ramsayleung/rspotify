@@ -37,16 +37,15 @@ fn main() {
             // user_id and playlist_id to yours, or you will get a 403 forbidden error
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let mut playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
-            let range_start = 0;
-            let insert_before = 1;
-            let range_length = 1;
-            let result = spotify.recorder_tracks_in_playlist(user_id,
-                                                             &mut playlist_id,
-                                                             range_start,
-                                                             range_length,
-                                                             insert_before,
-                                                             None);
-            println!("result:{:?}", result);
+            let mut tracks_ids = vec![];
+            let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+            let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
+            tracks_ids.push(track_id2);
+            tracks_ids.push(track_id1);
+            spotify
+                .user_playlist_replace_tracks(user_id, &mut playlist_id, tracks_ids)
+                .expect("replace tracks in a playlist failed");
+
         }
         None => println!("auth failed"),
     };
