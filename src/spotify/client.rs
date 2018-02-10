@@ -616,7 +616,6 @@ impl Spotify {
         let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
         let result = self.delete(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
-
     }
 
 
