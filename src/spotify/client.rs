@@ -625,6 +625,44 @@ impl Spotify {
         let result = self.delete(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
+    ///https://developer.spotify.com/web-api/remove-tracks-playlist/
+    ///Removes all occurrences of the given tracks from the given playlist
+    ///Parameters:
+    ///- user_id - the id of the user
+    ///- playlist_id - the id of the playlist
+    ///- tracks - an array of map containing Spotify URIs of the tracks
+    /// to remove with their current positions in the playlist.  For example:
+    ///{ "tracks": [{ "uri": "spotify:track:4iV5W9uYEdYUVa79Axb7Rh", "positions": [0,3] },{
+    ///"uri": "spotify:track:1301WleyT98MSxVHPZCA6M", "positions": [7] }] }
+    ///- snapshot_id - optional id of the playlist snapshot
+    pub fn user_playlist_remove_specific_occurrenes_of_tracks(&self,
+                                                              user_id: &str,
+                                                              playlist_id: &mut str,
+                                                              tracks: Vec<Map<String, Value>>,
+                                                              snapshot_id: Option<String>)
+                                                              -> Option<CUDResult> {
+        let mut params = Map::new();
+        let plid = self.get_id(Type::Playlist, playlist_id);
+        let mut ftracks: Vec<Map<String, Value>> = vec![];
+        for track in tracks {
+            let mut map = Map::new();
+            if let Some(_uri) = track.get("uri") {
+                let uri = self.get_id(Type::Track, &mut _uri.as_str().unwrap().to_owned());
+                map.insert("uri".to_owned(), uri.into());
+            }
+            if let Some(_position) = track.get("position") {
+                map.insert("position".to_owned(), _position.to_owned());
+            }
+            ftracks.push(map);
+        }
+        params.insert("tracks".to_owned(), ftracks.into());
+        if let Some(_snapshot_id) = snapshot_id {
+            params.insert("snapshot_id".to_owned(), _snapshot_id.into());
+        }
+        let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
+        let result = self.delete(&mut url, Value::Object(params));
+        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
