@@ -647,7 +647,7 @@ impl Spotify {
         for track in tracks {
             let mut map = Map::new();
             if let Some(_uri) = track.get("uri") {
-                let uri = self.get_id(Type::Track, &mut _uri.as_str().unwrap().to_owned());
+                let uri = self.get_uri(Type::Track, &mut _uri.as_str().unwrap().to_owned());
                 map.insert("uri".to_owned(), uri.into());
             }
             if let Some(_position) = track.get("position") {

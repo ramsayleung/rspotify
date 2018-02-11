@@ -40,8 +40,6 @@ fn main() {
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let mut playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
             let mut tracks = vec![];
-            ///{ "tracks": [{ "uri": "spotify:track:4iV5W9uYEdYUVa79Axb7Rh", "positions": [0,3] },{
-            ///"uri": "spotify:track:1301WleyT98MSxVHPZCA6M", "positions": [7] }] }
             let mut map1 = Map::new();
             let mut position1 = vec![];
             position1.push(0);
