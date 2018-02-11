@@ -663,6 +663,25 @@ impl Spotify {
         let result = self.delete(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
+    ///https://developer.spotify.com/web-api/follow-playlist/
+    ///Add the current authenticated user as a follower of a playlist.
+    ///Parameters:
+    ///- playlist_owner_id - the user id of the playlist owner
+    ///- playlist_id - the id of the playlist
+    pub fn user_playlist_follow_playlist(&self,
+                                         playlist_owner_id: &str,
+                                         playlist_id: &str,
+                                         public: impl Into<Option<bool>>)
+                                         -> Result<()> {
+        let mut map = Map::new();
+        let public = public.into().unwrap_or(true);
+        map.insert("public".to_owned(), public.into());
+        let mut url =
+            String::from(format!("users/{}/playlists/{}/followers",playlist_owner_id,playlist_id));
+        self.put(&mut url, Value::Object(map));
+        Ok(())
+    }
+
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
