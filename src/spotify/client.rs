@@ -37,6 +37,7 @@ impl Spotify {
         }
     }
 
+    // pub fn prefix(mut self, prefix: &str) -> Spotify {
     pub fn prefix(mut self, prefix: &str) -> Spotify {
         self.prefix = prefix.to_owned();
         self
@@ -590,6 +591,7 @@ impl Spotify {
         let result = self.put(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
+
     ///https://developer.spotify.com/web-api/remove-tracks-playlist/
     ///Removes all occurrences of the given tracks from the given playlist
     ///Parameters:
@@ -609,7 +611,13 @@ impl Spotify {
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         let mut params = Map::new();
-        params.insert("tracks".to_owned(), uris.into());
+        let mut tracks: Vec<Map<String, Value>> = vec![];
+        for uri in uris {
+            let mut map = Map::new();
+            map.insert("uri".to_owned(), uri.into());
+            tracks.push(map);
+        }
+        params.insert("tracks".to_owned(), tracks.into());
         if let Some(_snapshot_id) = snapshot_id {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
