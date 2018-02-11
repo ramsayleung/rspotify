@@ -678,8 +678,11 @@ impl Spotify {
         map.insert("public".to_owned(), public.into());
         let mut url =
             String::from(format!("users/{}/playlists/{}/followers",playlist_owner_id,playlist_id));
-        self.put(&mut url, Value::Object(map));
-        Ok(())
+        match self.put(&mut url, Value::Object(map)) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+
     }
 
 
