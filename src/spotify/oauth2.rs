@@ -416,7 +416,7 @@ fn save_token_info(token_info: &str, path: &Path) {
         .write(true)
         .create(true)
         .open(path)
-        .expect("error");
+        .expect(&format!("create file {:?} error", path.display()));
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
 }

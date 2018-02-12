@@ -12,14 +12,14 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::borrow::Cow;
 
-use errors::{Result,ResultExt};
+use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::Page;
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
-use super::model::user::PublicUser;
+use super::model::user::{PublicUser,PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::cud_result::CUDResult;
 use super::util::convert_map_to_string;
@@ -709,11 +709,22 @@ impl Spotify {
         self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
 
     }
+    ///https://developer.spotify.com/web-api/get-current-users-profile/
+    ///Get detailed profile information about the current user.
+    ///An alias for the 'current_user' method.
+    pub fn me(&self)->Result<PrivateUser>{
+        println!("call me");
+        let mut dumb: HashMap<&str, String> = HashMap::new();
+        let mut url= String::from("me/");
+        let result = self.get(&mut url, &mut dumb);
+        self.convert_result::<PrivateUser>(&result.unwrap_or_default())
+    }
+
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
-        let result= serde_json::from_str::<T>(input)
-            .chain_err(||"convert result failed, content {:?}")?;
+        let result = serde_json::from_str::<T>(input)
+            .chain_err(|| format!("convert result failed, content {:?}",input))?;
         Ok(result)
         // match serde_json::from_str::<T>(input) {
         //     Ok(result) => Some(result),
