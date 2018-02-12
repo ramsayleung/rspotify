@@ -18,7 +18,7 @@ use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::Page;
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
-use super::model::artist::{FullArtist, FullArtists};
+use super::model::artist::{FullArtist, FullArtists, CursorPageFullArtists};
 use super::model::user::{PublicUser, PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::cud_result::CUDResult;
@@ -727,8 +727,7 @@ impl Spotify {
 
     /// https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
     /// Get information about the current users currently playing track.
-    pub fn current_user_playing_track(&self)
-                                      -> Result<Option<Playing>> {
+    pub fn current_user_playing_track(&self) -> Result<Option<Playing>> {
         let mut dumb = HashMap::new();
         let mut url = String::from("me/player/currently-playing");
         match self.get(&mut url, &mut dumb) {
@@ -782,6 +781,29 @@ impl Spotify {
         self.convert_result::<Page<SavedTrack>>(&result.unwrap_or_default())
 
     }
+    ///https://developer.spotify.com/web-api/get-followed-artists/
+    ///Gets a list of the artists followed by the current authorized user
+    ///Parameters:
+    ///- limit - the number of tracks to return
+    ///- after - ghe last artist ID retrieved from the previous request
+    pub fn current_user_followed_artists(&self,
+                                         limit: impl Into<Option<u32>>,
+                                         after: Option<String>)
+                                         -> Result<CursorPageFullArtists> {
+        let limit = limit.into().unwrap_or(20);
+        let mut params = HashMap::new();
+        params.insert("limit", limit.to_string());
+        if let Some(_after) = after {
+            params.insert("after", _after);
+        }
+        params.insert("type", Type::Artist.as_str().to_owned());
+        let mut url = String::from("me/following");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<CursorPageFullArtists>(&result.unwrap_or_default())
+    }
+
+
+
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;

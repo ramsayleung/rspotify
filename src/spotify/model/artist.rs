@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use serde_json::Value;
 use spotify::spotify_enum::Type;
 use super::image::Image;
+use super::page::CursorBasedPage;
 ///https://developer.spotify.com/web-api/object-model/#artist-object-simplified
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedArtist {
@@ -33,4 +34,9 @@ pub struct FullArtist {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullArtists {
     pub artists: Vec<FullArtist>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CursorPageFullArtists {
+    pub artists: CursorBasedPage<FullArtist>,
 }
