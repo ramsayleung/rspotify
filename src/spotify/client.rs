@@ -19,7 +19,7 @@ use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::Page;
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
 use super::model::artist::{FullArtist, FullArtists};
-use super::model::user::{PublicUser,PrivateUser};
+use super::model::user::{PublicUser, PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::cud_result::CUDResult;
 use super::util::convert_map_to_string;
@@ -712,14 +712,28 @@ impl Spotify {
     ///https://developer.spotify.com/web-api/get-current-users-profile/
     ///Get detailed profile information about the current user.
     ///An alias for the 'current_user' method.
-    pub fn me(&self)->Result<PrivateUser>{
+    pub fn me(&self) -> Result<PrivateUser> {
         println!("call me");
         let mut dumb: HashMap<&str, String> = HashMap::new();
-        let mut url= String::from("me/");
+        let mut url = String::from("me/");
         let result = self.get(&mut url, &mut dumb);
         self.convert_result::<PrivateUser>(&result.unwrap_or_default())
     }
+    ///Get detailed profile information about the current user.
+    ///An alias for the 'me' method.
+    pub fn current_user(&self) -> Result<PrivateUser> {
+        self.me()
+    }
 
+    /// https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+    /// Get information about the current users currently playing track.
+    pub fn current_user_playing_track(&self, market: impl Into<Option<String>>) {
+        let market = market.into().unwrap_or("US".to_owned());
+        let mut params = HashMap::new();
+        params.insert("market", market);
+        let mut url = String::from("me/player/currently-playing");
+        self.get(&mut url, &mut params);
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
