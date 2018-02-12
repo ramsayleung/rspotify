@@ -22,6 +22,7 @@ use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::{PublicUser, PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::cud_result::CUDResult;
+use super::model::playing::Playing;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -727,12 +728,23 @@ impl Spotify {
 
     /// https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
     /// Get information about the current users currently playing track.
-    pub fn current_user_playing_track(&self, market: impl Into<Option<String>>) {
+    pub fn current_user_playing_track(&self,
+                                      market: impl Into<Option<String>>)
+                                      -> Result<Option<Playing>> {
         let market = market.into().unwrap_or("US".to_owned());
         let mut params = HashMap::new();
         params.insert("market", market);
         let mut url = String::from("me/player/currently-playing");
-        self.get(&mut url, &mut params);
+        match self.get(&mut url, &mut params) {
+            Ok(result) => {
+                if result.is_empty() {
+                    Ok(None)
+                } else {
+                    self.convert_result::<Option<Playing>>(&result)
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 
 

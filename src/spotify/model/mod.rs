@@ -6,3 +6,5 @@ pub mod page;
 pub mod user;
 pub mod playlist;
 pub mod cud_result;
+pub mod context;
+pub mod playing;
