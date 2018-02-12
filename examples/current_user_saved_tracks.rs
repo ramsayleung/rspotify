@@ -31,8 +31,8 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let albums = spotify.current_user_saved_albums(10, 0);
-            println!("{:?}", albums);
+            let tracks = spotify.current_user_saved_tracks(10, 0);
+            println!("{:?}", tracks);
         }
         None => println!("auth failed"),
     };

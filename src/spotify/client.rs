@@ -17,7 +17,7 @@ use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::Page;
-use super::model::track::{FullTrack, FullTracks, SimplifiedTrack};
+use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
 use super::model::artist::{FullArtist, FullArtists};
 use super::model::user::{PublicUser, PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
@@ -727,14 +727,11 @@ impl Spotify {
 
     /// https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
     /// Get information about the current users currently playing track.
-    pub fn current_user_playing_track(&self,
-                                      market: impl Into<Option<String>>)
+    pub fn current_user_playing_track(&self)
                                       -> Result<Option<Playing>> {
-        let market = market.into().unwrap_or("US".to_owned());
-        let mut params = HashMap::new();
-        params.insert("market", market);
+        let mut dumb = HashMap::new();
         let mut url = String::from("me/player/currently-playing");
-        match self.get(&mut url, &mut params) {
+        match self.get(&mut url, &mut dumb) {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -755,23 +752,36 @@ impl Spotify {
     ///- market - Provide this parameter if you want to apply Track Relinking.
     pub fn current_user_saved_albums(&self,
                                      limit: impl Into<Option<u32>>,
-                                     offset: impl Into<Option<u32>>,
-                                     market: impl Into<Option<String>>)
+                                     offset: impl Into<Option<u32>>)
                                      -> Result<Page<FullAlbum>> {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
-        let market = market.into().unwrap_or("US".to_owned());
         let mut params = HashMap::new();
-        params.insert("market", market.to_string());
         params.insert("limit", limit.to_string());
         params.insert("offset", offset.to_string());
         let mut url = String::from("me/albums");
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<FullAlbum>>(&result.unwrap_or_default())
     }
+    ///https://developer.spotify.com/web-api/get-users-saved-tracks/
+    ///Parameters:
+    ///- limit - the number of tracks to return
+    ///- offset - the index of the first track to return
+    ///- market - Provide this parameter if you want to apply Track Relinking.
+    pub fn current_user_saved_tracks(&self,
+                                     limit: impl Into<Option<u32>>,
+                                     offset: impl Into<Option<u32>>)
+                                     -> Result<Page<SavedTrack>> {
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        let mut params = HashMap::new();
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        let mut url = String::from("me/tracks");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<Page<SavedTrack>>(&result.unwrap_or_default())
 
-
-
+    }
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;

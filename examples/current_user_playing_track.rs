@@ -33,8 +33,7 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let market = String::from("US");
-            let playing = spotify.current_user_playing_track(market);
+            let playing = spotify.current_user_playing_track();
             println!("{:?}", playing);
         }
         None => println!("auth failed"),

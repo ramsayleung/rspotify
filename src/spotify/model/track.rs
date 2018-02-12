@@ -1,3 +1,5 @@
+use chrono::prelude::*;
+
 use std::collections::HashMap;
 
 use super::artist::SimplifiedArtist;
@@ -45,4 +47,11 @@ pub struct SimplifiedTrack {
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: String,
+}
+
+///https://developer.spotify.com/web-api/object-model/#saved-track-object
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SavedTrack {
+    pub added_at: DateTime<Utc>,
+    pub track: FullTrack,
 }
