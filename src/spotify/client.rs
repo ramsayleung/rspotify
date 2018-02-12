@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::borrow::Cow;
 
-use errors::Result;
+use errors::{Result,ResultExt};
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
@@ -140,7 +140,7 @@ impl Spotify {
     ///returns a single track given the track's ID, URI or URL
     ///Parameters:
     ///- track_id - a spotify URI, URL or ID
-    pub fn track(&self, track_id: &mut str) -> Option<FullTrack> {
+    pub fn track(&self, track_id: &mut str) -> Result<FullTrack> {
         let trid = self.get_id(Type::Track, track_id);
         let mut url = String::from("tracks/");
         url.push_str(&trid);
@@ -153,7 +153,7 @@ impl Spotify {
     ///Parameters:
     ///- track_ids - a list of spotify URIs, URLs or IDs
     ///- market - an ISO 3166-1 alpha-2 country code.
-    pub fn tracks(&self, track_ids: Vec<String>, market: Option<&str>) -> Option<FullTracks> {
+    pub fn tracks(&self, track_ids: Vec<String>, market: Option<&str>) -> Result<FullTracks> {
         let mut ids: Vec<String> = vec![];
         for mut track_id in track_ids {
             ids.push(self.get_id(Type::Track, &mut track_id));
@@ -173,7 +173,7 @@ impl Spotify {
     ///returns a single artist given the artist's ID, URI or URL
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
-    pub fn artist(&self, artist_id: &mut str) -> Option<FullArtist> {
+    pub fn artist(&self, artist_id: &mut str) -> Result<FullArtist> {
         let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
@@ -185,7 +185,7 @@ impl Spotify {
     ///returns a list of artists given the artist IDs, URIs, or URLs
     ///Parameters:
     ///- artist_ids - a list of  artist IDs, URIs or URLs
-    pub fn artists(&self, artist_ids: Vec<String>) -> Option<FullArtists> {
+    pub fn artists(&self, artist_ids: Vec<String>) -> Result<FullArtists> {
         let mut ids: Vec<String> = vec![];
         for mut artist_id in artist_ids {
             ids.push(self.get_id(Type::Artist, &mut artist_id));
@@ -209,7 +209,7 @@ impl Spotify {
                          country: Option<&str>,
                          limit: Option<u32>,
                          offset: Option<u32>)
-                         -> Option<Page<SimplifiedAlbum>> {
+                         -> Result<Page<SimplifiedAlbum>> {
         let mut params: HashMap<&str, String> = HashMap::new();
         if let Some(_limit) = limit {
             params.insert("limit", _limit.to_string());
@@ -267,7 +267,7 @@ impl Spotify {
     ///Spotify community's listening history.
     ///Parameters:
     ///- artist_id - the artist ID, URI or URL
-    pub fn artist_related_artists(&self, artist_id: &mut str) -> Option<FullArtists> {
+    pub fn artist_related_artists(&self, artist_id: &mut str) -> Result<FullArtists> {
         let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
@@ -280,7 +280,7 @@ impl Spotify {
     ///returns a single album given the album's ID, URIs or URL
     ///Parameters:
     ///- album_id - the album ID, URI or URL
-    pub fn album(&self, album_id: &mut str) -> Option<FullAlbum> {
+    pub fn album(&self, album_id: &mut str) -> Result<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
         let mut url = String::from("albums/");
         url.push_str(&trid);
@@ -292,7 +292,7 @@ impl Spotify {
     ///returns a list of albums given the album IDs, URIs, or URLs
     ///Parameters:
     ///- albums_ids - a list of  album IDs, URIs or URLs
-    pub fn albums(&self, album_ids: Vec<String>) -> Option<FullAlbums> {
+    pub fn albums(&self, album_ids: Vec<String>) -> Result<FullAlbums> {
         let mut ids: Vec<String> = vec![];
         for mut album_id in album_ids {
             ids.push(self.get_id(Type::Album, &mut album_id));
@@ -313,7 +313,7 @@ impl Spotify {
                        album_id: &mut str,
                        limit: impl Into<Option<u32>>,
                        offset: impl Into<Option<u32>>)
-                       -> Option<Page<SimplifiedTrack>> {
+                       -> Result<Page<SimplifiedTrack>> {
         let mut params = HashMap::new();
         let trid = self.get_id(Type::Album, album_id);
         let mut url = String::from("albums/");
@@ -329,7 +329,7 @@ impl Spotify {
     ///Gets basic profile information about a Spotify User
     ///Parameters:
     ///- user - the id of the usr
-    pub fn user(&self, user_id: &str) -> Option<PublicUser> {
+    pub fn user(&self, user_id: &str) -> Result<PublicUser> {
         let mut url = String::from(format!("users/{}", user_id));
         let result = self.get(&mut url, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
@@ -343,7 +343,7 @@ impl Spotify {
     pub fn current_user_playlists(&self,
                                   limit: impl Into<Option<u32>>,
                                   offset: impl Into<Option<u32>>)
-                                  -> Option<Page<SimplifiedPlaylist>> {
+                                  -> Result<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
@@ -363,7 +363,7 @@ impl Spotify {
                           user_id: &str,
                           limit: impl Into<Option<u32>>,
                           offset: impl Into<Option<u32>>)
-                          -> Option<Page<SimplifiedPlaylist>> {
+                          -> Result<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
@@ -382,7 +382,7 @@ impl Spotify {
                          user_id: &str,
                          playlist_id: Option<&mut str>,
                          fields: Option<&str>)
-                         -> Option<FullPlaylist> {
+                         -> Result<FullPlaylist> {
         let mut params = HashMap::new();
         if let Some(_fields) = fields {
             params.insert("fields", _fields.to_string());
@@ -418,7 +418,7 @@ impl Spotify {
                                 limit: impl Into<Option<u32>>,
                                 offset: impl Into<Option<u32>>,
                                 market: Option<&str>)
-                                -> Option<Page<PlaylistTrack>> {
+                                -> Result<Page<PlaylistTrack>> {
         let mut params = HashMap::new();
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
@@ -447,7 +447,7 @@ impl Spotify {
                                 name: &str,
                                 public: impl Into<Option<bool>>,
                                 description: impl Into<Option<String>>)
-                                -> Option<FullPlaylist> {
+                                -> Result<FullPlaylist> {
         let public = public.into().unwrap_or(true);
         let description = description.into().unwrap_or("".to_owned());
         let params = json!({
@@ -516,7 +516,7 @@ impl Spotify {
                                     playlist_id: &mut str,
                                     mut track_ids: Vec<String>,
                                     position: Option<i32>)
-                                    -> Option<CUDResult> {
+                                    -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .iter_mut()
@@ -577,7 +577,7 @@ impl Spotify {
                                          range_length: impl Into<Option<i32>>,
                                          insert_before: i32,
                                          snapshot_id: Option<String>)
-                                         -> Option<CUDResult> {
+                                         -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let range_length = range_length.into().unwrap_or(1);
         let mut params = Map::new();
@@ -604,7 +604,7 @@ impl Spotify {
                                                           playlist_id: &mut str,
                                                           mut track_ids: Vec<String>,
                                                           snapshot_id: Option<String>)
-                                                          -> Option<CUDResult> {
+                                                          -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .iter_mut()
@@ -641,7 +641,7 @@ impl Spotify {
                                                               playlist_id: &mut str,
                                                               tracks: Vec<Map<String, Value>>,
                                                               snapshot_id: Option<String>)
-                                                              -> Option<CUDResult> {
+                                                              -> Result<CUDResult> {
         let mut params = Map::new();
         let plid = self.get_id(Type::Playlist, playlist_id);
         let mut ftracks: Vec<Map<String, Value>> = vec![];
@@ -698,7 +698,7 @@ impl Spotify {
                                       playlist_owner_id: &str,
                                       playlist_id: &str,
                                       user_ids: Vec<String>)
-                                      -> Option<Vec<bool>> {
+                                      -> Result<Vec<bool>> {
         if user_ids.len() > 5 {
             eprintln!("The maximum length of user ids is limited to 5 :-)");
         }
@@ -711,15 +711,18 @@ impl Spotify {
     }
 
 
-    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
-        match serde_json::from_str::<T>(input) {
-            Ok(result) => Some(result),
-            Err(why) => {
-                eprintln!("convert result failed {:?}", why);
-                eprintln!("content: {:?}", &input);
-                None
-            }
-        }
+    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
+        let result= serde_json::from_str::<T>(input)
+            .chain_err(||"convert result failed, content {:?}")?;
+        Ok(result)
+        // match serde_json::from_str::<T>(input) {
+        //     Ok(result) => Some(result),
+        //     Err(why) => {
+        //         eprintln!("convert result failed {:?}", why);
+        //         eprintln!("content: {:?}", &input);
+        //         None
+        //     }
+        // }
     }
 
     fn get_uri(&self, _type: Type, _id: &mut str) -> String {
