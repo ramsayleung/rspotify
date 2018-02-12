@@ -23,7 +23,7 @@ pub struct PublicUser {
 pub struct PrivateUser {
     pub birthdate: NaiveDate,
     pub country: String,
-    pub display_name: String,
+    pub display_name: Option<String>,
     pub email: String,
     pub external_urls: HashMap<String, String>,
     pub followers: Option<HashMap<String, Option<Value>>>,

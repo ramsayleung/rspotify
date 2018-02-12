@@ -714,7 +714,6 @@ impl Spotify {
     ///Get detailed profile information about the current user.
     ///An alias for the 'current_user' method.
     pub fn me(&self) -> Result<PrivateUser> {
-        println!("call me");
         let mut dumb: HashMap<&str, String> = HashMap::new();
         let mut url = String::from("me/");
         let result = self.get(&mut url, &mut dumb);
@@ -746,6 +745,31 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+
+    ///https://developer.spotify.com/web-api/get-users-saved-albums/
+    ///Gets a list of the albums saved in the current authorized user's
+    ///"Your Music" library
+    ///Parameters:
+    ///- limit - the number of albums to return
+    ///- offset - the index of the first album to return
+    ///- market - Provide this parameter if you want to apply Track Relinking.
+    pub fn current_user_saved_albums(&self,
+                                     limit: impl Into<Option<u32>>,
+                                     offset: impl Into<Option<u32>>,
+                                     market: impl Into<Option<String>>)
+                                     -> Result<Page<FullAlbum>> {
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        let market = market.into().unwrap_or("US".to_owned());
+        let mut params = HashMap::new();
+        params.insert("market", market.to_string());
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        let mut url = String::from("me/albums");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<Page<FullAlbum>>(&result.unwrap_or_default())
+    }
+
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
