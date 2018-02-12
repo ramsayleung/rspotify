@@ -625,6 +625,7 @@ impl Spotify {
         let result = self.delete(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
+
     ///https://developer.spotify.com/web-api/remove-tracks-playlist/
     ///Removes all occurrences of the given tracks from the given playlist
     ///Parameters:
@@ -663,6 +664,7 @@ impl Spotify {
         let result = self.delete(&mut url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
+
     ///https://developer.spotify.com/web-api/follow-playlist/
     ///Add the current authenticated user as a follower of a playlist.
     ///Parameters:
@@ -685,6 +687,28 @@ impl Spotify {
 
     }
 
+    ///https://developer.spotify.com/web-api/check-user-following-playlist/
+    ///Check to see if the given users are following the given playlist
+    ///Parameters:
+    ///- playlist_owner_id - the user id of the playlist owner
+    ///- playlist_id - the id of the playlist
+    ///- user_ids - the ids of the users that you want to
+    ///check to see if they follow the playlist. Maximum: 5 ids.
+    pub fn user_playlist_check_follow(&self,
+                                      playlist_owner_id: &str,
+                                      playlist_id: &str,
+                                      user_ids: Vec<String>)
+                                      -> Option<Vec<bool>> {
+        if user_ids.len() > 5 {
+            eprintln!("The maximum length of user ids is limited to 5 :-)");
+        }
+        let mut url = String::from(format!("users/{}/playlists/{}/followers/contains?ids={}"
+                                          ,playlist_owner_id,playlist_id,user_ids.join(",")));
+        let mut dumb: HashMap<&str, String> = HashMap::new();
+        let result = self.get(&mut url, &mut dumb);
+        self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
+
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Option<T> {
