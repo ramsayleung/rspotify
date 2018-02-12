@@ -286,7 +286,7 @@ impl SpotifyOAuth {
             Ok(_) => {
                 let mut token_info: TokenInfo =
                     serde_json::from_str(&token_info_string)
-                        .expect(&format!("read cache from {:?} failed", self.cache_path.display()));
+                    .expect(&format!("convert [{:?}] to json failed", &token_info_string));
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
                     return None;
                 } else {
@@ -419,7 +419,7 @@ fn save_token_info(token_info: &str, path: &Path) {
         .create(true)
         .open(path)
         .expect(&format!("create file {:?} error", path.display()));
-    println!("[save_toekn_info()]-> token_info:{:?}", token_info);
+    println!("[save_toekn_info()]-> token_info:[{:?}]", token_info);
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
 }

@@ -802,6 +802,22 @@ impl Spotify {
         self.convert_result::<CursorPageFullArtists>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/remove-tracks-user/
+    ///Remove one or more tracks from the current user's
+    ///"Your Music" library.
+    ///Parameters:
+    ///- track_ids - a list of track URIs, URLs or IDs
+    pub fn current_user_saved_tracks_delete(&self, mut track_ids: Vec<String>) -> Result<()> {
+        let uris: Vec<String> = track_ids
+            .iter_mut()
+            .map(|id| self.get_id(Type::Track, id))
+            .collect();
+        let mut url = String::from(format!("me/tracks/?ids={}",uris.join(",")));
+        match self.put(&mut url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
 
 
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
