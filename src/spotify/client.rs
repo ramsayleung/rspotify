@@ -934,6 +934,23 @@ impl Spotify {
         }
     }
 
+
+    ///https://developer.spotify.com/web-api/follow-artists-users/
+    ///Follow one or more artists
+    ///Parameters:
+    ///- artist_ids - a list of artist IDs
+    pub fn user_follow_artists(&self, mut artist_ids: Vec<String>) -> Result<()> {
+        let uris: Vec<String> = artist_ids
+            .iter_mut()
+            .map(|id| self.get_id(Type::Artist, id))
+            .collect();
+        let mut url = String::from(format!("me/following?type=artist&ids={}",uris.join(",")));
+        match self.put(&mut url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
