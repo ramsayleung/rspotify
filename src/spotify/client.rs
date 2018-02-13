@@ -16,13 +16,13 @@ use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type, TimeRange};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
-use super::model::page::Page;
+use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
 use super::model::artist::{FullArtist, FullArtists, CursorPageFullArtists};
 use super::model::user::{PublicUser, PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::cud_result::CUDResult;
-use super::model::playing::Playing;
+use super::model::playing::{Playing, PlayHistory};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -901,18 +901,25 @@ impl Spotify {
         self.convert_result::<Page<FullTrack>>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/
+    ///Get the current user's recently played tracks
+    ///Parameters:
+    ///- limit - the number of entities to return
+    pub fn current_user_recently_played(self,
+                                        limit: impl Into<Option<u32>>)
+                                        -> Result<CursorBasedPage<PlayHistory>> {
+        let limit = limit.into().unwrap_or(50);
+        let mut params = HashMap::new();
+        params.insert("limit", limit.to_string());
+        let mut url = String::from("me/player/recently-played");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<CursorBasedPage<PlayHistory>>(&result.unwrap_or_default())
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
         Ok(result)
-        // match serde_json::from_str::<T>(input) {
-        //     Ok(result) => Some(result),
-        //     Err(why) => {
-        //         eprintln!("convert result failed {:?}", why);
-        //         eprintln!("content: {:?}", &input);
-        //         None
-        //     }
-        // }
     }
 
     fn get_uri(&self, _type: Type, _id: &mut str) -> String {
