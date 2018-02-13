@@ -939,12 +939,20 @@ impl Spotify {
     ///Follow one or more artists
     ///Parameters:
     ///- artist_ids - a list of artist IDs
-    pub fn user_follow_artists(&self, mut artist_ids: Vec<String>) -> Result<()> {
-        let uris: Vec<String> = artist_ids
-            .iter_mut()
-            .map(|id| self.get_id(Type::Artist, id))
-            .collect();
-        let mut url = String::from(format!("me/following?type=artist&ids={}",uris.join(",")));
+    pub fn user_follow_artists(&self, artist_ids: Vec<String>) -> Result<()> {
+        let mut url = String::from(format!("me/following?type=artist&ids={}",artist_ids.join(",")));
+        match self.put(&mut url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    ///https://developer.spotify.com/web-api/follow-artists-users/
+    ///Follow one or more users
+    ///Parameters:
+    ///- user_ids - a list of artist IDs
+    pub fn user_follow_users(&self, user_ids: Vec<String>) -> Result<()> {
+        let mut url = String::from(format!("me/following?type=user&ids={}",user_ids.join(",")));
         match self.put(&mut url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),

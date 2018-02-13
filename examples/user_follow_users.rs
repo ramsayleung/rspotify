@@ -31,12 +31,10 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let mut artists = vec![];
-            let artist_id1 = String::from("74ASZWbe4lXaubB36ztrGX");
-            let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
-            artists.push(artist_id2);
-            artists.push(artist_id1);
-            spotify.user_follow_artists(artists);
+            let mut users = vec![];
+            let user_id1 = String::from("exampleuser01");
+            users.push(user_id1);
+            spotify.user_follow_users(users);
         }
         None => println!("auth failed"),
     };
