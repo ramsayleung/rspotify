@@ -813,7 +813,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let mut url = String::from(format!("me/tracks/?ids={}",uris.join(",")));
-        match self.put(&mut url, json!({})) {
+        match self.delete(&mut url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -837,6 +837,22 @@ impl Spotify {
         self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/save-tracks-user/
+    ///Save one or more tracks to the current user's
+    ///"Your Music" library.
+    ///Parameters:
+    ///- track_ids - a list of track URIs, URLs or IDs
+    pub fn current_user_saved_tracks_add(&self, mut track_ids: Vec<String>) -> Result<()> {
+        let uris: Vec<String> = track_ids
+            .iter_mut()
+            .map(|id| self.get_id(Type::Track, id))
+            .collect();
+        let mut url = String::from(format!("me/tracks/?ids={}",uris.join(",")));
+        match self.put(&mut url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
