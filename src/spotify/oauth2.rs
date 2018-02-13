@@ -286,7 +286,8 @@ impl SpotifyOAuth {
             Ok(_) => {
                 let mut token_info: TokenInfo =
                     serde_json::from_str(&token_info_string)
-                    .expect(&format!("convert [{:?}] to json failed", &token_info_string));
+                        .expect(&format!("convert [{:?}] to json failed",
+                                        self.cache_path.display()));
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
                     return None;
                 } else {
@@ -316,6 +317,7 @@ impl SpotifyOAuth {
                                                           &payload) {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
+                    println!("get_access_token->token_info[{:?}]", &token_info_string);
                     self.save_token_info(&token_info_string);
                     return Some(token_info);
                 }
@@ -413,7 +415,29 @@ fn is_token_expired(token_info: &TokenInfo) -> bool {
         None => true,
     }
 }
+
+fn open_file_and_read(path: &Path) {
+    // Open the path in read-only mode, returns `io::Result<File>`
+    let mut file = match File::open(&path) {
+        // The `description` method of `io::Error` returns a string that
+        // describes the error
+        Err(why) => panic!("couldn't open {}", why.description()),
+        Ok(file) => file,
+    };
+
+    // Read the file contents into a string, returns `io::Result<usize>`
+    let mut s = String::new();
+    match file.read_to_string(&mut s) {
+        Err(why) => panic!("couldn't read {}", why.description()),
+        Ok(_) => println!(" contains:\n{}", s),
+    }
+
+}
+
 fn save_token_info(token_info: &str, path: &Path) {
+    //to debug
+    println!("before save token_info()");
+    open_file_and_read(path);
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -422,6 +446,8 @@ fn save_token_info(token_info: &str, path: &Path) {
     println!("[save_toekn_info()]-> token_info:[{:?}]", token_info);
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
+    println!("after save token_info()");
+    open_file_and_read(path);
 }
 
 fn fetch_access_token(_client_id: &str,
