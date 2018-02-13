@@ -819,8 +819,25 @@ impl Spotify {
         }
     }
 
+    ///https://developer.spotify.com/web-api/check-users-saved-tracks/
+    ///Check if one or more tracks is already saved in
+    ///the current Spotify user’s “Your Music” library.
+    ///Parameters:
+    ///- track_ids - a list of track URIs, URLs or IDs
+    pub fn current_user_saved_tracks_contains(&self,
+                                              mut track_ids: Vec<String>)
+                                              -> Result<Vec<bool>> {
+        let uris: Vec<String> = track_ids
+            .iter_mut()
+            .map(|id| self.get_id(Type::Track, id))
+            .collect();
+        let mut url = String::from(format!("me/tracks/contains/?ids={}",uris.join(",")));
+        let mut dumb = HashMap::new();
+        let result = self.get(&mut url, &mut dumb);
+        self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
+    }
 
-    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
+    pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
         Ok(result)
