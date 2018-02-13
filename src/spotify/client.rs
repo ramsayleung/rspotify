@@ -855,6 +855,12 @@ impl Spotify {
     }
 
     ///https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/
+    ///Get the current user's top artists
+    ///Parameters:
+    ///- limit - the number of entities to return
+    ///- offset - the index of the first entity to return
+    ///- time_range - Over what time frame are the affinities computed
+
     pub fn current_user_top_artists(&self,
                                     limit: impl Into<Option<u32>>,
                                     offset: impl Into<Option<u32>>,
@@ -871,6 +877,30 @@ impl Spotify {
         let result = self.get(&mut url, &mut params);
         self.convert_result::<Page<FullArtist>>(&result.unwrap_or_default())
     }
+
+    ///https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/
+    ///Get the current user's top tracks
+    ///Parameters:
+    ///- limit - the number of entities to return
+    ///- offset - the index of the first entity to return
+    ///- time_range - Over what time frame are the affinities computed
+    pub fn current_user_top_tracks(&self,
+                                   limit: impl Into<Option<u32>>,
+                                   offset: impl Into<Option<u32>>,
+                                   time_range: impl Into<Option<TimeRange>>)
+                                   -> Result<Page<FullTrack>> {
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
+        let mut params = HashMap::new();
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        params.insert("time_range", time_range.as_str().to_owned());
+        let mut url = String::from("me/top/tracks");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<Page<FullTrack>>(&result.unwrap_or_default())
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;

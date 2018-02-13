@@ -443,7 +443,9 @@ fn save_token_info(token_info: &str, path: &Path) {
         .create(true)
         .open(path)
         .expect(&format!("create file {:?} error", path.display()));
-    println!("[save_toekn_info()]-> token_info:[{:?}]", token_info);
+    file.set_len(0)
+        .expect(&format!("clear original spoitfy-token-cache file [{:?}] failed",
+                        path.display()));
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
     println!("after save token_info()");

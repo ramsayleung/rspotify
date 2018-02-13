@@ -32,8 +32,8 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let artist = spotify.current_user_top_artists(10, 0, TimeRange::ShortTerm);
-            println!("artist: {:?}", artist);
+            let tracks = spotify.current_user_top_tracks(10, 0, TimeRange::ShortTerm);
+            println!("tracks: {:?}", tracks);
         }
         None => println!("auth failed"),
     };
