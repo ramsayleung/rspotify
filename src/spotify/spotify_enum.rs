@@ -82,3 +82,39 @@ impl fmt::Debug for Type {
         }
     }
 }
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TimeRange {
+    LongTerm,
+    MediumTerm,
+    ShortTerm,
+}
+
+impl TimeRange {
+    pub fn from_str(s: &str) -> Option<TimeRange> {
+        match s {
+            "long_term" => Some(TimeRange::LongTerm),
+            "medium_term" => Some(TimeRange::MediumTerm),
+            "short_term" => Some(TimeRange::ShortTerm),
+            _ => None,
+        }
+    }
+    pub fn as_str(&self) -> &str {
+        match self {
+            &TimeRange::LongTerm => "long_term",
+            &TimeRange::MediumTerm => "medium_term",
+            &TimeRange::ShortTerm => "short_term",
+        }
+    }
+}
+
+impl fmt::Debug for TimeRange {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TimeRange::LongTerm => write!(f, "long_term"),
+            TimeRange::MediumTerm => write!(f, "medium_term"),
+            TimeRange::ShortTerm => write!(f, "short_term"),
+        }
+    }
+}
