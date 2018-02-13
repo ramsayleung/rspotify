@@ -16,6 +16,8 @@ pub struct CursorBasedPage<T> {
     pub limit: u32,
     pub next: Option<String>,
     pub cursors: Cursor,
+    ///absent if it has read all data items. This field doesn't match what
+    /// Spotify document says 
     pub total: Option<u32>,
 }
 ///https://developer.spotify.com/web-api/object-model/#cursor-object

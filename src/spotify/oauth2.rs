@@ -415,29 +415,7 @@ fn is_token_expired(token_info: &TokenInfo) -> bool {
         None => true,
     }
 }
-
-fn open_file_and_read(path: &Path) {
-    // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
-        // The `description` method of `io::Error` returns a string that
-        // describes the error
-        Err(why) => panic!("couldn't open {}", why.description()),
-        Ok(file) => file,
-    };
-
-    // Read the file contents into a string, returns `io::Result<usize>`
-    let mut s = String::new();
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't read {}", why.description()),
-        Ok(_) => println!(" contains:\n{}", s),
-    }
-
-}
-
 fn save_token_info(token_info: &str, path: &Path) {
-    //to debug
-    println!("before save token_info()");
-    open_file_and_read(path);
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -448,8 +426,6 @@ fn save_token_info(token_info: &str, path: &Path) {
                         path.display()));
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
-    println!("after save token_info()");
-    open_file_and_read(path);
 }
 
 fn fetch_access_token(_client_id: &str,

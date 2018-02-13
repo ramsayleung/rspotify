@@ -916,6 +916,24 @@ impl Spotify {
         self.convert_result::<CursorBasedPage<PlayHistory>>(&result.unwrap_or_default())
     }
 
+
+    ///https://developer.spotify.com/web-api/save-albums-user/
+    ///Add one or more albums to the current user's
+    ///"Your Music" library.
+    ///Parameters:
+    ///- album_ids - a list of album URIs, URLs or IDs
+    pub fn current_user_saved_albums_add(&self, mut album_ids: Vec<String>) -> Result<()> {
+        let uris: Vec<String> = album_ids
+            .iter_mut()
+            .map(|id| self.get_id(Type::Album, id))
+            .collect();
+        let mut url = String::from(format!("me/albums/?ids={}",uris.join(",")));
+        match self.put(&mut url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
