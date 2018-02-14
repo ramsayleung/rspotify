@@ -16,7 +16,7 @@ use std::borrow::Cow;
 use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
 use super::spotify_enum::{AlbumType, Type, TimeRange, Country};
-use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
+use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum, PageSimpliedAlbums};
 use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
 use super::model::artist::{FullArtist, FullArtists, CursorPageFullArtists};
@@ -1005,6 +1005,33 @@ impl Spotify {
         let mut url = String::from("browse/featured-playlists");
         let result = self.get(&mut url, &mut params);
         self.convert_result::<FeaturedPlaylists>(&result.unwrap_or_default())
+    }
+
+    ///https://developer.spotify.com/web-api/get-list-new-releases/
+    ///Get a list of new album releases featured in Spotify
+    ///Parameters:
+    ///- country - An ISO 3166-1 alpha-2 country code.
+    ///- limit - The maximum number of items to return. Default: 20.
+    ///Minimum: 1. Maximum: 50
+    ///- offset - The index of the first item to return. Default: 0
+    ///(the first object). Use with limit to get the next set of
+    ///items.
+    pub fn new_releases(&self,
+                        country: Option<Country>,
+                        limit: impl Into<Option<u32>>,
+                        offset: impl Into<Option<u32>>)
+                        -> Result<PageSimpliedAlbums> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        if let Some(_country) = country {
+            params.insert("country", _country.as_str().to_owned());
+        }
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        let mut url = String::from("browse/new-releases");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<PageSimpliedAlbums>(&result.unwrap_or_default())
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {

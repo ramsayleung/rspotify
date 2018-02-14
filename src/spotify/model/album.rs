@@ -47,3 +47,9 @@ pub struct FullAlbum {
 pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
+
+///https://developer.spotify.com/web-api/get-list-new-releases/
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PageSimpliedAlbums{
+    pub albums: Page<SimplifiedAlbum>
+}
