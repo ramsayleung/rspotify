@@ -25,6 +25,7 @@ use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist, Fe
 use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::model::category::PageCategory;
+use super::model::recommend::Recommendations;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1053,7 +1054,7 @@ impl Spotify {
                       limit: impl Into<Option<u32>>,
                       offset: impl Into<Option<u32>>)
                       -> Result<PageCategory> {
-                let mut params = HashMap::new();
+        let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         if let Some(_locale) = locale {
@@ -1069,6 +1070,20 @@ impl Spotify {
         self.convert_result::<PageCategory>(&result.unwrap_or_default())
     }
 
+    ///https://developer.spotify.com/web-api/get-recommendations/
+    ///Get Recommendations Based on Seeds
+    ///            Parameters:
+    /// - seed_artists - a list of artist IDs, URIs or URLs
+    /// - seed_tracks - a list of artist IDs, URIs or URLs
+    /// - seed_genres - a list of genre names. Available genres for
+    /// - country - An ISO 3166-1 alpha-2 country code. If provided, all
+    ///   results will be playable in this country.
+    /// - limit - The maximum number of items to return. Default: 20.
+    ///   Minimum: 1. Maximum: 100
+    /// - min/max/target_<attribute> - For the tuneable track attributes listed
+    ///   in the documentation, these values provide filters and targeting on
+    ///   results.
+    // pub fn recommendations() -> Result<Recommendations> {}
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
