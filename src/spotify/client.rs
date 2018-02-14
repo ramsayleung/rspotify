@@ -26,7 +26,8 @@ use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::model::category::PageCategory;
 use super::model::recommend::Recommendations;
-use super::model::audio::{AudioFeatures, AudioFeaturesList};
+use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
+use super::model::device::DevicePayload;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1106,7 +1107,7 @@ impl Spotify {
     ///https://developer.spotify.com/web-api/get-several-audio-features/
     ///Get Audio Features for Several Tracks
     /// -tracks a list of track URIs, URLs or IDs
-    pub fn audios_features(&self, mut tracks: Vec<String>) -> Result<Option<AudioFeaturesList>> {
+    pub fn audios_features(&self, mut tracks: Vec<String>) -> Result<Option<AudioFeaturesPayload>> {
         let ids: Vec<String> = tracks
             .iter_mut()
             .map(|track| self.get_id(Type::Track, track))
@@ -1118,7 +1119,7 @@ impl Spotify {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<AudioFeaturesList>>(&result)
+                    self.convert_result::<Option<AudioFeaturesPayload>>(&result)
                 }
             }
             Err(e) => Err(e),
@@ -1126,6 +1127,14 @@ impl Spotify {
 
     }
 
+    ///https://developer.spotify.com/web-api/get-a-users-available-devices/
+    ///Get a User’s Available Devices
+    pub fn device(&self) -> Result<DevicePayload> {
+        let mut url = String::from("me/player/devices");
+        let mut dumb = HashMap::new();
+        let result = self.get(&mut url, &mut dumb);
+        self.convert_result::<DevicePayload>(&result.unwrap_or_default())
+    }
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;

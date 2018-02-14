@@ -23,6 +23,6 @@ pub struct AudioFeatures {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AudioFeaturesList {
+pub struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
 }

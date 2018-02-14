@@ -11,3 +11,4 @@ pub mod playing;
 pub mod category;
 pub mod recommend;
 pub mod audio;
+pub mod device;
