@@ -8,3 +8,4 @@ pub mod playlist;
 pub mod cud_result;
 pub mod context;
 pub mod playing;
+pub mod category;

@@ -24,6 +24,7 @@ use super::model::user::{PublicUser, PrivateUser};
 use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist, FeaturedPlaylists};
 use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
+use super::model::category::PageCategory;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1032,6 +1033,40 @@ impl Spotify {
         let mut url = String::from("browse/new-releases");
         let result = self.get(&mut url, &mut params);
         self.convert_result::<PageSimpliedAlbums>(&result.unwrap_or_default())
+    }
+
+    ///https://developer.spotify.com/web-api/get-list-categories/
+    ///Get a list of new album releases featured in Spotify
+    ///Parameters:
+    ///- country - An ISO 3166-1 alpha-2 country code.
+    ///- locale - The desired language, consisting of an ISO 639
+    ///language code and an ISO 3166-1 alpha-2 country code, joined
+    ///by an underscore.
+    ///- limit - The maximum number of items to return. Default: 20.
+    ///Minimum: 1. Maximum: 50
+    ///- offset - The index of the first item to return. Default: 0
+    ///(the first object). Use with limit to get the next set of
+    ///items.
+    pub fn categories(&self,
+                      locale: Option<String>,
+                      country: Option<Country>,
+                      limit: impl Into<Option<u32>>,
+                      offset: impl Into<Option<u32>>)
+                      -> Result<PageCategory> {
+                let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        if let Some(_locale) = locale {
+            params.insert("locale", _locale);
+        }
+        if let Some(_country) = country {
+            params.insert("country", _country.as_str().to_owned());
+        }
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        let mut url = String::from("browse/categories");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<PageCategory>(&result.unwrap_or_default())
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
