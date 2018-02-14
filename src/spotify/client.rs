@@ -15,13 +15,13 @@ use std::borrow::Cow;
 
 use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
-use super::spotify_enum::{AlbumType, Type, TimeRange};
+use super::spotify_enum::{AlbumType, Type, TimeRange, Country};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum};
 use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
 use super::model::artist::{FullArtist, FullArtists, CursorPageFullArtists};
 use super::model::user::{PublicUser, PrivateUser};
-use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist,FeaturedPlaylists};
+use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist, FeaturedPlaylists};
 use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::util::convert_map_to_string;
@@ -208,7 +208,7 @@ impl Spotify {
     pub fn artist_albums(&self,
                          artist_id: &mut str,
                          album_type: Option<AlbumType>,
-                         country: Option<&str>,
+                         country: Option<Country>,
                          limit: Option<u32>,
                          offset: Option<u32>)
                          -> Result<Page<SimplifiedAlbum>> {
@@ -223,7 +223,7 @@ impl Spotify {
             params.insert("offset", _offset.to_string());
         }
         if let Some(_country) = country {
-            params.insert("country", _country.to_string());
+            params.insert("country", _country.as_str().to_owned());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
@@ -240,10 +240,15 @@ impl Spotify {
     ///        - country - limit the response to one particular country.
     pub fn artist_top_tracks(&self,
                              artist_id: &mut str,
-                             country: impl Into<Option<String>>)
+                             country: impl Into<Option<Country>>)
                              -> Option<FullTracks> {
         let mut params: HashMap<&str, String> = HashMap::new();
-        params.insert("country", country.into().unwrap_or("US".to_owned()));
+        params.insert("country",
+                      country
+                          .into()
+                          .unwrap_or(Country::UnitedStates)
+                          .as_str()
+                          .to_owned());
         let trid = self.get_id(Type::Artist, artist_id);
         let mut url = String::from("artists/");
         url.push_str(&trid);
@@ -978,7 +983,7 @@ impl Spotify {
     ///items.
     pub fn featured_playlists(&self,
                               locale: Option<String>,
-                              country: Option<String>,
+                              country: Option<Country>,
                               timestamp: Option<DateTime<Utc>>,
                               limit: impl Into<Option<u32>>,
                               offset: impl Into<Option<u32>>)
@@ -990,7 +995,7 @@ impl Spotify {
             params.insert("locale", _locale);
         }
         if let Some(_country) = country {
-            params.insert("country", _country);
+            params.insert("country", _country.as_str().to_owned());
         }
         if let Some(_timestamp) = timestamp {
             params.insert("timestamp", _timestamp.to_rfc3339());

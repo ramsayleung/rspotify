@@ -1,3 +1,4 @@
+#![feature(non_ascii_idents)]
 #![feature(universal_impl_trait)]
 #![allow(dead_code)]
 #[macro_use]

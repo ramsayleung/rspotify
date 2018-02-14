@@ -2,7 +2,7 @@ extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::SpotifyClientCredentials;
-use rspotify::spotify::spotify_enum::AlbumType;
+use rspotify::spotify::spotify_enum::{AlbumType,Country};
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -19,6 +19,6 @@ fn main() {
         .client_credentials_manager(client_credential)
         .build();
     let mut birdy_uri = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-    let albums = spotify.artist_albums(&mut birdy_uri, Some(AlbumType::Album), None, Some(10), None);
+    let albums = spotify.artist_albums(&mut birdy_uri, Some(AlbumType::Album), Some(Country::UnitedStates), Some(10), None);
     println!("{:?}", albums);
 }

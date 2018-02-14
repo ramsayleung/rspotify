@@ -2,6 +2,7 @@ extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::SpotifyClientCredentials;
+use rspotify::spotify::spotify_enum::Country;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -22,6 +23,6 @@ fn main() {
         .client_credentials_manager(client_credential)
         .build();
     let mut birdy_uri = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-    let tracks = spotify.artist_top_tracks(&mut birdy_uri, "US".to_owned());
+    let tracks = spotify.artist_top_tracks(&mut birdy_uri, Country::UnitedStates);
     println!("{:?}", tracks.unwrap());
 }
