@@ -28,6 +28,7 @@ use super::model::category::PageCategory;
 use super::model::recommend::Recommendations;
 use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
 use super::model::device::DevicePayload;
+use super::model::context::CurrentlyPlayingContext;
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1135,6 +1136,29 @@ impl Spotify {
         let result = self.get(&mut url, &mut dumb);
         self.convert_result::<DevicePayload>(&result.unwrap_or_default())
     }
+
+    ///https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/
+    ///Get Information About The User’s Current Playback
+    pub fn current_playback(&self,
+                            market: Option<Country>)
+                            -> Result<Option<CurrentlyPlayingContext>> {
+        let mut url = String::from("me/player");
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country", _market.as_str().to_owned());
+        }
+        match self.get(&mut url, &mut params) {
+            Ok(result) => {
+                if result.is_empty() {
+                    Ok(None)
+                } else {
+                    self.convert_result::<Option<CurrentlyPlayingContext>>(&result)
+                }
+            }
+            Err(e) => Err(e),
+        }
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
