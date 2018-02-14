@@ -10,3 +10,4 @@ pub mod context;
 pub mod playing;
 pub mod category;
 pub mod recommend;
+pub mod audio;

@@ -26,6 +26,7 @@ use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::model::category::PageCategory;
 use super::model::recommend::Recommendations;
+use super::model::audio::{AudioFeatures, AudioFeaturesList};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1083,7 +1084,48 @@ impl Spotify {
     /// - min/max/target_<attribute> - For the tuneable track attributes listed
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
-    // pub fn recommendations() -> Result<Recommendations> {}
+    // pub fn recommendations(&self,
+    //                        mut seed_artists: Option<Vec<String>>,
+    //                        mut seed_genres: Option<Vec<String>>,
+    //                        mut seed_tracks: Option<Vec<String>>,
+    //                        limit: impl Into<Option<u32>>,
+    //                        country: Option<Country>)
+    //                        -> Result<Recommendations> {
+    // }
+    ///https://developer.spotify.com/web-api/get-audio-features/
+    ///Get audio features for a track
+    ///- track - track URI, URL or ID
+    pub fn audio_features(&self, mut track: String) -> Result<AudioFeatures> {
+        let track_id = self.get_id(Type::Track, &mut track);
+        let mut url = String::from(format!("audio-features/{}",track_id));
+        let mut dumb = HashMap::new();
+        let result = self.get(&mut url, &mut dumb);
+        self.convert_result::<AudioFeatures>(&result.unwrap_or_default())
+    }
+
+    ///https://developer.spotify.com/web-api/get-several-audio-features/
+    ///Get Audio Features for Several Tracks
+    /// -tracks a list of track URIs, URLs or IDs
+    pub fn audios_features(&self, mut tracks: Vec<String>) -> Result<Option<AudioFeaturesList>> {
+        let ids: Vec<String> = tracks
+            .iter_mut()
+            .map(|track| self.get_id(Type::Track, track))
+            .collect();
+        let mut url = String::from(format!("audio-features/?ids={}",ids.join(",")));
+        let mut dumb = HashMap::new();
+        match self.get(&mut url, &mut dumb) {
+            Ok(result) => {
+                if result.is_empty() {
+                    Ok(None)
+                } else {
+                    self.convert_result::<Option<AudioFeaturesList>>(&result)
+                }
+            }
+            Err(e) => Err(e),
+        }
+
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
