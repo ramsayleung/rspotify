@@ -18,7 +18,7 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-playback-state")
+        .scope("user-read-currently-playing")
         .build();
     match get_token(&mut oauth) {
         Some(token_info) => {
@@ -33,7 +33,7 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playback(None);
+            let context = spotify.current_playing(None);
             println!("{:?}", context);
         }
         None => println!("auth failed"),

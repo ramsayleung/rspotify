@@ -15,7 +15,7 @@ pub struct Context {
 
 ///https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CurrentlyPlayingContext {
+pub struct FullPlayingContext {
     pub device: Device,
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
@@ -33,4 +33,14 @@ pub enum RepeatState {
     Off,
     Track,
     Context,
+}
+
+///https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SimplifiedPlayingContext {
+    pub context: Option<Context>,
+    pub timestamp: u32,
+    pub progress_ms: Option<u32>,
+    pub is_playing: bool,
+    pub item: Option<FullTrack>,
 }

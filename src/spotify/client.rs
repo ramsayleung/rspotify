@@ -28,7 +28,7 @@ use super::model::category::PageCategory;
 use super::model::recommend::Recommendations;
 use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
 use super::model::device::DevicePayload;
-use super::model::context::CurrentlyPlayingContext;
+use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1139,9 +1139,9 @@ impl Spotify {
 
     ///https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/
     ///Get Information About The User’s Current Playback
-    pub fn current_playback(&self,
-                            market: Option<Country>)
-                            -> Result<Option<CurrentlyPlayingContext>> {
+    ///        Parameters:
+    ///        - market - an ISO 3166-1 alpha-2 country code.
+    pub fn current_playback(&self, market: Option<Country>) -> Result<Option<FullPlayingContext>> {
         let mut url = String::from("me/player");
         let mut params = HashMap::new();
         if let Some(_market) = market {
@@ -1152,7 +1152,31 @@ impl Spotify {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<CurrentlyPlayingContext>>(&result)
+                    self.convert_result::<Option<FullPlayingContext>>(&result)
+                }
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    ///https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+    /// Get the User’s Currently Playing Track
+    ///        Parameters:
+    ///        - market - an ISO 3166-1 alpha-2 country code.
+    pub fn current_playing(&self,
+                           market: Option<Country>)
+                           -> Result<Option<SimplifiedPlayingContext>> {
+        let mut url = String::from("me/player/currently-playing");
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country", _market.as_str().to_owned());
+        }
+        match self.get(&mut url, &mut params) {
+            Ok(result) => {
+                if result.is_empty() {
+                    Ok(None)
+                } else {
+                    self.convert_result::<Option<SimplifiedPlayingContext>>(&result)
                 }
             }
             Err(e) => Err(e),
