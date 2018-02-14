@@ -6,6 +6,7 @@ use serde::de::Deserialize;
 use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
 use reqwest::Method::{self, Delete, Get, Post, Put};
+use chrono::prelude::*;
 
 //  built-in battery
 use std::collections::HashMap;
@@ -20,7 +21,7 @@ use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
 use super::model::artist::{FullArtist, FullArtists, CursorPageFullArtists};
 use super::model::user::{PublicUser, PrivateUser};
-use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
+use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist,FeaturedPlaylists};
 use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::util::convert_map_to_string;
@@ -957,6 +958,48 @@ impl Spotify {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
+    }
+
+    ///https://developer.spotify.com/web-api/get-list-featured-playlists/
+    ///Get a list of Spotify featured playlists
+    ///Parameters:
+    ///- locale - The desired language, consisting of a lowercase ISO
+    ///639 language code and an uppercase ISO 3166-1 alpha-2 country
+    ///code, joined by an underscore.
+    ///- country - An ISO 3166-1 alpha-2 country code.
+    ///- timestamp - A timestamp in ISO 8601 format:
+    ///yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user's
+    ///local time to get results tailored for that specific date and
+    ///time in the day
+    ///- limit - The maximum number of items to return. Default: 20.
+    ///Minimum: 1. Maximum: 50
+    ///- offset - The index of the first item to return. Default: 0
+    ///(the first object). Use with limit to get the next set of
+    ///items.
+    pub fn featured_playlists(&self,
+                              locale: Option<String>,
+                              country: Option<String>,
+                              timestamp: Option<DateTime<Utc>>,
+                              limit: impl Into<Option<u32>>,
+                              offset: impl Into<Option<u32>>)
+                              -> Result<FeaturedPlaylists> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        if let Some(_locale) = locale {
+            params.insert("locale", _locale);
+        }
+        if let Some(_country) = country {
+            params.insert("country", _country);
+        }
+        if let Some(_timestamp) = timestamp {
+            params.insert("timestamp", _timestamp.to_rfc3339());
+        }
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        let mut url = String::from("browse/featured-playlists");
+        let result = self.get(&mut url, &mut params);
+        self.convert_result::<FeaturedPlaylists>(&result.unwrap_or_default())
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {

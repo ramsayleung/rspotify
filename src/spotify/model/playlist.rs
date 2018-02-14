@@ -52,3 +52,9 @@ pub struct PlaylistTrack {
     pub is_local: bool,
     pub track: FullTrack,
 }
+/// https://developer.spotify.com/web-api/get-list-featured-playlists/
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FeaturedPlaylists {
+    pub message: String,
+    pub playlists: Page<SimplifiedPlaylist>,
+}
