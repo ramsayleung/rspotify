@@ -246,7 +246,7 @@ impl Spotify {
     pub fn artist_top_tracks(&self,
                              artist_id: &mut str,
                              country: impl Into<Option<Country>>)
-                             -> Option<FullTracks> {
+                             -> Result<FullTracks> {
         let mut params: HashMap<&str, String> = HashMap::new();
         params.insert("country",
                       country
@@ -258,19 +258,22 @@ impl Spotify {
         let mut url = String::from("artists/");
         url.push_str(&trid);
         url.push_str("/top-tracks");
-        match self.get(&mut url, &mut params) {
-            Ok(result) => {
-                // let mut albums: Albums = ;
-                match serde_json::from_str::<FullTracks>(&result) {
-                    Ok(_tracks) => Some(_tracks),
-                    Err(why) => {
-                        eprintln!("convert albums from String to Albums failed {:?}", why);
-                        None
-                    }
-                }
-            }
-            Err(_) => None,
-        }
+
+        let result = self.get(&mut url, &mut HashMap::new());
+        self.convert_result::<FullTracks>(&result.unwrap_or_default())
+        // match self.get(&mut url, &mut params) {
+        //     Ok(result) => {
+        //         // let mut albums: Albums = ;
+        //         match serde_json::from_str::<FullTracks>(&result) {
+        //             Ok(_tracks) => Some(_tracks),
+        //             Err(why) => {
+        //                 eprintln!("convert albums from String to Albums failed {:?}", why);
+        //                 None
+        //             }
+        //         }
+        //     }
+        //     Err(_) => None,
+        // }
     }
 
     ///https://developer.spotify.com/web-api/get-related-artists/
