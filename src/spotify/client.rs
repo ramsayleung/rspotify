@@ -11,6 +11,7 @@ use chrono::prelude::*;
 //  built-in battery
 use std::collections::HashMap;
 use std::io::Read;
+use std::string::String;
 use std::borrow::Cow;
 
 use errors::{Result, ResultExt};
@@ -1209,11 +1210,67 @@ impl Spotify {
         }
     }
 
+    ///https://developer.spotify.com/web-api/start-a-users-playback/
+    ///Start/Resume a User’s Playback
+    ///Provide a `context_uri` to start playback or a album,
+    ///artist, or playlist.
+    ///
+    ///Provide a `uris` list to start playback of one or more
+    ///tracks.
+    ///
+    ///Provide `offset` as {"position": <int>} or {"uri": "<track uri>"}
+    ///to start playback at a particular offset.
+    ///
+    ///Parameters:
+    ///- device_id - device target for playback
+    ///- context_uri - spotify context uri to play
+    ///- uris - spotify track uris
+    ///- offset - offset into context by index or track
+
+    pub fn start_playback(&self,
+                          device_id: Option<String>,
+                          context_uri: Option<String>,
+                          uris: Option<Vec<String>>,
+                          offset: Option<u32>)
+                          -> Result<()> {
+        if context_uri.is_some() && uris.is_some() {
+            eprintln!("specify either contexxt uri or uris, not both");
+        }
+        let mut params = Map::new();
+        if let Some(_context_uri) = context_uri {
+            params.insert("context_uri".to_owned(), _context_uri.into());
+        }
+        if let Some(_uris) = uris {
+            params.insert("uris".to_owned(), _uris.into());
+        }
+        if let Some(_offset) = offset {
+            params.insert("offset".to_owned(), _offset.into());
+        }
+        let mut url = self.append_device_id("me/player/play".to_owned(), device_id);
+        match self.put(&mut url, Value::Object(params)) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+
+    }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
             .chain_err(|| format!("convert result failed, content {:?}",input))?;
         Ok(result)
+    }
+
+    ///Append device ID to API path.
+    fn append_device_id(&self, path: String, device_id: Option<String>) -> String {
+        let mut new_path = path.clone();
+        if let Some(_device_id) = device_id {
+            if path.contains("?") {
+                new_path.push_str(&format!("&device_id={}",_device_id));
+            } else {
+                new_path.push_str(&format!("?device_id={}",_device_id));
+            }
+        }
+        new_path
     }
 
     fn get_uri(&self, _type: Type, _id: &mut str) -> String {
