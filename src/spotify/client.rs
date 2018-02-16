@@ -194,12 +194,12 @@ impl Spotify {
     ///- artist_ids - a list of  artist IDs, URIs or URLs
     pub fn artists(&self, artist_ids: Vec<String>) -> Result<FullArtists> {
         let mut ids: Vec<String> = vec![];
-        for mut artist_id in artist_ids {
-            ids.push(self.get_id(Type::Artist, &mut artist_id));
+        for artist_id in artist_ids {
+            ids.push(self.get_id(Type::Artist, &artist_id));
         }
-        let mut url = String::from("artists/?ids=");
-        url.push_str(&ids.join(","));
-        let result = self.get(&mut url, &mut HashMap::new());
+        let url = String::from(format!("artists/?ids={}", ids.join(",")));
+        // url.push_str(&ids.join(","));
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
@@ -231,10 +231,10 @@ impl Spotify {
             params.insert("country", _country.as_str().to_owned());
         }
         let trid = self.get_id(Type::Artist, artist_id);
-        let mut url = String::from("artists/");
-        url.push_str(&trid);
-        url.push_str("/albums");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from(format!("artists/{}/albums", trid));
+        // url.push_str(&trid);
+        // url.push_str("/albums");
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<SimplifiedAlbum>>(&result.unwrap_or_default())
     }
 
@@ -255,11 +255,11 @@ impl Spotify {
                           .as_str()
                           .to_owned());
         let trid = self.get_id(Type::Artist, artist_id);
-        let mut url = String::from("artists/");
-        url.push_str(&trid);
-        url.push_str("/top-tracks");
+        let url = String::from(format!("artists/{}/top-tracks", trid));
+        // url.push_str(&trid);
+        // url.push_str("/top-tracks");
 
-        let result = self.get(&mut url, &mut HashMap::new());
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullTracks>(&result.unwrap_or_default())
         // match self.get(&mut url, &mut params) {
         //     Ok(result) => {
@@ -284,10 +284,10 @@ impl Spotify {
     ///- artist_id - the artist ID, URI or URL
     pub fn artist_related_artists(&self, artist_id: &str) -> Result<FullArtists> {
         let trid = self.get_id(Type::Artist, artist_id);
-        let mut url = String::from("artists/");
-        url.push_str(&trid);
-        url.push_str("/related-artists");
-        let result = self.get(&mut url, &mut HashMap::new());
+        let url = String::from(format!("artists/{}/related-artists", trid));
+        // url.push_str(&trid);
+        // url.push_str("/related-artists");
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
@@ -297,9 +297,9 @@ impl Spotify {
     ///- album_id - the album ID, URI or URL
     pub fn album(&self, album_id: &str) -> Result<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
-        let mut url = String::from("albums/");
-        url.push_str(&trid);
-        let result = self.get(&mut url, &mut HashMap::new());
+        let url = String::from(format!("albums/{}", trid));
+        // url.push_str(&trid);
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullAlbum>(&result.unwrap_or_default())
     }
 
@@ -309,12 +309,12 @@ impl Spotify {
     ///- albums_ids - a list of  album IDs, URIs or URLs
     pub fn albums(&self, album_ids: Vec<String>) -> Result<FullAlbums> {
         let mut ids: Vec<String> = vec![];
-        for mut album_id in album_ids {
-            ids.push(self.get_id(Type::Album, &mut album_id));
+        for album_id in album_ids {
+            ids.push(self.get_id(Type::Album, &album_id));
         }
-        let mut url = String::from("albums/?ids=");
-        url.push_str(&ids.join(","));
-        let result = self.get(&mut url, &mut HashMap::new());
+        let url = String::from(format!("albums/?ids={}", ids.join(",")));
+        // url.push_str(&ids.join(","));
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullAlbums>(&result.unwrap_or_default())
     }
 
@@ -331,12 +331,12 @@ impl Spotify {
                        -> Result<Page<SimplifiedTrack>> {
         let mut params = HashMap::new();
         let trid = self.get_id(Type::Album, album_id);
-        let mut url = String::from("albums/");
-        url.push_str(&trid);
-        url.push_str("/tracks");
+        let url = String::from(format!("albums/{}/tracks", trid));
+        // url.push_str(&trid);
+        // url.push_str("/tracks");
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
-        let result = self.get(&mut url, &mut params);
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
     }
 
@@ -838,11 +838,9 @@ impl Spotify {
     ///the current Spotify user’s “Your Music” library.
     ///Parameters:
     ///- track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_contains(&self,
-                                              mut track_ids: Vec<String>)
-                                              -> Result<Vec<bool>> {
+    pub fn current_user_saved_tracks_contains(&self, track_ids: Vec<String>) -> Result<Vec<bool>> {
         let uris: Vec<String> = track_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = String::from(format!("me/tracks/contains/?ids={}",uris.join(",")));
