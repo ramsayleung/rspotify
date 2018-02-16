@@ -17,9 +17,7 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-library-modify")
-        .build();
+    let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -40,7 +38,13 @@ fn main() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            spotify.current_user_saved_tracks_delete(tracks_ids);
+            match spotify.current_user_saved_tracks_delete(tracks_ids) {
+                Ok(_) => {
+                    println!("saved tracks delete successful");
+                }
+                Err(_) => eprintln!("saved traks delete failed"),
+
+            }
         }
         None => println!("auth failed"),
     };

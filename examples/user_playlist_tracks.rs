@@ -33,9 +33,9 @@ fn main() {
                 .client_credentials_manager(client_credential)
                 .build();
             let user_id = "spotify";
-            let mut playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
+            let playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
             let playlists =
-                spotify.user_playlist_tracks(user_id, &mut playlist_id, None, Some(2), None, None);
+                spotify.user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None);
             println!("{:?}", playlists);
 
         }
