@@ -363,8 +363,8 @@ impl Spotify {
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
 
-        let mut url = String::from("me/playlists");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from("me/playlists");
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
 
@@ -382,8 +382,8 @@ impl Spotify {
         let mut params = HashMap::new();
         params.insert("limit", limit.into().unwrap_or(50).to_string());
         params.insert("offset", offset.into().unwrap_or(0).to_string());
-        let mut url = String::from(format!("users/{}/playlists", user_id));
-        let result = self.get(&mut url, &mut params);
+        let url = String::from(format!("users/{}/playlists", user_id));
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
 
@@ -405,13 +405,13 @@ impl Spotify {
         match playlist_id {
             Some(_playlist_id) => {
                 let plid = self.get_id(Type::Playlist, _playlist_id);
-                let mut url = String::from(format!("users/{}/playlists/{}", user_id, plid));
-                let result = self.get(&mut url, &mut params);
+                let url = String::from(format!("users/{}/playlists/{}", user_id, plid));
+                let result = self.get(&url, &mut params);
                 self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
             }
             None => {
-                let mut url = String::from(format!("users/{}/starred", user_id));
-                let result = self.get(&mut url, &mut params);
+                let url = String::from(format!("users/{}/starred", user_id));
+                let result = self.get(&url, &mut params);
                 self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
             }
         }
@@ -444,8 +444,8 @@ impl Spotify {
             params.insert("fields", _fields.to_string());
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
-        let mut url = String::from(format!("users/{}/playlists/{}/tracks", user_id, plid));
-        let result = self.get(&mut url, &mut params);
+        let url = String::from(format!("users/{}/playlists/{}/tracks", user_id, plid));
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
     }
 
@@ -470,8 +470,8 @@ impl Spotify {
             "public": public,
             "description": description
         });
-        let mut url = String::from(format!("users/{}/playlists", user_id));
-        let result = self.post(&mut url, params);
+        let url = String::from(format!("users/{}/playlists", user_id));
+        let result = self.post(&url, params);
         self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
     }
 
@@ -505,8 +505,8 @@ impl Spotify {
         if let Some(_description) = description {
             params.insert("description".to_owned(), _description.into());
         }
-        let mut url = String::from(format!("users/{}/playlists/{}", user_id,playlist_id));
-        self.put(&mut url, Value::Object(params))
+        let url = String::from(format!("users/{}/playlists/{}", user_id,playlist_id));
+        self.put(&url, Value::Object(params))
     }
 
     ///https://developer.spotify.com/web-api/unfollow-playlist/
@@ -515,8 +515,8 @@ impl Spotify {
     ///- user_id - the id of the user
     ///- playlist_id - the id of the playlist
     pub fn user_playlist_unfollow(&self, user_id: &str, playlist_id: &str) -> Result<String> {
-        let mut url = String::from(format!("users/{}/playlists/{}/followers",user_id,playlist_id));
-        self.delete(&mut url, json!({}))
+        let url = String::from(format!("users/{}/playlists/{}/followers",user_id,playlist_id));
+        self.delete(&url, json!({}))
     }
 
     ///https://developer.spotify.com/web-api/add-tracks-to-playlist/
@@ -529,12 +529,12 @@ impl Spotify {
     pub fn user_playlist_add_tracks(&self,
                                     user_id: &str,
                                     playlist_id: &str,
-                                    mut track_ids: Vec<String>,
+                                    track_ids: Vec<String>,
                                     position: Option<i32>)
                                     -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         let mut params = Map::new();
@@ -542,8 +542,8 @@ impl Spotify {
             params.insert("position".to_owned(), _position.into());
         }
         params.insert("uris".to_owned(), uris.into());
-        let mut url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
-        let result = self.post(&mut url, Value::Object(params));
+        let url = String::from(format!("users/{}/playlists/{}/tracks",user_id,plid));
+        let result = self.post(&url, Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
 
     }
@@ -557,11 +557,11 @@ impl Spotify {
     pub fn user_playlist_replace_tracks(&self,
                                         user_id: &str,
                                         playlist_id: &str,
-                                        mut track_ids: Vec<String>)
+                                        track_ids: Vec<String>)
                                         -> Result<()> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         // let mut params = Map::new();
@@ -617,12 +617,12 @@ impl Spotify {
     pub fn user_playlist_remove_all_occurrences_of_tracks(&self,
                                                           user_id: &str,
                                                           playlist_id: &str,
-                                                          mut track_ids: Vec<String>,
+                                                          track_ids: Vec<String>,
                                                           snapshot_id: Option<String>)
                                                           -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         let mut params = Map::new();
@@ -717,10 +717,10 @@ impl Spotify {
         if user_ids.len() > 5 {
             eprintln!("The maximum length of user ids is limited to 5 :-)");
         }
-        let mut url = String::from(format!("users/{}/playlists/{}/followers/contains?ids={}"
+        let url = String::from(format!("users/{}/playlists/{}/followers/contains?ids={}"
                                           ,playlist_owner_id,playlist_id,user_ids.join(",")));
         let mut dumb: HashMap<&str, String> = HashMap::new();
-        let result = self.get(&mut url, &mut dumb);
+        let result = self.get(&url, &mut dumb);
         self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
 
     }
@@ -854,13 +854,13 @@ impl Spotify {
     ///"Your Music" library.
     ///Parameters:
     ///- track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_add(&self, mut track_ids: Vec<String>) -> Result<()> {
+    pub fn current_user_saved_tracks_add(&self, track_ids: Vec<String>) -> Result<()> {
         let uris: Vec<String> = track_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
-        let mut url = String::from(format!("me/tracks/?ids={}",uris.join(",")));
-        match self.put(&mut url, json!({})) {
+        let url = String::from(format!("me/tracks/?ids={}",uris.join(",")));
+        match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -885,8 +885,8 @@ impl Spotify {
         params.insert("limit", limit.to_string());
         params.insert("offset", offset.to_string());
         params.insert("time_range", time_range.as_str().to_owned());
-        let mut url = String::from("me/top/artists");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from("me/top/artists");
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<FullArtist>>(&result.unwrap_or_default())
     }
 
@@ -908,8 +908,8 @@ impl Spotify {
         params.insert("limit", limit.to_string());
         params.insert("offset", offset.to_string());
         params.insert("time_range", time_range.as_str().to_owned());
-        let mut url = String::from("me/top/tracks");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from("me/top/tracks");
+        let result = self.get(&url, &mut params);
         self.convert_result::<Page<FullTrack>>(&result.unwrap_or_default())
     }
 
@@ -923,8 +923,8 @@ impl Spotify {
         let limit = limit.into().unwrap_or(50);
         let mut params = HashMap::new();
         params.insert("limit", limit.to_string());
-        let mut url = String::from("me/player/recently-played");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from("me/player/recently-played");
+        let result = self.get(&url, &mut params);
         self.convert_result::<CursorBasedPage<PlayHistory>>(&result.unwrap_or_default())
     }
 
@@ -934,13 +934,13 @@ impl Spotify {
     ///"Your Music" library.
     ///Parameters:
     ///- album_ids - a list of album URIs, URLs or IDs
-    pub fn current_user_saved_albums_add(&self, mut album_ids: Vec<String>) -> Result<()> {
+    pub fn current_user_saved_albums_add(&self, album_ids: Vec<String>) -> Result<()> {
         let uris: Vec<String> = album_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
-        let mut url = String::from(format!("me/albums/?ids={}",uris.join(",")));
-        match self.put(&mut url, json!({})) {
+        let url = String::from(format!("me/albums/?ids={}",uris.join(",")));
+        match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -952,8 +952,8 @@ impl Spotify {
     ///Parameters:
     ///- artist_ids - a list of artist IDs
     pub fn user_follow_artists(&self, artist_ids: Vec<String>) -> Result<()> {
-        let mut url = String::from(format!("me/following?type=artist&ids={}",artist_ids.join(",")));
-        match self.put(&mut url, json!({})) {
+        let url = String::from(format!("me/following?type=artist&ids={}",artist_ids.join(",")));
+        match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -964,8 +964,8 @@ impl Spotify {
     ///Parameters:
     ///- user_ids - a list of artist IDs
     pub fn user_follow_users(&self, user_ids: Vec<String>) -> Result<()> {
-        let mut url = String::from(format!("me/following?type=user&ids={}",user_ids.join(",")));
-        match self.put(&mut url, json!({})) {
+        let url = String::from(format!("me/following?type=user&ids={}",user_ids.join(",")));
+        match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1008,8 +1008,8 @@ impl Spotify {
         }
         params.insert("limit", limit.to_string());
         params.insert("offset", offset.to_string());
-        let mut url = String::from("browse/featured-playlists");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from("browse/featured-playlists");
+        let result = self.get(&url, &mut params);
         self.convert_result::<FeaturedPlaylists>(&result.unwrap_or_default())
     }
 
@@ -1069,8 +1069,8 @@ impl Spotify {
         }
         params.insert("limit", limit.to_string());
         params.insert("offset", offset.to_string());
-        let mut url = String::from("browse/categories");
-        let result = self.get(&mut url, &mut params);
+        let url = String::from("browse/categories");
+        let result = self.get(&url, &mut params);
         self.convert_result::<PageCategory>(&result.unwrap_or_default())
     }
 
@@ -1098,25 +1098,25 @@ impl Spotify {
     ///https://developer.spotify.com/web-api/get-audio-features/
     ///Get audio features for a track
     ///- track - track URI, URL or ID
-    pub fn audio_features(&self, mut track: String) -> Result<AudioFeatures> {
-        let track_id = self.get_id(Type::Track, &mut track);
-        let mut url = String::from(format!("audio-features/{}",track_id));
+    pub fn audio_features(&self, track: String) -> Result<AudioFeatures> {
+        let track_id = self.get_id(Type::Track, &track);
+        let url = String::from(format!("audio-features/{}",track_id));
         let mut dumb = HashMap::new();
-        let result = self.get(&mut url, &mut dumb);
+        let result = self.get(&url, &mut dumb);
         self.convert_result::<AudioFeatures>(&result.unwrap_or_default())
     }
 
     ///https://developer.spotify.com/web-api/get-several-audio-features/
     ///Get Audio Features for Several Tracks
     /// -tracks a list of track URIs, URLs or IDs
-    pub fn audios_features(&self, mut tracks: Vec<String>) -> Result<Option<AudioFeaturesPayload>> {
+    pub fn audios_features(&self, tracks: Vec<String>) -> Result<Option<AudioFeaturesPayload>> {
         let ids: Vec<String> = tracks
-            .iter_mut()
+            .iter()
             .map(|track| self.get_id(Type::Track, track))
             .collect();
-        let mut url = String::from(format!("audio-features/?ids={}",ids.join(",")));
+        let url = String::from(format!("audio-features/?ids={}",ids.join(",")));
         let mut dumb = HashMap::new();
-        match self.get(&mut url, &mut dumb) {
+        match self.get(&url, &mut dumb) {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1132,9 +1132,9 @@ impl Spotify {
     ///https://developer.spotify.com/web-api/get-a-users-available-devices/
     ///Get a User’s Available Devices
     pub fn device(&self) -> Result<DevicePayload> {
-        let mut url = String::from("me/player/devices");
+        let url = String::from("me/player/devices");
         let mut dumb = HashMap::new();
-        let result = self.get(&mut url, &mut dumb);
+        let result = self.get(&url, &mut dumb);
         self.convert_result::<DevicePayload>(&result.unwrap_or_default())
     }
 
@@ -1143,12 +1143,12 @@ impl Spotify {
     ///        Parameters:
     ///        - market - an ISO 3166-1 alpha-2 country code.
     pub fn current_playback(&self, market: Option<Country>) -> Result<Option<FullPlayingContext>> {
-        let mut url = String::from("me/player");
+        let url = String::from("me/player");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country", _market.as_str().to_owned());
         }
-        match self.get(&mut url, &mut params) {
+        match self.get(&url, &mut params) {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1167,12 +1167,12 @@ impl Spotify {
     pub fn current_playing(&self,
                            market: Option<Country>)
                            -> Result<Option<SimplifiedPlayingContext>> {
-        let mut url = String::from("me/player/currently-playing");
+        let url = String::from("me/player/currently-playing");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country", _market.as_str().to_owned());
         }
-        match self.get(&mut url, &mut params) {
+        match self.get(&url, &mut params) {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1200,8 +1200,8 @@ impl Spotify {
         let mut payload = Map::new();
         payload.insert("devie_ids".to_owned(), device_ids.into());
         payload.insert("play".to_owned(), force_play.into());
-        let mut url = String::from("me/player");
-        match self.put(&mut url, Value::Object(payload)) {
+        let url = String::from("me/player");
+        match self.put(&url, Value::Object(payload)) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1243,8 +1243,8 @@ impl Spotify {
         if let Some(_offset) = offset {
             params.insert("offset".to_owned(), _offset.into());
         }
-        let mut url = self.append_device_id("me/player/play".to_owned(), device_id);
-        match self.put(&mut url, Value::Object(params)) {
+        let url = self.append_device_id("me/player/play".to_owned(), device_id);
+        match self.put(&url, Value::Object(params)) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1270,7 +1270,7 @@ impl Spotify {
         new_path
     }
 
-    fn get_uri(&self, _type: Type, _id: &mut str) -> String {
+    fn get_uri(&self, _type: Type, _id: &str) -> String {
         let mut uri = String::from("spotify:");
         uri.push_str(_type.as_str());
         uri.push(':');
