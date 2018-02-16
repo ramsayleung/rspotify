@@ -25,7 +25,7 @@ use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist, Fe
 use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::model::category::PageCategory;
-use super::model::recommend::Recommendations;
+// use super::model::recommend::Recommendations;
 use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
 use super::model::device::DevicePayload;
 use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
@@ -1185,6 +1185,30 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+    ///https://developer.spotify.com/web-api/transfer-a-users-playback/
+    ///Transfer a User’s Playback
+    ///Note: Although an array is accepted, only a single device_id is currently
+    /// supported. Supplying more than one will return 400 Bad Request
+    ///            Parameters:
+    ///- device_id - transfer playback to this device
+    ///- force_play - true: after transfer, play. false:
+    ///keep current state.
+    pub fn transfer_playback(&self,
+                             device_id: &str,
+                             force_play: impl Into<Option<bool>>)
+                             -> Result<()> {
+        let device_ids = vec![device_id.to_owned()];
+        let force_play = force_play.into().unwrap_or(true);
+        let mut payload = Map::new();
+        payload.insert("devie_ids".to_owned(), device_ids.into());
+        payload.insert("play".to_owned(), force_play.into());
+        let mut url = String::from("me/player");
+        match self.put(&mut url, Value::Object(payload)) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {
         let result = serde_json::from_str::<T>(input)
