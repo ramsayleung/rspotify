@@ -27,7 +27,7 @@ pub struct FullPlayingContext {
 }
 
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug,Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RepeatState {
     Off,

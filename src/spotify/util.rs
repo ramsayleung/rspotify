@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use super::oauth2::{TokenInfo, SpotifyOAuth};
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();
-    utc.timestamp() + elapsed as i64
+    utc.timestamp() + i64::from(elapsed)
 }
 /// generate `length` random chars
 pub fn generate_random_string(length: usize) -> String {

@@ -123,20 +123,11 @@ impl SpotifyClientCredentials {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
-        let mut empty_flag = self.client_secret.is_empty();
-        // let mut empty_flag = if self.client_secret.is_empty() {
-        //     true
-        // } else {
-        //     false
-        // };
-        // let mut flag = false;
-        // if self.client_secret.is_empty() {
-        //     flag = true;
-        // }
-        if self.client_id.is_empty() {
-            empty_flag = true;
-        }
-
+        let empty_flag = if self.client_id.is_empty() {
+            true
+        } else {
+            self.client_secret.is_empty()
+        };
         if empty_flag {
             eprintln!("{}", ERROR_MESSAGE);
         } else {
@@ -254,18 +245,16 @@ impl SpotifyOAuth {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
-        let mut empty_flag = if self.client_secret.is_empty() {
+        let mut empty_flag = if self.redirect_uri.is_empty() {
             true
         } else {
-            false
+            if self.client_id.is_empty() {
+                true
+            } else {
+                self.client_secret.is_empty()
+            }
         };
-        // let mut flag = false;
-        // if self.client_secret.is_empty() {
-        //     flag = true;
-        // }
-        if self.client_id.is_empty() {
-            empty_flag = true;
-        }
+
         if self.redirect_uri.is_empty() {
             empty_flag = true;
         }

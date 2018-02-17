@@ -121,7 +121,7 @@ impl Spotify {
     fn get(&self, url: &str, params: &mut HashMap<&str, String>) -> Result<String> {
         if !params.is_empty() {
             let param: String = convert_map_to_string(params);
-            let mut url_with_params = String::from(url.to_owned());
+            let mut url_with_params = url.to_owned();
             url_with_params.push('?');
             url_with_params.push_str(&param);
             self.internal_call(Get, &url_with_params, json!({}))
@@ -464,7 +464,7 @@ impl Spotify {
                                 description: impl Into<Option<String>>)
                                 -> Result<FullPlaylist> {
         let public = public.into().unwrap_or(true);
-        let description = description.into().unwrap_or("".to_owned());
+        let description = description.into().unwrap_or_else(||"".to_owned());
         let params = json!({
             "name": name,
             "public": public,
@@ -663,7 +663,7 @@ impl Spotify {
         for track in tracks {
             let mut map = Map::new();
             if let Some(_uri) = track.get("uri") {
-                let uri = self.get_uri(Type::Track, &mut _uri.as_str().unwrap().to_owned());
+                let uri = self.get_uri(Type::Track, &_uri.as_str().unwrap().to_owned());
                 map.insert("uri".to_owned(), uri.into());
             }
             if let Some(_position) = track.get("position") {
