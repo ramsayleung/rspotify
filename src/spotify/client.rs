@@ -1223,7 +1223,6 @@ impl Spotify {
     ///- context_uri - spotify context uri to play
     ///- uris - spotify track uris
     ///- offset - offset into context by index or track
-
     pub fn start_playback(&self,
                           device_id: Option<String>,
                           context_uri: Option<String>,
@@ -1249,6 +1248,43 @@ impl Spotify {
             Err(e) => Err(e),
         }
 
+    }
+
+    ///[pause a users playback](https://developer.spotify.com/web-api/pause-a-users-playback/)
+    ///Pause a User’s Playback
+    ///Parameters:
+    ///- device_id - device target for playback
+    pub fn pause_playback(&self, device_id: Option<String>) -> Result<()> {
+        let url = self.append_device_id("me/player/pause".to_owned(), device_id);
+        match self.put(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+
+    }
+
+    ///[skip users playback to the next track](https://developer.spotify.com/web-api/skip-users-playback-to-next-track/)
+    ///Skip User’s Playback To Next Track
+    ///            Parameters:
+    /// - device_id - device target for playback
+    pub fn next_track(&self, device_id: Option<String>) -> Result<()> {
+        let url = self.append_device_id("me/player/next".to_owned(), device_id);
+        match self.post(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    ///[skip users playback to previous track](https://developer.spotify.com/web-api/skip-users-playback-to-previous-track/)
+    ///Skip User’s Playback To Previous Track
+    ///            Parameters:
+    /// - device_id - device target for playback
+    pub fn previous_track(&self, device_id: Option<String>) -> Result<()> {
+        let url = self.append_device_id("me/player/previous".to_owned(), device_id);
+        match self.post(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {

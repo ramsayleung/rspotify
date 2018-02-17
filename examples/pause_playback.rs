@@ -36,10 +36,9 @@ fn main() {
             // this is the example device_id from spotify website,
             // so it will raise a 403 error, just change this device_id to yours
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-            let mut uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
-            match spotify.start_playback(Some(device_id), None, Some(uris), Some(0)) {
-                Ok(_) => println!("start playback successful"),
-                Err(_) => eprintln!("start playback failed"),
+            match spotify.pause_playback(Some(device_id)) {
+                Ok(_) => println!("pause playback successful"),
+                Err(_) => eprintln!("pause playback failed"),
             }
         }
         None => println!("auth failed"),
