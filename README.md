@@ -63,15 +63,15 @@ The wrapper includes helper functions to do the following:
 - Get a user's available devices
 - Get information about the user's current playback
 - Get the user's currently playing track
-- Transfer a user's playback [WIP]
-- Start/Resume a user's playback [WIP]
-- Pause a user's playback [WIP]
-- Skip user's playback to next track [WIP]
-- Skip user's playback to previous track [WIP]
-- Seek to position in currently playing track [WIP]
-- Set repeat mode on user's playback [WIP]
-- Set volume for user's playback [WIP]
-- Toggle shuffle for user's playback [WIP]
+- Transfer a user's playback 
+- Start/Resume a user's playback 
+- Pause a user's playback 
+- Skip user's playback to next track 
+- Skip user's playback to previous track 
+- Seek to position in currently playing track 
+- Set repeat mode on user's playback 
+- Set volume for user's playback 
+- Toggle shuffle for user's playback 
 
 ## Installation
 Since this crate is still under developing, it isn't pushed to
@@ -81,37 +81,51 @@ Since this crate is still under developing, it isn't pushed to
 If you have a use case you are intertested in, you could check the
 [examples](./examples), which has all kinds of examples. For example, If you
 want to get Spotify catalog information about an artist's top 10 tracks by
-country, you could check [artist_top_tracks](./examples/artist_top_tracks). This
+country, you could check [current_user_recently_played](./examples/current_user_recently_played). This
 is the example code:
+
 ``` rust
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::SpotifyClientCredentials;
-use rspotify::spotify::spotify_enum::Country;
+use rspotify::spotify::util::get_token;
+use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 
 fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
-    let client_credential = SpotifyClientCredentials::default().build();
+    // export REDIRECT_URI=your-direct-uri
 
-    // Or set client_id and client_secret explictly
-    // let client_credential = SpotifyClientCredentials::default()
+    // Or set client_id, client_secret,redirect_uri explictly
+    // let oauth = SpotifyOAuth::default()
     //     .client_id("this-is-my-client-id")
     //     .client_secret("this-is-my-client-secret")
+    //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
-    println!("{:?}:{:?}:{:?}",
-             &client_credential.client_id,
-             &client_credential.client_secret,
-             &client_credential.get_access_token());
-    let spotify = Spotify::default()
-        .client_credentials_manager(client_credential)
+
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-read-recently-played")
         .build();
-    let mut birdy_uri = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-    let tracks = spotify.artist_top_tracks(&mut birdy_uri, Country::UnitedStates);
-    println!("{:?}", tracks.unwrap());
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            // Or set client_id and client_secret explictly
+            // let client_credential = SpotifyClientCredentials::default()
+            //     .client_id("this-is-my-client-id")
+            //     .client_secret("this-is-my-client-secret")
+            //     .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let history = spotify.current_user_recently_played(10);
+            println!("{:?}", history);
+        }
+        None => println!("auth failed"),
+    };
+
 }
 
 ```
-
