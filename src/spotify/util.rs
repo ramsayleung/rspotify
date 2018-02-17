@@ -20,7 +20,7 @@ pub fn generate_random_string(length: usize) -> String {
     rand::thread_rng().gen_ascii_chars().take(length).collect()
 }
 
-/// convert map to query_string, for example:
+/// convert map to `query_string`, for example:
 /// convert
 /// `{"redirect_uri":"my_uri",
 ///  "state":"my-state"
@@ -126,8 +126,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
                 Ok(_) => {
                     match spotify_oauth.parse_response_code(&mut input) {
                         Some(code) => {
-                            let token_info = spotify_oauth.get_access_token(&code);
-                            token_info
+                             spotify_oauth.get_access_token(&code)
                         }
                         None => None,
                     }

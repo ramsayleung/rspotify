@@ -123,15 +123,21 @@ impl SpotifyClientCredentials {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
-        let mut flag = false;
-        if self.client_secret.is_empty() {
-            flag = true;
-        }
+        let mut empty_flag = self.client_secret.is_empty();
+        // let mut empty_flag = if self.client_secret.is_empty() {
+        //     true
+        // } else {
+        //     false
+        // };
+        // let mut flag = false;
+        // if self.client_secret.is_empty() {
+        //     flag = true;
+        // }
         if self.client_id.is_empty() {
-            flag = true;
+            empty_flag = true;
         }
 
-        if flag {
+        if empty_flag {
             eprintln!("{}", ERROR_MESSAGE);
         } else {
             debug!("client_id:{:?}, client_secret:{:?}",
@@ -248,17 +254,22 @@ impl SpotifyOAuth {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
-        let mut flag = false;
-        if self.client_secret.is_empty() {
-            flag = true;
-        }
+        let mut empty_flag = if self.client_secret.is_empty() {
+            true
+        } else {
+            false
+        };
+        // let mut flag = false;
+        // if self.client_secret.is_empty() {
+        //     flag = true;
+        // }
         if self.client_id.is_empty() {
-            flag = true;
+            empty_flag = true;
         }
         if self.redirect_uri.is_empty() {
-            flag = true;
+            empty_flag = true;
         }
-        if flag {
+        if empty_flag {
             eprintln!("{}", ERROR_MESSAGE);
         } else {
             println!("client_id:{:?}, client_secret:{:?}, redirect_uri:{:?}",
@@ -289,7 +300,7 @@ impl SpotifyOAuth {
                         .expect(&format!("convert [{:?}] to json failed",
                                         self.cache_path.display()));
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
-                     None
+                    None
                 } else {
                     if self.is_token_expired(&token_info) {
                         if let Some(refresh_token) = token_info.refresh_token {
@@ -459,7 +470,7 @@ fn fetch_access_token(_client_id: &str,
         if token_info.refresh_token.is_none() {
             match payload.get("refresh_token") {
                 Some(payload_refresh_token) => {
-                    token_info.set_refresh_token(&payload_refresh_token);
+                    token_info.set_refresh_token(payload_refresh_token);
                     return Some(token_info);
                 }
                 None => {

@@ -1242,7 +1242,7 @@ impl Spotify {
         if let Some(_offset) = offset {
             params.insert("offset".to_owned(), _offset.into());
         }
-        let url = self.append_device_id("me/player/play".to_owned(), device_id);
+        let url = self.append_device_id("me/player/play", device_id);
         match self.put(&url, Value::Object(params)) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1255,7 +1255,7 @@ impl Spotify {
     ///Parameters:
     ///- device_id - device target for playback
     pub fn pause_playback(&self, device_id: Option<String>) -> Result<()> {
-        let url = self.append_device_id("me/player/pause".to_owned(), device_id);
+        let url = self.append_device_id("me/player/pause", device_id);
         match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1268,7 +1268,7 @@ impl Spotify {
     ///            Parameters:
     /// - device_id - device target for playback
     pub fn next_track(&self, device_id: Option<String>) -> Result<()> {
-        let url = self.append_device_id("me/player/next".to_owned(), device_id);
+        let url = self.append_device_id("me/player/next", device_id);
         match self.post(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1280,7 +1280,7 @@ impl Spotify {
     ///            Parameters:
     /// - device_id - device target for playback
     pub fn previous_track(&self, device_id: Option<String>) -> Result<()> {
-        let url = self.append_device_id("me/player/previous".to_owned(), device_id);
+        let url = self.append_device_id("me/player/previous", device_id);
         match self.post(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1293,7 +1293,7 @@ impl Spotify {
     /// - position_ms - position in milliseconds to seek to
     /// - device_id - device target for playback
     pub fn seek_track(&self, positiion_ms: u32, device_id: Option<String>) -> Result<()> {
-        let url = self.append_device_id(format!("me/player/seek?position_ms={}",positiion_ms),
+        let url = self.append_device_id(&format!("me/player/seek?position_ms={}",positiion_ms),
                                         device_id);
         match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
@@ -1308,7 +1308,7 @@ impl Spotify {
     /// - state - `track`, `context`, or `off`
     /// - device_id - device target for playback
     pub fn repeat(&self, state: RepeatState, device_id: Option<String>) -> Result<()> {
-        let url = self.append_device_id(format!("me/player/repeat?state={}",state.as_str()),
+        let url = self.append_device_id(&format!("me/player/repeat?state={}",state.as_str()),
                                         device_id);
         match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
@@ -1326,7 +1326,7 @@ impl Spotify {
             eprintln!("volume must be between 0 and 100, inclusive");
         }
         let url =
-            self.append_device_id(format!("me/player/volume?volume_percent={}",volume_percent),
+            self.append_device_id(&format!("me/player/volume?volume_percent={}",volume_percent),
                                   device_id);
         match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
@@ -1341,7 +1341,7 @@ impl Spotify {
     /// - state - true or false
     /// - device_id - device target for playback
     pub fn shuffle(&self, state: bool, device_id: Option<String>) -> Result<()> {
-        let url = self.append_device_id(format!("me/player/shuffle?state={}",state), device_id);
+        let url = self.append_device_id(&format!("me/player/shuffle?state={}",state), device_id);
         match self.put(&url, json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1356,8 +1356,8 @@ impl Spotify {
     }
 
     ///Append device ID to API path.
-    fn append_device_id(&self, path: String, device_id: Option<String>) -> String {
-        let mut new_path = path.clone();
+    fn append_device_id(&self, path: &str, device_id: Option<String>) -> String {
+        let mut new_path = path.to_string();
         if let Some(_device_id) = device_id {
             if path.contains('?') {
                 new_path.push_str(&format!("&device_id={}",_device_id));
