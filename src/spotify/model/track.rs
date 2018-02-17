@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use super::artist::SimplifiedArtist;
 use super::album::SimplifiedAlbum;
 use spotify::spotify_enum::Type;
-///https://developer.spotify.com/web-api/object-model/#track-object-full
+///[track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
@@ -30,7 +30,7 @@ pub struct FullTrack {
 pub struct FullTracks {
     pub tracks: Vec<FullTrack>,
 }
-///https://developer.spotify.com/web-api/object-model/#track-object-simplified
+///[track object simplified](https://developer.spotify.com/web-api/object-model/#track-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
@@ -49,7 +49,7 @@ pub struct SimplifiedTrack {
     pub uri: String,
 }
 
-///https://developer.spotify.com/web-api/object-model/#saved-track-object
+///[saved track object](https://developer.spotify.com/web-api/object-model/#saved-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,

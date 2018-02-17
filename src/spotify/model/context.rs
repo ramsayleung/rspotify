@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use spotify::spotify_enum::Type;
 use super::device::Device;
 use super::track::FullTrack;
-///https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Context {
     pub uri: String,
@@ -13,7 +13,7 @@ pub struct Context {
     pub _type: Type,
 }
 
-///https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/
+///[get information about the users current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullPlayingContext {
     pub device: Device,
@@ -35,7 +35,7 @@ pub enum RepeatState {
     Context,
 }
 
-///https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlayingContext {
     pub context: Option<Context>,

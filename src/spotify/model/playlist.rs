@@ -7,7 +7,7 @@ use super::user::PublicUser;
 use super::track::FullTrack;
 use super::page::Page;
 use spotify::spotify_enum::Type;
-///https://developer.spotify.com/web-api/object-model/#playlist-object-simplified
+///[playlist object simplified](https://developer.spotify.com/web-api/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,
@@ -44,7 +44,7 @@ pub struct FullPlaylist {
     pub uri: String,
 }
 
-///https://developer.spotify.com/web-api/object-model/#playlist-track-object
+///[playlist track object](https://developer.spotify.com/web-api/object-model/#playlist-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlaylistTrack {
     pub added_at: DateTime<Utc>,
@@ -52,7 +52,7 @@ pub struct PlaylistTrack {
     pub is_local: bool,
     pub track: FullTrack,
 }
-/// https://developer.spotify.com/web-api/get-list-featured-playlists/
+///[get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FeaturedPlaylists {
     pub message: String,

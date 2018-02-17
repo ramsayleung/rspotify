@@ -4,7 +4,7 @@ use serde_json::Value;
 use spotify::spotify_enum::Type;
 use super::image::Image;
 use super::page::CursorBasedPage;
-///https://developer.spotify.com/web-api/object-model/#artist-object-simplified
+///[artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
@@ -16,7 +16,7 @@ pub struct SimplifiedArtist {
     pub uri: String,
 }
 
-///https://developer.spotify.com/web-api/object-model/#artist-object-full
+///[artist object full](https://developer.spotify.com/web-api/object-model/#artist-object-full)
 #[derive(Clone, Debug,Serialize, Deserialize)]
 pub struct FullArtist {
     pub external_urls: HashMap<String, String>,

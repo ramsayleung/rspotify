@@ -1,11 +1,11 @@
 use super::track::SimplifiedTrack;
-///https://developer.spotify.com/web-api/object-model/#recommendations-object
+///[recommendations object](https://developer.spotify.com/web-api/object-model/#recommendations-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recommendations {
     pub seeds: Vec<RecommendationsSeed>,
     pub tracks: Vec<SimplifiedTrack>,
 }
-///https://developer.spotify.com/web-api/object-model/#recommendations-seed-object
+///[recommendations seed object](https://developer.spotify.com/web-api/object-model/#recommendations-seed-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RecommendationsSeed {
     pub afterFilteringSize: u32,

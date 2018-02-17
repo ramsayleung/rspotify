@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use super::image::Image;
 use spotify::spotify_enum::Type;
-///https://developer.spotify.com/web-api/object-model/#user-object-public
+///[public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PublicUser {
     pub display_name: String,
@@ -19,6 +19,7 @@ pub struct PublicUser {
     pub uri: String,
 }
 
+///[private user object](https://developer.spotify.com/web-api/object-model/#user-object-private)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PrivateUser {
     pub birthdate: NaiveDate,

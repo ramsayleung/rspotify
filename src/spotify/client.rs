@@ -144,7 +144,7 @@ impl Spotify {
         self.internal_call(Delete, url, payload)
     }
 
-    ///https://developer.spotify.com/web-api/get-track/
+    ///[get-track](https://developer.spotify.com/web-api/get-track/)
     ///returns a single track given the track's ID, URI or URL
     ///Parameters:
     ///- track_id - a spotify URI, URL or ID
@@ -155,7 +155,7 @@ impl Spotify {
         self.convert_result::<FullTrack>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-several-tracks/
+    ///[get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
     ///returns a list of tracks given a list of track IDs, URIs, or URLs
     ///Parameters:
     ///- track_ids - a list of spotify URIs, URLs or IDs
@@ -176,7 +176,7 @@ impl Spotify {
         self.convert_result::<FullTracks>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-artist/
+    ///[get-artist](https://developer.spotify.com/web-api/get-artist/)
     ///returns a single artist given the artist's ID, URI or URL
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
@@ -188,7 +188,7 @@ impl Spotify {
         self.convert_result::<FullArtist>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-several-artists/
+    ///[get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
     ///returns a list of artists given the artist IDs, URIs, or URLs
     ///Parameters:
     ///- artist_ids - a list of  artist IDs, URIs or URLs
@@ -203,7 +203,7 @@ impl Spotify {
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-artists-albums/
+    ///[get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
     ///  Get Spotify catalog information about an artist's albums
     /// - artist_id - the artist ID, URI or URL
     /// - album_type - 'album', 'single', 'appears_on', 'compilation'
@@ -238,7 +238,7 @@ impl Spotify {
         self.convert_result::<Page<SimplifiedAlbum>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-artists-top-tracks/
+    ///[get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
     /// Get Spotify catalog information about an artist's top 10 tracks by country.
     ///    Parameters:
     ///        - artist_id - the artist ID, URI or URL
@@ -276,7 +276,7 @@ impl Spotify {
         // }
     }
 
-    ///https://developer.spotify.com/web-api/get-related-artists/
+    ///[get related artists](https://developer.spotify.com/web-api/get-related-artists/)
     ///Get Spotify catalog information about artists similar to an
     ///identified artist. Similarity is based on analysis of the
     ///Spotify community's listening history.
@@ -291,7 +291,7 @@ impl Spotify {
         self.convert_result::<FullArtists>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-album/
+    ///[get album](https://developer.spotify.com/web-api/get-album/)
     ///returns a single album given the album's ID, URIs or URL
     ///Parameters:
     ///- album_id - the album ID, URI or URL
@@ -303,7 +303,7 @@ impl Spotify {
         self.convert_result::<FullAlbum>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-several-albums/
+    ///[get several albums](https://developer.spotify.com/web-api/get-several-albums/)
     ///returns a list of albums given the album IDs, URIs, or URLs
     ///Parameters:
     ///- albums_ids - a list of  album IDs, URIs or URLs
@@ -318,7 +318,7 @@ impl Spotify {
         self.convert_result::<FullAlbums>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-albums-tracks/
+    ///[get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
     ///Get Spotify catalog information about an album's tracks
     ///Parameters:
     ///- album_id - the album ID, URI or URL
@@ -340,17 +340,17 @@ impl Spotify {
         self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-users-profile/
+    ///[get users profile](https://developer.spotify.com/web-api/get-users-profile/)
     ///Gets basic profile information about a Spotify User
     ///Parameters:
     ///- user - the id of the usr
     pub fn user(&self, user_id: &str) -> Result<PublicUser> {
-        let mut url = format!("users/{}", user_id);
+        let url = format!("users/{}", user_id);
         let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/
+    ///[get a list of current users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
     ///Get current user playlists without required getting his profile
     ///Parameters:
     ///- limit  - the number of items to return
@@ -368,7 +368,7 @@ impl Spotify {
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-list-users-playlists/
+    ///[get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
     ///Gets playlists of a user
     ///Parameters:
     ///- user_id - the id of the usr
@@ -387,7 +387,7 @@ impl Spotify {
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-list-users-playlists/
+    ///[get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
     ///Gets playlist of a user
     ///Parameters:
     ///- user_id - the id of the user
@@ -417,7 +417,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/get-playlists-tracks/
+    ///[get playlists tracks](https://developer.spotify.com/web-api/get-playlists-tracks/)
     ///Get full details of the tracks of a playlist owned by a user
     ///Parameters:
     ///- user_id - the id of the user
@@ -450,7 +450,7 @@ impl Spotify {
     }
 
 
-    ///https://developer.spotify.com/web-api/create-playlist/
+    ///[create playlist](https://developer.spotify.com/web-api/create-playlist/)
     ///Creates a playlist for a user
     ///Parameters:
     ///- user_id - the id of the user
@@ -475,7 +475,7 @@ impl Spotify {
         self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/change-playlist-details/
+    ///[change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
     ///Changes a playlist's name and/or public/private state
     ///Parameters:
     ///- user_id - the id of the user
@@ -509,7 +509,7 @@ impl Spotify {
         self.put(&url, Value::Object(params))
     }
 
-    ///https://developer.spotify.com/web-api/unfollow-playlist/
+    ///[unfollow playlist](https://developer.spotify.com/web-api/unfollow-playlist/)
     ///Unfollows (deletes) a playlist for a user
     ///Parameters:
     ///- user_id - the id of the user
@@ -519,7 +519,7 @@ impl Spotify {
         self.delete(&url, json!({}))
     }
 
-    ///https://developer.spotify.com/web-api/add-tracks-to-playlist/
+    ///[add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
     ///Adds tracks to a playlist
     ///Parameters:
     ///- user_id - the id of the user
@@ -547,7 +547,7 @@ impl Spotify {
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
 
     }
-    ///https://developer.spotify.com/web-api/replace-playlists-tracks/
+    ///[replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     ///Replace all tracks in a playlist
     ///Parameters:
     ///- user - the id of the user
@@ -576,7 +576,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/reorder-playlists-tracks/
+    ///[reorder playlists tracks](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
     ///Reorder tracks in a playlist
     ///Parameters:
     ///- user_id - the id of the user
@@ -607,7 +607,7 @@ impl Spotify {
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/remove-tracks-playlist/
+    ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     ///Removes all occurrences of the given tracks from the given playlist
     ///Parameters:
     ///- user_id - the id of the user
@@ -641,7 +641,7 @@ impl Spotify {
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/remove-tracks-playlist/
+    ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     ///Removes all occurrences of the given tracks from the given playlist
     ///Parameters:
     ///- user_id - the id of the user
@@ -680,7 +680,7 @@ impl Spotify {
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/follow-playlist/
+    ///[follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
     ///Add the current authenticated user as a follower of a playlist.
     ///Parameters:
     ///- playlist_owner_id - the user id of the playlist owner
@@ -701,7 +701,7 @@ impl Spotify {
 
     }
 
-    ///https://developer.spotify.com/web-api/check-user-following-playlist/
+    ///[check user following playlist](https://developer.spotify.com/web-api/check-user-following-playlist/)
     ///Check to see if the given users are following the given playlist
     ///Parameters:
     ///- playlist_owner_id - the user id of the playlist owner
@@ -724,7 +724,7 @@ impl Spotify {
         self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
 
     }
-    ///https://developer.spotify.com/web-api/get-current-users-profile/
+    ///[get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     ///Get detailed profile information about the current user.
     ///An alias for the 'current_user' method.
     pub fn me(&self) -> Result<PrivateUser> {
@@ -739,7 +739,7 @@ impl Spotify {
         self.me()
     }
 
-    /// https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+    /// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     /// Get information about the current users currently playing track.
     pub fn current_user_playing_track(&self) -> Result<Option<Playing>> {
         let mut dumb = HashMap::new();
@@ -756,7 +756,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/get-users-saved-albums/
+    ///[get user saved albums](https://developer.spotify.com/web-api/get-users-saved-albums/)
     ///Gets a list of the albums saved in the current authorized user's
     ///"Your Music" library
     ///Parameters:
@@ -776,7 +776,7 @@ impl Spotify {
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<FullAlbum>>(&result.unwrap_or_default())
     }
-    ///https://developer.spotify.com/web-api/get-users-saved-tracks/
+    ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     ///Parameters:
     ///- limit - the number of tracks to return
     ///- offset - the index of the first track to return
@@ -795,7 +795,7 @@ impl Spotify {
         self.convert_result::<Page<SavedTrack>>(&result.unwrap_or_default())
 
     }
-    ///https://developer.spotify.com/web-api/get-followed-artists/
+    ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
     ///Gets a list of the artists followed by the current authorized user
     ///Parameters:
     ///- limit - the number of tracks to return
@@ -816,7 +816,7 @@ impl Spotify {
         self.convert_result::<CursorPageFullArtists>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/remove-tracks-user/
+    ///[remove tracks users](https://developer.spotify.com/web-api/remove-tracks-user/)
     ///Remove one or more tracks from the current user's
     ///"Your Music" library.
     ///Parameters:
@@ -833,7 +833,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/check-users-saved-tracks/
+    ///[check users saved tracks](https://developer.spotify.com/web-api/check-users-saved-tracks/)
     ///Check if one or more tracks is already saved in
     ///the current Spotify user’s “Your Music” library.
     ///Parameters:
@@ -849,7 +849,7 @@ impl Spotify {
         self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/save-tracks-user/
+    ///[save tracks user ](https://developer.spotify.com/web-api/save-tracks-user/)
     ///Save one or more tracks to the current user's
     ///"Your Music" library.
     ///Parameters:
@@ -866,7 +866,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/
+    ///[get users  top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
     ///Get the current user's top artists
     ///Parameters:
     ///- limit - the number of entities to return
@@ -890,7 +890,7 @@ impl Spotify {
         self.convert_result::<Page<FullArtist>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/
+    ///[get users top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
     ///Get the current user's top tracks
     ///Parameters:
     ///- limit - the number of entities to return
@@ -913,7 +913,7 @@ impl Spotify {
         self.convert_result::<Page<FullTrack>>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/
+    ///[get recently played](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
     ///Get the current user's recently played tracks
     ///Parameters:
     ///- limit - the number of entities to return
@@ -929,7 +929,7 @@ impl Spotify {
     }
 
 
-    ///https://developer.spotify.com/web-api/save-albums-user/
+    ///[save albums user](https://developer.spotify.com/web-api/save-albums-user/)
     ///Add one or more albums to the current user's
     ///"Your Music" library.
     ///Parameters:
@@ -947,7 +947,7 @@ impl Spotify {
     }
 
 
-    ///https://developer.spotify.com/web-api/follow-artists-users/
+    ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more artists
     ///Parameters:
     ///- artist_ids - a list of artist IDs
@@ -959,7 +959,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/follow-artists-users/
+    ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more users
     ///Parameters:
     ///- user_ids - a list of artist IDs
@@ -971,7 +971,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/get-list-featured-playlists/
+    ///[get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
     ///Get a list of Spotify featured playlists
     ///Parameters:
     ///- locale - The desired language, consisting of a lowercase ISO
@@ -1013,7 +1013,7 @@ impl Spotify {
         self.convert_result::<FeaturedPlaylists>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-list-new-releases/
+    ///[get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
     ///Get a list of new album releases featured in Spotify
     ///Parameters:
     ///- country - An ISO 3166-1 alpha-2 country code.
@@ -1040,7 +1040,7 @@ impl Spotify {
         self.convert_result::<PageSimpliedAlbums>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-list-categories/
+    ///[get list categories](https://developer.spotify.com/web-api/get-list-categories/)
     ///Get a list of new album releases featured in Spotify
     ///Parameters:
     ///- country - An ISO 3166-1 alpha-2 country code.
@@ -1074,7 +1074,7 @@ impl Spotify {
         self.convert_result::<PageCategory>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-recommendations/
+    ///[get recommendtions](https://developer.spotify.com/web-api/get-recommendations/)
     ///Get Recommendations Based on Seeds
     ///            Parameters:
     /// - seed_artists - a list of artist IDs, URIs or URLs
@@ -1095,7 +1095,7 @@ impl Spotify {
     //                        country: Option<Country>)
     //                        -> Result<Recommendations> {
     // }
-    ///https://developer.spotify.com/web-api/get-audio-features/
+    ///[get audio features](https://developer.spotify.com/web-api/get-audio-features/)
     ///Get audio features for a track
     ///- track - track URI, URL or ID
     pub fn audio_features(&self, track: &str) -> Result<AudioFeatures> {
@@ -1106,7 +1106,7 @@ impl Spotify {
         self.convert_result::<AudioFeatures>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-several-audio-features/
+    ///[get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
     ///Get Audio Features for Several Tracks
     /// -tracks a list of track URIs, URLs or IDs
     pub fn audios_features(&self, tracks: Vec<String>) -> Result<Option<AudioFeaturesPayload>> {
@@ -1129,7 +1129,7 @@ impl Spotify {
 
     }
 
-    ///https://developer.spotify.com/web-api/get-a-users-available-devices/
+    ///[get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     ///Get a User’s Available Devices
     pub fn device(&self) -> Result<DevicePayload> {
         let url = String::from("me/player/devices");
@@ -1138,7 +1138,7 @@ impl Spotify {
         self.convert_result::<DevicePayload>(&result.unwrap_or_default())
     }
 
-    ///https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/
+    ///[get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
     ///Get Information About The User’s Current Playback
     ///        Parameters:
     ///        - market - an ISO 3166-1 alpha-2 country code.
@@ -1160,7 +1160,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+    ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     /// Get the User’s Currently Playing Track
     ///        Parameters:
     ///        - market - an ISO 3166-1 alpha-2 country code.
@@ -1183,7 +1183,7 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
-    ///https://developer.spotify.com/web-api/transfer-a-users-playback/
+    ///[transfer a users playback](https://developer.spotify.com/web-api/transfer-a-users-playback/)
     ///Transfer a User’s Playback
     ///Note: Although an array is accepted, only a single device_id is currently
     /// supported. Supplying more than one will return 400 Bad Request
@@ -1207,7 +1207,7 @@ impl Spotify {
         }
     }
 
-    ///https://developer.spotify.com/web-api/start-a-users-playback/
+    ///[start a users playback](https://developer.spotify.com/web-api/start-a-users-playback/)
     ///Start/Resume a User’s Playback
     ///Provide a `context_uri` to start playback or a album,
     ///artist, or playlist.

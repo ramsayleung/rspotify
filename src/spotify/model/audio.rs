@@ -1,4 +1,4 @@
-///https://developer.spotify.com/web-api/object-model/#audio-features-object
+///[audio feature object](https://developer.spotify.com/web-api/object-model/#audio-features-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioFeatures {
     pub acousticness: f32,

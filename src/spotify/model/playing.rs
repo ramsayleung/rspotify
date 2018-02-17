@@ -3,7 +3,7 @@ use chrono::prelude::*;
 use super::context::Context;
 use super::track::FullTrack;
 use super::track::SimplifiedTrack;
-///https://developer.spotify.com/web-api/get-the-users-currently-playing-track/
+///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Playing {
     pub context: Option<Context>,
@@ -12,7 +12,7 @@ pub struct Playing {
     pub is_playing: bool,
     pub item: Option<FullTrack>,
 }
-///https://developer.spotify.com/web-api/object-model/#play-history-object
+///[play history object](https://developer.spotify.com/web-api/object-model/#play-history-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayHistory {
     pub track: SimplifiedTrack,

@@ -1,4 +1,4 @@
-///https://developer.spotify.com/web-api/get-a-users-available-devices/
+///[get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,
