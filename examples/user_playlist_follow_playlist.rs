@@ -35,7 +35,10 @@ fn main() {
                 .build();
             let owner_id = "jmperezperez";
             let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
-            spotify.user_playlist_follow_playlist(owner_id, playlist_id, true);
+            match spotify.user_playlist_follow_playlist(owner_id, playlist_id, true) {
+                Ok(_) => println!("follow playlist successful"),
+                Err(_) => eprintln!("follow playlist failed"),
+            }
         }
         None => println!("auth failed"),
     };

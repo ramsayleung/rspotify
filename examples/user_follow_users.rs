@@ -34,7 +34,10 @@ fn main() {
             let mut users = vec![];
             let user_id1 = String::from("exampleuser01");
             users.push(user_id1);
-            spotify.user_follow_users(users);
+            match spotify.user_follow_users(users) {
+                Ok(_) => println!("follow user successful"),
+                Err(_) => eprintln!("follow user failed"),
+            }
         }
         None => println!("auth failed"),
     };

@@ -38,12 +38,15 @@ fn main() {
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
             let mut playlist_name = "A New Playlist-update";
-            spotify.user_playlist_change_detail(user_id,
-                                                playlist_id,
-                                                Some(playlist_name),
-                                                Some(false),
-                                                None,
-                                                None);
+            match spotify.user_playlist_change_detail(user_id,
+                                                      playlist_id,
+                                                      Some(playlist_name),
+                                                      Some(false),
+                                                      None,
+                                                      None) {
+                Ok(_) => println!("change detail successful "),
+                Err(_) => eprintln!("change detail failed"),
+            }
 
         }
         None => println!("auth failed"),

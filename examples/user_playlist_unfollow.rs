@@ -37,7 +37,11 @@ fn main() {
             //you may occur an 403 error with "Insufficient client scope" message
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "65V6djkcVRyOStLd8nza8E";
-            spotify.user_playlist_unfollow(user_id, playlist_id);
+            match spotify.user_playlist_unfollow(user_id, playlist_id) {
+                Ok(_) => println!("unfollow user playlist successful"),
+                Err(_) => eprintln!("unfollow user failed"),
+
+            }
 
         }
         None => println!("auth failed"),

@@ -36,7 +36,10 @@ fn main() {
             let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
             artists.push(artist_id2);
             artists.push(artist_id1);
-            spotify.user_follow_artists(artists);
+            match spotify.user_follow_artists(artists) {
+                Ok(_) => println!("follow artists successful"),
+                Err(_) => eprintln!("follow artists failed"),
+            }
         }
         None => println!("auth failed"),
     };

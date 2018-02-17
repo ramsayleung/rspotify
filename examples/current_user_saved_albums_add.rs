@@ -38,7 +38,10 @@ fn main() {
             let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
             album_ids.push(album_id2);
             album_ids.push(album_id1);
-            spotify.current_user_saved_albums_add(album_ids);
+            match spotify.current_user_saved_albums_add(album_ids) {
+                Ok(_) => println!("saved albums add successful"),
+                Err(_) => eprintln!("saved albums add failed"),
+            }
         }
         None => println!("auth failed"),
     };
