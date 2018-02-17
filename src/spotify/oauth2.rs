@@ -146,7 +146,7 @@ impl SpotifyClientCredentials {
         let mut access_token = String::new();
         match self.token_info {
             Some(ref token_info) => {
-                if !self.is_token_expired(&token_info) {
+                if !self.is_token_expired(token_info) {
                     debug!("token info: {:?}", &token_info);
                     access_token = token_info.access_token.to_owned();
                 }
@@ -289,7 +289,7 @@ impl SpotifyOAuth {
                         .expect(&format!("convert [{:?}] to json failed",
                                         self.cache_path.display()));
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
-                    return None;
+                     None
                 } else {
                     if self.is_token_expired(&token_info) {
                         if let Some(refresh_token) = token_info.refresh_token {
@@ -342,7 +342,7 @@ impl SpotifyOAuth {
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
         let tokens: Vec<&str> = url.split("?code=").collect();
-        let strings: Vec<&str> = tokens[1].split("&").collect();
+        let strings: Vec<&str> = tokens[1].split('&').collect();
         let code = strings[0];
         Some(code.to_owned())
     }

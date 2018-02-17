@@ -119,7 +119,7 @@ impl fmt::Debug for TimeRange {
     }
 }
 ///ISO 3166-1 alpha-2 country code,https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-///Source from https://datahub.io/core/country-list
+///Source from [country-list](https://datahub.io/core/country-list)
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Country {
     Afghanistan,

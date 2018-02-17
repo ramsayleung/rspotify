@@ -182,9 +182,9 @@ impl Spotify {
     ///- artist_id - an artist ID, URI or URL
     pub fn artist(&self, artist_id: &str) -> Result<FullArtist> {
         let trid = self.get_id(Type::Artist, artist_id);
-        let mut url = String::from("artists/");
-        url.push_str(&trid);
-        let result = self.get(&mut url, &mut HashMap::new());
+        let url = format!("artists/{}", trid);
+        // url.push_str(&trid);
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullArtist>(&result.unwrap_or_default())
     }
 
@@ -1261,7 +1261,7 @@ impl Spotify {
     fn append_device_id(&self, path: String, device_id: Option<String>) -> String {
         let mut new_path = path.clone();
         if let Some(_device_id) = device_id {
-            if path.contains("?") {
+            if path.contains('?') {
                 new_path.push_str(&format!("&device_id={}",_device_id));
             } else {
                 new_path.push_str(&format!("?device_id={}",_device_id));
@@ -1280,7 +1280,7 @@ impl Spotify {
     /// get spotify id by type and id
     fn get_id(&self, _type: Type, id: &str) -> String {
         let mut _id = id.to_owned().clone();
-        let fields: Vec<&str> = _id.split(":").collect();
+        let fields: Vec<&str> = _id.split(':').collect();
         let len = fields.len();
         if len >= 3 {
             if _type.as_str() != fields[len - 2] {
@@ -1292,7 +1292,7 @@ impl Spotify {
                 return fields[len - 1].to_owned();
             }
         }
-        let sfields: Vec<&str> = _id.split("/").collect();
+        let sfields: Vec<&str> = _id.split('/').collect();
         let len: usize = sfields.len();
         if len >= 3 {
             if _type.as_str() != sfields[len - 2] {
@@ -1306,7 +1306,7 @@ impl Spotify {
                 return sfields[len - 1].to_owned();
             }
         }
-        return _id.to_owned();
+        _id.to_owned()
     }
 }
 
