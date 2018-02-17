@@ -29,7 +29,7 @@ use super::model::category::PageCategory;
 // use super::model::recommend::Recommendations;
 use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
 use super::model::device::DevicePayload;
-use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
+use super::model::context::{FullPlayingContext, SimplifiedPlayingContext, RepeatState};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -1285,6 +1285,68 @@ impl Spotify {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
+    }
+
+    ///[seek-to-position-in-currently-playing-track/](https://developer.spotify.com/web-api/seek-to-position-in-currently-playing-track/)
+    ///Seek To Position In Currently Playing Track
+    ///            Parameters:
+    /// - position_ms - position in milliseconds to seek to
+    /// - device_id - device target for playback
+    pub fn seek_track(&self, positiion_ms: u32, device_id: Option<String>) -> Result<()> {
+        let url = self.append_device_id(format!("me/player/seek?position_ms={}",positiion_ms),
+                                        device_id);
+        match self.put(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+
+    }
+
+    ///[set repeat mode on users playback](https://developer.spotify.com/web-api/set-repeat-mode-on-users-playback/)
+    ///Set Repeat Mode On User’s Playback
+    ///            Parameters:
+    /// - state - `track`, `context`, or `off`
+    /// - device_id - device target for playback
+    pub fn repeat(&self, state: RepeatState, device_id: Option<String>) -> Result<()> {
+        let url = self.append_device_id(format!("me/player/repeat?state={}",state.as_str()),
+                                        device_id);
+        match self.put(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    ///[set-volume-for-users-playback](https://developer.spotify.com/web-api/set-volume-for-users-playback/)
+    ///Set Volume For User’s Playback
+    ///            Parameters:
+    ///- volume_percent - volume between 0 and 100
+    ///- device_id - device target for playback
+    pub fn volume(&self, volume_percent: u8, device_id: Option<String>) -> Result<()> {
+        if volume_percent > 100u8 {
+            eprintln!("volume must be between 0 and 100, inclusive");
+        }
+        let url =
+            self.append_device_id(format!("me/player/volume?volume_percent={}",volume_percent),
+                                  device_id);
+        match self.put(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+
+    }
+
+    ///[toggle shuffle for user playback](https://developer.spotify.com/web-api/toggle-shuffle-for-users-playback/)
+    ///Toggle Shuffle For User’s Playback
+    ///            Parameters:
+    /// - state - true or false
+    /// - device_id - device target for playback
+    pub fn shuffle(&self, state: bool, device_id: Option<String>) -> Result<()> {
+        let url = self.append_device_id(format!("me/player/shuffle?state={}",state), device_id);
+        match self.put(&url, json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T> {

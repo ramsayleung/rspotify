@@ -34,6 +34,24 @@ pub enum RepeatState {
     Track,
     Context,
 }
+impl RepeatState {
+    pub fn from_str(s: &str) -> Option<RepeatState> {
+        match s {
+            "off" => Some(RepeatState::Off),
+            "track" => Some(RepeatState::Track),
+            "context" => Some(RepeatState::Context),
+            _ => None,
+        }
+    }
+    pub fn as_str(&self) -> &str {
+        match *self {
+            RepeatState::Off => "off",
+            RepeatState::Track => "track",
+            RepeatState::Context => "context",
+        }
+    }
+}
+
 
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
