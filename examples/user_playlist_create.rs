@@ -37,8 +37,8 @@ fn main() {
             // user_id to yours, or you will get a 403 forbidden error
 
             let user_id = "2257tjys2e2u2ygfke42niy2q";
-            let mut playlist_name = String::from("A New Playlist");
-            let playlists = spotify.user_playlist_create(user_id, &mut playlist_name, false, None);
+            let playlist_name = "A New Playlist";
+            let playlists = spotify.user_playlist_create(user_id, playlist_name, false, None);
             println!("{:?}", playlists);
 
         }

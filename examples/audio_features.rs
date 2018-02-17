@@ -17,7 +17,7 @@ fn main() {
     let spotify = Spotify::default()
         .client_credentials_manager(client_credential)
         .build();
-    let mut track = String::from("spotify:track:06AKEBrKUckW0KREUWRnvT");
+    let track = "spotify:track:06AKEBrKUckW0KREUWRnvT";
     let features = spotify.audio_features(track);
     println!("{:?}", features);
 }

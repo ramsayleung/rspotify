@@ -17,7 +17,7 @@ fn main() {
     let spotify = Spotify::default()
         .client_credentials_manager(client_credential)
         .build();
-    let mut birdy_uri = String::from("spotify:album:6akEvsycLGftJxYudPjmqK");
-    let tracks = spotify.album_track(&mut birdy_uri, Some(2), None);
+    let birdy_uri = "spotify:album:6akEvsycLGftJxYudPjmqK";
+    let tracks = spotify.album_track(birdy_uri, Some(2), None);
     println!("{:?}", tracks);
 }

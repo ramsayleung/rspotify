@@ -160,10 +160,10 @@ impl Spotify {
     ///Parameters:
     ///- track_ids - a list of spotify URIs, URLs or IDs
     ///- market - an ISO 3166-1 alpha-2 country code.
-    pub fn tracks(&self, track_ids: Vec<String>, market: Option<&str>) -> Result<FullTracks> {
+    pub fn tracks(&self, track_ids: Vec<&str>, market: Option<&str>) -> Result<FullTracks> {
         let mut ids: Vec<String> = vec![];
         for track_id in track_ids {
-            ids.push(self.get_id(Type::Track, &track_id));
+            ids.push(self.get_id(Type::Track, track_id));
         }
         let url = format!("tracks/?ids={}", ids.join(","));
         // url.push_str(&ids.join(","));
@@ -297,7 +297,7 @@ impl Spotify {
     ///- album_id - the album ID, URI or URL
     pub fn album(&self, album_id: &str) -> Result<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
-        let url = String::from(format!("albums/{}", trid));
+        let url = format!("albums/{}", trid);
         // url.push_str(&trid);
         let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullAlbum>(&result.unwrap_or_default())
@@ -346,7 +346,7 @@ impl Spotify {
     ///- user - the id of the usr
     pub fn user(&self, user_id: &str) -> Result<PublicUser> {
         let mut url = format!("users/{}", user_id);
-        let result = self.get(&mut url, &mut HashMap::new());
+        let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
@@ -1098,8 +1098,8 @@ impl Spotify {
     ///https://developer.spotify.com/web-api/get-audio-features/
     ///Get audio features for a track
     ///- track - track URI, URL or ID
-    pub fn audio_features(&self, track: String) -> Result<AudioFeatures> {
-        let track_id = self.get_id(Type::Track, &track);
+    pub fn audio_features(&self, track: &str) -> Result<AudioFeatures> {
+        let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}",track_id);
         let mut dumb = HashMap::new();
         let result = self.get(&url, &mut dumb);

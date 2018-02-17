@@ -36,12 +36,12 @@ fn main() {
             //this is my(samray's) user_id and playlist_id, so just change
             // user_id and playlist_id to yours, or you will get a 403 forbidden error
             let user_id = "2257tjys2e2u2ygfke42niy2q";
-            let mut playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
+            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
             let range_start = 0;
             let insert_before = 1;
             let range_length = 1;
             let result = spotify.user_playlist_recorder_tracks(user_id,
-                                                               &mut playlist_id,
+                                                               playlist_id,
                                                                range_start,
                                                                range_length,
                                                                insert_before,

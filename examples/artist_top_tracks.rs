@@ -22,7 +22,7 @@ fn main() {
     let spotify = Spotify::default()
         .client_credentials_manager(client_credential)
         .build();
-    let mut birdy_uri = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-    let tracks = spotify.artist_top_tracks(&mut birdy_uri, Country::UnitedStates);
+    let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
+    let tracks = spotify.artist_top_tracks(birdy_uri, Country::UnitedStates);
     println!("{:?}", tracks.unwrap());
 }
