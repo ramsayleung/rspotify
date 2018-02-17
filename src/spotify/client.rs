@@ -85,7 +85,7 @@ impl Spotify {
         }
     }
 
-    fn internal_call(&self, method: Method, url: &str, payload: Value) -> Result<String> {
+    fn internal_call(&self, method: Method, url: &str, payload: &Value) -> Result<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
@@ -124,23 +124,23 @@ impl Spotify {
             let mut url_with_params = url.to_owned();
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, json!({}))
+            self.internal_call(Get, &url_with_params, &json!({}))
         } else {
-            self.internal_call(Get, url, json!({}))
+            self.internal_call(Get, url, &json!({}))
         }
     }
 
     ///send post request
-    fn post(&self, url: &str, payload: Value) -> Result<String> {
+    fn post(&self, url: &str, payload: &Value) -> Result<String> {
         self.internal_call(Post, url, payload)
     }
     ///send put request
-    fn put(&self, url: &str, payload: Value) -> Result<String> {
+    fn put(&self, url: &str, payload: &Value) -> Result<String> {
         self.internal_call(Put, url, payload)
     }
 
     /// send delete request
-    fn delete(&self, url: &str, payload: Value) -> Result<String> {
+    fn delete(&self, url: &str, payload: &Value) -> Result<String> {
         self.internal_call(Delete, url, payload)
     }
 
@@ -464,14 +464,14 @@ impl Spotify {
                                 description: impl Into<Option<String>>)
                                 -> Result<FullPlaylist> {
         let public = public.into().unwrap_or(true);
-        let description = description.into().unwrap_or_else(||"".to_owned());
+        let description = description.into().unwrap_or_else(|| "".to_owned());
         let params = json!({
             "name": name,
             "public": public,
             "description": description
         });
         let url = format!("users/{}/playlists", user_id);
-        let result = self.post(&url, params);
+        let result = self.post(&url, &params);
         self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
     }
 
@@ -506,7 +506,7 @@ impl Spotify {
             params.insert("description".to_owned(), _description.into());
         }
         let url = format!("users/{}/playlists/{}", user_id,playlist_id);
-        self.put(&url, Value::Object(params))
+        self.put(&url, &Value::Object(params))
     }
 
     ///[unfollow playlist](https://developer.spotify.com/web-api/unfollow-playlist/)
@@ -516,7 +516,7 @@ impl Spotify {
     ///- playlist_id - the id of the playlist
     pub fn user_playlist_unfollow(&self, user_id: &str, playlist_id: &str) -> Result<String> {
         let url = format!("users/{}/playlists/{}/followers",user_id,playlist_id);
-        self.delete(&url, json!({}))
+        self.delete(&url, &json!({}))
     }
 
     ///[add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
@@ -543,7 +543,7 @@ impl Spotify {
         }
         params.insert("uris".to_owned(), uris.into());
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.post(&url, Value::Object(params));
+        let result = self.post(&url, &Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
 
     }
@@ -570,7 +570,7 @@ impl Spotify {
             "uris": uris
         });
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        match self.put(&url, params) {
+        match self.put(&url, &params) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -603,7 +603,7 @@ impl Spotify {
         params.insert("range_length".to_owned(), range_length.into());
         params.insert("insert_before".to_owned(), insert_before.into());
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.put(&url, Value::Object(params));
+        let result = self.put(&url, &Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
@@ -637,7 +637,7 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.delete(&url, Value::Object(params));
+        let result = self.delete(&url, &Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
@@ -676,7 +676,7 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.delete(&url, Value::Object(params));
+        let result = self.delete(&url, &Value::Object(params));
         self.convert_result::<CUDResult>(&result.unwrap_or_default())
     }
 
@@ -694,7 +694,7 @@ impl Spotify {
         let public = public.into().unwrap_or(true);
         map.insert("public".to_owned(), public.into());
         let url = format!("users/{}/playlists/{}/followers",playlist_owner_id,playlist_id);
-        match self.put(&url, Value::Object(map)) {
+        match self.put(&url, &Value::Object(map)) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -827,7 +827,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}",uris.join(","));
-        match self.delete(&url, json!({})) {
+        match self.delete(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -860,7 +860,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}",uris.join(","));
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -940,7 +940,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}",uris.join(","));
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -953,7 +953,7 @@ impl Spotify {
     ///- artist_ids - a list of artist IDs
     pub fn user_follow_artists(&self, artist_ids: Vec<String>) -> Result<()> {
         let url = format!("me/following?type=artist&ids={}",artist_ids.join(","));
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -965,7 +965,7 @@ impl Spotify {
     ///- user_ids - a list of artist IDs
     pub fn user_follow_users(&self, user_ids: Vec<String>) -> Result<()> {
         let url = format!("me/following?type=user&ids={}",user_ids.join(","));
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1201,7 +1201,7 @@ impl Spotify {
         payload.insert("devie_ids".to_owned(), device_ids.into());
         payload.insert("play".to_owned(), force_play.into());
         let url = String::from("me/player");
-        match self.put(&url, Value::Object(payload)) {
+        match self.put(&url, &Value::Object(payload)) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1243,7 +1243,7 @@ impl Spotify {
             params.insert("offset".to_owned(), _offset.into());
         }
         let url = self.append_device_id("me/player/play", device_id);
-        match self.put(&url, Value::Object(params)) {
+        match self.put(&url, &Value::Object(params)) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1256,7 +1256,7 @@ impl Spotify {
     ///- device_id - device target for playback
     pub fn pause_playback(&self, device_id: Option<String>) -> Result<()> {
         let url = self.append_device_id("me/player/pause", device_id);
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1269,7 +1269,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub fn next_track(&self, device_id: Option<String>) -> Result<()> {
         let url = self.append_device_id("me/player/next", device_id);
-        match self.post(&url, json!({})) {
+        match self.post(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1281,7 +1281,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub fn previous_track(&self, device_id: Option<String>) -> Result<()> {
         let url = self.append_device_id("me/player/previous", device_id);
-        match self.post(&url, json!({})) {
+        match self.post(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1295,7 +1295,7 @@ impl Spotify {
     pub fn seek_track(&self, positiion_ms: u32, device_id: Option<String>) -> Result<()> {
         let url = self.append_device_id(&format!("me/player/seek?position_ms={}",positiion_ms),
                                         device_id);
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1310,7 +1310,7 @@ impl Spotify {
     pub fn repeat(&self, state: RepeatState, device_id: Option<String>) -> Result<()> {
         let url = self.append_device_id(&format!("me/player/repeat?state={}",state.as_str()),
                                         device_id);
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1328,7 +1328,7 @@ impl Spotify {
         let url =
             self.append_device_id(&format!("me/player/volume?volume_percent={}",volume_percent),
                                   device_id);
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1342,7 +1342,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub fn shuffle(&self, state: bool, device_id: Option<String>) -> Result<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}",state), device_id);
-        match self.put(&url, json!({})) {
+        match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
