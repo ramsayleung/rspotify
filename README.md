@@ -80,8 +80,7 @@ Since this crate is still under developing, it isn't pushed to
 
 If you have a use case you are intertested in, you could check the
 [examples](./examples), which has all kinds of examples. For example, If you
-want to get Spotify catalog information about an artist's top 10 tracks by
-country, you could check [current_user_recently_played](./examples/current_user_recently_played). This
+want to get recently played history, you could check [current_user_recently_played](./examples/current_user_recently_played). This
 is the example code:
 
 ``` rust
