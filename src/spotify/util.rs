@@ -51,11 +51,11 @@ V: Debug+ToString>(map: &HashMap<K, V>) -> String{
 pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
     let mut map: HashMap<&str, &str> = HashMap::new();
     let tokens: Vec<&str> = query_str
-        .split("&")
+        .split('&')
         .filter(|token| !token.is_empty())
         .collect();
     for token in tokens {
-        let vec: Vec<&str> = token.split("=").collect();
+        let vec: Vec<&str> = token.split('=').collect();
         map.insert(vec[0], vec[1]);
     }
     map
@@ -83,16 +83,18 @@ pub fn prompt_for_user_token(client_id: impl Into<Option<String>>,
                              redirect_uri: impl Into<Option<String>>,
                              cache_path: impl Into<Option<String>>)
                              -> Option<TokenInfo> {
-    let scope = scope.into().unwrap_or("".to_owned());
+    let scope = scope.into().unwrap_or_else(|| "".to_owned());
     let client_id = client_id
         .into()
-        .unwrap_or(env::var("CLIENT_ID").unwrap_or_default().to_owned());
-    let client_secret = client_secret
-        .into()
-        .unwrap_or(env::var("CLIENT_SECRET").unwrap_or_default().to_owned());
-    let redirect_uri = redirect_uri
-        .into()
-        .unwrap_or(env::var("REDIRECT_URI").unwrap_or_default().to_owned());
+        .unwrap_or_else(|| env::var("CLIENT_ID").unwrap_or_default().to_owned());
+    let client_secret =
+        client_secret
+            .into()
+            .unwrap_or_else(|| env::var("CLIENT_SECRET").unwrap_or_default().to_owned());
+    let redirect_uri =
+        redirect_uri
+            .into()
+            .unwrap_or_else(|| env::var("REDIRECT_URI").unwrap_or_default().to_owned());
     let cache_path = cache_path
         .into()
         .unwrap_or(".spotify-token-cache.json".to_owned());
@@ -125,9 +127,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {
                     match spotify_oauth.parse_response_code(&mut input) {
-                        Some(code) => {
-                             spotify_oauth.get_access_token(&code)
-                        }
+                        Some(code) => spotify_oauth.get_access_token(&code),
                         None => None,
                     }
                 }
