@@ -8,11 +8,14 @@ pub struct Recommendations {
 ///[recommendations seed object](https://developer.spotify.com/web-api/object-model/#recommendations-seed-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RecommendationsSeed {
-    pub afterFilteringSize: u32,
-    pub afterRelinkingSize: u32,
+    #[serde(rename = "afterFilteringSize")]
+    pub after_filtering_size: u32,
+    #[serde(rename = "afterRelinkingSize")]
+    pub after_relinking_size: u32,
     pub href: String,
     pub id: String,
-    pub initialPoolSize: u32,
+    #[serde(rename = "initialPoolSize")]
+    pub initial_pool_size: u32,
     #[serde(rename = "type")]
     pub _type: RecommendationsSeedType,
 }

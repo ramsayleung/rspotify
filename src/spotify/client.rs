@@ -26,7 +26,7 @@ use super::model::playlist::{FullPlaylist, PlaylistTrack, SimplifiedPlaylist, Fe
 use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::model::category::PageCategory;
-// use super::model::recommend::Recommendations;
+use super::model::recommend::Recommendations;
 use super::model::audio::{AudioFeatures, AudioFeaturesPayload, AudioAnalysis};
 use super::model::device::DevicePayload;
 use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
@@ -1199,14 +1199,74 @@ impl Spotify {
     /// - min/max/target_<attribute> - For the tuneable track attributes listed
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
-    // pub fn recommendations(&self,
-    //                        mut seed_artists: Option<Vec<String>>,
-    //                        mut seed_genres: Option<Vec<String>>,
-    //                        mut seed_tracks: Option<Vec<String>>,
-    //                        limit: impl Into<Option<u32>>,
-    //                        country: Option<Country>)
-    //                        -> Result<Recommendations> {
-    // }
+    pub fn recommendations(&self,
+                           seed_artists: Option<Vec<String>>,
+                           seed_genres: Option<Vec<String>>,
+                           seed_tracks: Option<Vec<String>>,
+                           limit: impl Into<Option<u32>>,
+                           country: Option<Country>,
+                           payload: Map<String, Value>)
+                           -> Result<Recommendations> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        params.insert("limit", limit.to_string());
+        if let Some(_seed_artists) = seed_artists {
+            let seed_artists_ids: Vec<String> = _seed_artists
+                .iter()
+                .map(|id| self.get_id(Type::Artist, id))
+                .collect();
+            params.insert("seed_artists", seed_artists_ids.join(","));
+        }
+        if let Some(_seed_genres) = seed_genres {
+            params.insert("seed_genres", _seed_genres.join(","));
+        }
+        if let Some(_seed_tracks) = seed_tracks {
+            let seed_tracks_ids: Vec<String> = _seed_tracks
+                .iter()
+                .map(|id| self.get_id(Type::Track, id))
+                .collect();
+            params.insert("seed_tracks", seed_tracks_ids.join(","));
+        }
+        if let Some(_country) = country {
+            params.insert("market", _country.as_str().to_owned());
+        }
+        let attributes = vec!["acousticness",
+                          "danceability",
+                          "duration_ms",
+                          "energy",
+                          "instrumentalness",
+                          "key",
+                          "liveness",
+                          "loudness",
+                          "mode",
+                          "popularity",
+                          "speechiness",
+                          "tempo",
+                          "time_signature",
+                          "valence"];
+        // let attributes: Vec<String> = attributes.iter().map(|item| item.to_string()).collect();
+        let prefixs = vec!["min_", "max_", "target_"];
+        // let fields: Vec<String> = prefixs
+        //     .iter()
+        //     .zip(attributes.iter())
+        //     .map(|(prefix, attribute)| (*prefix).to_owned() + *attribute)
+        //     .collect();
+        // let prefixs: Vec<String> = prefixs.iter().map(|item| item.to_string()).collect();
+        for attribute in attributes {
+            for prefix in prefixs {
+                let param = prefix.to_owned() + attribute;
+                if let Some(value) = payload.get(&param) {
+                    if let Some(value_str) = value.as_str() {
+                        params.insert(param.as_ref(), value_str.to_owned());
+                    }
+                }
+            }
+        }
+        let url = String::from("recommendations");
+        let result = self.get(&url, &mut params);
+        self.convert_result::<Recommendations>(&result.unwrap_or_default())
+
+    }
     ///[get audio features](https://developer.spotify.com/web-api/get-audio-features/)
     ///Get audio features for a track
     ///- track - track URI, URL or ID
