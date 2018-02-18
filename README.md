@@ -7,82 +7,40 @@ Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.sp
 **all Spotify's endpoints**, such as fetching metadata (search and look-up of
 albums, artists, tracks, playlists, new releases) and user's information (follow
 users, artists and playlists, and saved tracks management).
-
-The wrapper includes helper functions to do the following:
-
-#### Music metadata
-- Albums, artists, tracks and playlists
-- Audio features and audio analysis for tracks [WIP]
-- Albums for a specific artist
-- Top tracks for a specific artist
-- Artists similar to a specific artist [WIP]
-
-#### Profiles
-- User's emails, product type, display name, birthdate, image
-
-#### Search[WIP]
-- Albums, artists, tracks, and playlists
-
-#### Playlist manipulation
-- Get a user's playlists
-- Create playlists
-- Change playlist details
-- Add tracks to a playlist
-- Remove tracks from a playlist
-- Replace tracks in a playlist
-- Reorder tracks in a playlist
-- Upload custom playlist cover image [WIP]
-
-#### Your Music library
-- Add, remove, and get tracks that are in the signed in user's Your Music library
-- Check if a track is in the signed in user's Your Music library
-
-#### Personalization
-- Get a user’s top artists and tracks based on calculated affinity
-- Get current user’s recently played tracks
-
-#### Browse
-- Get new releases
-- Get featured playlists
-- Get a list of categories
-- Get a category
-- Get a category's playlists
-- Get recommendations based on seeds [WIP]
-- Get available genre seeds [WIP]
-
-#### Follow
-- Follow and unfollow users
-- Follow and unfollow artists
-- Check if the logged in user follows a user or artist
-- Follow a playlist
-- Unfollow a playlist
-- Get followed artists
-- Check if users are following a Playlist
-
-#### Player
-- Get a user's available devices
-- Get information about the user's current playback
-- Get the user's currently playing track
-- Transfer a user's playback 
-- Start/Resume a user's playback 
-- Pause a user's playback 
-- Skip user's playback to next track 
-- Skip user's playback to previous track 
-- Seek to position in currently playing track 
-- Set repeat mode on user's playback 
-- Set volume for user's playback 
-- Toggle shuffle for user's playback 
+## Features
+*rspotify* supports all of the features of the Spotify Web API including access
+to all end points, and support for user authorization, notes that before
+accessing to any end points, you need to be authorized. For details on the
+capabilities you are encouraged to review the [Spotify Web Endpoint
+Reference](https://developer.spotify.com/web-api/endpoint-reference/)
+documentation
 
 ## Installation
-Since this crate is still under developing, it isn't pushed to
-[crates.io](https://crates.io/), but it is close to finish. Just be patient
+Since this crate isn't pushed to [crates.io](https://crates.io/), but it is
+close to finish. Just be patient. Or if you can't wait to try *rspotify*, you
+could get it from source
+
+## Getting Started
+### Authorization
+Since all methods require user authorization now, you will need to
+generate an authorization token that indicates that the user has granted
+permission for your application to perform the given task.  You will need to
+register your app to get the credentials necessary to make authorized calls.
+
+Even if your script does not have an accessible URL you need to specify one when
+registering your application where the spotify authentication API will redirect
+to after successful login. The URL doesn't need to work or be accessible, you
+can specify "http://localhost/", after successful login you just need to copy
+the "http://localhost/?code=..." URL from your browser and paste it to the
+console where your application is running. For example:
+![](./doc/images/rspotify.gif)
+
 ## Examples
-
 If you have a use case you are intertested in, you could check the
-[examples](./examples), which has all kinds of examples. For example, If you
-want to get recently played history, you could check [current_user_recently_played](./examples/current_user_recently_played). This
-is the example code:
-
+[examples](./examples), which has all kinds of detailed examples. For example,
+If you want to get recently played history, you could check
+[current_user_recently_played](./examples/current_user_recently_played). This is
+the example code:
 ``` rust
 extern crate rspotify;
 
@@ -124,7 +82,6 @@ fn main() {
         }
         None => println!("auth failed"),
     };
-
 }
 
 ```
