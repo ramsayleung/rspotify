@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use spotify::spotify_enum::{Type, AlbumType};
+use spotify::senum::{Type, AlbumType};
 use super::track::SimplifiedTrack;
 use super::artist::SimplifiedArtist;
 use super::image::Image;

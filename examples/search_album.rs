@@ -3,7 +3,6 @@ extern crate rspotify;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::senum::RepeatState;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -18,9 +17,7 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-modify-playback-state")
-        .build();
+    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -34,10 +31,9 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            match spotify.repeat(RepeatState::Context,None) {
-                Ok(_) => println!("repeat successful"),
-                Err(_) => eprintln!("repeat failed"),
-            }
+            let query = "album:arrival artist:abba";
+            let result = spotify.search_album(query, 10, 0, None);
+            println!("search result:{:?}",result);
         }
         None => println!("auth failed"),
     };

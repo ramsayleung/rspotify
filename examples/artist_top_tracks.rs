@@ -2,7 +2,7 @@ extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::SpotifyClientCredentials;
-use rspotify::spotify::spotify_enum::Country;
+use rspotify::spotify::senum::Country;
 
 fn main() {
     // Set client_id and client_secret in .env file or

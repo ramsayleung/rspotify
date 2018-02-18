@@ -1,7 +1,7 @@
 
 use std::collections::HashMap;
 use serde_json::Value;
-use spotify::spotify_enum::Type;
+use spotify::senum::Type;
 use super::image::Image;
 use super::page::CursorBasedPage;
 ///[artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)

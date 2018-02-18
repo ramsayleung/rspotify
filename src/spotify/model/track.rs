@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use super::artist::SimplifiedArtist;
 use super::album::SimplifiedAlbum;
-use spotify::spotify_enum::Type;
+use spotify::senum::Type;
 ///[track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullTrack {

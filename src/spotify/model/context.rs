@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use spotify::spotify_enum::{Type,RepeatState};
+use spotify::senum::{Type,RepeatState};
 use super::device::Device;
 use super::track::FullTrack;
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)

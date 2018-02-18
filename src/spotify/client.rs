@@ -16,7 +16,7 @@ use std::borrow::Cow;
 
 use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
-use super::spotify_enum::{AlbumType, Type, TimeRange, Country, RepeatState, SearchType};
+use super::senum::{AlbumType, Type, TimeRange, Country, RepeatState, SearchType};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum, PageSimpliedAlbums};
 use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
@@ -462,7 +462,7 @@ impl Spotify {
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
-    ///[get a list of current users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
+    ///[get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
     ///Get current user playlists without required getting his profile
     ///Parameters:
     ///- limit  - the number of items to return
