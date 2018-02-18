@@ -44,7 +44,7 @@ fn main() {
                                                  Some(seed_tracks),
                                                  10,
                                                  Some(Country::UnitedStates),
-                                                 payload);
+                                                 &payload);
             println!("search result:{:?}", result);
         }
         None => println!("auth failed"),

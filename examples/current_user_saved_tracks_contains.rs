@@ -38,7 +38,7 @@ fn main() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.current_user_saved_tracks_contains(tracks_ids);
+            let result = spotify.current_user_saved_tracks_contains(&tracks_ids);
             println!("result:{:?}", result);
         }
         None => println!("auth failed"),

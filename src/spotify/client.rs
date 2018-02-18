@@ -641,7 +641,7 @@ impl Spotify {
     pub fn user_playlist_add_tracks(&self,
                                     user_id: &str,
                                     playlist_id: &str,
-                                    track_ids: Vec<String>,
+                                    track_ids: &[String],
                                     position: Option<i32>)
                                     -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
@@ -669,7 +669,7 @@ impl Spotify {
     pub fn user_playlist_replace_tracks(&self,
                                         user_id: &str,
                                         playlist_id: &str,
-                                        track_ids: Vec<String>)
+                                        track_ids: &[String])
                                         -> Result<()> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
@@ -729,7 +729,7 @@ impl Spotify {
     pub fn user_playlist_remove_all_occurrences_of_tracks(&self,
                                                           user_id: &str,
                                                           playlist_id: &str,
-                                                          track_ids: Vec<String>,
+                                                          track_ids: &[String],
                                                           snapshot_id: Option<String>)
                                                           -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
@@ -823,7 +823,7 @@ impl Spotify {
     pub fn user_playlist_check_follow(&self,
                                       playlist_owner_id: &str,
                                       playlist_id: &str,
-                                      user_ids: Vec<String>)
+                                      user_ids: &[String])
                                       -> Result<Vec<bool>> {
         if user_ids.len() > 5 {
             eprintln!("The maximum length of user ids is limited to 5 :-)");
@@ -950,7 +950,7 @@ impl Spotify {
     ///the current Spotify user’s “Your Music” library.
     ///Parameters:
     ///- track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_contains(&self, track_ids: Vec<String>) -> Result<Vec<bool>> {
+    pub fn current_user_saved_tracks_contains(&self, track_ids: &[String]) -> Result<Vec<bool>> {
         let uris: Vec<String> = track_ids
             .iter()
             .map(|id| self.get_id(Type::Track, id))
@@ -966,7 +966,7 @@ impl Spotify {
     ///"Your Music" library.
     ///Parameters:
     ///- track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_add(&self, track_ids: Vec<String>) -> Result<()> {
+    pub fn current_user_saved_tracks_add(&self, track_ids: &[String]) -> Result<()> {
         let uris: Vec<String> = track_ids
             .iter()
             .map(|id| self.get_id(Type::Track, id))
@@ -1046,7 +1046,7 @@ impl Spotify {
     ///"Your Music" library.
     ///Parameters:
     ///- album_ids - a list of album URIs, URLs or IDs
-    pub fn current_user_saved_albums_add(&self, album_ids: Vec<String>) -> Result<()> {
+    pub fn current_user_saved_albums_add(&self, album_ids: &[String]) -> Result<()> {
         let uris: Vec<String> = album_ids
             .iter()
             .map(|id| self.get_id(Type::Album, id))
@@ -1063,7 +1063,7 @@ impl Spotify {
     ///Follow one or more artists
     ///Parameters:
     ///- artist_ids - a list of artist IDs
-    pub fn user_follow_artists(&self, artist_ids: Vec<String>) -> Result<()> {
+    pub fn user_follow_artists(&self, artist_ids: &[String]) -> Result<()> {
         let url = format!("me/following?type=artist&ids={}",artist_ids.join(","));
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
@@ -1075,7 +1075,7 @@ impl Spotify {
     ///Follow one or more users
     ///Parameters:
     ///- user_ids - a list of artist IDs
-    pub fn user_follow_users(&self, user_ids: Vec<String>) -> Result<()> {
+    pub fn user_follow_users(&self, user_ids: &[String]) -> Result<()> {
         let url = format!("me/following?type=user&ids={}",user_ids.join(","));
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
@@ -1205,7 +1205,7 @@ impl Spotify {
                            seed_tracks: Option<Vec<String>>,
                            limit: impl Into<Option<u32>>,
                            country: Option<Country>,
-                           payload: Map<String, Value>)
+                           payload: &Map<String, Value>)
                            -> Result<Recommendations> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
@@ -1282,7 +1282,7 @@ impl Spotify {
     ///[get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
     ///Get Audio Features for Several Tracks
     /// -tracks a list of track URIs, URLs or IDs
-    pub fn audios_features(&self, tracks: Vec<String>) -> Result<Option<AudioFeaturesPayload>> {
+    pub fn audios_features(&self, tracks: &[String]) -> Result<Option<AudioFeaturesPayload>> {
         let ids: Vec<String> = tracks
             .iter()
             .map(|track| self.get_id(Type::Track, track))

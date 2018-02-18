@@ -40,7 +40,7 @@ fn main() {
             user_ids.push(user_id1);
             let user_id2 = String::from("elogain");
             user_ids.push(user_id2);
-            let result = spotify.user_playlist_check_follow(owner_id, playlist_id, user_ids);
+            let result = spotify.user_playlist_check_follow(owner_id, playlist_id, &user_ids);
             println!("result:{:?}", result);
         }
         None => println!("auth failed"),

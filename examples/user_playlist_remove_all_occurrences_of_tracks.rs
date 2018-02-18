@@ -44,7 +44,7 @@ fn main() {
             tracks_ids.push(track_id1);
             let result = spotify.user_playlist_remove_all_occurrences_of_tracks(user_id,
                                                                                 playlist_id,
-                                                                                tracks_ids,
+                                                                                &tracks_ids,
                                                                                 None);
             println!("result:{:?}", result);
         }

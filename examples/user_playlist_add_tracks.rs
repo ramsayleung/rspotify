@@ -42,7 +42,7 @@ fn main() {
             tracks_ids.push(track_id1);
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
-            let result = spotify.user_playlist_add_tracks(user_id, playlist_id, tracks_ids, None);
+            let result = spotify.user_playlist_add_tracks(user_id, playlist_id, &tracks_ids, None);
             println!("{:?}", result);
 
         }

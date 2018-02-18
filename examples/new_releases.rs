@@ -4,7 +4,7 @@ extern crate chrono;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::spotiyf_enum::Country;
+use rspotify::spotify::senum::Country;
 
 fn main() {
     // Set client_id and client_secret in .env file or

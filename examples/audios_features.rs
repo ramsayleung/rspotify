@@ -22,6 +22,6 @@ fn main() {
     tracks_ids.push(track_id1);
     let track_id2 = String::from("spotify:track:24JygzOLM0EmRQeGtFcIcG");
     tracks_ids.push(track_id2);
-    let features = spotify.audios_features(tracks_ids);
+    let features = spotify.audios_features(&tracks_ids);
     println!("{:?}", features);
 }

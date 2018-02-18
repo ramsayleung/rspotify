@@ -43,7 +43,7 @@ fn main() {
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
             spotify
-                .user_playlist_replace_tracks(user_id, playlist_id, tracks_ids)
+                .user_playlist_replace_tracks(user_id, playlist_id, &tracks_ids)
                 .expect("replace tracks in a playlist failed");
 
         }

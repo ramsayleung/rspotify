@@ -97,7 +97,7 @@ pub fn prompt_for_user_token(client_id: impl Into<Option<String>>,
             .unwrap_or_else(|| env::var("REDIRECT_URI").unwrap_or_default().to_owned());
     let cache_path = cache_path
         .into()
-        .unwrap_or(".spotify-token-cache.json".to_owned());
+        .unwrap_or_else(||".spotify-token-cache.json".to_owned());
     let mut oauth = SpotifyOAuth::default()
         .scope(&scope)
         .client_id(&client_id)
