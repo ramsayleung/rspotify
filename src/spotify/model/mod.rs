@@ -12,3 +12,4 @@ pub mod category;
 pub mod recommend;
 pub mod audio;
 pub mod device;
+pub mod search;

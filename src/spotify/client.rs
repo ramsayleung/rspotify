@@ -16,7 +16,7 @@ use std::borrow::Cow;
 
 use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
-use super::spotify_enum::{AlbumType, Type, TimeRange, Country};
+use super::spotify_enum::{AlbumType, Type, TimeRange, Country, RepeatState, SearchType};
 use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum, PageSimpliedAlbums};
 use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
@@ -29,7 +29,8 @@ use super::model::category::PageCategory;
 // use super::model::recommend::Recommendations;
 use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
 use super::model::device::DevicePayload;
-use super::model::context::{FullPlayingContext, SimplifiedPlayingContext, RepeatState};
+use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
+use super::model::search::{SearchAlbums, SearchArtists, SearchTracks, SearchPlaylists};
 use super::util::convert_map_to_string;
 pub struct Spotify {
     pub prefix: String,
@@ -316,6 +317,117 @@ impl Spotify {
         // url.push_str(&ids.join(","));
         let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<FullAlbums>(&result.unwrap_or_default())
+    }
+
+    ///[search for items](https://developer.spotify.com/web-api/search-item/)
+    ///Search for an Item
+    ///Get Spotify catalog information about artists, albums, tracks or
+    /// playlists that match a keyword string.
+    ///            Parameters:
+    ///- q - the search query
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
+    ///- type - the type of item to return. One of 'artist', 'album',
+    ///'track' or 'playlist'
+    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    fn search(&self,
+              q: &str,
+              _type: SearchType,
+              limit: impl Into<Option<u32>>,
+              offset: impl Into<Option<u32>>,
+              market: Option<Country>)
+              -> Result<String> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(10);
+        let offset = offset.into().unwrap_or(0);
+        if let Some(_market) = market {
+            params.insert("market", _market.as_str().to_owned());
+        }
+        params.insert("limit", limit.to_string());
+        params.insert("offset", offset.to_string());
+        params.insert("q", q.to_owned());
+        params.insert("type", _type.as_str().to_owned());
+        let url = String::from("search");
+        self.get(&url, &mut params)
+    }
+
+    ///search item, type is album
+    ///[search for items](https://developer.spotify.com/web-api/search-item/)
+    ///Get Spotify catalog information about artists, albums, tracks or
+    /// playlists that match a keyword string.
+    ///            Parameters:
+    ///- q - the search query
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
+    ///'track' or 'playlist'
+    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    pub fn search_album(&self,
+                        q: &str,
+                        limit: impl Into<Option<u32>>,
+                        offset: impl Into<Option<u32>>,
+                        market: Option<Country>)
+                        -> Result<SearchAlbums> {
+        let result = self.search(q, SearchType::Album, limit, offset, market);
+        self.convert_result::<SearchAlbums>(&result.unwrap_or_default())
+    }
+
+    ///search item, type is artist
+    ///[search for items](https://developer.spotify.com/web-api/search-item/)
+    ///Get Spotify catalog information about artists, albums, tracks or
+    /// playlists that match a keyword string.
+    ///            Parameters:
+    ///- q - the search query
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
+    ///'track' or 'playlist'
+    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    pub fn search_artist(&self,
+                         q: &str,
+                         limit: impl Into<Option<u32>>,
+                         offset: impl Into<Option<u32>>,
+                         market: Option<Country>)
+                         -> Result<SearchArtists> {
+        let result = self.search(q, SearchType::Artist, limit, offset, market);
+        self.convert_result::<SearchArtists>(&result.unwrap_or_default())
+    }
+
+    ///search item, type is track
+    ///[search for items](https://developer.spotify.com/web-api/search-item/)
+    ///Get Spotify catalog information about artists, albums, tracks or
+    /// playlists that match a keyword string.
+    ///            Parameters:
+    ///- q - the search query
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
+    ///'track' or 'playlist'
+    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    pub fn search_track(&self,
+                        q: &str,
+                        limit: impl Into<Option<u32>>,
+                        offset: impl Into<Option<u32>>,
+                        market: Option<Country>)
+                        -> Result<SearchTracks> {
+        let result = self.search(q, SearchType::Track, limit, offset, market);
+        self.convert_result::<SearchTracks>(&result.unwrap_or_default())
+    }
+    ///search item, type is playlist
+    ///[search for items](https://developer.spotify.com/web-api/search-item/)
+    ///Get Spotify catalog information about artists, albums, tracks or
+    /// playlists that match a keyword string.
+    ///            Parameters:
+    ///- q - the search query
+    ///- limit  - the number of items to return
+    ///- offset - the index of the first item to return
+    ///'track' or 'playlist'
+    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    pub fn search_playlist(&self,
+                           q: &str,
+                           limit: impl Into<Option<u32>>,
+                           offset: impl Into<Option<u32>>,
+                           market: Option<Country>)
+                           -> Result<SearchPlaylists> {
+        let result = self.search(q, SearchType::Playlist, limit, offset, market);
+        self.convert_result::<SearchPlaylists>(&result.unwrap_or_default())
     }
 
     ///[get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)

@@ -3,7 +3,7 @@ extern crate rspotify;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::model::context::RepeatState;
+use rspotify::spotify::spotify_enum::RepeatState;
 
 fn main() {
     // Set client_id and client_secret in .env file or

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use spotify::spotify_enum::Type;
+use spotify::spotify_enum::{Type,RepeatState};
 use super::device::Device;
 use super::track::FullTrack;
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
@@ -26,31 +26,6 @@ pub struct FullPlayingContext {
     pub item: Option<FullTrack>,
 }
 
-
-#[derive(Clone, Debug,Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RepeatState {
-    Off,
-    Track,
-    Context,
-}
-impl RepeatState {
-    pub fn from_str(s: &str) -> Option<RepeatState> {
-        match s {
-            "off" => Some(RepeatState::Off),
-            "track" => Some(RepeatState::Track),
-            "context" => Some(RepeatState::Context),
-            _ => None,
-        }
-    }
-    pub fn as_str(&self) -> &str {
-        match *self {
-            RepeatState::Off => "off",
-            RepeatState::Track => "track",
-            RepeatState::Context => "context",
-        }
-    }
-}
 
 
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)

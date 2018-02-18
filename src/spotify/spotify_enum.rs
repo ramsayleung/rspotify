@@ -1139,3 +1139,68 @@ impl fmt::Debug for Country {
         }
     }
 }
+#[derive(Clone, Debug,Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RepeatState {
+    Off,
+    Track,
+    Context,
+}
+impl RepeatState {
+    pub fn from_str(s: &str) -> Option<RepeatState> {
+        match s {
+            "off" => Some(RepeatState::Off),
+            "track" => Some(RepeatState::Track),
+            "context" => Some(RepeatState::Context),
+            _ => None,
+        }
+    }
+    pub fn as_str(&self) -> &str {
+        match *self {
+            RepeatState::Off => "off",
+            RepeatState::Track => "track",
+            RepeatState::Context => "context",
+        }
+    }
+}
+
+//  ‘artist’, ‘album’,‘track’ or ‘playlist’
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum SearchType {
+    Artist,
+    Album,
+    Track,
+    Playlist,
+}
+
+impl SearchType {
+    pub fn from_str(s: &str) -> Option<SearchType> {
+        match s {
+            "artist" => Some(SearchType::Artist),
+            "album" => Some(SearchType::Album),
+            "track" => Some(SearchType::Track),
+            "playlist" => Some(SearchType::Playlist),
+            _ => None,
+        }
+    }
+    pub fn as_str(&self) -> &str {
+        match *self {
+            SearchType::Album => "album",
+            SearchType::Artist => "artist",
+            SearchType::Track => "track",
+            SearchType::Playlist => "playlist",
+        }
+    }
+}
+
+impl fmt::Debug for SearchType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            SearchType::Album => write!(f, "album"),
+            SearchType::Artist => write!(f, "artist"),
+            SearchType::Track => write!(f, "track"),
+            SearchType::Playlist => write!(f, "playlist"),
+        }
+    }
+}
