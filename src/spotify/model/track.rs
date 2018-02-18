@@ -34,7 +34,7 @@ pub struct FullTracks {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
-    pub available_markets: Vec<String>,
+    pub available_markets: Option<Vec<String>>,
     pub disc_number: i32,
     pub duration_ms: u32,
     pub explicit: bool,

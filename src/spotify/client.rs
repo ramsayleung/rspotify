@@ -119,7 +119,7 @@ impl Spotify {
         }
     }
     ///send get request
-    fn get(&self, url: &str, params: &mut HashMap<&str, String>) -> Result<String> {
+    fn get(&self, url: &str, params: &mut HashMap<String, String>) -> Result<String> {
         if !params.is_empty() {
             let param: String = convert_map_to_string(params);
             let mut url_with_params = url.to_owned();
@@ -168,9 +168,9 @@ impl Spotify {
         }
         let url = format!("tracks/?ids={}", ids.join(","));
         // url.push_str(&ids.join(","));
-        let mut params: HashMap<&str, String> = HashMap::new();
+        let mut params: HashMap<String, String> = HashMap::new();
         if let Some(_market) = market {
-            params.insert("market", _market.to_owned());
+            params.insert("market".to_owned(), _market.to_owned());
         }
         println!("{:?}", &url);
         let result = self.get(&url, &mut params);
@@ -218,18 +218,18 @@ impl Spotify {
                          limit: Option<u32>,
                          offset: Option<u32>)
                          -> Result<Page<SimplifiedAlbum>> {
-        let mut params: HashMap<&str, String> = HashMap::new();
+        let mut params: HashMap<String, String> = HashMap::new();
         if let Some(_limit) = limit {
-            params.insert("limit", _limit.to_string());
+            params.insert("limit".to_owned(), _limit.to_string());
         }
         if let Some(_album_type) = album_type {
-            params.insert("album_type", _album_type.as_str().to_owned());
+            params.insert("album_type".to_owned(), _album_type.as_str().to_owned());
         }
         if let Some(_offset) = offset {
-            params.insert("offset", _offset.to_string());
+            params.insert("offset".to_owned(), _offset.to_string());
         }
         if let Some(_country) = country {
-            params.insert("country", _country.as_str().to_owned());
+            params.insert("country".to_owned(), _country.as_str().to_owned());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
@@ -341,12 +341,12 @@ impl Spotify {
         let limit = limit.into().unwrap_or(10);
         let offset = offset.into().unwrap_or(0);
         if let Some(_market) = market {
-            params.insert("market", _market.as_str().to_owned());
+            params.insert("market".to_owned(), _market.as_str().to_owned());
         }
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
-        params.insert("q", q.to_owned());
-        params.insert("type", _type.as_str().to_owned());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        params.insert("q".to_owned(), q.to_owned());
+        params.insert("type".to_owned(), _type.as_str().to_owned());
         let url = String::from("search");
         self.get(&url, &mut params)
     }
@@ -446,8 +446,8 @@ impl Spotify {
         let url = format!("albums/{}/tracks", trid);
         // url.push_str(&trid);
         // url.push_str("/tracks");
-        params.insert("limit", limit.into().unwrap_or(50).to_string());
-        params.insert("offset", offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
     }
@@ -472,8 +472,8 @@ impl Spotify {
                                   offset: impl Into<Option<u32>>)
                                   -> Result<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
-        params.insert("limit", limit.into().unwrap_or(50).to_string());
-        params.insert("offset", offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
 
         let url = String::from("me/playlists");
         let result = self.get(&url, &mut params);
@@ -492,8 +492,8 @@ impl Spotify {
                           offset: impl Into<Option<u32>>)
                           -> Result<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
-        params.insert("limit", limit.into().unwrap_or(50).to_string());
-        params.insert("offset", offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         let url = format!("users/{}/playlists", user_id);
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
@@ -512,7 +512,7 @@ impl Spotify {
                          -> Result<FullPlaylist> {
         let mut params = HashMap::new();
         if let Some(_fields) = fields {
-            params.insert("fields", _fields.to_string());
+            params.insert("fields".to_owned(), _fields.to_string());
         }
         match playlist_id {
             Some(_playlist_id) => {
@@ -547,13 +547,13 @@ impl Spotify {
                                 market: Option<&str>)
                                 -> Result<Page<PlaylistTrack>> {
         let mut params = HashMap::new();
-        params.insert("limit", limit.into().unwrap_or(50).to_string());
-        params.insert("offset", offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(_market) = market {
-            params.insert("market", _market.to_owned());
+            params.insert("market".to_owned(), _market.to_owned());
         }
         if let Some(_fields) = fields {
-            params.insert("fields", _fields.to_string());
+            params.insert("fields".to_owned(), _fields.to_string());
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
@@ -831,7 +831,7 @@ impl Spotify {
         let url =
             format!("users/{}/playlists/{}/followers/contains?ids={}"
                                           ,playlist_owner_id,playlist_id,user_ids.join(","));
-        let mut dumb: HashMap<&str, String> = HashMap::new();
+        let mut dumb: HashMap<String, String> = HashMap::new();
         let result = self.get(&url, &mut dumb);
         self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
 
@@ -840,7 +840,7 @@ impl Spotify {
     ///Get detailed profile information about the current user.
     ///An alias for the 'current_user' method.
     pub fn me(&self) -> Result<PrivateUser> {
-        let mut dumb: HashMap<&str, String> = HashMap::new();
+        let mut dumb: HashMap<String, String> = HashMap::new();
         let url = String::from("me/");
         let result = self.get(&url, &mut dumb);
         self.convert_result::<PrivateUser>(&result.unwrap_or_default())
@@ -882,8 +882,8 @@ impl Spotify {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let mut params = HashMap::new();
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/albums");
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<FullAlbum>>(&result.unwrap_or_default())
@@ -900,8 +900,8 @@ impl Spotify {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let mut params = HashMap::new();
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/tracks");
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<SavedTrack>>(&result.unwrap_or_default())
@@ -918,11 +918,11 @@ impl Spotify {
                                          -> Result<CursorPageFullArtists> {
         let limit = limit.into().unwrap_or(20);
         let mut params = HashMap::new();
-        params.insert("limit", limit.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
         if let Some(_after) = after {
-            params.insert("after", _after);
+            params.insert("after".to_owned(), _after);
         }
-        params.insert("type", Type::Artist.as_str().to_owned());
+        params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
         let url = String::from("me/following");
         let result = self.get(&url, &mut params);
         self.convert_result::<CursorPageFullArtists>(&result.unwrap_or_default())
@@ -994,9 +994,9 @@ impl Spotify {
         let offset = offset.into().unwrap_or(0);
         let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
         let mut params = HashMap::new();
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
-        params.insert("time_range", time_range.as_str().to_owned());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        params.insert("time_range".to_owned(), time_range.as_str().to_owned());
         let url = String::from("me/top/artists");
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<FullArtist>>(&result.unwrap_or_default())
@@ -1017,9 +1017,9 @@ impl Spotify {
         let offset = offset.into().unwrap_or(0);
         let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
         let mut params = HashMap::new();
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
-        params.insert("time_range", time_range.as_str().to_owned());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        params.insert("time_range".to_owned(), time_range.as_str().to_owned());
         let url = String::from("me/top/tracks");
         let result = self.get(&url, &mut params);
         self.convert_result::<Page<FullTrack>>(&result.unwrap_or_default())
@@ -1034,7 +1034,7 @@ impl Spotify {
                                         -> Result<CursorBasedPage<PlayHistory>> {
         let limit = limit.into().unwrap_or(50);
         let mut params = HashMap::new();
-        params.insert("limit", limit.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
         let url = String::from("me/player/recently-played");
         let result = self.get(&url, &mut params);
         self.convert_result::<CursorBasedPage<PlayHistory>>(&result.unwrap_or_default())
@@ -1110,16 +1110,16 @@ impl Spotify {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         if let Some(_locale) = locale {
-            params.insert("locale", _locale);
+            params.insert("locale".to_owned(), _locale);
         }
         if let Some(_country) = country {
-            params.insert("country", _country.as_str().to_owned());
+            params.insert("country".to_owned(), _country.as_str().to_owned());
         }
         if let Some(_timestamp) = timestamp {
-            params.insert("timestamp", _timestamp.to_rfc3339());
+            params.insert("timestamp".to_owned(), _timestamp.to_rfc3339());
         }
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/featured-playlists");
         let result = self.get(&url, &mut params);
         self.convert_result::<FeaturedPlaylists>(&result.unwrap_or_default())
@@ -1143,10 +1143,10 @@ impl Spotify {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         if let Some(_country) = country {
-            params.insert("country", _country.as_str().to_owned());
+            params.insert("country".to_owned(), _country.as_str().to_owned());
         }
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/new-releases");
         let result = self.get(&url, &mut params);
         self.convert_result::<PageSimpliedAlbums>(&result.unwrap_or_default())
@@ -1174,13 +1174,13 @@ impl Spotify {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         if let Some(_locale) = locale {
-            params.insert("locale", _locale);
+            params.insert("locale".to_owned(), _locale);
         }
         if let Some(_country) = country {
-            params.insert("country", _country.as_str().to_owned());
+            params.insert("country".to_owned(), _country.as_str().to_owned());
         }
-        params.insert("limit", limit.to_string());
-        params.insert("offset", offset.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/categories");
         let result = self.get(&url, &mut params);
         self.convert_result::<PageCategory>(&result.unwrap_or_default())
@@ -1209,26 +1209,26 @@ impl Spotify {
                            -> Result<Recommendations> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
-        params.insert("limit", limit.to_string());
+        params.insert("limit".to_owned(), limit.to_string());
         if let Some(_seed_artists) = seed_artists {
             let seed_artists_ids: Vec<String> = _seed_artists
                 .iter()
                 .map(|id| self.get_id(Type::Artist, id))
                 .collect();
-            params.insert("seed_artists", seed_artists_ids.join(","));
+            params.insert("seed_artists".to_owned(), seed_artists_ids.join(","));
         }
         if let Some(_seed_genres) = seed_genres {
-            params.insert("seed_genres", _seed_genres.join(","));
+            params.insert("seed_genres".to_owned(), _seed_genres.join(","));
         }
         if let Some(_seed_tracks) = seed_tracks {
             let seed_tracks_ids: Vec<String> = _seed_tracks
                 .iter()
                 .map(|id| self.get_id(Type::Track, id))
                 .collect();
-            params.insert("seed_tracks", seed_tracks_ids.join(","));
+            params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
         }
         if let Some(_country) = country {
-            params.insert("market", _country.as_str().to_owned());
+            params.insert("market".to_owned(), _country.as_str().to_owned());
         }
         let attributes = vec!["acousticness",
                           "danceability",
@@ -1244,24 +1244,25 @@ impl Spotify {
                           "tempo",
                           "time_signature",
                           "valence"];
-        // let attributes: Vec<String> = attributes.iter().map(|item| item.to_string()).collect();
         let prefixs = vec!["min_", "max_", "target_"];
-        // let fields: Vec<String> = prefixs
-        //     .iter()
-        //     .zip(attributes.iter())
-        //     .map(|(prefix, attribute)| (*prefix).to_owned() + *attribute)
-        //     .collect();
-        // let prefixs: Vec<String> = prefixs.iter().map(|item| item.to_string()).collect();
-        for attribute in attributes {
-            for prefix in prefixs {
-                let param = prefix.to_owned() + attribute;
-                if let Some(value) = payload.get(&param) {
-                    if let Some(value_str) = value.as_str() {
-                        params.insert(param.as_ref(), value_str.to_owned());
-                    }
+        for (attribute, prefix) in iproduct!(attributes, prefixs) {
+            let param = prefix.to_owned() + attribute;
+            if let Some(value) = payload.get(&param) {
+                if let Some(value_str) = value.as_str() {
+                    params.insert(param, value_str.to_owned());
                 }
             }
         }
+        // for attribute in attributes {
+        //     for prefix in prefixs {
+        //         let param = prefix.to_owned() + attribute;
+        //         if let Some(value) = payload.get(&param) {
+        //             if let Some(value_str) = value.as_str() {
+        //                 params.insert(&param, value_str.to_owned());
+        //             }
+        //         }
+        //     }
+        // }
         let url = String::from("recommendations");
         let result = self.get(&url, &mut params);
         self.convert_result::<Recommendations>(&result.unwrap_or_default())
@@ -1330,7 +1331,7 @@ impl Spotify {
         let url = String::from("me/player");
         let mut params = HashMap::new();
         if let Some(_market) = market {
-            params.insert("country", _market.as_str().to_owned());
+            params.insert("country".to_owned(), _market.as_str().to_owned());
         }
         match self.get(&url, &mut params) {
             Ok(result) => {
@@ -1354,7 +1355,7 @@ impl Spotify {
         let url = String::from("me/player/currently-playing");
         let mut params = HashMap::new();
         if let Some(_market) = market {
-            params.insert("country", _market.as_str().to_owned());
+            params.insert("country".to_owned(), _market.as_str().to_owned());
         }
         match self.get(&url, &mut params) {
             Ok(result) => {

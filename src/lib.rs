@@ -14,7 +14,8 @@ extern crate serde_derive;
 extern crate webbrowser;
 #[macro_use]
 extern crate error_chain;
-
+#[macro_use]
+extern crate itertools;
 extern crate dotenv;
 // use serde_json::Error;
 extern crate url;
