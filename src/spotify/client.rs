@@ -1448,10 +1448,10 @@ mod tests {
     #[test]
     fn test_get_uri() {
         let spotify = Spotify::default().access_token("test-access").build();
-        let mut track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
-        let mut track_id2 = String::from("1301WleyT98MSxVHPZCA6M");
-        let uri1 = spotify.get_uri(Type::Track, &mut track_id1);
-        let uri2 = spotify.get_uri(Type::Track, &mut track_id2);
+        let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
+        let track_id2 = "1301WleyT98MSxVHPZCA6M";
+        let uri1 = spotify.get_uri(Type::Track, track_id1);
+        let uri2 = spotify.get_uri(Type::Track, track_id2);
         assert_eq!(track_id1,uri1);
         assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M",&uri2);
     }
