@@ -27,7 +27,7 @@ use super::model::cud_result::CUDResult;
 use super::model::playing::{Playing, PlayHistory};
 use super::model::category::PageCategory;
 // use super::model::recommend::Recommendations;
-use super::model::audio::{AudioFeatures, AudioFeaturesPayload};
+use super::model::audio::{AudioFeatures, AudioFeaturesPayload, AudioAnalysis};
 use super::model::device::DevicePayload;
 use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
 use super::model::search::{SearchAlbums, SearchArtists, SearchTracks, SearchPlaylists};
@@ -1239,6 +1239,18 @@ impl Spotify {
             Err(e) => Err(e),
         }
 
+    }
+
+    ///[get audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+    ///Get Audio Analysis for a Track
+    ///Parameters:
+    ///- track_id - a track URI, URL or ID
+    pub fn audio_analysis(&self, track: &str) -> Result<AudioAnalysis> {
+        let trid = self.get_id(Type::Track, track);
+        let url = format!("audio-analysis/{}",trid);
+        let mut dumb = HashMap::new();
+        let result = self.get(&url, &mut dumb);
+        self.convert_result::<AudioAnalysis>(&result.unwrap_or_default())
     }
 
     ///[get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
