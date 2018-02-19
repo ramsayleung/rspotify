@@ -17,7 +17,7 @@ use std::borrow::Cow;
 use errors::{Result, ResultExt};
 use super::oauth2::SpotifyClientCredentials;
 use super::senum::{AlbumType, Type, TimeRange, Country, RepeatState, SearchType};
-use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum, PageSimpliedAlbums};
+use super::model::album::{FullAlbum, FullAlbums, SimplifiedAlbum, PageSimpliedAlbums, SavedAlbum};
 use super::model::page::{Page, CursorBasedPage};
 use super::model::track::{FullTrack, FullTracks, SimplifiedTrack, SavedTrack};
 use super::model::artist::{FullArtist, FullArtists, CursorPageFullArtists};
@@ -250,19 +250,17 @@ impl Spotify {
                              artist_id: &str,
                              country: impl Into<Option<Country>>)
                              -> Result<FullTracks> {
-        let mut params: HashMap<&str, String> = HashMap::new();
-        params.insert("country",
-                      country
-                          .into()
-                          .unwrap_or(Country::UnitedStates)
-                          .as_str()
-                          .to_owned());
+        let mut params: HashMap<String, String> = HashMap::new();
+        let country = country
+            .into()
+            .unwrap_or(Country::UnitedStates)
+            .as_str()
+            .to_string();
+        params.insert("country".to_owned(), country);
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
-        // url.push_str(&trid);
-        // url.push_str("/top-tracks");
 
-        let result = self.get(&url, &mut HashMap::new());
+        let result = self.get(&url, &mut params);
         self.convert_result::<FullTracks>(&result.unwrap_or_default())
         // match self.get(&mut url, &mut params) {
         //     Ok(result) => {
@@ -880,7 +878,7 @@ impl Spotify {
     pub fn current_user_saved_albums(&self,
                                      limit: impl Into<Option<u32>>,
                                      offset: impl Into<Option<u32>>)
-                                     -> Result<Page<FullAlbum>> {
+                                     -> Result<Page<SavedAlbum>> {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let mut params = HashMap::new();
@@ -888,7 +886,7 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/albums");
         let result = self.get(&url, &mut params);
-        self.convert_result::<Page<FullAlbum>>(&result.unwrap_or_default())
+        self.convert_result::<Page<SavedAlbum>>(&result.unwrap_or_default())
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     ///Parameters:

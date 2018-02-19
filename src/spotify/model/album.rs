@@ -1,3 +1,5 @@
+use chrono::prelude::*;
+
 use std::collections::HashMap;
 
 use spotify::senum::{Type, AlbumType};
@@ -50,6 +52,13 @@ pub struct FullAlbums {
 
 ///[get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PageSimpliedAlbums{
-    pub albums: Page<SimplifiedAlbum>
+pub struct PageSimpliedAlbums {
+    pub albums: Page<SimplifiedAlbum>,
+}
+
+///[save album object](https://developer.spotify.com/web-api/object-model/#save-album-object)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SavedAlbum {
+    pub added_at: DateTime<Utc>,
+    pub album: FullAlbum,
 }
