@@ -6,6 +6,7 @@ license = "MIT"
 readme = "README.md"
 description="Spotify API wrapper"
 homepage="https://github.com/samrayleung/rspotify"
+repository="https://github.com/samrayleung/rspotify"
 keywords=["spotify","api"]
 [dependencies]
 base64 = "~0.6.0"

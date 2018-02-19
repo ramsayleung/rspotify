@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/samrayleung/rspotify.svg?branch=master)](https://travis-ci.org/samrayleung/rspotify)
-# Rspotify - a Rust client for The Spotify Web API [WIP]
+# Rspotify - a Rust client for The Spotify Web API 
 ## Disclaimer
 This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy)-
 A spotify api wrapper implemented in Python
@@ -17,9 +17,12 @@ Reference](https://developer.spotify.com/web-api/endpoint-reference/)
 documentation
 
 ## Installation
-Since this crate isn't pushed to [crates.io](https://crates.io/), but it is
-close to finish. Just be patient. Or if you can't wait to try *rspotify*, you
-could get it from source
+
+``` shell
+cargo install rspotify
+```
+
+Or you could get it from [github](https://github.com/samrayleung/rspotify)
 
 ## Getting Started
 ### Authorization
