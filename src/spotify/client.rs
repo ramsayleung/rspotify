@@ -32,6 +32,9 @@ use super::model::device::DevicePayload;
 use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
 use super::model::search::{SearchAlbums, SearchArtists, SearchTracks, SearchPlaylists};
 use super::util::convert_map_to_string;
+lazy_static! {
+    pub static ref CLIENT: Client = Client::new();
+}
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
@@ -91,12 +94,11 @@ impl Spotify {
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
         }
-        let client = Client::new();
 
         let mut headers = Headers::new();
         headers.set(self.auth_headers());
         headers.set(ContentType::json());
-        let mut response = client
+        let mut response = CLIENT
             .request(method, &url.into_owned())
             .headers(headers)
             .json(&payload)
