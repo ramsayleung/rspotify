@@ -1,3 +1,5 @@
+//! All kinds of page object
+///Basic page
 ///ppaging abject(https://developer.spotify.com/web-api/object-model/#paging-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Page<T> {
@@ -9,6 +11,7 @@ pub struct Page<T> {
     pub previous: Option<String>,
     pub total: u32,
 }
+/// cursor based page
 ///[cursor based paging object](https://developer.spotify.com/web-api/object-model/#cursor-based-paging-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CursorBasedPage<T> {
@@ -21,6 +24,7 @@ pub struct CursorBasedPage<T> {
     /// Spotify document says 
     pub total: Option<u32>,
 }
+///Cursor object
 ///[cursor object](https://developer.spotify.com/web-api/object-model/#cursor-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Cursor {

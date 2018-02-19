@@ -1,5 +1,6 @@
+//! All enums for rspotify
 use std::fmt;
-// album_type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
+/// Album type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AlbumType {
@@ -38,7 +39,7 @@ impl fmt::Debug for AlbumType {
     }
 }
 
-//  ‘artist’, ‘album’,‘track’ or ‘playlist’
+///  Type: ‘artist’, ‘album’,‘track’ or ‘playlist’
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
@@ -83,6 +84,7 @@ impl fmt::Debug for Type {
     }
 }
 
+/// time range: long-term, medium-term, short-term
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TimeRange {
@@ -1139,6 +1141,11 @@ impl fmt::Debug for Country {
         }
     }
 }
+
+///repeat state: track, context or off.
+/// - track will repeat the current track.
+/// - context will repeat the current context.
+/// - off will turn repeat off. 
 #[derive(Clone, Debug,Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RepeatState {
@@ -1164,7 +1171,7 @@ impl RepeatState {
     }
 }
 
-//  ‘artist’, ‘album’,‘track’ or ‘playlist’
+/// Type for search: artist, album, track, playlist 
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum SearchType {
@@ -1203,4 +1210,13 @@ impl fmt::Debug for SearchType {
             SearchType::Playlist => write!(f, "playlist"),
         }
     }
+}
+
+
+/// Device Type: computer, smartphone, speaker
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum DeviceType {
+    Computer,
+    Smartphone,
+    Speaker,
 }

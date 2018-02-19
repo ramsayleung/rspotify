@@ -1,4 +1,6 @@
+/// All objects related to device
 ///[get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
+use spotify::senum::DeviceType;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,
@@ -8,13 +10,6 @@ pub struct Device {
     #[serde(rename = "type")]
     pub _type: DeviceType,
     pub volume_percent: u32,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum DeviceType {
-    Computer,
-    Smartphone,
-    Speaker,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -1,3 +1,4 @@
+//! All kinds of user object
 use serde_json::Value;
 use chrono::NaiveDate;
 

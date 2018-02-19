@@ -1,3 +1,4 @@
+//! All kinds of playlists objects
 use serde_json::Value;
 use chrono::prelude::*;
 use std::collections::HashMap;

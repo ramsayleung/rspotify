@@ -1,3 +1,4 @@
+//! All Spotify API endpoint response object
 pub mod artist;
 pub mod image;
 pub mod album;

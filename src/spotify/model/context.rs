@@ -1,8 +1,10 @@
+//! All objects related to context
 use std::collections::HashMap;
 
 use spotify::senum::{Type,RepeatState};
 use super::device::Device;
 use super::track::FullTrack;
+/// Context object
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Context {
@@ -13,6 +15,7 @@ pub struct Context {
     pub _type: Type,
 }
 
+/// Full playing context
 ///[get information about the users current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullPlayingContext {

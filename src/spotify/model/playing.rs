@@ -1,8 +1,10 @@
+//! All kinds of play object
 use chrono::prelude::*;
 
 use super::context::Context;
 use super::track::FullTrack;
 use super::track::SimplifiedTrack;
+/// current playing track
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Playing {
@@ -12,6 +14,8 @@ pub struct Playing {
     pub is_playing: bool,
     pub item: Option<FullTrack>,
 }
+
+/// playing history
 ///[play history object](https://developer.spotify.com/web-api/object-model/#play-history-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayHistory {

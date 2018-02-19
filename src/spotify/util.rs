@@ -1,3 +1,4 @@
+//! utils function
 use rand::{self, Rng};
 use chrono::prelude::*;
 use webbrowser;
@@ -9,6 +10,8 @@ use std::hash::Hash;
 use std::collections::HashMap;
 
 use super::oauth2::{TokenInfo, SpotifyOAuth};
+
+/// convert datetime to unix timestampe
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();
     utc.timestamp() + i64::from(elapsed)
@@ -58,6 +61,8 @@ pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
     }
     map
 }
+
+/// get tokenInfo by Authorization
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     error!("debug message");
     match spotify_oauth.get_cached_token() {
@@ -84,6 +89,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     }
 }
 
+/// get tokenInfo by authorization and code
 pub fn get_token_by_code(spotify_oauth: &mut SpotifyOAuth, code: &str) -> Option<TokenInfo> {
     spotify_oauth.get_access_token(&code)
 }

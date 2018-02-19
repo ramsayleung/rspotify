@@ -1,3 +1,4 @@
+///The kind of spotify error.
 use serde_json;
 
 error_chain! {

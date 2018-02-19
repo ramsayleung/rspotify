@@ -1,3 +1,4 @@
+//! The module contains function about authorization and client-credential
 // use 3rd party library
 use chrono::prelude::*;
 use serde_json;
@@ -18,11 +19,14 @@ use std::fs::OpenOptions;
 
 // use customized library
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
+
+/// Client credentials object for spotify
 pub struct SpotifyClientCredentials {
     pub client_id: String,
     pub client_secret: String,
     pub token_info: Option<TokenInfo>,
 }
+/// Authorization for spotify
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SpotifyOAuth {
     pub client_id: String,
@@ -33,12 +37,8 @@ pub struct SpotifyOAuth {
     pub scope: String,
     pub proxies: Option<String>,
 }
-#[derive(Debug)]
-pub enum SpotifyAuthError {
-    AuthorizateError,
-    FileHandleError,
-}
 
+/// Spotify token-info
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TokenInfo {
     pub access_token: String,

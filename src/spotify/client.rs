@@ -1,3 +1,4 @@
+//! Client to Spotify API endpoint
 // 3rd-part library
 use serde_json;
 use serde_json::Value;
@@ -33,14 +34,18 @@ use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
 use super::model::search::{SearchAlbums, SearchArtists, SearchTracks, SearchPlaylists};
 use super::util::convert_map_to_string;
 lazy_static! {
+    /// HTTP Client
     pub static ref CLIENT: Client = Client::new();
 }
+/// Spotify API object
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
     pub client_credentials_manager: Option<SpotifyClientCredentials>,
 }
 impl Spotify {
+    //! If you want to check examples of all API endpoint, you could check the
+    //! [examples](https://github.com/samrayleung/rspotify/tree/master/examples) in github
     pub fn default() -> Spotify {
         Spotify {
             prefix: "https://api.spotify.com/v1/".to_owned(),
