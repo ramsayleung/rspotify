@@ -89,3 +89,12 @@ fn main() {
 }
 
 ```
+### API Documentation
+For more API information, you could check [rspotify Api documentation](https://docs.rs/crate/rspotify)
+
+### CHANGELOG
+Please see the [CHANGELOG](./CHANGELOG.md) for a release history.
+
+### Contribution
+If you find any problem or have suggestions about this crate, please submit an
+issue. Moreover, any pull request ,code review and feedback are welcome.
