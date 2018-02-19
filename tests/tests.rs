@@ -679,7 +679,7 @@ fn test_repeat() {
 }
 
 #[test]
-fn search_album() {
+fn test_search_album() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
         Some(token_info) => {
@@ -691,6 +691,601 @@ fn search_album() {
                 .build();
             let query = "album:arrival artist:abba";
             let result = spotify.search_album(query, 10, 0, None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_search_artist() {
+    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let query = "tania bowra";
+            let result = spotify.search_artist(query, 10, 0, Some(Country::UnitedStates));
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_search_playlist() {
+    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let query = "\"doom metal\"";
+            let result = spotify.search_playlist(query, 10, 0, Some(Country::UnitedStates));
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_search_track() {
+    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let query = "abba";
+            let result = spotify.search_track(query, 10, 0, Some(Country::UnitedStates));
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_seek_track() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-modify-playback-state")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let result = spotify.seek_track(25000, None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_shuffle() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-modify-playback-state")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let result = spotify.shuffle(true, None);
+            assert!(result.is_ok());
+
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_start_playback() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-modify-playback-state")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
+            let mut uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
+            let result = spotify.start_playback(Some(device_id), None, Some(uris), Some(0));
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_track() {
+    let client_credential = SpotifyClientCredentials::default().build();
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri = "spotify:track:6rqhFgbbKwnb9MLmUQDhG6";
+    let track = spotify.track(birdy_uri);
+    assert!(track.is_ok());
+}
+
+#[test]
+fn test_tracks() {
+    let client_credential = SpotifyClientCredentials::default().build();
+
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri1 = "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp";
+    let birdy_uri2 = "spotify:track:3twNvmDtFQtAd5gMKedhLD";
+    let track_uris = vec![birdy_uri1, birdy_uri2];
+    let tracks = spotify.tracks(track_uris, None);
+    assert!(tracks.is_ok());
+}
+
+#[test]
+fn test_transfer_playback() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-modify-playback-state")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let device_id = "74ASZWbe4lXaubB36ztrGX";
+            let result = spotify.transfer_playback(device_id, true);
+            assert!(result.is_ok());
+
+        }
+        None => assert!(false),
+    };
+
+}
+
+#[test]
+fn test_user_follow_artist() {
+    let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let mut artists = vec![];
+            let artist_id1 = String::from("74ASZWbe4lXaubB36ztrGX");
+            let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
+            artists.push(artist_id2);
+            artists.push(artist_id1);
+            let result = spotify.user_follow_artists(&artists);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_user_follow_users() {
+    let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let mut users = vec![];
+            let user_id1 = String::from("exampleuser01");
+            users.push(user_id1);
+            let result = spotify.user_follow_users(&users);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+
+    };
+}
+
+#[test]
+fn test_user_playlist_add_tracks() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+            let mut tracks_ids = vec![];
+            let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+            tracks_ids.push(track_id1);
+            let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
+            tracks_ids.push(track_id2);
+            let result = spotify.user_playlist_add_tracks(user_id, playlist_id, &tracks_ids, None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+
+    };
+}
+
+#[test]
+fn test_user_playlist_change_detail() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+            let mut playlist_name = "A New Playlist-update";
+            let result = spotify.user_playlist_change_detail(user_id,
+                                                             playlist_id,
+                                                             Some(playlist_name),
+                                                             Some(false),
+                                                             None,
+                                                             None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+
+}
+#[test]
+fn test_user_playlist_check_follow() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let owner_id = "jmperezperez";
+            let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
+            let mut user_ids: Vec<String> = vec![];
+            let user_id1 = String::from("possan");
+            user_ids.push(user_id1);
+            let user_id2 = String::from("elogain");
+            user_ids.push(user_id2);
+            let result = spotify.user_playlist_check_follow(owner_id, playlist_id, &user_ids);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+#[test]
+fn test_user_playlist_create() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_name = "A New Playlist";
+            let playlists = spotify.user_playlist_create(user_id, playlist_name, false, None);
+            assert!(playlists.is_ok());
+
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_user_playlist_follow_playlist() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            // Or set client_id and client_secret explictly
+            // let client_credential = SpotifyClientCredentials::default()
+            //     .client_id("this-is-my-client-id")
+            //     .client_secret("this-is-my-client-secret")
+            //     .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let owner_id = "jmperezperez";
+            let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
+            let result = spotify.user_playlist_follow_playlist(owner_id, playlist_id, true);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_user_playlist_recorder_tracks() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+            let range_start = 0;
+            let insert_before = 1;
+            let range_length = 1;
+            let result = spotify.user_playlist_recorder_tracks(user_id,
+                                                               playlist_id,
+                                                               range_start,
+                                                               range_length,
+                                                               insert_before,
+                                                               None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_user_playlist_remove_all_occurrences_of_tracks() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+            let mut tracks_ids = vec![];
+            let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+            let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
+            tracks_ids.push(track_id2);
+            tracks_ids.push(track_id1);
+            let result = spotify.user_playlist_remove_all_occurrences_of_tracks(user_id,
+                                                                                playlist_id,
+                                                                                &tracks_ids,
+                                                                                None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
+            let mut tracks = vec![];
+            let mut map1 = Map::new();
+            let mut position1 = vec![];
+            position1.push(0);
+            position1.push(3);
+            map1.insert("uri".to_string(),
+                        "spotify:track:4iV5W9uYEdYUVa79Axb7Rh".into());
+            map1.insert("position".to_string(), position1.into());
+            tracks.push(map1);
+            let mut map2 = Map::new();
+            let mut position2 = vec![];
+            position2.push(7);
+            map2.insert("uri".to_string(),
+                        "spotify:track:1301WleyT98MSxVHPZCA6M".into());
+            map2.insert("position".to_string(), position2.into());
+            tracks.push(map2);
+            let result =
+                spotify.user_playlist_remove_specific_occurrenes_of_tracks(user_id,
+                                                                           &playlist_id,
+                                                                           tracks,
+                                                                           None);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+
+}
+
+#[test]
+fn test_user_playlist_replace_tracks() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+            let mut tracks_ids = vec![];
+            let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
+            let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
+            tracks_ids.push(track_id2);
+            tracks_ids.push(track_id1);
+            spotify
+                .user_playlist_replace_tracks(user_id, playlist_id, &tracks_ids)
+                .expect("replace tracks in a playlist failed");
+            assert!(true);
+        }
+        None => assert!(false),
+    };
+
+}
+#[test]
+fn test_user_playlist() {
+    let mut spotify_oauth = SpotifyOAuth::default().build();
+    match get_token(&mut spotify_oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "spotify";
+            let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
+            let playlists = spotify.user_playlist(user_id, Some(&mut playlist_id), None);
+            assert!(playlists.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]
+fn test_user_playlists() {
+    let mut spotify_oauth = SpotifyOAuth::default()
+        .scope("playlist-read-private, playlist-read-collaborative")
+        .build();
+    match get_token(&mut spotify_oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlists = spotify.user_playlists(user_id, Some(10), None);
+            assert!(playlists.is_ok());
+        }
+        None => assert!(false),
+    };
+
+}
+
+#[test]
+fn test_user_playlist_tracks() {
+    let mut spotify_oauth = SpotifyOAuth::default().build();
+    match get_token(&mut spotify_oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "spotify";
+            let playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
+            let playlists =
+                spotify.user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None);
+            assert!(playlists.is_ok());
+
+        }
+        None => assert!(false),
+    };
+}
+#[test]
+fn test_user_playlist_unfollow() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("playlist-modify-private playlist-modify-public")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let user_id = "2257tjys2e2u2ygfke42niy2q";
+            let playlist_id = "65V6djkcVRyOStLd8nza8E";
+            let result = spotify.user_playlist_unfollow(user_id, playlist_id);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+
+}
+
+#[test]
+fn test_user() {
+    let client_credential = SpotifyClientCredentials::default().build();
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri = String::from("tuggareutangranser");
+    let user = spotify.user(&birdy_uri);
+    assert!(user.is_ok());
+}
+
+#[test]
+fn test_volume() {
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-modify-playback-state")
+        .build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let result = spotify.volume(78, None);
             assert!(result.is_ok());
         }
         None => assert!(false),
