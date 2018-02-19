@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/samrayleung/rspotify.svg?branch=master)](https://travis-ci.org/samrayleung/rspotify)
+[![Crates.io](https://img.shields.io/crates/v/rustc-serialize.svg)](https://crates.io/crates/rspotify)
+[![Docs](https://docs.rs/rspotify/badge.svg)](https://docs.rs/crate/rspotify/)
 # Rspotify - a Rust client for The Spotify Web API 
 ## Disclaimer
 This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy)-
