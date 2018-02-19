@@ -3,11 +3,9 @@ use chrono::prelude::*;
 use webbrowser;
 
 use std::io;
-use std::env;
 use std::string::ToString;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::path::PathBuf;
 use std::collections::HashMap;
 
 use super::oauth2::{TokenInfo, SpotifyOAuth};
@@ -60,57 +58,6 @@ pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
     }
     map
 }
-pub fn prompt_for_user_token_argv(client_id: &str,
-                                  client_secret: &str,
-                                  redirect_uri: &str,
-                                  cache_path: PathBuf)
-                                  -> TokenInfo {
-    let mut oauth = SpotifyOAuth::default()
-        .client_id(client_id)
-        .client_secret(client_secret)
-        .redirect_uri(redirect_uri)
-        .cache_path(cache_path)
-        .build();
-    match get_token(&mut oauth) {
-        Some(token_info) => token_info,
-        None => panic!("Could not get token info"),
-    }
-
-}
-pub fn prompt_for_user_token(client_id: impl Into<Option<String>>,
-                             scope: impl Into<Option<String>>,
-                             client_secret: impl Into<Option<String>>,
-                             redirect_uri: impl Into<Option<String>>,
-                             cache_path: impl Into<Option<String>>)
-                             -> Option<TokenInfo> {
-    let scope = scope.into().unwrap_or_else(|| "".to_owned());
-    let client_id = client_id
-        .into()
-        .unwrap_or_else(|| env::var("CLIENT_ID").unwrap_or_default().to_owned());
-    let client_secret =
-        client_secret
-            .into()
-            .unwrap_or_else(|| env::var("CLIENT_SECRET").unwrap_or_default().to_owned());
-    let redirect_uri =
-        redirect_uri
-            .into()
-            .unwrap_or_else(|| env::var("REDIRECT_URI").unwrap_or_default().to_owned());
-    let cache_path = cache_path
-        .into()
-        .unwrap_or_else(||".spotify-token-cache.json".to_owned());
-    let mut oauth = SpotifyOAuth::default()
-        .scope(&scope)
-        .client_id(&client_id)
-        .client_secret(&client_secret)
-        .redirect_uri(&redirect_uri)
-        .cache_path(PathBuf::from(&cache_path))
-        .build();
-    println!("scope {:?}", &scope);
-    match get_token(&mut oauth) {
-        Some(token_info) => Some(token_info),
-        None => None,
-    }
-}
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     error!("debug message");
     match spotify_oauth.get_cached_token() {
@@ -135,7 +82,10 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             }
         }
     }
+}
 
+pub fn get_token_by_code(spotify_oauth: &mut SpotifyOAuth, code: &str) -> Option<TokenInfo> {
+    spotify_oauth.get_access_token(&code)
 }
 
 #[cfg(test)]

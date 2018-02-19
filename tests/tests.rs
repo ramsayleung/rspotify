@@ -8,7 +8,7 @@ use serde_json::map::Map;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::senum::{AlbumType, Country, TimeRange, RepeatState};
-use rspotify::spotify::util::get_token;
+use rspotify::spotify::util::{get_token, get_token_by_code};
 
 #[test]
 fn test_album() {
@@ -148,6 +148,43 @@ fn test_audios_features() {
     let features = spotify.audios_features(&tracks_ids);
     assert!(features.is_ok())
 }
+
+#[test]
+fn test_user() {
+    let client_credential = SpotifyClientCredentials::default().build();
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri = String::from("tuggareutangranser");
+    let user = spotify.user(&birdy_uri);
+    assert!(user.is_ok());
+}
+
+#[test]
+fn test_track() {
+    let client_credential = SpotifyClientCredentials::default().build();
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri = "spotify:track:6rqhFgbbKwnb9MLmUQDhG6";
+    let track = spotify.track(birdy_uri);
+    assert!(track.is_ok());
+}
+
+#[test]
+fn test_tracks() {
+    let client_credential = SpotifyClientCredentials::default().build();
+
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri1 = "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp";
+    let birdy_uri2 = "spotify:track:3twNvmDtFQtAd5gMKedhLD";
+    let track_uris = vec![birdy_uri1, birdy_uri2];
+    let tracks = spotify.tracks(track_uris, None);
+    assert!(tracks.is_ok());
+}
+
 
 #[test]
 fn test_categories() {
@@ -780,32 +817,6 @@ fn test_start_playback() {
         None => assert!(false),
     };
 }
-
-#[test]
-fn test_track() {
-    let client_credential = SpotifyClientCredentials::default().build();
-    let spotify = Spotify::default()
-        .client_credentials_manager(client_credential)
-        .build();
-    let birdy_uri = "spotify:track:6rqhFgbbKwnb9MLmUQDhG6";
-    let track = spotify.track(birdy_uri);
-    assert!(track.is_ok());
-}
-
-#[test]
-fn test_tracks() {
-    let client_credential = SpotifyClientCredentials::default().build();
-
-    let spotify = Spotify::default()
-        .client_credentials_manager(client_credential)
-        .build();
-    let birdy_uri1 = "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp";
-    let birdy_uri2 = "spotify:track:3twNvmDtFQtAd5gMKedhLD";
-    let track_uris = vec![birdy_uri1, birdy_uri2];
-    let tracks = spotify.tracks(track_uris, None);
-    assert!(tracks.is_ok());
-}
-
 #[test]
 fn test_transfer_playback() {
     let mut oauth = SpotifyOAuth::default()
@@ -1218,17 +1229,6 @@ fn test_user_playlist_unfollow() {
         None => assert!(false),
     };
 
-}
-
-#[test]
-fn test_user() {
-    let client_credential = SpotifyClientCredentials::default().build();
-    let spotify = Spotify::default()
-        .client_credentials_manager(client_credential)
-        .build();
-    let birdy_uri = String::from("tuggareutangranser");
-    let user = spotify.user(&birdy_uri);
-    assert!(user.is_ok());
 }
 
 #[test]
