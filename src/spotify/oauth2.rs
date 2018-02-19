@@ -487,15 +487,15 @@ mod tests {
     fn test_save_token_info() {
         let spotify_oauth = SpotifyOAuth::default()
             .state(&generate_random_string(16))
-            .scope("user-read-mail")
-            .cache_path(PathBuf::from(".test_token"))
+            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
+            .cache_path(PathBuf::from(".spotify_token_cache.json"))
             .build();
         let token_info = TokenInfo::default()
             .access_token("test-access_token")
             .token_type("code")
             .expires_in(3600)
             .expires_at(1515841743)
-            .scope("user-read-email")
+            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
             .refresh_token("fghjklrftyhujkuiovbnm");
         match serde_json::to_string(&token_info) {
             Ok(token_info_string) => {
@@ -525,8 +525,8 @@ mod tests {
         let mut url = String::from("http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_");
         let spotify_oauth = SpotifyOAuth::default()
             .state(&generate_random_string(16))
-            .scope("user-read-mail")
-            .cache_path(PathBuf::from(".test_token"))
+            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
+            .cache_path(PathBuf::from(".spotify_token_cache.json"))
             .build();
         match spotify_oauth.parse_response_code(&mut url) {
             Some(code) => assert_eq!(code, "AQD0yXvFEOvw"),
