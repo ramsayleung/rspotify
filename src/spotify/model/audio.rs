@@ -1,4 +1,7 @@
+//! All objects related to artist defined by Spotify API
+
 ///[audio feature object](https://developer.spotify.com/web-api/object-model/#audio-features-object)
+/// Audio Feature object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioFeatures {
     pub acousticness: f32,
@@ -22,12 +25,14 @@ pub struct AudioFeatures {
     pub valence: f32,
 }
 
+/// Audio Feature Vector
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
 }
 
 
+/// Audio Analysis Object
 ///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioAnalysis {

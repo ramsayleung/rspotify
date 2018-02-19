@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/samrayleung/rspotify.svg?branch=master)](https://travis-ci.org/samrayleung/rspotify)
 # Rspotify - a Rust client for The Spotify Web API [WIP]
 ## Disclaimer
 This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy)-

@@ -1,3 +1,4 @@
+//! All objects related to album defined by Spotify API
 use chrono::prelude::*;
 
 use std::collections::HashMap;
@@ -7,7 +8,8 @@ use super::track::SimplifiedTrack;
 use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
-///[album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
+///[link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
+/// Simplified Album Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedAlbum {
     pub artists: Vec<SimplifiedArtist>,
@@ -22,7 +24,8 @@ pub struct SimplifiedAlbum {
     pub _type: Type,
     pub uri: String,
 }
-///[album object full](https://developer.spotify.com/web-api/object-model/#album-object-full)
+///[link to album object full](https://developer.spotify.com/web-api/object-model/#album-object-full)
+/// Full Album Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
@@ -45,18 +48,21 @@ pub struct FullAlbum {
     pub uri: String,
 }
 
+/// Full Albums
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
-///[get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
+///[link to get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
+/// Simplified Albums wrapped by Page object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
-///[save album object](https://developer.spotify.com/web-api/object-model/#save-album-object)
+///[link to save album object](https://developer.spotify.com/web-api/object-model/#save-album-object)
+/// Saved Album object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
