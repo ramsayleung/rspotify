@@ -1,16 +1,8 @@
 language: rust
-cache: cargo
-
+rust:
+  - stable
+  - beta
+  - nightly
 matrix:
-  include:
-    # The earliest stable Rust version that works
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: 1.24.0
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: beta
-    - env: TARGET=x86_64-unknown-linux-gnu
-      rust: nightly
-
-
-notifications:
-  email: false
+  allow_failures:
+    - rust: nightly
