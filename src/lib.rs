@@ -31,7 +31,7 @@
 //! If you have a use case you are intertested in, you could check the
 //! [examples](./examples), which has all kinds of detailed examples. For example,
 //! If you want to get recently played history, you could check
-//! [current_user_recently_played](./examples/current_user_recently_played). This is
+//! [current_user_recently_played](https://github.com/samrayleung/rspotify/blob/master/examples/current_user_recently_played.rs). This is
 //! the example code:
 //! ``` rust
 //! extern crate rspotify;
