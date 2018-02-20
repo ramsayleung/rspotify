@@ -251,10 +251,10 @@ impl Spotify {
     ///    Parameters:
     ///        - artist_id - the artist ID, URI or URL
     ///        - country - limit the response to one particular country.
-    pub fn artist_top_tracks(&self,
-                             artist_id: &str,
-                             country: impl Into<Option<Country>>)
-                             -> Result<FullTracks> {
+    pub fn artist_top_tracks<T: Into<Option<Country>>>(&self,
+                                                       artist_id: &str,
+                                                       country: T)
+                                                       -> Result<FullTracks> {
         let mut params: HashMap<String, String> = HashMap::new();
         let country = country
             .into()
@@ -335,13 +335,13 @@ impl Spotify {
     ///- type - the type of item to return. One of 'artist', 'album',
     ///'track' or 'playlist'
     ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    fn search(&self,
-              q: &str,
-              _type: SearchType,
-              limit: impl Into<Option<u32>>,
-              offset: impl Into<Option<u32>>,
-              market: Option<Country>)
-              -> Result<String> {
+    fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(&self,
+                                                          q: &str,
+                                                          _type: SearchType,
+                                                          limit: L,
+                                                          offset: O,
+                                                          market: Option<Country>)
+                                                          -> Result<String> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(10);
         let offset = offset.into().unwrap_or(0);
@@ -366,12 +366,12 @@ impl Spotify {
     ///- offset - the index of the first item to return
     ///'track' or 'playlist'
     ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub fn search_album(&self,
-                        q: &str,
-                        limit: impl Into<Option<u32>>,
-                        offset: impl Into<Option<u32>>,
-                        market: Option<Country>)
-                        -> Result<SearchAlbums> {
+    pub fn search_album<L: Into<Option<u32>>, O: Into<Option<u32>>>(&self,
+                                                                    q: &str,
+                                                                    limit: L,
+                                                                    offset: O,
+                                                                    market: Option<Country>)
+                                                                    -> Result<SearchAlbums> {
         let result = self.search(q, SearchType::Album, limit, offset, market);
         self.convert_result::<SearchAlbums>(&result.unwrap_or_default())
     }
@@ -386,12 +386,12 @@ impl Spotify {
     ///- offset - the index of the first item to return
     ///'track' or 'playlist'
     ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub fn search_artist(&self,
-                         q: &str,
-                         limit: impl Into<Option<u32>>,
-                         offset: impl Into<Option<u32>>,
-                         market: Option<Country>)
-                         -> Result<SearchArtists> {
+    pub fn search_artist<L: Into<Option<u32>>, O: Into<Option<u32>>>(&self,
+                                                                     q: &str,
+                                                                     limit: L,
+                                                                     offset: O,
+                                                                     market: Option<Country>)
+                                                                     -> Result<SearchArtists> {
         let result = self.search(q, SearchType::Artist, limit, offset, market);
         self.convert_result::<SearchArtists>(&result.unwrap_or_default())
     }
@@ -406,12 +406,12 @@ impl Spotify {
     ///- offset - the index of the first item to return
     ///'track' or 'playlist'
     ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub fn search_track(&self,
-                        q: &str,
-                        limit: impl Into<Option<u32>>,
-                        offset: impl Into<Option<u32>>,
-                        market: Option<Country>)
-                        -> Result<SearchTracks> {
+    pub fn search_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(&self,
+                                                                    q: &str,
+                                                                    limit: L,
+                                                                    offset: O,
+                                                                    market: Option<Country>)
+                                                                    -> Result<SearchTracks> {
         let result = self.search(q, SearchType::Track, limit, offset, market);
         self.convert_result::<SearchTracks>(&result.unwrap_or_default())
     }
@@ -425,12 +425,13 @@ impl Spotify {
     ///- offset - the index of the first item to return
     ///'track' or 'playlist'
     ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub fn search_playlist(&self,
-                           q: &str,
-                           limit: impl Into<Option<u32>>,
-                           offset: impl Into<Option<u32>>,
-                           market: Option<Country>)
-                           -> Result<SearchPlaylists> {
+    pub fn search_playlist<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         q: &str,
+         limit: L,
+         offset: O,
+         market: Option<Country>)
+         -> Result<SearchPlaylists> {
         let result = self.search(q, SearchType::Playlist, limit, offset, market);
         self.convert_result::<SearchPlaylists>(&result.unwrap_or_default())
     }
@@ -441,11 +442,12 @@ impl Spotify {
     ///- album_id - the album ID, URI or URL
     ///- limit  - the number of items to return
     ///- offset - the index of the first item to return
-    pub fn album_track(&self,
-                       album_id: &str,
-                       limit: impl Into<Option<u32>>,
-                       offset: impl Into<Option<u32>>)
-                       -> Result<Page<SimplifiedTrack>> {
+    pub fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         album_id: &str,
+         limit: L,
+         offset: O)
+         -> Result<Page<SimplifiedTrack>> {
         let mut params = HashMap::new();
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}/tracks", trid);
@@ -472,10 +474,11 @@ impl Spotify {
     ///Parameters:
     ///- limit  - the number of items to return
     ///- offset - the index of the first item to return
-    pub fn current_user_playlists(&self,
-                                  limit: impl Into<Option<u32>>,
-                                  offset: impl Into<Option<u32>>)
-                                  -> Result<Page<SimplifiedPlaylist>> {
+    pub fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         limit: L,
+         offset: O)
+         -> Result<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -491,11 +494,12 @@ impl Spotify {
     ///- user_id - the id of the usr
     ///- limit  - the number of items to return
     ///- offset - the index of the first item to return
-    pub fn user_playlists(&self,
-                          user_id: &str,
-                          limit: impl Into<Option<u32>>,
-                          offset: impl Into<Option<u32>>)
-                          -> Result<Page<SimplifiedPlaylist>> {
+    pub fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         user_id: &str,
+         limit: L,
+         offset: O)
+         -> Result<Page<SimplifiedPlaylist>> {
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -543,14 +547,15 @@ impl Spotify {
     ///- limit - the maximum number of tracks to return
     ///- offset - the index of the first track to return
     ///- market - an ISO 3166-1 alpha-2 country code.
-    pub fn user_playlist_tracks(&self,
-                                user_id: &str,
-                                playlist_id: &str,
-                                fields: Option<&str>,
-                                limit: impl Into<Option<u32>>,
-                                offset: impl Into<Option<u32>>,
-                                market: Option<&str>)
-                                -> Result<Page<PlaylistTrack>> {
+    pub fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         user_id: &str,
+         playlist_id: &str,
+         fields: Option<&str>,
+         limit: L,
+         offset: O,
+         market: Option<&str>)
+         -> Result<Page<PlaylistTrack>> {
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -574,12 +579,13 @@ impl Spotify {
     ///- name - the name of the playlist
     ///- public - is the created playlist public
     ///- description - the description of the playlist
-    pub fn user_playlist_create(&self,
-                                user_id: &str,
-                                name: &str,
-                                public: impl Into<Option<bool>>,
-                                description: impl Into<Option<String>>)
-                                -> Result<FullPlaylist> {
+    pub fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>
+        (&self,
+         user_id: &str,
+         name: &str,
+         public: P,
+         description: D)
+         -> Result<FullPlaylist> {
         let public = public.into().unwrap_or(true);
         let description = description.into().unwrap_or_else(|| "".to_owned());
         let params = json!({
@@ -702,14 +708,14 @@ impl Spotify {
     ///- range_length - optional the number of tracks to be reordered (default: 1)
     ///- insert_before - the position where the tracks should be inserted
     ///- snapshot_id - optional playlist's snapshot ID
-    pub fn user_playlist_recorder_tracks(&self,
-                                         user_id: &str,
-                                         playlist_id: &str,
-                                         range_start: i32,
-                                         range_length: impl Into<Option<i32>>,
-                                         insert_before: i32,
-                                         snapshot_id: Option<String>)
-                                         -> Result<CUDResult> {
+    pub fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(&self,
+                                                               user_id: &str,
+                                                               playlist_id: &str,
+                                                               range_start: i32,
+                                                               range_length: R,
+                                                               insert_before: i32,
+                                                               snapshot_id: Option<String>)
+                                                               -> Result<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let range_length = range_length.into().unwrap_or(1);
         let mut params = Map::new();
@@ -802,11 +808,11 @@ impl Spotify {
     ///Parameters:
     ///- playlist_owner_id - the user id of the playlist owner
     ///- playlist_id - the id of the playlist
-    pub fn user_playlist_follow_playlist(&self,
-                                         playlist_owner_id: &str,
-                                         playlist_id: &str,
-                                         public: impl Into<Option<bool>>)
-                                         -> Result<()> {
+    pub fn user_playlist_follow_playlist<P: Into<Option<bool>>>(&self,
+                                                                playlist_owner_id: &str,
+                                                                playlist_id: &str,
+                                                                public: P)
+                                                                -> Result<()> {
         let mut map = Map::new();
         let public = public.into().unwrap_or(true);
         map.insert("public".to_owned(), public.into());
@@ -880,10 +886,11 @@ impl Spotify {
     ///- limit - the number of albums to return
     ///- offset - the index of the first album to return
     ///- market - Provide this parameter if you want to apply Track Relinking.
-    pub fn current_user_saved_albums(&self,
-                                     limit: impl Into<Option<u32>>,
-                                     offset: impl Into<Option<u32>>)
-                                     -> Result<Page<SavedAlbum>> {
+    pub fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         limit: L,
+         offset: O)
+         -> Result<Page<SavedAlbum>> {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let mut params = HashMap::new();
@@ -898,10 +905,11 @@ impl Spotify {
     ///- limit - the number of tracks to return
     ///- offset - the index of the first track to return
     ///- market - Provide this parameter if you want to apply Track Relinking.
-    pub fn current_user_saved_tracks(&self,
-                                     limit: impl Into<Option<u32>>,
-                                     offset: impl Into<Option<u32>>)
-                                     -> Result<Page<SavedTrack>> {
+    pub fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         limit: L,
+         offset: O)
+         -> Result<Page<SavedTrack>> {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let mut params = HashMap::new();
@@ -917,10 +925,10 @@ impl Spotify {
     ///Parameters:
     ///- limit - the number of tracks to return
     ///- after - ghe last artist ID retrieved from the previous request
-    pub fn current_user_followed_artists(&self,
-                                         limit: impl Into<Option<u32>>,
-                                         after: Option<String>)
-                                         -> Result<CursorPageFullArtists> {
+    pub fn current_user_followed_artists<L: Into<Option<u32>>>(&self,
+                                                               limit: L,
+                                                               after: Option<String>)
+                                                               -> Result<CursorPageFullArtists> {
         let limit = limit.into().unwrap_or(20);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
@@ -990,11 +998,14 @@ impl Spotify {
     ///- offset - the index of the first entity to return
     ///- time_range - Over what time frame are the affinities computed
 
-    pub fn current_user_top_artists(&self,
-                                    limit: impl Into<Option<u32>>,
-                                    offset: impl Into<Option<u32>>,
-                                    time_range: impl Into<Option<TimeRange>>)
-                                    -> Result<Page<FullArtist>> {
+    pub fn current_user_top_artists<L: Into<Option<u32>>,
+                                    O: Into<Option<u32>>,
+                                    T: Into<Option<TimeRange>>>
+        (&self,
+         limit: L,
+         offset: O,
+         time_range: T)
+         -> Result<Page<FullArtist>> {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
@@ -1013,11 +1024,14 @@ impl Spotify {
     ///- limit - the number of entities to return
     ///- offset - the index of the first entity to return
     ///- time_range - Over what time frame are the affinities computed
-    pub fn current_user_top_tracks(&self,
-                                   limit: impl Into<Option<u32>>,
-                                   offset: impl Into<Option<u32>>,
-                                   time_range: impl Into<Option<TimeRange>>)
-                                   -> Result<Page<FullTrack>> {
+    pub fn current_user_top_tracks<L: Into<Option<u32>>,
+                                   O: Into<Option<u32>>,
+                                   T: Into<Option<TimeRange>>>
+        (&self,
+         limit: L,
+         offset: O,
+         time_range: T)
+         -> Result<Page<FullTrack>> {
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
         let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
@@ -1034,9 +1048,10 @@ impl Spotify {
     ///Get the current user's recently played tracks
     ///Parameters:
     ///- limit - the number of entities to return
-    pub fn current_user_recently_played(self,
-                                        limit: impl Into<Option<u32>>)
-                                        -> Result<CursorBasedPage<PlayHistory>> {
+    pub fn current_user_recently_played<L: Into<Option<u32>>>
+        (self,
+         limit: L)
+         -> Result<CursorBasedPage<PlayHistory>> {
         let limit = limit.into().unwrap_or(50);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
@@ -1104,13 +1119,14 @@ impl Spotify {
     ///- offset - The index of the first item to return. Default: 0
     ///(the first object). Use with limit to get the next set of
     ///items.
-    pub fn featured_playlists(&self,
-                              locale: Option<String>,
-                              country: Option<Country>,
-                              timestamp: Option<DateTime<Utc>>,
-                              limit: impl Into<Option<u32>>,
-                              offset: impl Into<Option<u32>>)
-                              -> Result<FeaturedPlaylists> {
+    pub fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         locale: Option<String>,
+         country: Option<Country>,
+         timestamp: Option<DateTime<Utc>>,
+         limit: L,
+         offset: O)
+         -> Result<FeaturedPlaylists> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
@@ -1139,11 +1155,12 @@ impl Spotify {
     ///- offset - The index of the first item to return. Default: 0
     ///(the first object). Use with limit to get the next set of
     ///items.
-    pub fn new_releases(&self,
-                        country: Option<Country>,
-                        limit: impl Into<Option<u32>>,
-                        offset: impl Into<Option<u32>>)
-                        -> Result<PageSimpliedAlbums> {
+    pub fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>
+        (&self,
+         country: Option<Country>,
+         limit: L,
+         offset: O)
+         -> Result<PageSimpliedAlbums> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
@@ -1169,12 +1186,12 @@ impl Spotify {
     ///- offset - The index of the first item to return. Default: 0
     ///(the first object). Use with limit to get the next set of
     ///items.
-    pub fn categories(&self,
-                      locale: Option<String>,
-                      country: Option<Country>,
-                      limit: impl Into<Option<u32>>,
-                      offset: impl Into<Option<u32>>)
-                      -> Result<PageCategory> {
+    pub fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(&self,
+                                                                  locale: Option<String>,
+                                                                  country: Option<Country>,
+                                                                  limit: L,
+                                                                  offset: O)
+                                                                  -> Result<PageCategory> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
         let offset = offset.into().unwrap_or(0);
@@ -1204,14 +1221,14 @@ impl Spotify {
     /// - min/max/target_<attribute> - For the tuneable track attributes listed
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
-    pub fn recommendations(&self,
-                           seed_artists: Option<Vec<String>>,
-                           seed_genres: Option<Vec<String>>,
-                           seed_tracks: Option<Vec<String>>,
-                           limit: impl Into<Option<u32>>,
-                           country: Option<Country>,
-                           payload: &Map<String, Value>)
-                           -> Result<Recommendations> {
+    pub fn recommendations<L: Into<Option<u32>>>(&self,
+                                                 seed_artists: Option<Vec<String>>,
+                                                 seed_genres: Option<Vec<String>>,
+                                                 seed_tracks: Option<Vec<String>>,
+                                                 limit: L,
+                                                 country: Option<Country>,
+                                                 payload: &Map<String, Value>)
+                                                 -> Result<Recommendations> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(20);
         params.insert("limit".to_owned(), limit.to_string());
@@ -1381,10 +1398,10 @@ impl Spotify {
     ///- device_id - transfer playback to this device
     ///- force_play - true: after transfer, play. false:
     ///keep current state.
-    pub fn transfer_playback(&self,
-                             device_id: &str,
-                             force_play: impl Into<Option<bool>>)
-                             -> Result<()> {
+    pub fn transfer_playback<T: Into<Option<bool>>>(&self,
+                                                    device_id: &str,
+                                                    force_play: T)
+                                                    -> Result<()> {
         let device_ids = vec![device_id.to_owned()];
         let force_play = force_play.into().unwrap_or(true);
         let mut payload = Map::new();

@@ -3,6 +3,11 @@ cache: cargo
 
 matrix:
   include:
+    # The earliest stable Rust version that works
+    - env: TARGET=x86_64-unknown-linux-gnu
+      rust: 1.24.0
+    - env: TARGET=x86_64-unknown-linux-gnu
+      rust: beta
     - env: TARGET=x86_64-unknown-linux-gnu
       rust: nightly
 
