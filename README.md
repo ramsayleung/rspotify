@@ -100,3 +100,6 @@ Please see the [CHANGELOG](./CHANGELOG.md) for a release history.
 ### Contribution
 If you find any problem or have suggestions about this crate, please submit an
 issue. Moreover, any pull request ,code review and feedback are welcome.
+
+### License
+[MIT](./LICENSE)
