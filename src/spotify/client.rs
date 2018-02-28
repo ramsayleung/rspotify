@@ -168,7 +168,7 @@ impl Spotify {
     ///Parameters:
     ///- track_ids - a list of spotify URIs, URLs or IDs
     ///- market - an ISO 3166-1 alpha-2 country code.
-    pub fn tracks(&self, track_ids: Vec<&str>, market: Option<&str>) -> Result<FullTracks> {
+    pub fn tracks(&self, track_ids: Vec<&str>, market: Option<Country>) -> Result<FullTracks> {
         let mut ids: Vec<String> = vec![];
         for track_id in track_ids {
             ids.push(self.get_id(Type::Track, track_id));
@@ -177,7 +177,7 @@ impl Spotify {
         // url.push_str(&ids.join(","));
         let mut params: HashMap<String, String> = HashMap::new();
         if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.to_owned());
+            params.insert("market".to_owned(), _market.as_str().to_owned());
         }
         println!("{:?}", &url);
         let result = self.get(&url, &mut params);
@@ -554,13 +554,13 @@ impl Spotify {
          fields: Option<&str>,
          limit: L,
          offset: O,
-         market: Option<&str>)
+         market: Option<Country>)
          -> Result<Page<PlaylistTrack>> {
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.to_owned());
+            params.insert("market".to_owned(), _market.as_str().to_owned());
         }
         if let Some(_fields) = fields {
             params.insert("fields".to_owned(), _fields.to_string());
