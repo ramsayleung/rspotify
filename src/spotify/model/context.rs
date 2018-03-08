@@ -23,7 +23,7 @@ pub struct FullPlayingContext {
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
     pub context: Option<Context>,
-    pub timestamp: u32,
+    pub timestamp: u64,
     pub progress_ms: Option<u32>,
     pub is_playing: bool,
     pub item: Option<FullTrack>,
@@ -35,7 +35,7 @@ pub struct FullPlayingContext {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlayingContext {
     pub context: Option<Context>,
-    pub timestamp: u32,
+    pub timestamp: u64,
     pub progress_ms: Option<u32>,
     pub is_playing: bool,
     pub item: Option<FullTrack>,

@@ -9,7 +9,7 @@ use super::track::SimplifiedTrack;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Playing {
     pub context: Option<Context>,
-    pub timestamp: u32,
+    pub timestamp: u64,
     pub progress_ms: Option<u32>,
     pub is_playing: bool,
     pub item: Option<FullTrack>,
