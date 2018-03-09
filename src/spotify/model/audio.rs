@@ -77,7 +77,7 @@ pub struct AudioAnalysisMeta {
     pub platform: String,
     pub detailed_status: String,
     pub status_code: i32,
-    pub timestamp: u32,
+    pub timestamp: u64,
     pub analysis_time: f32,
     pub input_process: String,
 }
