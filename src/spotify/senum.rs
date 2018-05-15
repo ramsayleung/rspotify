@@ -7,7 +7,7 @@ pub enum AlbumType {
     Album,
     Single,
     AppearsOn,
-    Compilcation,
+    Compilation,
 }
 impl AlbumType {
     pub fn from_str(s: &str) -> Option<AlbumType> {
@@ -15,7 +15,7 @@ impl AlbumType {
             "album" => Some(AlbumType::Album),
             "single" => Some(AlbumType::Single),
             "appears_on" => Some(AlbumType::AppearsOn),
-            "compilation" => Some(AlbumType::Compilcation),
+            "compilation" => Some(AlbumType::Compilation),
             _ => None,
         }
     }
@@ -24,7 +24,7 @@ impl AlbumType {
             AlbumType::Album => "album",
             AlbumType::Single => "single",
             AlbumType::AppearsOn => "appears_on",
-            AlbumType::Compilcation => "compilation",
+            AlbumType::Compilation => "compilation",
         }
     }
 }
@@ -34,7 +34,7 @@ impl fmt::Debug for AlbumType {
             AlbumType::Album => write!(f, "album"),
             AlbumType::Single => write!(f, "single"),
             AlbumType::AppearsOn => write!(f, "appears_on"),
-            AlbumType::Compilcation => write!(f, "compilation"),
+            AlbumType::Compilation => write!(f, "compilation"),
         }
     }
 }
