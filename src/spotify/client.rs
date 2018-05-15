@@ -94,7 +94,7 @@ impl Spotify {
         }
     }
 
-    fn internal_call(&self, method: Method, url: &str, payload: &Value) -> Result<String> {
+    fn internal_call(&self, method: Method, url: &str, payload: Option<&Value>) -> Result<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
@@ -103,12 +103,19 @@ impl Spotify {
         let mut headers = Headers::new();
         headers.set(self.auth_headers());
         headers.set(ContentType::json());
-        let mut response = CLIENT
-            .request(method, &url.into_owned())
-            .headers(headers)
-            .json(&payload)
-            .send()
-            .expect("send request failed");
+
+        let mut response = {
+            let mut builder = CLIENT.request(method, &url.into_owned());
+            builder.headers(headers);
+
+            // only add body if necessary
+            // spotify rejects GET requests that have a body with a 400 response
+            if let Some(json) = payload {
+                builder.json(json);
+            }
+
+            builder.send().unwrap()
+        };
 
         let mut buf = String::new();
         response
@@ -132,24 +139,24 @@ impl Spotify {
             let mut url_with_params = url.to_owned();
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, &json!({}))
+            self.internal_call(Get, &url_with_params, None)
         } else {
-            self.internal_call(Get, url, &json!({}))
+            self.internal_call(Get, url, None)
         }
     }
 
     ///send post request
     fn post(&self, url: &str, payload: &Value) -> Result<String> {
-        self.internal_call(Post, url, payload)
+        self.internal_call(Post, url, Some(payload))
     }
     ///send put request
     fn put(&self, url: &str, payload: &Value) -> Result<String> {
-        self.internal_call(Put, url, payload)
+        self.internal_call(Put, url, Some(payload))
     }
 
     /// send delete request
     fn delete(&self, url: &str, payload: &Value) -> Result<String> {
-        self.internal_call(Delete, url, payload)
+        self.internal_call(Delete, url, Some(payload))
     }
 
     ///[get-track](https://developer.spotify.com/web-api/get-track/)
