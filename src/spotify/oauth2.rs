@@ -336,10 +336,9 @@ impl SpotifyOAuth {
     }
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
-        let tokens: Vec<&str> = url.split("?code=").collect();
-        let strings: Vec<&str> = tokens[1].split('&').collect();
-        let code = strings[0];
-        Some(code.to_owned())
+        url.split("?code=").nth(1)
+            .and_then(|strs| strs.split('&').next())
+            .map(|s| s.to_owned())
     }
     /// Gets the URL to use to authorize this app
     pub fn get_authorize_url(&self, state: Option<&str>, show_dialog: Option<bool>) -> String {
