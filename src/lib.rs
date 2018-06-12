@@ -90,7 +90,7 @@ extern crate chrono;
 extern crate serde_derive;
 extern crate webbrowser;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 #[macro_use]
 extern crate itertools;
 #[macro_use]
@@ -105,5 +105,3 @@ extern crate hyper;
 
 /// Spotify API Module 
 pub mod spotify;
-mod errors;
-pub use errors::{Result, Error, ErrorKind};
