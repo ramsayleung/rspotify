@@ -21,6 +21,7 @@ use std::fs::OpenOptions;
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 
 /// Client credentials object for spotify
+#[derive(Debug, Clone)]
 pub struct SpotifyClientCredentials {
     pub client_id: String,
     pub client_secret: String,

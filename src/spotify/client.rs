@@ -38,6 +38,7 @@ lazy_static! {
     pub static ref CLIENT: Client = Client::new();
 }
 /// Spotify API object
+#[derive(Debug, Clone)]
 pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
