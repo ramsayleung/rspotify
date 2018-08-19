@@ -350,9 +350,13 @@ impl SpotifyOAuth {
         payload.insert("scope", &self.scope);
         if let Some(state) = state {
             payload.insert("state", state);
+        } else {
+            payload.insert("state", &self.state);
         }
-        if show_dialog.is_some() {
-            payload.insert("show_diaload", "true");
+        if let Some(show_dialog) = show_dialog {
+            if show_dialog {
+                payload.insert("show_dialog", "true");
+            }
         }
 
         let query_str = convert_map_to_string(&payload);
