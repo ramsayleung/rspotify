@@ -1442,7 +1442,7 @@ impl Spotify {
                           device_id: Option<String>,
                           context_uri: Option<String>,
                           uris: Option<Vec<String>>,
-                          offset: Option<u32>)
+                          offset: Option<super::model::offset::Offset>)
                           -> Result<(), failure::Error> {
         if context_uri.is_some() && uris.is_some() {
             eprintln!("specify either contexxt uri or uris, not both");
@@ -1455,7 +1455,15 @@ impl Spotify {
             params.insert("uris".to_owned(), _uris.into());
         }
         if let Some(_offset) = offset {
-            params.insert("offset".to_owned(), _offset.into());
+            if let Some(_position) = _offset.position {
+                let mut offset_map = Map::new();
+                offset_map.insert("position".to_owned(), _position.into());
+                params.insert("offset".to_owned(), offset_map.into());
+            } else if let Some(_uri) = _offset.uri {
+                let mut offset_map = Map::new();
+                offset_map.insert("uri".to_owned(), _uri.into());
+                params.insert("offset".to_owned(), offset_map.into());
+            }
         }
         let url = self.append_device_id("me/player/play", device_id);
         match self.put(&url, &Value::Object(params)) {

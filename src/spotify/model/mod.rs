@@ -14,3 +14,4 @@ pub mod recommend;
 pub mod audio;
 pub mod device;
 pub mod search;
+pub mod offset;

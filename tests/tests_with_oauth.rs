@@ -9,6 +9,7 @@ use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::senum::{Country, TimeRange, RepeatState};
 use rspotify::spotify::util::get_token;
+use rspotify::spotify::model::offset::for_position;
 
 #[test]#[ignore]
 fn test_categories() {
@@ -635,7 +636,7 @@ fn test_start_playback() {
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
             let mut uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
-            let result = spotify.start_playback(Some(device_id), None, Some(uris), Some(0));
+            let result = spotify.start_playback(Some(device_id), None, Some(uris), for_position(0));
             assert!(result.is_ok());
         }
         None => assert!(false),
