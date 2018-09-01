@@ -1515,8 +1515,8 @@ impl Spotify {
     ///            Parameters:
     /// - position_ms - position in milliseconds to seek to
     /// - device_id - device target for playback
-    pub fn seek_track(&self, positiion_ms: u32, device_id: Option<String>) -> Result<(), failure::Error> {
-        let url = self.append_device_id(&format!("me/player/seek?position_ms={}",positiion_ms),
+    pub fn seek_track(&self, position_ms: u32, device_id: Option<String>) -> Result<(), failure::Error> {
+        let url = self.append_device_id(&format!("me/player/seek?position_ms={}",position_ms),
                                         device_id);
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
