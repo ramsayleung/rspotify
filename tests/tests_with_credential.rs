@@ -178,3 +178,26 @@ fn test_tracks() {
     let tracks = spotify.tracks(track_uris, None);
     assert!(tracks.is_ok());
 }
+#[test]
+fn test_existing_playlist() {
+    let client_credential = SpotifyClientCredentials::default().build();
+
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+
+    let playlist = spotify.playlist("37i9dQZF1DZ06evO45P0Eo", None);
+    assert!(playlist.is_ok());
+}
+
+#[test]
+fn test_fake_playlist() {
+    let client_credential = SpotifyClientCredentials::default().build();
+
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+
+    let playlist = spotify.playlist("fake_id", None);
+    assert!(!playlist.is_ok());
+}

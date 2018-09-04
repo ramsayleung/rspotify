@@ -477,6 +477,23 @@ impl Spotify {
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
     }
 
+    //TODO: fields
+    ///[get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
+    ///Get full details about Spotify playlist
+    ///Parameters:
+    ///- playlist_id - the id of the playlist
+    ///- market - an ISO 3166-1 alpha-2 country code.
+    pub fn playlist(&self, playlist_id: &str, market: Option<Country>) -> Result<FullPlaylist, failure::Error> {
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("market".to_owned(), _market.as_str().to_owned());
+        }
+
+        let url = format!("playlists/{}", playlist_id);
+        let result = self.get(&url, &mut params);
+        self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+    }
+
     ///[get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
     ///Get current user playlists without required getting his profile
     ///Parameters:
