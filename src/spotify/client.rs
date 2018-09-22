@@ -4,9 +4,9 @@ use serde_json;
 use serde_json::Value;
 use serde_json::map::Map;
 use serde::de::Deserialize;
-use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
-use reqwest::Method::{self, Delete, Get, Post, Put};
+use reqwest::Method;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap};
 use chrono::prelude::*;
 use failure;
 
@@ -80,19 +80,19 @@ impl Spotify {
         self
     }
 
-    fn auth_headers(&self) -> Authorization<Bearer> {
-        match self.access_token {
-            Some(ref token) => Authorization(Bearer { token: token.to_owned() }),
+    fn auth_headers(&self) -> String {
+        let token = match self.access_token {
+            Some(ref token) => token.to_owned(),
             None => {
                 match self.client_credentials_manager {
                     Some(ref client_credentials_manager) => {
-                        let token = client_credentials_manager.get_access_token();
-                        Authorization(Bearer { token: token })
+                        client_credentials_manager.get_access_token()
                     }
                     None => panic!("client credentials manager is none"),
                 }
             }
-        }
+        };
+        "Bearer ".to_owned() + &token
     }
 
     fn internal_call(&self, method: Method, url: &str, payload: Option<&Value>) -> Result<String, failure::Error> {
@@ -101,19 +101,22 @@ impl Spotify {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
         }
 
-        let mut headers = Headers::new();
-        headers.set(self.auth_headers());
-        headers.set(ContentType::json());
+        let mut headers = HeaderMap::new();
+        headers.insert(AUTHORIZATION, self.auth_headers().parse().unwrap());
+        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let mut response = {
-            let mut builder = CLIENT.request(method, &url.into_owned());
-            builder.headers(headers);
+            let mut builder = CLIENT
+                .request(method, &url.into_owned())
+                .headers(headers);
 
             // only add body if necessary
             // spotify rejects GET requests that have a body with a 400 response
-            if let Some(json) = payload {
-                builder.json(json);
-            }
+            let builder = if let Some(json) = payload {
+                builder.json(json)
+            } else {
+                builder
+            };
 
             builder.send().unwrap()
         };
@@ -140,24 +143,24 @@ impl Spotify {
             let mut url_with_params = url.to_owned();
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, None)
+            self.internal_call(Method::GET, &url_with_params, None)
         } else {
-            self.internal_call(Get, url, None)
+            self.internal_call(Method::GET, url, None)
         }
     }
 
     ///send post request
     fn post(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Post, url, Some(payload))
+        self.internal_call(Method::POST, url, Some(payload))
     }
     ///send put request
     fn put(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Put, url, Some(payload))
+        self.internal_call(Method::PUT, url, Some(payload))
     }
 
     /// send delete request
     fn delete(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Delete, url, Some(payload))
+        self.internal_call(Method::DELETE, url, Some(payload))
     }
 
     ///[get-track](https://developer.spotify.com/web-api/get-track/)
@@ -475,6 +478,23 @@ impl Spotify {
         let url = format!("users/{}", user_id);
         let result = self.get(&url, &mut HashMap::new());
         self.convert_result::<PublicUser>(&result.unwrap_or_default())
+    }
+
+    //TODO: fields
+    ///[get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
+    ///Get full details about Spotify playlist
+    ///Parameters:
+    ///- playlist_id - the id of the playlist
+    ///- market - an ISO 3166-1 alpha-2 country code.
+    pub fn playlist(&self, playlist_id: &str, market: Option<Country>) -> Result<FullPlaylist, failure::Error> {
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("market".to_owned(), _market.as_str().to_owned());
+        }
+
+        let url = format!("playlists/{}", playlist_id);
+        let result = self.get(&url, &mut params);
+        self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
     }
 
     ///[get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
@@ -1442,7 +1462,7 @@ impl Spotify {
                           device_id: Option<String>,
                           context_uri: Option<String>,
                           uris: Option<Vec<String>>,
-                          offset: Option<u32>)
+                          offset: Option<super::model::offset::Offset>)
                           -> Result<(), failure::Error> {
         if context_uri.is_some() && uris.is_some() {
             eprintln!("specify either contexxt uri or uris, not both");
@@ -1455,7 +1475,15 @@ impl Spotify {
             params.insert("uris".to_owned(), _uris.into());
         }
         if let Some(_offset) = offset {
-            params.insert("offset".to_owned(), _offset.into());
+            if let Some(_position) = _offset.position {
+                let mut offset_map = Map::new();
+                offset_map.insert("position".to_owned(), _position.into());
+                params.insert("offset".to_owned(), offset_map.into());
+            } else if let Some(_uri) = _offset.uri {
+                let mut offset_map = Map::new();
+                offset_map.insert("uri".to_owned(), _uri.into());
+                params.insert("offset".to_owned(), offset_map.into());
+            }
         }
         let url = self.append_device_id("me/player/play", device_id);
         match self.put(&url, &Value::Object(params)) {
@@ -1507,8 +1535,8 @@ impl Spotify {
     ///            Parameters:
     /// - position_ms - position in milliseconds to seek to
     /// - device_id - device target for playback
-    pub fn seek_track(&self, positiion_ms: u32, device_id: Option<String>) -> Result<(), failure::Error> {
-        let url = self.append_device_id(&format!("me/player/seek?position_ms={}",positiion_ms),
+    pub fn seek_track(&self, position_ms: u32, device_id: Option<String>) -> Result<(), failure::Error> {
+        let url = self.append_device_id(&format!("me/player/seek?position_ms={}",position_ms),
                                         device_id);
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),

@@ -6,3 +6,4 @@
 .tern-port
 cmake-build-debug
 */.test_token
+Cargo.lock

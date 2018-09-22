@@ -101,7 +101,6 @@ extern crate url;
 extern crate percent_encoding;
 extern crate rand;
 extern crate base64;
-extern crate hyper;
 
 /// Spotify API Module 
 pub mod spotify;
