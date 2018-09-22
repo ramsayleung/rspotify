@@ -4,9 +4,9 @@ use serde_json;
 use serde_json::Value;
 use serde_json::map::Map;
 use serde::de::Deserialize;
-use reqwest::header::{Authorization, Bearer, ContentType, Headers};
 use reqwest::Client;
-use reqwest::Method::{self, Delete, Get, Post, Put};
+use reqwest::Method;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap};
 use chrono::prelude::*;
 use failure;
 
@@ -80,19 +80,19 @@ impl Spotify {
         self
     }
 
-    fn auth_headers(&self) -> Authorization<Bearer> {
-        match self.access_token {
-            Some(ref token) => Authorization(Bearer { token: token.to_owned() }),
+    fn auth_headers(&self) -> String {
+        let token = match self.access_token {
+            Some(ref token) => token.to_owned(),
             None => {
                 match self.client_credentials_manager {
                     Some(ref client_credentials_manager) => {
-                        let token = client_credentials_manager.get_access_token();
-                        Authorization(Bearer { token: token })
+                        client_credentials_manager.get_access_token()
                     }
                     None => panic!("client credentials manager is none"),
                 }
             }
-        }
+        };
+        "Bearer ".to_owned() + &token
     }
 
     fn internal_call(&self, method: Method, url: &str, payload: Option<&Value>) -> Result<String, failure::Error> {
@@ -101,19 +101,22 @@ impl Spotify {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
         }
 
-        let mut headers = Headers::new();
-        headers.set(self.auth_headers());
-        headers.set(ContentType::json());
+        let mut headers = HeaderMap::new();
+        headers.insert(AUTHORIZATION, self.auth_headers().parse().unwrap());
+        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let mut response = {
-            let mut builder = CLIENT.request(method, &url.into_owned());
-            builder.headers(headers);
+            let mut builder = CLIENT
+                .request(method, &url.into_owned())
+                .headers(headers);
 
             // only add body if necessary
             // spotify rejects GET requests that have a body with a 400 response
-            if let Some(json) = payload {
-                builder.json(json);
-            }
+            let builder = if let Some(json) = payload {
+                builder.json(json)
+            } else {
+                builder
+            };
 
             builder.send().unwrap()
         };
@@ -140,24 +143,24 @@ impl Spotify {
             let mut url_with_params = url.to_owned();
             url_with_params.push('?');
             url_with_params.push_str(&param);
-            self.internal_call(Get, &url_with_params, None)
+            self.internal_call(Method::GET, &url_with_params, None)
         } else {
-            self.internal_call(Get, url, None)
+            self.internal_call(Method::GET, url, None)
         }
     }
 
     ///send post request
     fn post(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Post, url, Some(payload))
+        self.internal_call(Method::POST, url, Some(payload))
     }
     ///send put request
     fn put(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Put, url, Some(payload))
+        self.internal_call(Method::PUT, url, Some(payload))
     }
 
     /// send delete request
     fn delete(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Delete, url, Some(payload))
+        self.internal_call(Method::DELETE, url, Some(payload))
     }
 
     ///[get-track](https://developer.spotify.com/web-api/get-track/)

@@ -3,7 +3,6 @@
 use chrono::prelude::*;
 use serde_json;
 use reqwest::Client;
-use reqwest::header::{Authorization, Basic};
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -434,14 +433,10 @@ fn fetch_access_token(_client_id: &str,
     let client = Client::new();
     let client_id = _client_id.to_owned();
     let client_secret = _client_secret.to_owned();
-    let credentials = Basic {
-        username: client_id,
-        password: Some(client_secret),
-    };
     let url = "https://accounts.spotify.com/api/token";
     let mut response = client
         .post(url)
-        .header(Authorization(credentials))
+        .basic_auth(client_id, Some(client_secret))
         .form(&payload)
         .send()
         .expect("send request failed");
