@@ -69,7 +69,7 @@ fn test_artist() {
     assert!(artist.is_ok());
 }
 
-#[test]
+#[test]#[ignore]
 fn test_artists_albums() {
     let client_credential = SpotifyClientCredentials::default().build();
     let spotify = Spotify::default()
@@ -96,7 +96,7 @@ fn test_artists() {
     assert!(artists.is_ok());
 }
 
-#[test]
+#[test]#[ignore]
 fn test_artist_top_tracks() {
     let client_credential = SpotifyClientCredentials::default().build();
     let spotify = Spotify::default()
@@ -106,7 +106,7 @@ fn test_artist_top_tracks() {
     let tracks = spotify.artist_top_tracks(birdy_uri, Country::UnitedStates);
     assert!(tracks.is_ok());
 }
-#[test]
+#[test]#[ignore]
 fn test_audio_analysis() {
     let client_credential = SpotifyClientCredentials::default().build();
     let spotify = Spotify::default()

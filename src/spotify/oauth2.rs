@@ -97,6 +97,7 @@ impl SpotifyClientCredentials {
         dotenv().ok();
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
+        println!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?}",client_id,client_secret);
         SpotifyClientCredentials {
             client_id: client_id,
             client_secret: client_secret,
@@ -123,6 +124,7 @@ impl SpotifyClientCredentials {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
+        println!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?} empty_flag:{:?}",self.client_id, self.client_secret, !(self.client_id.is_empty()||self.client_secret.is_empty())&&self.token_info.is_none());
         let empty_flag = if self.client_id.is_empty() || self.client_secret.is_empty() {
             true
         } else {
