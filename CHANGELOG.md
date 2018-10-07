@@ -1,3 +1,5 @@
+## 0.2.6 
+- add new field `Unknown` for `DeviceType` enum
 ## 0.2.5 (2018/10/05)
 - update reqwest to 0.9
 ## 0.2.4 (2018/08/19)
