@@ -125,11 +125,8 @@ impl SpotifyClientCredentials {
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
         println!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?} empty_flag:{:?}",self.client_id, self.client_secret, !(self.client_id.is_empty()||self.client_secret.is_empty())&&self.token_info.is_none());
-        let empty_flag = if self.client_id.is_empty() || self.client_secret.is_empty() {
-            true
-        } else {
-            self.token_info.is_none()
-        };
+        let empty_flag = (self.client_id.is_empty() || self.client_secret.is_empty())
+                          && self.token_info.is_none();
         if empty_flag {
             eprintln!("{}", ERROR_MESSAGE);
         } else {
