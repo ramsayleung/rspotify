@@ -42,7 +42,7 @@ fn main() {
                 Ok(_) => {
                     println!("saved tracks delete successful");
                 }
-                Err(_) => eprintln!("saved traks delete failed"),
+                Err(_) => eprintln!("saved tracks delete failed"),
 
             }
         }
