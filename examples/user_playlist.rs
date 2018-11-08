@@ -34,7 +34,7 @@ fn main() {
                 .build();
             let user_id = "spotify";
             let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
-            let playlists = spotify.user_playlist(user_id, Some(&mut playlist_id), None);
+            let playlists = spotify.user_playlist(user_id, Some(&mut playlist_id), None, None);
             println!("{:?}", playlists);
 
         }
