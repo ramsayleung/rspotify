@@ -186,7 +186,7 @@ fn test_existing_playlist() {
         .client_credentials_manager(client_credential)
         .build();
 
-    let playlist = spotify.playlist("37i9dQZF1DZ06evO45P0Eo", None);
+    let playlist = spotify.playlist("37i9dQZF1DZ06evO45P0Eo", None, None);
     assert!(playlist.is_ok());
 }
 
@@ -198,6 +198,6 @@ fn test_fake_playlist() {
         .client_credentials_manager(client_credential)
         .build();
 
-    let playlist = spotify.playlist("fake_id", None);
+    let playlist = spotify.playlist("fake_id", None, None);
     assert!(!playlist.is_ok());
 }

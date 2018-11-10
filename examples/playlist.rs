@@ -17,12 +17,13 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
-    match get_token(&mut oauth) {
+    let mut spotify_oauth = SpotifyOAuth::default().build();
+    match get_token(&mut spotify_oauth){
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
                 .build();
+
             // Or set client_id and client_secret explictly
             // let client_credential = SpotifyClientCredentials::default()
             //     .client_id("this-is-my-client-id")
@@ -31,20 +32,10 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            //this is my(samray's) user_id and playlist_id, so just change
-            // user_id and playlist_id to yours, or you will get a 403 forbidden error
-            let mut tracks_ids = vec![];
-            let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
-            let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
-            tracks_ids.push(track_id2);
-            tracks_ids.push(track_id1);
-            match spotify.current_user_saved_tracks_delete(tracks_ids) {
-                Ok(_) => {
-                    println!("saved tracks delete successful");
-                }
-                Err(_) => eprintln!("saved tracks delete failed"),
+            let playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
+            let playlists = spotify.playlist(&playlist_id, None, None);
+            println!("{:?}", playlists);
 
-            }
         }
         None => println!("auth failed"),
     };
