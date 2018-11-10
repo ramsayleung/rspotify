@@ -1,5 +1,4 @@
 extern crate rspotify;
-extern crate chrono;
 
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::util::get_token;

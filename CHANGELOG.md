@@ -1,3 +1,7 @@
+## 0.2.6
+- Hide warning on successful authentication
+- Remove unneeded extern crate from  examples/new_releases.rs
+- Changes to Spotify.user_playlist and Spotify.playlist methods
 ## 0.2.5 (2018/10/05)
 - update reqwest to 0.9
 ## 0.2.4 (2018/08/19)
