@@ -1,5 +1,6 @@
 //! utils function
 use rand::{self, Rng};
+use rand::distributions::Alphanumeric;
 use chrono::prelude::*;
 use webbrowser;
 
@@ -18,7 +19,7 @@ pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
 }
 /// generate `length` random chars
 pub fn generate_random_string(length: usize) -> String {
-    rand::thread_rng().gen_ascii_chars().take(length).collect()
+    rand::thread_rng().sample_iter(&Alphanumeric).take(length).collect()
 }
 
 /// convert map to `query_string`, for example:
