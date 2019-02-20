@@ -5,26 +5,48 @@ use std::collections::HashMap;
 
 use super::artist::SimplifiedArtist;
 use super::album::SimplifiedAlbum;
+use super::album::Restrictions;
 use spotify::senum::Type;
 ///[track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
     pub artists: Vec<SimplifiedArtist>,
+    #[serde(skip_serializing_if="Vec::is_empty",default)]
     pub available_markets: Vec<String>,
     pub disc_number: i32,
     pub duration_ms: u32,
+    pub explicit: bool,
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_playable: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub linked_from: Option<TrackLink>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub restrictions: Option<Restrictions>,
     pub name: String,
-    pub popularity: i32,
+    pub popularity: u32,
     pub preview_url: Option<String>,
     pub track_number: u32,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: String,
+}
+
+/// [link to track link] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
+/// Track Link
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TrackLink{
+    pub external_urls: HashMap<String, String>,
+    pub href: String,
+    pub id: String,
+    #[serde(rename = "type")]
+    pub _type: Type,
+    pub uri: String
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
