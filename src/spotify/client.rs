@@ -1604,7 +1604,7 @@ impl Spotify {
 
     pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T, failure::Error> {
         let result = serde_json::from_str::<T>(input)
-            .map_err(|_| format_err!("convert result failed, content {:?}",input))?;
+            .map_err(|e| format_err!("convert result failed, reason: {:?}; content: [{:?}]", e,input))?;
         Ok(result)
     }
 

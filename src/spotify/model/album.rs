@@ -8,22 +8,40 @@ use super::track::SimplifiedTrack;
 use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
+
 ///[link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
 /// Simplified Album Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedAlbum {
-    pub artists: Vec<SimplifiedArtist>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub album_group: Option<String>,
     pub album_type: String,
+    pub artists: Vec<SimplifiedArtist>,
+    #[serde(skip_serializing_if="Vec::is_empty",default)]
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: String,
     pub images: Vec<Image>,
     pub name: String,
+    #[serde(skip_serializing_if="String::is_empty")]
+    pub release_date: String,
+    #[serde(skip_serializing_if="String::is_empty")]
+    pub release_date_precision: String,
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub restrictions: Option<Restrictions>,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: String,
 }
+
+
+/// Restrictions object
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Restrictions {
+    pub reason: String
+}
+
 ///[link to album object full](https://developer.spotify.com/web-api/object-model/#album-object-full)
 /// Full Album Object
 #[derive(Clone, Debug, Serialize, Deserialize)]

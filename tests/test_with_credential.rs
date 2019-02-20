@@ -79,7 +79,6 @@ fn test_artist() {
 }
 
 #[test]
-#[ignore]
 fn test_artists_albums() {
     
     let spotify = Spotify::default()
@@ -91,6 +90,7 @@ fn test_artists_albums() {
                                        Some(Country::UnitedStates),
                                        Some(10),
                                        None);
+    dbg!(&albums);
     assert!(albums.is_ok());
 }
 
@@ -108,7 +108,6 @@ fn test_artists() {
 }
 
 #[test]
-#[ignore]
 fn test_artist_top_tracks() {
     
     let spotify = Spotify::default()
@@ -116,11 +115,11 @@ fn test_artist_top_tracks() {
         .build();
     let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
     let tracks = spotify.artist_top_tracks(birdy_uri, Country::UnitedStates);
+    dbg!(&tracks);
     assert!(tracks.is_ok());
 }
 
 #[test]
-#[ignore]
 fn test_audio_analysis() {
     
     let spotify = Spotify::default()
