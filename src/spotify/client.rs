@@ -159,9 +159,6 @@ impl Spotify {
         if response.status().is_success() {
             Ok(buf)
         } else {
-            eprintln!("parameters: {:?}\n", &payload);
-            eprintln!("response: {:?}", &response);
-            eprintln!("content: {:?}", &buf);
             Err(failure::Error::from(ApiError::from(&response)))
         }
     }
