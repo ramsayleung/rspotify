@@ -7,11 +7,13 @@ use serde::de::Deserialize;
 use reqwest::Client;
 use reqwest::Method;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap};
+use reqwest::StatusCode;
 use chrono::prelude::*;
 use failure;
 
 //  built-in battery
 use std::collections::HashMap;
+use std::fmt;
 use std::io::Read;
 use std::string::String;
 use std::borrow::Cow;
@@ -36,6 +38,35 @@ use super::util::convert_map_to_string;
 lazy_static! {
     /// HTTP Client
     pub static ref CLIENT: Client = Client::new();
+}
+/// Describes API errors
+#[derive(Debug)]
+pub enum ApiError {
+    Unauthorized,
+    RateLimited(Option<usize>),
+    Other(u16)
+}
+impl failure::Fail for ApiError {}
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Spotify API reported an error")
+    }
+}
+impl From<&reqwest::Response> for ApiError {
+    fn from(response: &reqwest::Response) -> Self {
+        match response.status() {
+            StatusCode::UNAUTHORIZED => ApiError::Unauthorized,
+            StatusCode::TOO_MANY_REQUESTS => {
+                if let Ok(duration) = response.headers()[reqwest::header::RETRY_AFTER].to_str() {
+                    ApiError::RateLimited(duration.parse::<usize>().ok())
+                }
+                else {
+                    ApiError::RateLimited(None)
+                }
+            },
+            status => ApiError::Other(status.as_u16())
+        }
+    }
 }
 /// Spotify API object
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -131,9 +162,7 @@ impl Spotify {
             eprintln!("parameters: {:?}\n", &payload);
             eprintln!("response: {:?}", &response);
             eprintln!("content: {:?}", &buf);
-            bail!("send request failed, http code:{}, error message:{}",
-                  response.status(),
-                  &buf);
+            Err(failure::Error::from(ApiError::from(&response)))
         }
     }
     ///send get request
