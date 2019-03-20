@@ -196,8 +196,8 @@ impl Spotify {
     pub fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<FullTrack>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullTrack>(&result)
     }
 
     ///[get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
@@ -217,8 +217,8 @@ impl Spotify {
             params.insert("market".to_owned(), _market.as_str().to_owned());
         }
         println!("{:?}", &url);
-        let result = self.get(&url, &mut params);
-        self.convert_result::<FullTracks>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullTracks>(&result)
     }
 
     ///[get-artist](https://developer.spotify.com/web-api/get-artist/)
@@ -229,8 +229,8 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}", trid);
         // url.push_str(&trid);
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<FullArtist>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullArtist>(&result)
     }
 
     ///[get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
@@ -244,8 +244,8 @@ impl Spotify {
         }
         let url = format!("artists/?ids={}", ids.join(","));
         // url.push_str(&ids.join(","));
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<FullArtists>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullArtists>(&result)
     }
 
     ///[get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
@@ -279,8 +279,8 @@ impl Spotify {
         let url = format!("artists/{}/albums", trid);
         // url.push_str(&trid);
         // url.push_str("/albums");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<SimplifiedAlbum>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SimplifiedAlbum>>(&result)
     }
 
     ///[get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
@@ -302,8 +302,8 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
 
-        let result = self.get(&url, &mut params);
-        self.convert_result::<FullTracks>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullTracks>(&result)
         // match self.get(&mut url, &mut params) {
         //     Ok(result) => {
         //         // let mut albums: Albums = ;
@@ -330,8 +330,8 @@ impl Spotify {
         let url = format!("artists/{}/related-artists", trid);
         // url.push_str(&trid);
         // url.push_str("/related-artists");
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<FullArtists>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullArtists>(&result)
     }
 
     ///[get album](https://developer.spotify.com/web-api/get-album/)
@@ -342,8 +342,8 @@ impl Spotify {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}", trid);
         // url.push_str(&trid);
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<FullAlbum>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullAlbum>(&result)
     }
 
     ///[get several albums](https://developer.spotify.com/web-api/get-several-albums/)
@@ -357,8 +357,8 @@ impl Spotify {
         }
         let url = format!("albums/?ids={}", ids.join(","));
         // url.push_str(&ids.join(","));
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<FullAlbums>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullAlbums>(&result)
     }
 
     ///[search for items](https://developer.spotify.com/web-api/search-item/)
@@ -409,8 +409,8 @@ impl Spotify {
                                                                     offset: O,
                                                                     market: Option<Country>)
                                                                     -> Result<SearchAlbums, failure::Error> {
-        let result = self.search(q, SearchType::Album, limit, offset, market);
-        self.convert_result::<SearchAlbums>(&result.unwrap_or_default())
+        let result = self.search(q, SearchType::Album, limit, offset, market)?;
+        self.convert_result::<SearchAlbums>(&result)
     }
 
     ///search item, type is artist
@@ -429,8 +429,8 @@ impl Spotify {
                                                                      offset: O,
                                                                      market: Option<Country>)
                                                                      -> Result<SearchArtists, failure::Error> {
-        let result = self.search(q, SearchType::Artist, limit, offset, market);
-        self.convert_result::<SearchArtists>(&result.unwrap_or_default())
+        let result = self.search(q, SearchType::Artist, limit, offset, market)?;
+        self.convert_result::<SearchArtists>(&result)
     }
 
     ///search item, type is track
@@ -449,8 +449,8 @@ impl Spotify {
                                                                     offset: O,
                                                                     market: Option<Country>)
                                                                     -> Result<SearchTracks, failure::Error> {
-        let result = self.search(q, SearchType::Track, limit, offset, market);
-        self.convert_result::<SearchTracks>(&result.unwrap_or_default())
+        let result = self.search(q, SearchType::Track, limit, offset, market)?;
+        self.convert_result::<SearchTracks>(&result)
     }
     ///search item, type is playlist
     ///[search for items](https://developer.spotify.com/web-api/search-item/)
@@ -469,8 +469,8 @@ impl Spotify {
          offset: O,
          market: Option<Country>)
          -> Result<SearchPlaylists, failure::Error> {
-        let result = self.search(q, SearchType::Playlist, limit, offset, market);
-        self.convert_result::<SearchPlaylists>(&result.unwrap_or_default())
+        let result = self.search(q, SearchType::Playlist, limit, offset, market)?;
+        self.convert_result::<SearchPlaylists>(&result)
     }
 
     ///[get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
@@ -492,8 +492,8 @@ impl Spotify {
         // url.push_str("/tracks");
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<SimplifiedTrack>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SimplifiedTrack>>(&result)
     }
 
     ///[get users profile](https://developer.spotify.com/web-api/get-users-profile/)
@@ -502,8 +502,8 @@ impl Spotify {
     ///- user - the id of the usr
     pub fn user(&self, user_id: &str) -> Result<PublicUser, failure::Error> {
         let url = format!("users/{}", user_id);
-        let result = self.get(&url, &mut HashMap::new());
-        self.convert_result::<PublicUser>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<PublicUser>(&result)
     }
 
     ///[get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
@@ -525,8 +525,8 @@ impl Spotify {
 
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("playlists/{}", plid);
-        let result = self.get(&url, &mut params);
-        self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullPlaylist>(&result)
     }
 
     ///[get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
@@ -544,8 +544,8 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
 
         let url = String::from("me/playlists");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SimplifiedPlaylist>>(&result)
     }
 
     ///[get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
@@ -564,8 +564,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         let url = format!("users/{}/playlists", user_id);
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<SimplifiedPlaylist>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SimplifiedPlaylist>>(&result)
     }
 
     ///[get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
@@ -591,13 +591,13 @@ impl Spotify {
             Some(_playlist_id) => {
                 let plid = self.get_id(Type::Playlist, _playlist_id);
                 let url = format!("users/{}/playlists/{}", user_id, plid);
-                let result = self.get(&url, &mut params);
-                self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+                let result = self.get(&url, &mut params)?;
+                self.convert_result::<FullPlaylist>(&result)
             }
             None => {
                 let url = format!("users/{}/starred", user_id);
-                let result = self.get(&url, &mut params);
-                self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+                let result = self.get(&url, &mut params)?;
+                self.convert_result::<FullPlaylist>(&result)
             }
         }
     }
@@ -631,8 +631,8 @@ impl Spotify {
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<PlaylistTrack>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<PlaylistTrack>>(&result)
     }
 
 
@@ -658,8 +658,8 @@ impl Spotify {
             "description": description
         });
         let url = format!("users/{}/playlists", user_id);
-        let result = self.post(&url, &params);
-        self.convert_result::<FullPlaylist>(&result.unwrap_or_default())
+        let result = self.post(&url, &params)?;
+        self.convert_result::<FullPlaylist>(&result)
     }
 
     ///[change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
@@ -730,8 +730,8 @@ impl Spotify {
         }
         params.insert("uris".to_owned(), uris.into());
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.post(&url, &Value::Object(params));
-        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+        let result = self.post(&url, &Value::Object(params))?;
+        self.convert_result::<CUDResult>(&result)
 
     }
     ///[replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
@@ -790,8 +790,8 @@ impl Spotify {
         params.insert("range_length".to_owned(), range_length.into());
         params.insert("insert_before".to_owned(), insert_before.into());
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.put(&url, &Value::Object(params));
-        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+        let result = self.put(&url, &Value::Object(params))?;
+        self.convert_result::<CUDResult>(&result)
     }
 
     ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -824,8 +824,8 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.delete(&url, &Value::Object(params));
-        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+        let result = self.delete(&url, &Value::Object(params))?;
+        self.convert_result::<CUDResult>(&result)
     }
 
     ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -863,8 +863,8 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks",user_id,plid);
-        let result = self.delete(&url, &Value::Object(params));
-        self.convert_result::<CUDResult>(&result.unwrap_or_default())
+        let result = self.delete(&url, &Value::Object(params))?;
+        self.convert_result::<CUDResult>(&result)
     }
 
     ///[follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
@@ -907,8 +907,8 @@ impl Spotify {
             format!("users/{}/playlists/{}/followers/contains?ids={}"
                                           ,playlist_owner_id,playlist_id,user_ids.join(","));
         let mut dumb: HashMap<String, String> = HashMap::new();
-        let result = self.get(&url, &mut dumb);
-        self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<Vec<bool>>(&result)
 
     }
     ///[get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
@@ -917,8 +917,8 @@ impl Spotify {
     pub fn me(&self) -> Result<PrivateUser, failure::Error> {
         let mut dumb: HashMap<String, String> = HashMap::new();
         let url = String::from("me/");
-        let result = self.get(&url, &mut dumb);
-        self.convert_result::<PrivateUser>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<PrivateUser>(&result)
     }
     ///Get detailed profile information about the current user.
     ///An alias for the 'me' method.
@@ -961,8 +961,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/albums");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<SavedAlbum>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SavedAlbum>>(&result)
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     ///Parameters:
@@ -980,8 +980,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/tracks");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<SavedTrack>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SavedTrack>>(&result)
 
     }
     ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
@@ -1001,8 +1001,8 @@ impl Spotify {
         }
         params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
         let url = String::from("me/following");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<CursorPageFullArtists>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<CursorPageFullArtists>(&result)
     }
 
     ///[remove tracks users](https://developer.spotify.com/web-api/remove-tracks-user/)
@@ -1034,8 +1034,8 @@ impl Spotify {
             .collect();
         let url = format!("me/tracks/contains/?ids={}",uris.join(","));
         let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb);
-        self.convert_result::<Vec<bool>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<Vec<bool>>(&result)
     }
 
     ///[save tracks user ](https://developer.spotify.com/web-api/save-tracks-user/)
@@ -1078,8 +1078,8 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.to_string());
         params.insert("time_range".to_owned(), time_range.as_str().to_owned());
         let url = String::from("me/top/artists");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<FullArtist>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<FullArtist>>(&result)
     }
 
     ///[get users top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
@@ -1104,8 +1104,8 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.to_string());
         params.insert("time_range".to_owned(), time_range.as_str().to_owned());
         let url = String::from("me/top/tracks");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Page<FullTrack>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<FullTrack>>(&result)
     }
 
     ///[get recently played](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
@@ -1120,8 +1120,8 @@ impl Spotify {
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         let url = String::from("me/player/recently-played");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<CursorBasedPage<PlayHistory>>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<CursorBasedPage<PlayHistory>>(&result)
     }
 
 
@@ -1206,8 +1206,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/featured-playlists");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<FeaturedPlaylists>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FeaturedPlaylists>(&result)
     }
 
     ///[get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
@@ -1234,8 +1234,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/new-releases");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<PageSimpliedAlbums>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<PageSimpliedAlbums>(&result)
     }
 
     ///[get list categories](https://developer.spotify.com/web-api/get-list-categories/)
@@ -1268,8 +1268,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/categories");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<PageCategory>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<PageCategory>(&result)
     }
 
     ///[get recommendtions](https://developer.spotify.com/web-api/get-recommendations/)
@@ -1350,8 +1350,8 @@ impl Spotify {
         //     }
         // }
         let url = String::from("recommendations");
-        let result = self.get(&url, &mut params);
-        self.convert_result::<Recommendations>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Recommendations>(&result)
 
     }
     ///[get audio features](https://developer.spotify.com/web-api/get-audio-features/)
@@ -1361,8 +1361,8 @@ impl Spotify {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}",track_id);
         let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb);
-        self.convert_result::<AudioFeatures>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<AudioFeatures>(&result)
     }
 
     ///[get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
@@ -1396,8 +1396,8 @@ impl Spotify {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}",trid);
         let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb);
-        self.convert_result::<AudioAnalysis>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<AudioAnalysis>(&result)
     }
 
     ///[get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
@@ -1405,8 +1405,8 @@ impl Spotify {
     pub fn device(&self) -> Result<DevicePayload, failure::Error> {
         let url = String::from("me/player/devices");
         let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb);
-        self.convert_result::<DevicePayload>(&result.unwrap_or_default())
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<DevicePayload>(&result)
     }
 
     ///[get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
