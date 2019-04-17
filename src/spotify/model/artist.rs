@@ -10,12 +10,12 @@ use super::page::CursorBasedPage;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
-    pub href: String,
-    pub id: String,
+    pub href: Option<String>,
+    pub id: Option<String>,
     pub name: String,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String,
+    pub uri: Option<String>,
 }
 
 ///[artist object full](https://developer.spotify.com/web-api/object-model/#artist-object-full)

@@ -19,8 +19,9 @@ pub struct FullTrack {
     pub explicit: bool,
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
-    pub href: String,
-    pub id: String,
+    pub href: Option<String>,
+    pub id: Option<String>,
+    pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -62,8 +63,10 @@ pub struct SimplifiedTrack {
     pub duration_ms: u32,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
-    pub href: String,
-    pub id: String,
+    #[serde(default)]
+    pub href: Option<String>,
+    pub id: Option<String>,
+    pub is_local: bool,
     pub name: String,
     pub preview_url: Option<String>,
     pub track_number: u32,
