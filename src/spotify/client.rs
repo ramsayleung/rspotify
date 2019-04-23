@@ -1142,6 +1142,23 @@ impl Spotify {
         }
     }
 
+    ///[remove albums user](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
+    ///Remove one or more albums from the current user's
+    ///"Your Music" library.
+    ///Parameters:
+    ///- album_ids - a list of album URIs, URLs or IDs
+    pub fn current_user_saved_albums_delete(&self, album_ids: &[String]) -> Result<(), failure::Error> {
+        let uris: Vec<String> = album_ids
+            .iter()
+            .map(|id| self.get_id(Type::Album, id))
+            .collect();
+        let url = format!("me/albums/?ids={}",uris.join(","));
+        match self.delete(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
 
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more artists
@@ -1155,6 +1172,19 @@ impl Spotify {
         }
     }
 
+    ///[unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
+    ///Unfollow one or more artists
+    ///Parameters:
+    ///- artist_ids - a list of artist IDs
+    pub fn user_unfollow_artists(&self, artist_ids: &[String]) -> Result<(), failure::Error> {
+        let url = format!("me/following?type=artist&ids={}",artist_ids.join(","));
+        match self.delete(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more users
     ///Parameters:
@@ -1166,6 +1196,19 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+
+    ///[unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
+    ///Unfollow one or more users
+    ///Parameters:
+    ///- user_ids - a list of artist IDs
+    pub fn user_unfollow_users(&self, user_ids: &[String]) -> Result<(), failure::Error> {
+        let url = format!("me/following?type=user&ids={}",user_ids.join(","));
+        match self.delete(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
 
     ///[get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
     ///Get a list of Spotify featured playlists
