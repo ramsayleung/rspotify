@@ -26,7 +26,7 @@ pub struct PrivateUser {
     pub birthdate: Option<NaiveDate>,
     pub country: String,
     pub display_name: Option<String>,
-    pub email: String,
+    pub email: Option<String>,
     pub external_urls: HashMap<String, String>,
     pub followers: Option<HashMap<String, Option<Value>>>,
     pub href: String,
