@@ -23,7 +23,7 @@ pub struct PublicUser {
 ///[private user object](https://developer.spotify.com/web-api/object-model/#user-object-private)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PrivateUser {
-    pub birthdate: NaiveDate,
+    pub birthdate: Option<NaiveDate>,
     pub country: String,
     pub display_name: Option<String>,
     pub email: String,
