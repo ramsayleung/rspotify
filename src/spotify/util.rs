@@ -65,7 +65,6 @@ pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
 
 /// get tokenInfo by Authorization
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
-    error!("debug message");
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
         None => {
