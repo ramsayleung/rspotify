@@ -72,10 +72,10 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             let state = generate_random_string(16);
             let auth_url = spotify_oauth.get_authorize_url(Some(&state), None);
             match webbrowser::open(&auth_url) {
-                Ok(_) => println!("Opened {} in your browser", auth_url),
-                Err(why) => eprintln!("Error {:?};Please navigate here [{:?}] ", why, auth_url),
+                Ok(_) => info!("Opened {} in your browser", auth_url),
+                Err(why) => error!("Error {:?};Please navigate here [{:?}] ", why, auth_url),
             }
-            println!("Enter the URL you were redirected to: ");
+            print!("Enter the URL you were redirected to: ");
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {
@@ -105,7 +105,7 @@ mod tests {
         match parameters.get("redirect_uri") {
             Some(redirect_uri) => {
                 assert_eq!(redirect_uri, &"my_uri");
-                println!("{:?}", redirect_uri);
+                trace!("{:?}", redirect_uri);
             }
             None => panic!("failed"),
         }
