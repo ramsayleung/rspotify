@@ -104,7 +104,7 @@ mod tests {
         match parameters.get("redirect_uri") {
             Some(redirect_uri) => {
                 assert_eq!(redirect_uri, &"my_uri");
-                trace!("{:?}", redirect_uri);
+                println!("{:?}", redirect_uri);
             }
             None => panic!("failed"),
         }
