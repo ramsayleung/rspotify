@@ -169,8 +169,31 @@ fn test_current_user_saved_albums_add() {
         }
         None => assert!(false),
     };
-
 }
+
+#[test]#[ignore]
+fn test_current_user_saved_albums_delete() {
+    let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let mut album_ids = vec![];
+            let album_id1 = String::from("6akEvsycLGftJxYudPjmqK");
+            let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
+            album_ids.push(album_id2);
+            album_ids.push(album_id1);
+            let result = spotify.current_user_saved_albums_delete(&album_ids);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
 #[test]#[ignore]
 fn test_current_user_saved_albums() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
@@ -689,6 +712,29 @@ fn test_user_follow_artist() {
 }
 
 #[test]#[ignore]
+fn test_user_unfollow_artist() {
+    let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let mut artists = vec![];
+            let artist_id1 = String::from("74ASZWbe4lXaubB36ztrGX");
+            let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
+            artists.push(artist_id2);
+            artists.push(artist_id1);
+            let result = spotify.user_unfollow_artists(&artists);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+    };
+}
+
+#[test]#[ignore]
 fn test_user_follow_users() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
     match get_token(&mut oauth) {
@@ -703,6 +749,28 @@ fn test_user_follow_users() {
             let user_id1 = String::from("exampleuser01");
             users.push(user_id1);
             let result = spotify.user_follow_users(&users);
+            assert!(result.is_ok());
+        }
+        None => assert!(false),
+
+    };
+}
+
+#[test]#[ignore]
+fn test_user_unfollow_users() {
+    let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
+    match get_token(&mut oauth) {
+        Some(token_info) => {
+            let client_credential = SpotifyClientCredentials::default()
+                .token_info(token_info)
+                .build();
+            let spotify = Spotify::default()
+                .client_credentials_manager(client_credential)
+                .build();
+            let mut users = vec![];
+            let user_id1 = String::from("exampleuser01");
+            users.push(user_id1);
+            let result = spotify.user_unfollow_users(&users);
             assert!(result.is_ok());
         }
         None => assert!(false),

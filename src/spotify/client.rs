@@ -216,7 +216,7 @@ impl Spotify {
         if let Some(_market) = market {
             params.insert("market".to_owned(), _market.as_str().to_owned());
         }
-        println!("{:?}", &url);
+        trace!("{:?}", &url);
         let result = self.get(&url, &mut params)?;
         self.convert_result::<FullTracks>(&result)
     }
@@ -901,7 +901,7 @@ impl Spotify {
                                       user_ids: &[String])
                                       -> Result<Vec<bool>, failure::Error> {
         if user_ids.len() > 5 {
-            eprintln!("The maximum length of user ids is limited to 5 :-)");
+            error!("The maximum length of user ids is limited to 5 :-)");
         }
         let url =
             format!("users/{}/playlists/{}/followers/contains?ids={}"
@@ -1142,6 +1142,23 @@ impl Spotify {
         }
     }
 
+    ///[remove albums user](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
+    ///Remove one or more albums from the current user's
+    ///"Your Music" library.
+    ///Parameters:
+    ///- album_ids - a list of album URIs, URLs or IDs
+    pub fn current_user_saved_albums_delete(&self, album_ids: &[String]) -> Result<(), failure::Error> {
+        let uris: Vec<String> = album_ids
+            .iter()
+            .map(|id| self.get_id(Type::Album, id))
+            .collect();
+        let url = format!("me/albums/?ids={}",uris.join(","));
+        match self.delete(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
 
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more artists
@@ -1155,6 +1172,19 @@ impl Spotify {
         }
     }
 
+    ///[unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
+    ///Unfollow one or more artists
+    ///Parameters:
+    ///- artist_ids - a list of artist IDs
+    pub fn user_unfollow_artists(&self, artist_ids: &[String]) -> Result<(), failure::Error> {
+        let url = format!("me/following?type=artist&ids={}",artist_ids.join(","));
+        match self.delete(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more users
     ///Parameters:
@@ -1166,6 +1196,19 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+
+    ///[unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
+    ///Unfollow one or more users
+    ///Parameters:
+    ///- user_ids - a list of artist IDs
+    pub fn user_unfollow_users(&self, user_ids: &[String]) -> Result<(), failure::Error> {
+        let url = format!("me/following?type=user&ids={}",user_ids.join(","));
+        match self.delete(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
 
     ///[get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
     ///Get a list of Spotify featured playlists
@@ -1501,7 +1544,7 @@ impl Spotify {
                           offset: Option<super::model::offset::Offset>)
                           -> Result<(), failure::Error> {
         if context_uri.is_some() && uris.is_some() {
-            eprintln!("specify either contexxt uri or uris, not both");
+            error!("specify either contexxt uri or uris, not both");
         }
         let mut params = Map::new();
         if let Some(_context_uri) = context_uri {
@@ -1602,7 +1645,7 @@ impl Spotify {
     ///- device_id - device target for playback
     pub fn volume(&self, volume_percent: u8, device_id: Option<String>) -> Result<(), failure::Error> {
         if volume_percent > 100u8 {
-            eprintln!("volume must be between 0 and 100, inclusive");
+            error!("volume must be between 0 and 100, inclusive");
         }
         let url =
             self.append_device_id(&format!("me/player/volume?volume_percent={}",volume_percent),
@@ -1661,7 +1704,7 @@ impl Spotify {
         let len = fields.len();
         if len >= 3 {
             if _type.as_str() != fields[len - 2] {
-                eprintln!("expected id of type {:?} but found type {:?} {:?}",
+                error!("expected id of type {:?} but found type {:?} {:?}",
                                         _type,
                                         fields[len - 2],
                                         _id);
@@ -1673,7 +1716,7 @@ impl Spotify {
         let len: usize = sfields.len();
         if len >= 3 {
             if _type.as_str() != sfields[len - 2] {
-                eprintln!(
+                error!(
                                         "expected id of type {:?} but found type {:?} {:?}",
                                         _type,
                                         sfields[len - 2],
