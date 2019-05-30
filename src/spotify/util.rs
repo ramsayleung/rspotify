@@ -65,17 +65,16 @@ pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
 
 /// get tokenInfo by Authorization
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
-    error!("debug message");
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
         None => {
             let state = generate_random_string(16);
             let auth_url = spotify_oauth.get_authorize_url(Some(&state), None);
             match webbrowser::open(&auth_url) {
-                Ok(_) => println!("Opened {} in your browser", auth_url),
-                Err(why) => eprintln!("Error {:?};Please navigate here [{:?}] ", why, auth_url),
+                Ok(_) => info!("Opened {} in your browser", auth_url),
+                Err(why) => error!("Error {:?};Please navigate here [{:?}] ", why, auth_url),
             }
-            println!("Enter the URL you were redirected to: ");
+            print!("Enter the URL you were redirected to: ");
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {
