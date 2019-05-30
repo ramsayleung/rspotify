@@ -81,7 +81,6 @@ pub fn process_token(spotify_oauth: &mut SpotifyOAuth, input: &mut String) -> Op
 
 /// get tokenInfo by Authorization
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
-    error!("debug message");
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
         None => {

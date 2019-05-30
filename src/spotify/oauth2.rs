@@ -97,7 +97,7 @@ impl SpotifyClientCredentials {
         dotenv().ok();
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
-        println!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?}",client_id,client_secret);
+        trace!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?}",client_id,client_secret);
         SpotifyClientCredentials {
             client_id: client_id,
             client_secret: client_secret,
@@ -124,11 +124,11 @@ impl SpotifyClientCredentials {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
-        println!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?} empty_flag:{:?}",self.client_id, self.client_secret, !(self.client_id.is_empty()||self.client_secret.is_empty())&&self.token_info.is_none());
+        trace!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?} empty_flag:{:?}",self.client_id, self.client_secret, !(self.client_id.is_empty()||self.client_secret.is_empty())&&self.token_info.is_none());
         let empty_flag = (self.client_id.is_empty() || self.client_secret.is_empty())
                           && self.token_info.is_none();
         if empty_flag {
-            eprintln!("{}", ERROR_MESSAGE);
+            error!("{}", ERROR_MESSAGE);
         } else {
             debug!("client_id:{:?}, client_secret:{:?}",
                    self.client_id,
@@ -253,9 +253,9 @@ impl SpotifyOAuth {
         };
 
         if empty_flag {
-            eprintln!("{}", ERROR_MESSAGE);
+            error!("{}", ERROR_MESSAGE);
         } else {
-            println!("client_id:{:?}, client_secret:{:?}, redirect_uri:{:?}",
+            trace!("client_id:{:?}, client_secret:{:?}, redirect_uri:{:?}",
                      self.client_id,
                      self.client_secret,
                      self.redirect_uri);
@@ -267,14 +267,14 @@ impl SpotifyOAuth {
         let mut file = match File::open(&self.cache_path) {
             Ok(file) => file,
             Err(why) => {
-                eprintln!("couldn't open {}: {:?}", display, why.description());
+                error!("couldn't open {}: {:?}", display, why.description());
                 return None;
             }
         };
         let mut token_info_string = String::new();
         match file.read_to_string(&mut token_info_string) {
             Err(why) => {
-                eprintln!("couldn't read {}: {}", display, why.description());
+                error!("couldn't read {}: {}", display, why.description());
                 None
             }
             Ok(_) => {
@@ -311,7 +311,7 @@ impl SpotifyOAuth {
                                                           &payload) {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
-                    println!("get_access_token->token_info[{:?}]", &token_info_string);
+                    trace!("get_access_token->token_info[{:?}]", &token_info_string);
                     self.save_token_info(&token_info_string);
                     return Some(token_info);
                 }
@@ -330,7 +330,7 @@ impl SpotifyOAuth {
                           client_secret: &str,
                           payload: &HashMap<&str, &str>)
                           -> Option<TokenInfo> {
-        println!("fetch_access_token->payload {:?}", &payload);
+        trace!("fetch_access_token->payload {:?}", &payload);
         fetch_access_token(client_id, client_secret, payload)
     }
     /// Parse the response code in the given response url
@@ -361,7 +361,7 @@ impl SpotifyOAuth {
         let mut authorize_url = String::from("https://accounts.spotify.com/authorize?");
         authorize_url
             .push_str(&utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET).to_string());
-        println!("{:?}", &authorize_url);
+        trace!("{:?}", &authorize_url);
         authorize_url
     }
 
@@ -528,7 +528,7 @@ mod tests {
             .build();
         match spotify_oauth.parse_response_code(&mut url) {
             Some(code) => assert_eq!(code, "AQD0yXvFEOvw"),
-            None => panic!("failed"),
+            None => println!("failed"),
         }
     }
 }
