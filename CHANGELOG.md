@@ -1,4 +1,5 @@
 ## 0.5 (2019/04/30)
+- Replace println! with log!
 - FIx errors when email or birthdate are missing
 - Fix de-serialization panics for null values
 - Implement unsaving albums and unfollowing users/artists
