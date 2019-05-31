@@ -1,4 +1,14 @@
-## 0.2.6
+## 0.5 (2019/04/30)
+- Replace println! with log!
+- FIx errors when email or birthdate are missing
+- Fix de-serialization panics for null values
+- Implement unsaving albums and unfollowing users/artists
+## 0.4 (2019/03/23)
+- Allow application to perform error handling
+## 0.3 (2019/02/20)
+- update dependencies to fix issus on Windows
+- fix failed test
+## 0.2.6 (2018/12/20)
 - Hide warning on successful authentication
 - Remove unneeded extern crate from  examples/new_releases.rs
 - Changes to Spotify.user_playlist and Spotify.playlist methods
