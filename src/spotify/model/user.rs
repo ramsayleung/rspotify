@@ -24,7 +24,7 @@ pub struct PublicUser {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PrivateUser {
     pub birthdate: Option<NaiveDate>,
-    pub country: String,
+    pub country: Option<String>,
     pub display_name: Option<String>,
     pub email: Option<String>,
     pub external_urls: HashMap<String, String>,
