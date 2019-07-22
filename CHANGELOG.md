@@ -1,3 +1,6 @@
+## 0.6 (2019/07/22)
+- Make PrivateUser country optional
+
 ## 0.5 (2019/04/30)
 - Replace println! with log!
 - FIx errors when email or birthdate are missing
