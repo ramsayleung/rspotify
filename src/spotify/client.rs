@@ -1113,7 +1113,7 @@ impl Spotify {
     ///Parameters:
     ///- limit - the number of entities to return
     pub fn current_user_recently_played<L: Into<Option<u32>>>
-        (self,
+        (&self,
          limit: L)
          -> Result<CursorBasedPage<PlayHistory>, failure::Error> {
         let limit = limit.into().unwrap_or(50);
