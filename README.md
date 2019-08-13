@@ -42,7 +42,7 @@ console where your application is running. For example:
 ![](./doc/images/rspotify.gif)
 
 ## Examples
-If you have a use case you are intertested in, you could check the
+If you have a use case you are interested in, you could check the
 [examples](./examples), which has all kinds of detailed examples. For example,
 If you want to get recently played history, you could check
 [current_user_recently_played](./examples/current_user_recently_played.rs). This is
