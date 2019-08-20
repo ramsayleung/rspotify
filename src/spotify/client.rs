@@ -1010,9 +1010,9 @@ impl Spotify {
     ///"Your Music" library.
     ///Parameters:
     ///- track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_delete(&self, mut track_ids: Vec<String>) -> Result<(), failure::Error> {
+    pub fn current_user_saved_tracks_delete(&self, track_ids: &[String]) -> Result<(), failure::Error> {
         let uris: Vec<String> = track_ids
-            .iter_mut()
+            .iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}",uris.join(","));
