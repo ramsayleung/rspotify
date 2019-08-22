@@ -275,7 +275,7 @@ fn test_current_user_saved_tracks_delete() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.current_user_saved_tracks_delete(tracks_ids);
+            let result = spotify.current_user_saved_tracks_delete(&tracks_ids);
             assert!(result.is_ok());
         }
         None => assert!(false),

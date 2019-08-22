@@ -38,7 +38,7 @@ fn main() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            match spotify.current_user_saved_tracks_delete(tracks_ids) {
+            match spotify.current_user_saved_tracks_delete(&tracks_ids) {
                 Ok(_) => {
                     println!("saved tracks delete successful");
                 }
