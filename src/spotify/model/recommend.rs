@@ -13,7 +13,7 @@ pub struct RecommendationsSeed {
     pub after_filtering_size: u32,
     #[serde(rename = "afterRelinkingSize")]
     pub after_relinking_size: u32,
-    pub href: String,
+    pub href: Option<String>,
     pub id: String,
     #[serde(rename = "initialPoolSize")]
     pub initial_pool_size: u32,
