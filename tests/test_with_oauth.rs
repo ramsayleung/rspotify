@@ -659,7 +659,7 @@ fn test_start_playback() {
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
             let mut uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
-            let result = spotify.start_playback(Some(device_id), None, Some(uris), for_position(0));
+            let result = spotify.start_playback(Some(device_id), None, Some(uris), for_position(0), None);
             assert!(result.is_ok());
         }
         None => assert!(false),

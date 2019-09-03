@@ -1537,11 +1537,13 @@ impl Spotify {
     ///- context_uri - spotify context uri to play
     ///- uris - spotify track uris
     ///- offset - offset into context by index or track
+    ///- position_ms - Indicates from what position to start playback. 
     pub fn start_playback(&self,
                           device_id: Option<String>,
                           context_uri: Option<String>,
                           uris: Option<Vec<String>>,
-                          offset: Option<super::model::offset::Offset>)
+                          offset: Option<super::model::offset::Offset>,
+                          position_ms: Option<u32>)
                           -> Result<(), failure::Error> {
         if context_uri.is_some() && uris.is_some() {
             error!("specify either contexxt uri or uris, not both");
@@ -1564,6 +1566,9 @@ impl Spotify {
                 params.insert("offset".to_owned(), offset_map.into());
             }
         }
+        if let Some(_position_ms) = position_ms {
+            params.insert("position_ms".to_owned(), _position_ms.into());
+        };
         let url = self.append_device_id("me/player/play", device_id);
         match self.put(&url, &Value::Object(params)) {
             Ok(_) => Ok(()),
