@@ -137,7 +137,7 @@ impl Spotify {
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let mut response = {
-            let mut builder = CLIENT
+            let builder = CLIENT
                 .request(method, &url.into_owned())
                 .headers(headers);
 
