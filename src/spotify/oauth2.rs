@@ -139,15 +139,19 @@ impl SpotifyClientCredentials {
     /// get access token from self.token_info, if self.token_info is none or is
     /// expired. fetch token info by HTTP request
     pub fn get_access_token(&self) -> String {
-        let mut access_token = String::new();
-        match self.token_info {
+        let access_token = match self.token_info {
             Some(ref token_info) => {
                 if !self.is_token_expired(token_info) {
                     debug!("token info: {:?}", &token_info);
-                    access_token = token_info.access_token.to_owned();
+                    Some(&token_info.access_token)
+                } else {
+                    None
                 }
-                access_token
             }
+            None => None
+        };
+        match access_token {
+            Some(access_token) => access_token.to_owned(),
             None => {
                 match self.request_access_token() {
                     Some(new_token_info) => {
