@@ -1219,5 +1219,6 @@ pub enum DeviceType {
     Computer,
     Smartphone,
     Speaker,
+    TV,
     Unknown
 }
