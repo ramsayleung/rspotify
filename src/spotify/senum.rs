@@ -1213,12 +1213,20 @@ impl fmt::Debug for SearchType {
 }
 
 
-/// Device Type: computer, smartphone, speaker
+/// Device Type: computer, smartphone, speaker, TV, etc.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DeviceType {
     Computer,
+    Tablet,
     Smartphone,
     Speaker,
     TV,
-    Unknown
+    AVR,
+    STB,
+    AudioDongle,
+    GameConsole,
+    CastVideo,
+    CastAudio,
+    Automobile,
+    Unknown,
 }
