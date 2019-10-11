@@ -1,3 +1,9 @@
+## 0.7 (2019/10/11)
+- Code optimize, remove a unnecessary mut and add a missing reference
+- Fix reqwest breaking change
+- Add missing devices type
+- Add `position_ms` to `start_playback
+
 ## 0.6 (2019/07/22)
 - Make PrivateUser country optional
 
