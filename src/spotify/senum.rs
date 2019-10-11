@@ -1213,11 +1213,23 @@ impl fmt::Debug for SearchType {
 }
 
 
-/// Device Type: computer, smartphone, speaker
+/// Device Type: computer, smartphone, speaker, TV, etc.
+/// See the [Spotify developer
+/// docs](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
+/// for more information, or in case we are missing a device type here.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DeviceType {
     Computer,
+    Tablet,
     Smartphone,
     Speaker,
-    Unknown
+    TV,
+    AVR,
+    STB,
+    AudioDongle,
+    GameConsole,
+    CastVideo,
+    CastAudio,
+    Automobile,
+    Unknown,
 }
