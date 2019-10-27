@@ -1373,17 +1373,15 @@ impl Spotify {
                           "tempo",
                           "time_signature",
                           "valence"];
-        let prefixs = vec!["min_", "max_", "target_"];
-        for (attribute, prefix) in iproduct!(attributes, prefixs) {
+        let prefixes = vec!["min_", "max_", "target_"];
+        for (attribute, prefix) in iproduct!(attributes, prefixes) {
             let param = prefix.to_owned() + attribute;
             if let Some(value) = payload.get(&param) {
-                if let Some(value_str) = value.as_str() {
-                    params.insert(param, value_str.to_owned());
-                }
+                params.insert(param, value.to_string());
             }
         }
         // for attribute in attributes {
-        //     for prefix in prefixs {
+        //     for prefix in prefixes {
         //         let param = prefix.to_owned() + attribute;
         //         if let Some(value) = payload.get(&param) {
         //             if let Some(value_str) = value.as_str() {
@@ -1537,7 +1535,7 @@ impl Spotify {
     ///- context_uri - spotify context uri to play
     ///- uris - spotify track uris
     ///- offset - offset into context by index or track
-    ///- position_ms - Indicates from what position to start playback. 
+    ///- position_ms - Indicates from what position to start playback.
     pub fn start_playback(&self,
                           device_id: Option<String>,
                           context_uri: Option<String>,
