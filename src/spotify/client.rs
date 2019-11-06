@@ -49,7 +49,17 @@ pub enum ApiError {
 impl failure::Fail for ApiError {}
 impl fmt::Display for ApiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Spotify API reported an error")
+        match self {
+            ApiError::Unauthorized => write!(f, "Unauthorized request to API"),
+            ApiError::RateLimited(e) => {
+                if let Some(d) = e {
+                    write!(f, "Exceeded API request limit - please wait {} seconds", d)
+                } else {
+                    write!(f, "Exceeded API request limit")
+                }
+            }
+            ApiError::Other(s) => write!(f, "Spotify API reported error code {}", s),
+        }
     }
 }
 impl From<&reqwest::Response> for ApiError {
