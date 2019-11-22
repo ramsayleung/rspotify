@@ -539,6 +539,39 @@ impl Spotify {
         self.convert_result::<FullPlaylist>(&result)
     }
 
+
+
+    /// [get playlists tracks](https://developer.spotify.com/web-api/get-playlists-tracks/)
+    /// Get full details of the tracks of a playlist.
+    ///
+    /// Parameters:
+    /// - playlist_id - the id of the playlist.
+    /// - limit - the maximum number of tracks to return.
+    /// - offset - the index of the first track to return.
+    /// - market - an ISO 3166-1 alpha-2 country code.
+    pub fn playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>
+    (&self,
+     playlist_id: &str,
+     fields: Option<&str>,
+     limit: L,
+     offset: O,
+     market: Option<Country>)
+     -> Result<Page<PlaylistTrack>, failure::Error> {
+        let mut params = HashMap::new();
+        params.insert("limit".to_owned(), limit.into().unwrap_or(100).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        if let Some(_market) = market {
+            params.insert("market".to_owned(), _market.as_str().to_owned());
+        }
+        if let Some(_fields) = fields {
+            params.insert("fields".to_owned(), _fields.to_string());
+        }
+        let plid = self.get_id(Type::Playlist, playlist_id);
+        let url = format!("playlists/{}/tracks", plid);
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<PlaylistTrack>>(&result)
+    }
+
     ///[get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
     ///Get current user playlists without required getting his profile
     ///Parameters:
