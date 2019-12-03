@@ -1169,6 +1169,22 @@ impl Spotify {
         }
     }
 
+    ///[check users saved albums](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-albums/)
+    ///Check if one or more albums is already saved in
+    ///the current Spotify user’s “Your Music” library.
+    ///Parameters:
+    ///- album_ids - a list of album URIs, URLs or IDs
+    pub fn current_user_saved_albums_contains(&self, album_ids: &[String]) -> Result<Vec<bool>, failure::Error> {
+        let uris: Vec<String> = album_ids
+            .iter()
+            .map(|id| self.get_id(Type::Album, id))
+            .collect();
+        let url = format!("me/albums/contains/?ids={}",uris.join(","));
+        let mut dumb = HashMap::new();
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<Vec<bool>>(&result)
+    }
+
 
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more artists
@@ -1194,6 +1210,17 @@ impl Spotify {
         }
     }
 
+    ///[check user following
+    ///artists](https://developer.spotify.com/web-api/checkcurrent-user-follows/)
+    ///Check to see if the given users are following the given artists
+    ///Parameters:
+    ///- artist_ids - the ids of the users that you want to
+    pub fn user_artist_check_follow(&self, artsit_ids: &[String]) -> Result<Vec<bool>, failure::Error> {
+        let url = format!("me/following/contains?type=artist&ids={}", artsit_ids.join(","));
+        let mut dumb = HashMap::new();
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<Vec<bool>>(&result)
+    }
 
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
     ///Follow one or more users
