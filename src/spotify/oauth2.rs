@@ -2,7 +2,7 @@
 // use 3rd party library
 use chrono::prelude::*;
 use serde_json;
-use reqwest::Client;
+use reqwest::{Client, Proxy};
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -25,6 +25,8 @@ pub struct SpotifyClientCredentials {
     pub client_id: String,
     pub client_secret: String,
     pub token_info: Option<TokenInfo>,
+    #[serde(skip)]
+    pub proxy: Option<Proxy>
 }
 /// Authorization for spotify
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -35,7 +37,8 @@ pub struct SpotifyOAuth {
     pub state: String,
     pub cache_path: PathBuf,
     pub scope: String,
-    pub proxies: Option<String>,
+    #[serde(skip)]
+    pub proxy: Option<Proxy>,
 }
 
 /// Spotify token-info
@@ -101,6 +104,7 @@ impl SpotifyClientCredentials {
         SpotifyClientCredentials {
             client_id: client_id,
             client_secret: client_secret,
+            proxy: None,
             token_info: None,
         }
     }
@@ -183,7 +187,7 @@ impl SpotifyClientCredentials {
                           client_secret: &str,
                           payload: &HashMap<&str, &str>)
                           -> Option<TokenInfo> {
-        fetch_access_token(client_id, client_secret, payload)
+        fetch_access_token(client_id, client_secret, self.proxy.as_ref(), payload).unwrap()
     }
 }
 
@@ -209,7 +213,7 @@ impl SpotifyOAuth {
             state: generate_random_string(16),
             scope: String::new(),
             cache_path: PathBuf::from(".spotify_token_cache.json"),
-            proxies: None,
+            proxy: None,
         }
     }
     pub fn client_id(mut self, client_id: &str) -> SpotifyOAuth {
@@ -236,8 +240,8 @@ impl SpotifyOAuth {
         self.cache_path = cache_path;
         self
     }
-    pub fn proxies(mut self, proxies: &str) -> SpotifyOAuth {
-        self.proxies = Some(proxies.to_owned());
+    pub fn proxy(mut self, proxy: Proxy) -> SpotifyOAuth {
+        self.proxy = Some(proxy);
         self
     }
     pub fn build(self) -> SpotifyOAuth {
@@ -335,7 +339,7 @@ impl SpotifyOAuth {
                           payload: &HashMap<&str, &str>)
                           -> Option<TokenInfo> {
         trace!("fetch_access_token->payload {:?}", &payload);
-        fetch_access_token(client_id, client_secret, payload)
+        fetch_access_token(client_id, client_secret, self.proxy.as_ref(), payload).unwrap()
     }
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
@@ -431,13 +435,19 @@ fn save_token_info(token_info: &str, path: &Path) {
 
 fn fetch_access_token(_client_id: &str,
                       _client_secret: &str,
+                      proxy: Option<&Proxy>,
                       payload: &HashMap<&str, &str>)
-                      -> Option<TokenInfo> {
-    let client = Client::new();
+                      -> Result<Option<TokenInfo>, failure::Error>{
+    let mut client = Client::builder();
+    
+    if let Some(proxy) = proxy {
+        client = client.proxy(proxy.clone());
+    }
+    
     let client_id = _client_id.to_owned();
     let client_secret = _client_secret.to_owned();
     let url = "https://accounts.spotify.com/api/token";
-    let mut response = client
+    let mut response = client.build()?
         .post(url)
         .basic_auth(client_id, Some(client_secret))
         .form(&payload)
@@ -457,18 +467,18 @@ fn fetch_access_token(_client_id: &str,
             match payload.get("refresh_token") {
                 Some(payload_refresh_token) => {
                     token_info.set_refresh_token(payload_refresh_token);
-                    return Some(token_info);
+                    return Ok(Some(token_info));
                 }
                 None => {
                     debug!("could not find refresh_token");
                 }
             }
         }
-        Some(token_info)
+        Ok(Some(token_info))
     } else {
         error!("fetch access token request failed, payload:{:?}", &payload);
         error!("{:?}", response);
-        None
+        Ok(None)
     }
 }
 

@@ -5,6 +5,7 @@ use serde_json::Value;
 use serde_json::map::Map;
 use serde::de::Deserialize;
 use reqwest::Client;
+use reqwest::Proxy;
 use reqwest::Method;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap};
 use reqwest::StatusCode;
@@ -35,10 +36,7 @@ use super::model::device::DevicePayload;
 use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
 use super::model::search::{SearchAlbums, SearchArtists, SearchTracks, SearchPlaylists};
 use super::util::convert_map_to_string;
-lazy_static! {
-    /// HTTP Client
-    pub static ref CLIENT: Client = Client::new();
-}
+
 /// Describes API errors
 #[derive(Debug)]
 pub enum ApiError {
@@ -84,6 +82,8 @@ pub struct Spotify {
     pub prefix: String,
     pub access_token: Option<String>,
     pub client_credentials_manager: Option<SpotifyClientCredentials>,
+    #[serde(skip)]
+    pub proxy: Option<Proxy>
 }
 impl Spotify {
     //! If you want to check examples of all API endpoint, you could check the
@@ -93,6 +93,7 @@ impl Spotify {
             prefix: "https://api.spotify.com/v1/".to_owned(),
             access_token: None,
             client_credentials_manager: None,
+            proxy: None
         }
     }
 
@@ -147,7 +148,13 @@ impl Spotify {
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let mut response = {
-            let builder = CLIENT
+            let mut client = Client::builder();
+            
+            if let Some(ref proxy) = self.proxy {
+                client = client.proxy(proxy.clone());
+            }
+            
+            let builder = client.build()?
                 .request(method, &url.into_owned())
                 .headers(headers);
 
