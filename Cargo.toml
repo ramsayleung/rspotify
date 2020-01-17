@@ -26,6 +26,9 @@ url = "1.6.0"
 webbrowser = "0.5.0"
 failure = "0.1"
 
+[dev-dependencies]
+lazy_static = "1.0"
+
 [dependencies.chrono]
 features = ["serde", "rustc-serialize"]
 version = "0.4"

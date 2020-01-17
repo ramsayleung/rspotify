@@ -34,8 +34,8 @@ fn main() {
             let mut artist_ids = vec![];
             let artist_id1 = String::from("74ASZWbe4lXaubB36ztrGX");
             let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
-            artist_ids.push(artist_id1)
-            artist_ids.push(artist_id2)
+            artist_ids.push(artist_id1);
+            artist_ids.push(artist_id2);
             let result = spotify.user_artist_check_follow(&artist_ids);
             println!("result:{:?}", result);
         }

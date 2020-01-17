@@ -36,8 +36,8 @@ fn main() {
             let mut album_ids = vec![];
             let album_id1 = String::from("0pJJgBzj26qnE1nSQUxaB0");
             let album_id2 = String::from("5ZAKzV4ZIa5Gt7z29OYHv0");
-            albums_ids.push(track_id2);
-            albums_ids.push(track_id1);
+            album_ids.push(album_id1);
+            album_ids.push(album_id2);
             let result = spotify.current_user_saved_albums_contains(&album_ids);
             println!("result:{:?}", result);
         }
