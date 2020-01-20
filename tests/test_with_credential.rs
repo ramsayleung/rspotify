@@ -125,7 +125,7 @@ fn test_audio_analysis() {
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
-    let track = "3JIxjvbbDrA9ztYlNcp3yL";
+    let track = "06AKEBrKUckW0KREUWRnvT";
     let analysis = spotify.audio_analysis(track);
     assert!(analysis.is_ok());
 }

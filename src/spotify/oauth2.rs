@@ -2,7 +2,7 @@
 // use 3rd party library
 use chrono::prelude::*;
 use serde_json;
-use reqwest::Client;
+use reqwest::blocking::Client;
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -10,7 +10,6 @@ use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use std::env;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-use std::error::Error;
 use std::fs::File;
 use std::iter::FromIterator;
 use std::io::prelude::*;
@@ -271,14 +270,14 @@ impl SpotifyOAuth {
         let mut file = match File::open(&self.cache_path) {
             Ok(file) => file,
             Err(why) => {
-                error!("couldn't open {}: {:?}", display, why.description());
+                error!("couldn't open {}: {:?}", display, why.to_string());
                 return None;
             }
         };
         let mut token_info_string = String::new();
         match file.read_to_string(&mut token_info_string) {
             Err(why) => {
-                error!("couldn't read {}: {}", display, why.description());
+                error!("couldn't read {}: {}", display, why.to_string());
                 None
             }
             Ok(_) => {
@@ -321,7 +320,7 @@ impl SpotifyOAuth {
                 }
                 Err(why) => {
                     panic!("couldn't convert token_info to string: {} ",
-                           why.description());
+                           why.to_string());
                 }
             }
         } else {
@@ -385,7 +384,7 @@ impl SpotifyOAuth {
                 }
                 Err(why) => {
                     panic!("couldn't convert token_info to string: {} ",
-                           why.description());
+                           why.to_string());
                 }
             }
         } else {
@@ -504,12 +503,12 @@ mod tests {
                 spotify_oauth.save_token_info(&token_info_string);
                 let display = spotify_oauth.cache_path.display();
                 let mut file = match File::open(&spotify_oauth.cache_path) {
-                    Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+                    Err(why) => panic!("couldn't open {}: {}", display, why.to_string()),
                     Ok(file) => file,
                 };
                 let mut token_info_string_from_file = String::new();
                 match file.read_to_string(&mut token_info_string_from_file) {
-                    Err(why) => panic!("couldn't read {}: {}", display, why.description()),
+                    Err(why) => panic!("couldn't read {}: {}", display, why.to_string()),
                     Ok(_) => {
                         assert_eq!(token_info_string, token_info_string_from_file);
                     }
@@ -517,7 +516,7 @@ mod tests {
             }
             Err(why) => {
                 panic!("couldn't convert token_info to string: {} ",
-                       why.description())
+                       why.to_string())
             }
         }
     }

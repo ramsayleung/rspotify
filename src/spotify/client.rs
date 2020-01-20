@@ -4,7 +4,7 @@ use serde_json;
 use serde_json::Value;
 use serde_json::map::Map;
 use serde::de::Deserialize;
-use reqwest::Client;
+use reqwest::blocking::Client;
 use reqwest::Method;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap};
 use reqwest::StatusCode;
@@ -62,8 +62,8 @@ impl fmt::Display for ApiError {
         }
     }
 }
-impl From<&reqwest::Response> for ApiError {
-    fn from(response: &reqwest::Response) -> Self {
+impl From<&reqwest::blocking::Response> for ApiError {
+    fn from(response: &reqwest::blocking::Response) -> Self {
         match response.status() {
             StatusCode::UNAUTHORIZED => ApiError::Unauthorized,
             StatusCode::TOO_MANY_REQUESTS => {
