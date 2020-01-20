@@ -8,7 +8,7 @@ matrix:
     - rust: nightly
 
 script:
-  cargo test
+  - cargo test
   - cargo run --example artists_albums
   - cargo run --example track
   - cargo run --example artist_related_artists
