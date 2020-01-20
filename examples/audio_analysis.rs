@@ -17,7 +17,7 @@ fn main() {
     let spotify = Spotify::default()
         .client_credentials_manager(client_credential)
         .build();
-    let track = "3JIxjvbbDrA9ztYlNcp3yL";
+    let track = "06AKEBrKUckW0KREUWRnvT";
     let analysis = spotify.audio_analysis(track);
     println!("{:?}", analysis);
 }
