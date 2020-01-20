@@ -18,7 +18,7 @@ users, artists and playlists, and saved tracks management).
 
 *rspotify* supports all of the features of the Spotify Web API including access to all end points, and support for user authorization, notes that before accessing to any end points, you need to be authorized. For details on the capabilities you are encouraged to review the [Spotify Web Endpoint Reference](https://developer.spotify.com/web-api/endpoint-reference/) documentation.
 
-Nowaday, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` now supports system proxy by default. `Reqwest` System proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide http proxies for http connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections.(Notes that `reqwest` system proxy doesn't support socks proxy for now, check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details)
+Nowaday, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` now supports system proxy by default. `Reqwest` System proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide http proxies for http connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections.(~~Notes that `reqwest` system proxy doesn't support socks proxy for now,~~ check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details)
 
 ## Installation
 
