@@ -503,12 +503,12 @@ mod tests {
                 spotify_oauth.save_token_info(&token_info_string);
                 let display = spotify_oauth.cache_path.display();
                 let mut file = match File::open(&spotify_oauth.cache_path) {
-                    Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+                    Err(why) => panic!("couldn't open {}: {}", display, why.to_string()),
                     Ok(file) => file,
                 };
                 let mut token_info_string_from_file = String::new();
                 match file.read_to_string(&mut token_info_string_from_file) {
-                    Err(why) => panic!("couldn't read {}: {}", display, why.description()),
+                    Err(why) => panic!("couldn't read {}: {}", display, why.to_string()),
                     Ok(_) => {
                         assert_eq!(token_info_string, token_info_string_from_file);
                     }
@@ -516,7 +516,7 @@ mod tests {
             }
             Err(why) => {
                 panic!("couldn't convert token_info to string: {} ",
-                       why.description())
+                       why.to_string())
             }
         }
     }

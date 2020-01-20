@@ -37,7 +37,7 @@ fn main() {
             // user_id and playlist_id to yours, or you will get a 403 forbidden error
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
-            let mut playlist_name = "A New Playlist-update";
+            let playlist_name = "A New Playlist-update";
             match spotify.user_playlist_change_detail(user_id,
                                                       playlist_id,
                                                       Some(playlist_name),

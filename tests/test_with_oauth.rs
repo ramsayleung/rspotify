@@ -11,6 +11,10 @@ use rspotify::spotify::senum::{Country, TimeRange, RepeatState};
 use rspotify::spotify::util::get_token;
 use rspotify::spotify::model::offset::for_position;
 
+// Because of all these tests need to poll up the browser, it is impossible to
+// run in a CI envirnment like travis, so I just ignore them all. You could
+// delete the #[ignore] tag, and run it on your local machine.
+
 #[test]#[ignore]
 fn test_categories() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
@@ -658,7 +662,7 @@ fn test_start_playback() {
                 .client_credentials_manager(client_credential)
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-            let mut uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
+            let uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
             let result = spotify.start_playback(Some(device_id), None, Some(uris), for_position(0), None);
             assert!(result.is_ok());
         }
@@ -821,7 +825,7 @@ fn test_user_playlist_change_detail() {
                 .build();
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
-            let mut playlist_name = "A New Playlist-update";
+            let playlist_name = "A New Playlist-update";
             let result = spotify.user_playlist_change_detail(user_id,
                                                              playlist_id,
                                                              Some(playlist_name),
