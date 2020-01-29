@@ -82,8 +82,8 @@ impl TokenInfo {
         self.refresh_token = Some(refresh_token.to_owned());
         self
     }
-    pub fn set_expires_at(&mut self, expires_at: &i64) {
-        self.expires_at = Some(*expires_at);
+    pub fn set_expires_at(&mut self, expires_at: i64) {
+        self.expires_at = Some(expires_at);
     }
     pub fn set_refresh_token(&mut self, refresh_token: &str) {
         self.refresh_token = Some(refresh_token.to_owned());
@@ -102,8 +102,8 @@ impl SpotifyClientCredentials {
             client_secret
         );
         SpotifyClientCredentials {
-            client_id: client_id,
-            client_secret: client_secret,
+            client_id,
+            client_secret,
             token_info: None,
         }
     }
@@ -175,7 +175,7 @@ impl SpotifyClientCredentials {
             self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
         {
             let expires_in = token_info.expires_in;
-            token_info.set_expires_at(&datetime_to_timestamp(expires_in));
+            token_info.set_expires_at(datetime_to_timestamp(expires_in));
             Some(token_info)
         } else {
             None
@@ -207,9 +207,9 @@ impl SpotifyOAuth {
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
         let redirect_uri = env::var("REDIRECT_URI").unwrap_or_default();
         SpotifyOAuth {
-            client_id: client_id,
-            client_secret: client_secret,
-            redirect_uri: redirect_uri,
+            client_id,
+            client_secret,
+            redirect_uri,
             state: generate_random_string(16),
             scope: String::new(),
             cache_path: PathBuf::from(".spotify_token_cache.json"),
@@ -252,13 +252,9 @@ impl SpotifyOAuth {
     CLIENT_SECRET='your-spotify-client-secret'
     REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
-        let empty_flag = if self.redirect_uri.is_empty() {
-            true
-        } else if self.client_id.is_empty() {
-            true
-        } else {
-            self.client_secret.is_empty()
-        };
+        let empty_flag = self.redirect_uri.is_empty()
+            || self.client_id.is_empty()
+            || self.client_secret.is_empty();
 
         if empty_flag {
             error!("{}", ERROR_MESSAGE);
@@ -288,21 +284,20 @@ impl SpotifyOAuth {
                 None
             }
             Ok(_) => {
-                let mut token_info: TokenInfo = serde_json::from_str(&token_info_string).expect(
-                    &format!("convert [{:?}] to json failed", self.cache_path.display()),
-                );
+                let mut token_info: TokenInfo = serde_json::from_str(&token_info_string)
+                    .unwrap_or_else(|_| {
+                        panic!("convert [{:?}] to json failed", self.cache_path.display())
+                    });
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
                     None
-                } else {
-                    if self.is_token_expired(&token_info) {
-                        if let Some(refresh_token) = token_info.refresh_token {
-                            self.refresh_access_token(&refresh_token)
-                        } else {
-                            None
-                        }
+                } else if self.is_token_expired(&token_info) {
+                    if let Some(refresh_token) = token_info.refresh_token {
+                        self.refresh_access_token(&refresh_token)
                     } else {
-                        Some(token_info)
+                        None
                     }
+                } else {
+                    Some(token_info)
                 }
             }
         }
@@ -322,7 +317,7 @@ impl SpotifyOAuth {
                 Ok(token_info_string) => {
                     trace!("get_access_token->token_info[{:?}]", &token_info_string);
                     self.save_token_info(&token_info_string);
-                    return Some(token_info);
+                    Some(token_info)
                 }
                 Err(why) => {
                     panic!(
@@ -390,7 +385,7 @@ impl SpotifyOAuth {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     self.save_token_info(&token_info_string);
-                    return Some(token_info);
+                    Some(token_info)
                 }
                 Err(why) => {
                     panic!(
@@ -432,11 +427,13 @@ fn save_token_info(token_info: &str, path: &Path) {
         .write(true)
         .create(true)
         .open(path)
-        .expect(&format!("create file {:?} error", path.display()));
-    file.set_len(0).expect(&format!(
-        "clear original spoitfy-token-cache file [{:?}] failed",
-        path.display()
-    ));
+        .unwrap_or_else(|_| panic!("create file {:?} error", path.display()));
+    file.set_len(0).unwrap_or_else(|_| {
+        panic!(
+            "clear original spoitfy-token-cache file [{:?}] failed",
+            path.display()
+        )
+    });
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
 }
@@ -465,7 +462,7 @@ fn fetch_access_token(
         let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
         // .expect("parsing response content to tokenInfo error");
         let expires_in = token_info.expires_in;
-        token_info.set_expires_at(&datetime_to_timestamp(expires_in));
+        token_info.set_expires_at(datetime_to_timestamp(expires_in));
         if token_info.refresh_token.is_none() {
             match payload.get("refresh_token") {
                 Some(payload_refresh_token) => {

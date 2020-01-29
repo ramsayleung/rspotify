@@ -1825,7 +1825,7 @@ impl Spotify {
     }
     /// get spotify id by type and id
     fn get_id(&self, _type: Type, id: &str) -> String {
-        let mut _id = id.to_owned().clone();
+        let mut _id = id.to_owned();
         let fields: Vec<&str> = _id.split(':').collect();
         let len = fields.len();
         if len >= 3 {
