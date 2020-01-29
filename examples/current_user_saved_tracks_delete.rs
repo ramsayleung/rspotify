@@ -1,8 +1,8 @@
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -43,10 +43,8 @@ fn main() {
                     println!("saved tracks delete successful");
                 }
                 Err(_) => eprintln!("saved tracks delete failed"),
-
             }
         }
         None => println!("auth failed"),
     };
-
 }

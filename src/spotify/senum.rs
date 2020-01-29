@@ -881,7 +881,6 @@ impl Country {
             Country::Yemen => "YE",
             Country::Zambia => "ZM",
             Country::Zimbabwe => "ZW",
-
         }
     }
 }
@@ -1137,7 +1136,6 @@ impl fmt::Debug for Country {
             Country::Yemen => write!(f, "YE"),
             Country::Zambia => write!(f, "ZM"),
             Country::Zimbabwe => write!(f, "ZW"),
-
         }
     }
 }
@@ -1145,8 +1143,8 @@ impl fmt::Debug for Country {
 ///repeat state: track, context or off.
 /// - track will repeat the current track.
 /// - context will repeat the current context.
-/// - off will turn repeat off. 
-#[derive(Clone, Debug,Copy, Serialize, Deserialize)]
+/// - off will turn repeat off.
+#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RepeatState {
     Off,
@@ -1171,7 +1169,7 @@ impl RepeatState {
     }
 }
 
-/// Type for search: artist, album, track, playlist 
+/// Type for search: artist, album, track, playlist
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum SearchType {
@@ -1211,7 +1209,6 @@ impl fmt::Debug for SearchType {
         }
     }
 }
-
 
 /// Device Type: computer, smartphone, speaker, TV, etc.
 /// See the [Spotify developer

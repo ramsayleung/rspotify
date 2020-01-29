@@ -15,10 +15,12 @@ fn main() {
     //     .client_id("this-is-my-client-id")
     //     .client_secret("this-is-my-client-secret")
     //     .build();
-    println!("{:?}:{:?}:{:?}",
-             &client_credential.client_id,
-             &client_credential.client_secret,
-             &client_credential.get_access_token());
+    println!(
+        "{:?}:{:?}:{:?}",
+        &client_credential.client_id,
+        &client_credential.client_secret,
+        &client_credential.get_access_token()
+    );
     let spotify = Spotify::default()
         .client_credentials_manager(client_credential)
         .build();

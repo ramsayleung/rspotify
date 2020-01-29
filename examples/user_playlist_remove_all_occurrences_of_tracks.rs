@@ -1,8 +1,8 @@
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -42,13 +42,14 @@ fn main() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.user_playlist_remove_all_occurrences_of_tracks(user_id,
-                                                                                playlist_id,
-                                                                                &tracks_ids,
-                                                                                None);
+            let result = spotify.user_playlist_remove_all_occurrences_of_tracks(
+                user_id,
+                playlist_id,
+                &tracks_ids,
+                None,
+            );
             println!("result:{:?}", result);
         }
         None => println!("auth failed"),
     };
-
 }

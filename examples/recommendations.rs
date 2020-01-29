@@ -2,9 +2,9 @@ extern crate rspotify;
 extern crate serde_json;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::senum::Country;
+use rspotify::spotify::util::get_token;
 use serde_json::map::Map;
 
 fn main() {
@@ -39,15 +39,16 @@ fn main() {
             let seed_tracks = vec!["0c6xIDDpzE81m2q797ordA".to_owned()];
             payload.insert("min_energy".to_owned(), 0.4.into());
             payload.insert("min_popularity".to_owned(), 50.into());
-            let result = spotify.recommendations(Some(seed_artists),
-                                                 None,
-                                                 Some(seed_tracks),
-                                                 10,
-                                                 Some(Country::UnitedStates),
-                                                 &payload);
+            let result = spotify.recommendations(
+                Some(seed_artists),
+                None,
+                Some(seed_tracks),
+                10,
+                Some(Country::UnitedStates),
+                &payload,
+            );
             println!("search result:{:?}", result);
         }
         None => println!("auth failed"),
     };
-
 }
