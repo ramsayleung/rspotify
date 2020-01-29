@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use super::device::Device;
 use super::track::FullTrack;
-use spotify::senum::{RepeatState, Type};
+use crate::spotify::senum::{RepeatState, Type};
 /// Context object
 ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]

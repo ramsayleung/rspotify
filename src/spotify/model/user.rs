@@ -5,7 +5,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 use super::image::Image;
-use spotify::senum::Type;
+use crate::spotify::senum::Type;
 ///[public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PublicUser {
