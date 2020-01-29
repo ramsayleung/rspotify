@@ -1,13 +1,13 @@
 //! All kinds of playlists objects
-use serde_json::Value;
 use chrono::prelude::*;
+use serde_json::Value;
 use std::collections::HashMap;
 
 use super::image::Image;
-use super::user::PublicUser;
-use super::track::FullTrack;
 use super::page::Page;
-use spotify::senum::Type;
+use super::track::FullTrack;
+use super::user::PublicUser;
+use crate::spotify::senum::Type;
 ///[playlist object simplified](https://developer.spotify.com/web-api/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlaylist {
