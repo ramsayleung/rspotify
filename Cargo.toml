@@ -8,6 +8,7 @@ description="Spotify API wrapper"
 homepage="https://github.com/samrayleung/rspotify"
 repository="https://github.com/samrayleung/rspotify"
 keywords=["spotify","api"]
+edition = "2018"
 [dependencies]
 base64 = "0.10.0"
 derive_builder = "0.7"

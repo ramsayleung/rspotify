@@ -1,10 +1,10 @@
 //! All objects related to artist defined by Spotify API
 
-use std::collections::HashMap;
-use serde_json::Value;
-use spotify::senum::Type;
 use super::image::Image;
 use super::page::CursorBasedPage;
+use crate::spotify::senum::Type;
+use serde_json::Value;
+use std::collections::HashMap;
 ///[artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)
 /// Simplified Artist Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -20,7 +20,7 @@ pub struct SimplifiedArtist {
 
 ///[artist object full](https://developer.spotify.com/web-api/object-model/#artist-object-full)
 /// Full Artist Object
-#[derive(Clone, Debug,Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullArtist {
     pub external_urls: HashMap<String, String>,
     pub followers: HashMap<String, Option<Value>>,
