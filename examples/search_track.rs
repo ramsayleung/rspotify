@@ -1,9 +1,9 @@
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::senum::Country;
+use rspotify::spotify::util::get_token;
 fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
@@ -33,9 +33,8 @@ fn main() {
                 .build();
             let query = "abba";
             let result = spotify.search_track(query, 10, 0, Some(Country::UnitedStates));
-            println!("search result:{:?}",result);
+            println!("search result:{:?}", result);
         }
         None => println!("auth failed"),
     };
-
 }

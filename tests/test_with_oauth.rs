@@ -1,21 +1,22 @@
-extern crate rspotify;
 extern crate chrono;
+extern crate rspotify;
 extern crate serde_json;
 
 use chrono::prelude::*;
 use serde_json::map::Map;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::senum::{Country, TimeRange, RepeatState};
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::model::offset::for_position;
+use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::senum::{Country, RepeatState, TimeRange};
+use rspotify::spotify::util::get_token;
 
 // Because of all these tests need to poll up the browser, it is impossible to
 // run in a CI envirnment like travis, so I just ignore them all. You could
 // delete the #[ignore] tag, and run it on your local machine.
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_categories() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
     match get_token(&mut oauth) {
@@ -33,7 +34,8 @@ fn test_categories() {
         None => assert!(false),
     };
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-playback-state")
@@ -51,9 +53,9 @@ fn test_current_playback() {
         }
         None => assert!(false),
     };
-
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_playing() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-currently-playing")
@@ -73,7 +75,8 @@ fn test_current_playing() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_followed_artists() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
     match get_token(&mut oauth) {
@@ -89,10 +92,10 @@ fn test_current_user_followed_artists() {
         }
         None => assert!(false),
     };
-
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_playing_track() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-currently-playing user-read-playback-state")
@@ -112,7 +115,8 @@ fn test_current_user_playing_track() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_playlists() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-read-private")
@@ -127,12 +131,12 @@ fn test_current_user_playlists() {
                 .build();
             let playlists = spotify.current_user_playlists(10, None);
             assert!(playlists.is_ok());
-
         }
         None => assert!(false),
     };
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_recently_played() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-recently-played")
@@ -152,7 +156,8 @@ fn test_current_user_recently_played() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_albums_add() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth) {
@@ -175,7 +180,8 @@ fn test_current_user_saved_albums_add() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_albums_delete() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth) {
@@ -198,7 +204,8 @@ fn test_current_user_saved_albums_delete() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_albums() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
     match get_token(&mut oauth) {
@@ -216,7 +223,8 @@ fn test_current_user_saved_albums() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_tracks_add() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth) {
@@ -239,7 +247,8 @@ fn test_current_user_saved_tracks_add() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_tracks_contains() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
     match get_token(&mut oauth) {
@@ -260,10 +269,10 @@ fn test_current_user_saved_tracks_contains() {
         }
         None => assert!(false),
     };
-
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_tracks_delete() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth) {
@@ -284,11 +293,10 @@ fn test_current_user_saved_tracks_delete() {
         }
         None => assert!(false),
     };
-
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_saved_tracks() {
-
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
     match get_token(&mut oauth) {
         Some(token_info) => {
@@ -304,7 +312,8 @@ fn test_current_user_saved_tracks() {
         None => assert!(false),
     }
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_top_artists() {
     let mut oauth = SpotifyOAuth::default().scope("user-top-read").build();
     match get_token(&mut oauth) {
@@ -322,7 +331,8 @@ fn test_current_user_top_artists() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_current_user_top_tracks() {
     let mut oauth = SpotifyOAuth::default().scope("user-top-read").build();
     match get_token(&mut oauth) {
@@ -340,7 +350,8 @@ fn test_current_user_top_tracks() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_device() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-playback-state")
@@ -360,7 +371,8 @@ fn test_device() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_featured_playlists() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
     match get_token(&mut oauth) {
@@ -380,7 +392,8 @@ fn test_featured_playlists() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_me() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-birthdate user-read-private user-read-email")
@@ -400,7 +413,8 @@ fn test_me() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_new_releases() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
     match get_token(&mut oauth) {
@@ -419,7 +433,8 @@ fn test_new_releases() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_next_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -440,7 +455,8 @@ fn test_next_playback() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_pause_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -456,13 +472,13 @@ fn test_pause_playback() {
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
             let result = spotify.pause_playback(Some(device_id));
             assert!(result.is_ok());
-
         }
         None => assert!(false),
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_previous_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -483,7 +499,8 @@ fn test_previous_playback() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_recommendations() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
@@ -499,19 +516,22 @@ fn test_recommendations() {
             let seed_tracks = vec!["0c6xIDDpzE81m2q797ordA".to_owned()];
             payload.insert("min_energy".to_owned(), 0.4.into());
             payload.insert("min_popularity".to_owned(), 50.into());
-            let result = spotify.recommendations(Some(seed_artists),
-                                                 None,
-                                                 Some(seed_tracks),
-                                                 10,
-                                                 Some(Country::UnitedStates),
-                                                 &payload);
+            let result = spotify.recommendations(
+                Some(seed_artists),
+                None,
+                Some(seed_tracks),
+                10,
+                Some(Country::UnitedStates),
+                &payload,
+            );
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_repeat() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -531,7 +551,8 @@ fn test_repeat() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_search_album() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
@@ -550,7 +571,8 @@ fn test_search_album() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_search_artist() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
@@ -569,7 +591,8 @@ fn test_search_artist() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_search_playlist() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
@@ -588,7 +611,8 @@ fn test_search_playlist() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_search_track() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
     match get_token(&mut oauth) {
@@ -607,7 +631,8 @@ fn test_search_track() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_seek_track() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -627,7 +652,8 @@ fn test_seek_track() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_shuffle() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -642,13 +668,13 @@ fn test_shuffle() {
                 .build();
             let result = spotify.shuffle(true, None);
             assert!(result.is_ok());
-
         }
         None => assert!(false),
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_start_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -663,13 +689,15 @@ fn test_start_playback() {
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
             let uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
-            let result = spotify.start_playback(Some(device_id), None, Some(uris), for_position(0), None);
+            let result =
+                spotify.start_playback(Some(device_id), None, Some(uris), for_position(0), None);
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_transfer_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
@@ -685,14 +713,13 @@ fn test_transfer_playback() {
             let device_id = "74ASZWbe4lXaubB36ztrGX";
             let result = spotify.transfer_playback(device_id, true);
             assert!(result.is_ok());
-
         }
         None => assert!(false),
     };
-
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_follow_artist() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
     match get_token(&mut oauth) {
@@ -715,7 +742,8 @@ fn test_user_follow_artist() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_unfollow_artist() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
     match get_token(&mut oauth) {
@@ -738,7 +766,8 @@ fn test_user_unfollow_artist() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_follow_users() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
     match get_token(&mut oauth) {
@@ -756,11 +785,11 @@ fn test_user_follow_users() {
             assert!(result.is_ok());
         }
         None => assert!(false),
-
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_unfollow_users() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
     match get_token(&mut oauth) {
@@ -778,11 +807,11 @@ fn test_user_unfollow_users() {
             assert!(result.is_ok());
         }
         None => assert!(false),
-
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_add_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -806,11 +835,11 @@ fn test_user_playlist_add_tracks() {
             assert!(result.is_ok());
         }
         None => assert!(false),
-
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_change_detail() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -826,19 +855,21 @@ fn test_user_playlist_change_detail() {
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
             let playlist_name = "A New Playlist-update";
-            let result = spotify.user_playlist_change_detail(user_id,
-                                                             playlist_id,
-                                                             Some(playlist_name),
-                                                             Some(false),
-                                                             None,
-                                                             None);
+            let result = spotify.user_playlist_change_detail(
+                user_id,
+                playlist_id,
+                Some(playlist_name),
+                Some(false),
+                None,
+                None,
+            );
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
-
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_check_follow() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -864,7 +895,8 @@ fn test_user_playlist_check_follow() {
         None => assert!(false),
     };
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_create() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -881,13 +913,13 @@ fn test_user_playlist_create() {
             let playlist_name = "A New Playlist";
             let playlists = spotify.user_playlist_create(user_id, playlist_name, false, None);
             assert!(playlists.is_ok());
-
         }
         None => assert!(false),
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_follow_playlist() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -909,7 +941,8 @@ fn test_user_playlist_follow_playlist() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_recorder_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -927,19 +960,22 @@ fn test_user_playlist_recorder_tracks() {
             let range_start = 0;
             let insert_before = 1;
             let range_length = 1;
-            let result = spotify.user_playlist_recorder_tracks(user_id,
-                                                               playlist_id,
-                                                               range_start,
-                                                               range_length,
-                                                               insert_before,
-                                                               None);
+            let result = spotify.user_playlist_recorder_tracks(
+                user_id,
+                playlist_id,
+                range_start,
+                range_length,
+                insert_before,
+                None,
+            );
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_remove_all_occurrences_of_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -959,17 +995,20 @@ fn test_user_playlist_remove_all_occurrences_of_tracks() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.user_playlist_remove_all_occurrences_of_tracks(user_id,
-                                                                                playlist_id,
-                                                                                &tracks_ids,
-                                                                                None);
+            let result = spotify.user_playlist_remove_all_occurrences_of_tracks(
+                user_id,
+                playlist_id,
+                &tracks_ids,
+                None,
+            );
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -989,30 +1028,35 @@ fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
             let mut position1 = vec![];
             position1.push(0);
             position1.push(3);
-            map1.insert("uri".to_string(),
-                        "spotify:track:4iV5W9uYEdYUVa79Axb7Rh".into());
+            map1.insert(
+                "uri".to_string(),
+                "spotify:track:4iV5W9uYEdYUVa79Axb7Rh".into(),
+            );
             map1.insert("position".to_string(), position1.into());
             tracks.push(map1);
             let mut map2 = Map::new();
             let mut position2 = vec![];
             position2.push(7);
-            map2.insert("uri".to_string(),
-                        "spotify:track:1301WleyT98MSxVHPZCA6M".into());
+            map2.insert(
+                "uri".to_string(),
+                "spotify:track:1301WleyT98MSxVHPZCA6M".into(),
+            );
             map2.insert("position".to_string(), position2.into());
             tracks.push(map2);
-            let result =
-                spotify.user_playlist_remove_specific_occurrenes_of_tracks(user_id,
-                                                                           &playlist_id,
-                                                                           tracks,
-                                                                           None);
+            let result = spotify.user_playlist_remove_specific_occurrenes_of_tracks(
+                user_id,
+                &playlist_id,
+                tracks,
+                None,
+            );
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
-
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_replace_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -1039,9 +1083,9 @@ fn test_user_playlist_replace_tracks() {
         }
         None => assert!(false),
     };
-
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist() {
     let mut spotify_oauth = SpotifyOAuth::default().build();
     match get_token(&mut spotify_oauth) {
@@ -1061,7 +1105,8 @@ fn test_user_playlist() {
     };
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlists() {
     let mut spotify_oauth = SpotifyOAuth::default()
         .scope("playlist-read-private, playlist-read-collaborative")
@@ -1080,10 +1125,10 @@ fn test_user_playlists() {
         }
         None => assert!(false),
     };
-
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_tracks() {
     let mut spotify_oauth = SpotifyOAuth::default().build();
     match get_token(&mut spotify_oauth) {
@@ -1100,12 +1145,12 @@ fn test_user_playlist_tracks() {
             let playlists =
                 spotify.user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None);
             assert!(playlists.is_ok());
-
         }
         None => assert!(false),
     };
 }
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_user_playlist_unfollow() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
@@ -1125,10 +1170,10 @@ fn test_user_playlist_unfollow() {
         }
         None => assert!(false),
     };
-
 }
 
-#[test]#[ignore]
+#[test]
+#[ignore]
 fn test_volume() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")

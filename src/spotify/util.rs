@@ -1,16 +1,16 @@
 //! utils function
-use rand::{self, Rng};
-use rand::distributions::Alphanumeric;
 use chrono::prelude::*;
+use rand::distributions::Alphanumeric;
+use rand::{self, Rng};
 use webbrowser;
 
-use std::io;
-use std::string::ToString;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::collections::HashMap;
+use std::io;
+use std::string::ToString;
 
-use super::oauth2::{TokenInfo, SpotifyOAuth};
+use super::oauth2::{SpotifyOAuth, TokenInfo};
 
 /// convert datetime to unix timestampe
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
@@ -19,7 +19,10 @@ pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
 }
 /// generate `length` random chars
 pub fn generate_random_string(length: usize) -> String {
-    rand::thread_rng().sample_iter(&Alphanumeric).take(length).collect()
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .collect()
 }
 
 /// convert map to `query_string`, for example:
@@ -31,8 +34,9 @@ pub fn generate_random_string(length: usize) -> String {
 /// `redirect_uri=my_uri&state=my-state&scope=test-scope`
 /// Since hashmap is not sorted, so the order of key-value-pairs
 /// may differ from times
-pub fn convert_map_to_string<K: Debug + Eq + Hash+ ToString,
-V: Debug+ToString>(map: &HashMap<K, V>) -> String{
+pub fn convert_map_to_string<K: Debug + Eq + Hash + ToString, V: Debug + ToString>(
+    map: &HashMap<K, V>,
+) -> String {
     let mut string: String = String::new();
     for (key, value) in map.iter() {
         string.push_str(&key.to_string());

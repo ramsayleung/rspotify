@@ -3,11 +3,11 @@ use chrono::prelude::*;
 
 use std::collections::HashMap;
 
-use spotify::senum::{Type, AlbumType};
-use super::track::SimplifiedTrack;
 use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
+use super::track::SimplifiedTrack;
+use spotify::senum::{AlbumType, Type};
 
 ///[link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
 /// Simplified Album Object
@@ -17,29 +17,28 @@ pub struct SimplifiedAlbum {
     pub album_group: Option<String>,
     pub album_type: Option<String>,
     pub artists: Vec<SimplifiedArtist>,
-    #[serde(skip_serializing_if="Vec::is_empty",default)]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
     pub id: Option<String>,
     pub images: Vec<Image>,
     pub name: String,
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub release_date: Option<String>,
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub release_date_precision: Option<String>,
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restrictions>,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: Option<String>,
 }
 
-
 /// Restrictions object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Restrictions {
-    pub reason: String
+    pub reason: String,
 }
 
 ///[link to album object full](https://developer.spotify.com/web-api/object-model/#album-object-full)

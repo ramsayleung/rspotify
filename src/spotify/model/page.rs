@@ -21,7 +21,7 @@ pub struct CursorBasedPage<T> {
     pub next: Option<String>,
     pub cursors: Cursor,
     ///absent if it has read all data items. This field doesn't match what
-    /// Spotify document says 
+    /// Spotify document says
     pub total: Option<u32>,
 }
 ///Cursor object

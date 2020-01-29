@@ -1,8 +1,8 @@
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -33,12 +33,11 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            match spotify.shuffle(true,None) {
+            match spotify.shuffle(true, None) {
                 Ok(_) => println!("shuffle playback successful"),
                 Err(_) => eprintln!("shuffle playback failed"),
             }
         }
         None => println!("auth failed"),
     };
-
 }

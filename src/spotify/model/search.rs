@@ -1,9 +1,9 @@
-//! All object related to search 
-use super::page::Page;
+//! All object related to search
 use super::album::SimplifiedAlbum;
 use super::artist::FullArtist;
-use super::track::FullTrack;
+use super::page::Page;
 use super::playlist::SimplifiedPlaylist;
+use super::track::FullTrack;
 ///[search item](https://developer.spotify.com/web-api/search-item/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SearchPlaylists {

@@ -31,7 +31,6 @@ pub struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
 }
 
-
 /// Audio Analysis Object
 ///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]

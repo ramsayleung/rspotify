@@ -1,10 +1,10 @@
 extern crate rspotify;
 extern crate serde_json;
 
-use serde_json::map::Map;
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
+use serde_json::map::Map;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -44,25 +44,29 @@ fn main() {
             let mut position1 = vec![];
             position1.push(0);
             position1.push(3);
-            map1.insert("uri".to_string(),
-                        "spotify:track:4iV5W9uYEdYUVa79Axb7Rh".into());
+            map1.insert(
+                "uri".to_string(),
+                "spotify:track:4iV5W9uYEdYUVa79Axb7Rh".into(),
+            );
             map1.insert("position".to_string(), position1.into());
             tracks.push(map1);
             let mut map2 = Map::new();
             let mut position2 = vec![];
             position2.push(7);
-            map2.insert("uri".to_string(),
-                        "spotify:track:1301WleyT98MSxVHPZCA6M".into());
+            map2.insert(
+                "uri".to_string(),
+                "spotify:track:1301WleyT98MSxVHPZCA6M".into(),
+            );
             map2.insert("position".to_string(), position2.into());
             tracks.push(map2);
-            let result = spotify
-                .user_playlist_remove_specific_occurrenes_of_tracks(user_id,
-                                                                    &playlist_id,
-                                                                    tracks,
-                                                                    None);
+            let result = spotify.user_playlist_remove_specific_occurrenes_of_tracks(
+                user_id,
+                &playlist_id,
+                tracks,
+                None,
+            );
             println!("result:{:?}", result);
         }
         None => println!("auth failed"),
     };
-
 }

@@ -1,8 +1,8 @@
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -45,9 +45,7 @@ fn main() {
             spotify
                 .user_playlist_replace_tracks(user_id, playlist_id, &tracks_ids)
                 .expect("replace tracks in a playlist failed");
-
         }
         None => println!("auth failed"),
     };
-
 }

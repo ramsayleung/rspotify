@@ -1,8 +1,8 @@
 extern crate rspotify;
 
 use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -33,9 +33,8 @@ fn main() {
                 .build();
             let query = "album:arrival artist:abba";
             let result = spotify.search_album(query, 10, 0, None);
-            println!("search result:{:?}",result);
+            println!("search result:{:?}", result);
         }
         None => println!("auth failed"),
     };
-
 }

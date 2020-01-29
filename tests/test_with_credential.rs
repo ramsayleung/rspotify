@@ -16,8 +16,6 @@ static ref CLIENT_CREDENTIAL: Mutex<SpotifyClientCredentials> = Mutex::new(Spoti
 }
 #[test]
 fn test_album() {
-    
-
     // Or set client_id and client_secret explictly
     // let client_credential = SpotifyClientCredentials::default()
     //     .client_id("this-is-my-client-id")
@@ -33,7 +31,6 @@ fn test_album() {
 
 #[test]
 fn test_albums() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -47,7 +44,6 @@ fn test_albums() {
 
 #[test]
 fn test_album_tracks() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -58,7 +54,6 @@ fn test_album_tracks() {
 
 #[test]
 fn test_artist_related_artists() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -69,7 +64,6 @@ fn test_artist_related_artists() {
 
 #[test]
 fn test_artist() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -80,23 +74,23 @@ fn test_artist() {
 
 #[test]
 fn test_artists_albums() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
     let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
-    let albums = spotify.artist_albums(birdy_uri,
-                                       Some(AlbumType::Album),
-                                       Some(Country::UnitedStates),
-                                       Some(10),
-                                       None);
+    let albums = spotify.artist_albums(
+        birdy_uri,
+        Some(AlbumType::Album),
+        Some(Country::UnitedStates),
+        Some(10),
+        None,
+    );
     dbg!(&albums);
     assert!(albums.is_ok());
 }
 
 #[test]
 fn test_artists() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -109,7 +103,6 @@ fn test_artists() {
 
 #[test]
 fn test_artist_top_tracks() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -121,7 +114,6 @@ fn test_artist_top_tracks() {
 
 #[test]
 fn test_audio_analysis() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -132,7 +124,6 @@ fn test_audio_analysis() {
 
 #[test]
 fn test_audio_features() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -143,7 +134,6 @@ fn test_audio_features() {
 
 #[test]
 fn test_audios_features() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -158,7 +148,6 @@ fn test_audios_features() {
 
 #[test]
 fn test_user() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -170,7 +159,6 @@ fn test_user() {
 
 #[test]
 fn test_track() {
-    
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -181,8 +169,6 @@ fn test_track() {
 
 #[test]
 fn test_tracks() {
-    
-
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -195,8 +181,6 @@ fn test_tracks() {
 
 #[test]
 fn test_existing_playlist() {
-    
-
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();
@@ -207,8 +191,6 @@ fn test_existing_playlist() {
 
 #[test]
 fn test_fake_playlist() {
-    
-
     let spotify = Spotify::default()
         .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build();

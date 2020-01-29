@@ -1,19 +1,19 @@
 //! The module contains function about authorization and client-credential
 // use 3rd party library
 use chrono::prelude::*;
-use serde_json;
-use reqwest::blocking::Client;
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
+use reqwest::blocking::Client;
+use serde_json;
 
 // use built-in library
-use std::env;
 use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::env;
 use std::fs::File;
-use std::iter::FromIterator;
-use std::io::prelude::*;
 use std::fs::OpenOptions;
+use std::io::prelude::*;
+use std::iter::FromIterator;
+use std::path::{Path, PathBuf};
 
 // use customized library
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
@@ -96,7 +96,11 @@ impl SpotifyClientCredentials {
         dotenv().ok();
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
-        trace!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?}",client_id,client_secret);
+        trace!(
+            "SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?}",
+            client_id,
+            client_secret
+        );
         SpotifyClientCredentials {
             client_id: client_id,
             client_secret: client_secret,
@@ -125,13 +129,14 @@ impl SpotifyClientCredentials {
     Get your credentials at `https://developer.spotify.com/my-applications`";
         trace!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?} empty_flag:{:?}",self.client_id, self.client_secret, !(self.client_id.is_empty()||self.client_secret.is_empty())&&self.token_info.is_none());
         let empty_flag = (self.client_id.is_empty() || self.client_secret.is_empty())
-                          && self.token_info.is_none();
+            && self.token_info.is_none();
         if empty_flag {
             error!("{}", ERROR_MESSAGE);
         } else {
-            debug!("client_id:{:?}, client_secret:{:?}",
-                   self.client_id,
-                   self.client_secret);
+            debug!(
+                "client_id:{:?}, client_secret:{:?}",
+                self.client_id, self.client_secret
+            );
         }
         self
     }
@@ -147,19 +152,17 @@ impl SpotifyClientCredentials {
                     None
                 }
             }
-            None => None
+            None => None,
         };
         match access_token {
             Some(access_token) => access_token.to_owned(),
-            None => {
-                match self.request_access_token() {
-                    Some(new_token_info) => {
-                        debug!("token info: {:?}", &new_token_info);
-                        new_token_info.access_token
-                    }
-                    None => String::new(),
+            None => match self.request_access_token() {
+                Some(new_token_info) => {
+                    debug!("token info: {:?}", &new_token_info);
+                    new_token_info.access_token
                 }
-            }
+                None => String::new(),
+            },
         }
     }
     fn is_token_expired(&self, token_info: &TokenInfo) -> bool {
@@ -169,7 +172,8 @@ impl SpotifyClientCredentials {
         let mut payload = HashMap::new();
         payload.insert("grant_type", "client_credentials");
         if let Some(mut token_info) =
-            self.fetch_access_token(&self.client_id, &self.client_secret, &payload) {
+            self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        {
             let expires_in = token_info.expires_in;
             token_info.set_expires_at(&datetime_to_timestamp(expires_in));
             Some(token_info)
@@ -177,11 +181,12 @@ impl SpotifyClientCredentials {
             None
         }
     }
-    fn fetch_access_token(&self,
-                          client_id: &str,
-                          client_secret: &str,
-                          payload: &HashMap<&str, &str>)
-                          -> Option<TokenInfo> {
+    fn fetch_access_token(
+        &self,
+        client_id: &str,
+        client_secret: &str,
+        payload: &HashMap<&str, &str>,
+    ) -> Option<TokenInfo> {
         fetch_access_token(client_id, client_secret, payload)
     }
 }
@@ -258,10 +263,12 @@ impl SpotifyOAuth {
         if empty_flag {
             error!("{}", ERROR_MESSAGE);
         } else {
-            trace!("client_id:{:?}, client_secret:{:?}, redirect_uri:{:?}",
-                     self.client_id,
-                     self.client_secret,
-                     self.redirect_uri);
+            trace!(
+                "client_id:{:?}, client_secret:{:?}, redirect_uri:{:?}",
+                self.client_id,
+                self.client_secret,
+                self.redirect_uri
+            );
         }
         self
     }
@@ -281,10 +288,9 @@ impl SpotifyOAuth {
                 None
             }
             Ok(_) => {
-                let mut token_info: TokenInfo =
-                    serde_json::from_str(&token_info_string)
-                        .expect(&format!("convert [{:?}] to json failed",
-                                        self.cache_path.display()));
+                let mut token_info: TokenInfo = serde_json::from_str(&token_info_string).expect(
+                    &format!("convert [{:?}] to json failed", self.cache_path.display()),
+                );
                 if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
                     None
                 } else {
@@ -309,9 +315,9 @@ impl SpotifyOAuth {
         payload.insert("grant_type", "authorization_code");
         payload.insert("scope", &self.scope);
         payload.insert("state", &self.state);
-        if let Some(token_info) = self.fetch_access_token(&self.client_id,
-                                                          &self.client_secret,
-                                                          &payload) {
+        if let Some(token_info) =
+            self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     trace!("get_access_token->token_info[{:?}]", &token_info_string);
@@ -319,8 +325,10 @@ impl SpotifyOAuth {
                     return Some(token_info);
                 }
                 Err(why) => {
-                    panic!("couldn't convert token_info to string: {} ",
-                           why.to_string());
+                    panic!(
+                        "couldn't convert token_info to string: {} ",
+                        why.to_string()
+                    );
                 }
             }
         } else {
@@ -328,17 +336,19 @@ impl SpotifyOAuth {
         }
     }
     /// fetch access_token
-    fn fetch_access_token(&self,
-                          client_id: &str,
-                          client_secret: &str,
-                          payload: &HashMap<&str, &str>)
-                          -> Option<TokenInfo> {
+    fn fetch_access_token(
+        &self,
+        client_id: &str,
+        client_secret: &str,
+        payload: &HashMap<&str, &str>,
+    ) -> Option<TokenInfo> {
         trace!("fetch_access_token->payload {:?}", &payload);
         fetch_access_token(client_id, client_secret, payload)
     }
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
-        url.split("?code=").nth(1)
+        url.split("?code=")
+            .nth(1)
             .and_then(|strs| strs.split('&').next())
             .map(|s| s.to_owned())
     }
@@ -374,17 +384,19 @@ impl SpotifyOAuth {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
-        if let Some(token_info) = self.fetch_access_token(&self.client_id,
-                                                          &self.client_secret,
-                                                          &payload) {
+        if let Some(token_info) =
+            self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     self.save_token_info(&token_info_string);
                     return Some(token_info);
                 }
                 Err(why) => {
-                    panic!("couldn't convert token_info to string: {} ",
-                           why.to_string());
+                    panic!(
+                        "couldn't convert token_info to string: {} ",
+                        why.to_string()
+                    );
                 }
             }
         } else {
@@ -421,17 +433,19 @@ fn save_token_info(token_info: &str, path: &Path) {
         .create(true)
         .open(path)
         .expect(&format!("create file {:?} error", path.display()));
-    file.set_len(0)
-        .expect(&format!("clear original spoitfy-token-cache file [{:?}] failed",
-                        path.display()));
+    file.set_len(0).expect(&format!(
+        "clear original spoitfy-token-cache file [{:?}] failed",
+        path.display()
+    ));
     file.write_all(token_info.as_bytes())
         .expect("error when write file");
 }
 
-fn fetch_access_token(_client_id: &str,
-                      _client_secret: &str,
-                      payload: &HashMap<&str, &str>)
-                      -> Option<TokenInfo> {
+fn fetch_access_token(
+    _client_id: &str,
+    _client_secret: &str,
+    payload: &HashMap<&str, &str>,
+) -> Option<TokenInfo> {
     let client = Client::new();
     let client_id = _client_id.to_owned();
     let client_secret = _client_secret.to_owned();
@@ -474,15 +488,21 @@ fn fetch_access_token(_client_id: &str,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
     use serde_json;
+    use std::path::PathBuf;
     #[test]
     fn test_is_scope_subset() {
         let mut needle_scope = String::from("1 2 3");
         let mut haystack_scope = String::from("1 2 3 4");
         let mut broken_scope = String::from("5 2 4");
-        assert!(SpotifyOAuth::is_scope_subset(&mut needle_scope, &mut haystack_scope));
-        assert!(!SpotifyOAuth::is_scope_subset(&mut broken_scope, &mut haystack_scope));
+        assert!(SpotifyOAuth::is_scope_subset(
+            &mut needle_scope,
+            &mut haystack_scope
+        ));
+        assert!(!SpotifyOAuth::is_scope_subset(
+            &mut broken_scope,
+            &mut haystack_scope
+        ));
     }
     #[test]
     fn test_save_token_info() {
@@ -514,10 +534,10 @@ mod tests {
                     }
                 }
             }
-            Err(why) => {
-                panic!("couldn't convert token_info to string: {} ",
-                       why.to_string())
-            }
+            Err(why) => panic!(
+                "couldn't convert token_info to string: {} ",
+                why.to_string()
+            ),
         }
     }
 

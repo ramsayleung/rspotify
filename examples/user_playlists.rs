@@ -1,8 +1,8 @@
 extern crate rspotify;
 
-use rspotify::spotify::util::get_token;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::spotify::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -39,9 +39,7 @@ fn main() {
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlists = spotify.user_playlists(user_id, Some(10), None);
             println!("{:?}", playlists);
-
         }
         None => println!("auth failed"),
     };
-
 }

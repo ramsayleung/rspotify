@@ -3,16 +3,16 @@ use chrono::prelude::*;
 
 use std::collections::HashMap;
 
-use super::artist::SimplifiedArtist;
-use super::album::SimplifiedAlbum;
 use super::album::Restrictions;
+use super::album::SimplifiedAlbum;
+use super::artist::SimplifiedArtist;
 use spotify::senum::Type;
 ///[track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
     pub artists: Vec<SimplifiedArtist>,
-    #[serde(skip_serializing_if="Vec::is_empty",default)]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub available_markets: Vec<String>,
     pub disc_number: i32,
     pub duration_ms: u32,
@@ -41,13 +41,13 @@ pub struct FullTrack {
 /// Track Link
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct TrackLink{
+pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: String,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String
+    pub uri: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
