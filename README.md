@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/samrayleung/rspotify.svg?branch=master)](https://travis-ci.org/samrayleung/rspotify)
-![Github Action Status](https://github.com/ramsayleung/rspotify/workflows/.github/workflows/ci.yml/badge.svg)
+![](https://github.com/ramsayleung/rspotify/workflows/Continuous%20Integration/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/rspotify.svg)](https://crates.io/crates/rspotify)
 [![Docs](https://docs.rs/rspotify/badge.svg)](https://docs.rs/crate/rspotify/)
 
