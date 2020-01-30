@@ -1,7 +1,44 @@
 //! All enums for rspotify
+use std::error;
 use std::fmt;
+use std::str::FromStr;
+#[derive(Clone, Debug)]
+pub struct Error {
+    kind: ErrorKind,
+}
+impl Error {
+    pub(crate) fn new(kind: ErrorKind) -> Error {
+        Error { kind }
+    }
+
+    /// Return the kind of this error.
+    pub fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+}
+/// The kind of an error that can occur.
+#[derive(Clone, Debug)]
+pub enum ErrorKind {
+    /// This error occurs when no proper enum was found.
+    NoEnum(String),
+}
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match self.kind {
+            ErrorKind::NoEnum(_) => "no proper enum was found",
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.kind {
+            ErrorKind::NoEnum(ref s) => write!(f, "can't find proper enum of `{:?}`", s),
+        }
+    }
+}
 /// Album type - ‘album’, ‘single’, ‘appears_on’, ‘compilation’
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum AlbumType {
     Album,
@@ -9,16 +46,19 @@ pub enum AlbumType {
     AppearsOn,
     Compilation,
 }
-impl AlbumType {
-    pub fn from_str(s: &str) -> Option<AlbumType> {
+impl FromStr for AlbumType {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "album" => Some(AlbumType::Album),
-            "single" => Some(AlbumType::Single),
-            "appears_on" => Some(AlbumType::AppearsOn),
-            "compilation" => Some(AlbumType::Compilation),
-            _ => None,
+            "album" => Ok(AlbumType::Album),
+            "single" => Ok(AlbumType::Single),
+            "appears_on" => Ok(AlbumType::AppearsOn),
+            "compilation" => Ok(AlbumType::Compilation),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
+}
+impl AlbumType {
     pub fn as_str(&self) -> &str {
         match *self {
             AlbumType::Album => "album",
@@ -28,19 +68,16 @@ impl AlbumType {
         }
     }
 }
-impl fmt::Debug for AlbumType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            AlbumType::Album => write!(f, "album"),
-            AlbumType::Single => write!(f, "single"),
-            AlbumType::AppearsOn => write!(f, "appears_on"),
-            AlbumType::Compilation => write!(f, "compilation"),
-        }
-    }
+#[test]
+fn test_album_type_convert_from_str() {
+    let album_type = AlbumType::from_str("album");
+    assert_eq!(album_type.unwrap(), AlbumType::Album);
+    let empty_type = AlbumType::from_str("not exist album");
+    assert_eq!(empty_type.is_err(), true);
 }
 
 ///  Type: ‘artist’, ‘album’,‘track’ or ‘playlist’
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     Artist,
@@ -49,18 +86,7 @@ pub enum Type {
     Playlist,
     User,
 }
-
 impl Type {
-    pub fn from_str(s: &str) -> Option<Type> {
-        match s {
-            "artist" => Some(Type::Artist),
-            "album" => Some(Type::Album),
-            "track" => Some(Type::Track),
-            "playlist" => Some(Type::Playlist),
-            "user" => Some(Type::User),
-            _ => None,
-        }
-    }
     pub fn as_str(&self) -> &str {
         match *self {
             Type::Album => "album",
@@ -71,21 +97,31 @@ impl Type {
         }
     }
 }
-
-impl fmt::Debug for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Type::Album => write!(f, "album"),
-            Type::Artist => write!(f, "artist"),
-            Type::Track => write!(f, "track"),
-            Type::Playlist => write!(f, "playlist"),
-            Type::User => write!(f, "user"),
+impl FromStr for Type {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "artist" => Ok(Type::Artist),
+            "album" => Ok(Type::Album),
+            "track" => Ok(Type::Track),
+            "playlist" => Ok(Type::Playlist),
+            "user" => Ok(Type::User),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
 
+#[test]
+fn test_type_convert_from_str() {
+    let _type = Type::from_str("album");
+    assert_eq!(_type.unwrap(), Type::Album);
+
+    let empty_type = Type::from_str("not_exist_type");
+    assert_eq!(empty_type.is_err(), true);
+}
+
 /// time range: long-term, medium-term, short-term
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum TimeRange {
     LongTerm,
@@ -94,14 +130,6 @@ pub enum TimeRange {
 }
 
 impl TimeRange {
-    pub fn from_str(s: &str) -> Option<TimeRange> {
-        match s {
-            "long_term" => Some(TimeRange::LongTerm),
-            "medium_term" => Some(TimeRange::MediumTerm),
-            "short_term" => Some(TimeRange::ShortTerm),
-            _ => None,
-        }
-    }
     pub fn as_str(&self) -> &str {
         match *self {
             TimeRange::LongTerm => "long_term",
@@ -111,18 +139,28 @@ impl TimeRange {
     }
 }
 
-impl fmt::Debug for TimeRange {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            TimeRange::LongTerm => write!(f, "long_term"),
-            TimeRange::MediumTerm => write!(f, "medium_term"),
-            TimeRange::ShortTerm => write!(f, "short_term"),
+impl FromStr for TimeRange {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "long_term" => Ok(TimeRange::LongTerm),
+            "medium_term" => Ok(TimeRange::MediumTerm),
+            "short_term" => Ok(TimeRange::ShortTerm),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
+
+#[test]
+fn test_convert_time_range_from_str() {
+    let time_range = TimeRange::from_str("long_term");
+    assert_eq!(time_range.unwrap(), TimeRange::LongTerm);
+    let empty_range = TimeRange::from_str("not exist enum");
+    assert_eq!(empty_range.is_err(), true);
+}
 ///ISO 3166-1 alpha-2 country code, [wiki about ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
 ///Source from [country-list](https://datahub.io/core/country-list)
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 pub enum Country {
     Afghanistan,
     AlandIslands,
@@ -375,261 +413,6 @@ pub enum Country {
     Zimbabwe,
 }
 impl Country {
-    pub fn from_str(s: &str) -> Option<Country> {
-        match s {
-            "AF" => Some(Country::Afghanistan),
-            "AX" => Some(Country::AlandIslands),
-            "AL" => Some(Country::Albania),
-            "DZ" => Some(Country::Algeria),
-            "AS" => Some(Country::AmericanSamoa),
-            "AD" => Some(Country::Andorra),
-            "AO" => Some(Country::Angola),
-            "AI" => Some(Country::Anguilla),
-            "AQ" => Some(Country::Antarctica),
-            "AG" => Some(Country::AntiguaAndBarbuda),
-            "AR" => Some(Country::Argentina),
-            "AM" => Some(Country::Armenia),
-            "AW" => Some(Country::Aruba),
-            "AU" => Some(Country::Australia),
-            "AT" => Some(Country::Austria),
-            "AZ" => Some(Country::Azerbaijan),
-            "BS" => Some(Country::Bahamas),
-            "BH" => Some(Country::Bahrain),
-            "BD" => Some(Country::Bangladesh),
-            "BB" => Some(Country::Barbados),
-            "BY" => Some(Country::Belarus),
-            "BE" => Some(Country::Belgium),
-            "BZ" => Some(Country::Belize),
-            "BJ" => Some(Country::Benin),
-            "BM" => Some(Country::Bermuda),
-            "BT" => Some(Country::Bhutan),
-            "BO" => Some(Country::BoliviaPlurinationalStateOf),
-            "BQ" => Some(Country::BonaireSintEustatiusAndSaba),
-            "BA" => Some(Country::BosniaAndHerzegovina),
-            "BW" => Some(Country::Botswana),
-            "BV" => Some(Country::BouvetIsland),
-            "BR" => Some(Country::Brazil),
-            "IO" => Some(Country::BritishIndianOceanTerritory),
-            "BN" => Some(Country::BruneiDarussalam),
-            "BG" => Some(Country::Bulgaria),
-            "BF" => Some(Country::BurkinaFaso),
-            "BI" => Some(Country::Burundi),
-            "KH" => Some(Country::Cambodia),
-            "CM" => Some(Country::Cameroon),
-            "CA" => Some(Country::Canada),
-            "CV" => Some(Country::CapeVerde),
-            "KY" => Some(Country::CaymanIslands),
-            "CF" => Some(Country::CentralAfricanRepublic),
-            "TD" => Some(Country::Chad),
-            "CL" => Some(Country::Chile),
-            "CN" => Some(Country::China),
-            "CX" => Some(Country::ChristmasIsland),
-            "CC" => Some(Country::CocosKeelingIslands),
-            "CO" => Some(Country::Colombia),
-            "KM" => Some(Country::Comoros),
-            "CG" => Some(Country::Congo),
-            "CD" => Some(Country::CongoTheDemocraticRepublicOfThe),
-            "CK" => Some(Country::CookIslands),
-            "CR" => Some(Country::CostaRica),
-            "CI" => Some(Country::CoteDivoire),
-            "HR" => Some(Country::Croatia),
-            "CU" => Some(Country::Cuba),
-            "CW" => Some(Country::Curacao),
-            "CY" => Some(Country::Cyprus),
-            "CZ" => Some(Country::CzechRepublic),
-            "DK" => Some(Country::Denmark),
-            "DJ" => Some(Country::Djibouti),
-            "DM" => Some(Country::Dominica),
-            "DO" => Some(Country::DominicanRepublic),
-            "EC" => Some(Country::Ecuador),
-            "EG" => Some(Country::Egypt),
-            "SV" => Some(Country::ElSalvador),
-            "GQ" => Some(Country::EquatorialGuinea),
-            "ER" => Some(Country::Eritrea),
-            "EE" => Some(Country::Estonia),
-            "ET" => Some(Country::Ethiopia),
-            "FK" => Some(Country::FalklandIslandsMalvinas),
-            "FO" => Some(Country::FaroeIslands),
-            "FJ" => Some(Country::Fiji),
-            "FI" => Some(Country::Finland),
-            "FR" => Some(Country::France),
-            "GF" => Some(Country::FrenchGuiana),
-            "PF" => Some(Country::FrenchPolynesia),
-            "TF" => Some(Country::FrenchSouthernTerritories),
-            "GA" => Some(Country::Gabon),
-            "GM" => Some(Country::Gambia),
-            "GE" => Some(Country::Georgia),
-            "DE" => Some(Country::Germany),
-            "GH" => Some(Country::Ghana),
-            "GI" => Some(Country::Gibraltar),
-            "GR" => Some(Country::Greece),
-            "GL" => Some(Country::Greenland),
-            "GD" => Some(Country::Grenada),
-            "GP" => Some(Country::Guadeloupe),
-            "GU" => Some(Country::Guam),
-            "GT" => Some(Country::Guatemala),
-            "GG" => Some(Country::Guernsey),
-            "GN" => Some(Country::Guinea),
-            "GW" => Some(Country::GuineaBissau),
-            "GY" => Some(Country::Guyana),
-            "HT" => Some(Country::Haiti),
-            "HM" => Some(Country::HeardIslandAndMcdonaldIslands),
-            "VA" => Some(Country::HolySeeVaticanCityState),
-            "HN" => Some(Country::Honduras),
-            "HK" => Some(Country::HongKong),
-            "HU" => Some(Country::Hungary),
-            "IS" => Some(Country::Iceland),
-            "IN" => Some(Country::India),
-            "ID" => Some(Country::Indonesia),
-            "IR" => Some(Country::IranIslamicRepublicOf),
-            "IQ" => Some(Country::Iraq),
-            "IE" => Some(Country::Ireland),
-            "IM" => Some(Country::IsleOfMan),
-            "IL" => Some(Country::Israel),
-            "IT" => Some(Country::Italy),
-            "JM" => Some(Country::Jamaica),
-            "JP" => Some(Country::Japan),
-            "JE" => Some(Country::Jersey),
-            "JO" => Some(Country::Jordan),
-            "KZ" => Some(Country::Kazakhstan),
-            "KE" => Some(Country::Kenya),
-            "KI" => Some(Country::Kiribati),
-            "KP" => Some(Country::KoreaDemocraticPeopleRepublicOf),
-            "KR" => Some(Country::KoreaRepublicOf),
-            "KW" => Some(Country::Kuwait),
-            "KG" => Some(Country::Kyrgyzstan),
-            "LA" => Some(Country::LaoPeopleDemocraticRepublic),
-            "LV" => Some(Country::Latvia),
-            "LB" => Some(Country::Lebanon),
-            "LS" => Some(Country::Lesotho),
-            "LR" => Some(Country::Liberia),
-            "LY" => Some(Country::Libya),
-            "LI" => Some(Country::Liechtenstein),
-            "LT" => Some(Country::Lithuania),
-            "LU" => Some(Country::Luxembourg),
-            "MO" => Some(Country::Macao),
-            "MK" => Some(Country::MacedoniaTheFormerYugoslavRepublicOf),
-            "MG" => Some(Country::Madagascar),
-            "MW" => Some(Country::Malawi),
-            "MY" => Some(Country::Malaysia),
-            "MV" => Some(Country::Maldives),
-            "ML" => Some(Country::Mali),
-            "MT" => Some(Country::Malta),
-            "MH" => Some(Country::MarshallIslands),
-            "MQ" => Some(Country::Martinique),
-            "MR" => Some(Country::Mauritania),
-            "MU" => Some(Country::Mauritius),
-            "YT" => Some(Country::Mayotte),
-            "MX" => Some(Country::Mexico),
-            "FM" => Some(Country::MicronesiaFederatedStatesOf),
-            "MD" => Some(Country::MoldovaRepublicOf),
-            "MC" => Some(Country::Monaco),
-            "MN" => Some(Country::Mongolia),
-            "ME" => Some(Country::Montenegro),
-            "MS" => Some(Country::Montserrat),
-            "MA" => Some(Country::Morocco),
-            "MZ" => Some(Country::Mozambique),
-            "MM" => Some(Country::Myanmar),
-            "NA" => Some(Country::Namibia),
-            "NR" => Some(Country::Nauru),
-            "NP" => Some(Country::Nepal),
-            "NL" => Some(Country::Netherlands),
-            "NC" => Some(Country::NewCaledonia),
-            "NZ" => Some(Country::NewZealand),
-            "NI" => Some(Country::Nicaragua),
-            "NE" => Some(Country::Niger),
-            "NG" => Some(Country::Nigeria),
-            "NU" => Some(Country::Niue),
-            "NF" => Some(Country::NorfolkIsland),
-            "MP" => Some(Country::NorthernMarianaIslands),
-            "NO" => Some(Country::Norway),
-            "OM" => Some(Country::Oman),
-            "PK" => Some(Country::Pakistan),
-            "PW" => Some(Country::Palau),
-            "PS" => Some(Country::PalestineStateOf),
-            "PA" => Some(Country::Panama),
-            "PG" => Some(Country::PapuaNewGuinea),
-            "PY" => Some(Country::Paraguay),
-            "PE" => Some(Country::Peru),
-            "PH" => Some(Country::Philippines),
-            "PN" => Some(Country::Pitcairn),
-            "PL" => Some(Country::Poland),
-            "PT" => Some(Country::Portugal),
-            "PR" => Some(Country::PuertoRico),
-            "QA" => Some(Country::Qatar),
-            "RE" => Some(Country::Reunion),
-            "RO" => Some(Country::Romania),
-            "RU" => Some(Country::RussianFederation),
-            "RW" => Some(Country::Rwanda),
-            "BL" => Some(Country::SaintBarthelemy),
-            "SH" => Some(Country::SaintHelenaAscensionAndTristanDaCunha),
-            "KN" => Some(Country::SaintKittsAndNevis),
-            "LC" => Some(Country::SaintLucia),
-            "MF" => Some(Country::SaintMartinFrenchPart),
-            "PM" => Some(Country::SaintPierreAndMiquelon),
-            "VC" => Some(Country::SaintVincentAndTheGrenadines),
-            "WS" => Some(Country::Samoa),
-            "SM" => Some(Country::SanMarino),
-            "ST" => Some(Country::SaoTomeAndPrincipe),
-            "SA" => Some(Country::SaudiArabia),
-            "SN" => Some(Country::Senegal),
-            "RS" => Some(Country::Serbia),
-            "SC" => Some(Country::Seychelles),
-            "SL" => Some(Country::SierraLeone),
-            "SG" => Some(Country::Singapore),
-            "SX" => Some(Country::SintMaartenDutchPart),
-            "SK" => Some(Country::Slovakia),
-            "SI" => Some(Country::Slovenia),
-            "SB" => Some(Country::SolomonIslands),
-            "SO" => Some(Country::Somalia),
-            "ZA" => Some(Country::SouthAfrica),
-            "GS" => Some(Country::SouthGeorgiaAndTheSouthSandwichIslands),
-            "SS" => Some(Country::SouthSudan),
-            "ES" => Some(Country::Spain),
-            "LK" => Some(Country::SriLanka),
-            "SD" => Some(Country::Sudan),
-            "SR" => Some(Country::Suriname),
-            "SJ" => Some(Country::SvalbardAndJanMayen),
-            "SZ" => Some(Country::Swaziland),
-            "SE" => Some(Country::Sweden),
-            "CH" => Some(Country::Switzerland),
-            "SY" => Some(Country::SyrianArabRepublic),
-            "TW" => Some(Country::TaiwanProvinceOfChina),
-            "TJ" => Some(Country::Tajikistan),
-            "TZ" => Some(Country::TanzaniaUnitedRepublicOf),
-            "TH" => Some(Country::Thailand),
-            "TL" => Some(Country::TimorLeste),
-            "TG" => Some(Country::Togo),
-            "TK" => Some(Country::Tokelau),
-            "TO" => Some(Country::Tonga),
-            "TT" => Some(Country::TrinidadAndTobago),
-            "TN" => Some(Country::Tunisia),
-            "TR" => Some(Country::Turkey),
-            "TM" => Some(Country::Turkmenistan),
-            "TC" => Some(Country::TurksAndCaicosIslands),
-            "TV" => Some(Country::Tuvalu),
-            "UG" => Some(Country::Uganda),
-            "UA" => Some(Country::Ukraine),
-            "AE" => Some(Country::UnitedArabEmirates),
-            "GB" => Some(Country::UnitedKingdom),
-            "US" => Some(Country::UnitedStates),
-            "UM" => Some(Country::UnitedStatesMinorOutlyingIslands),
-            "UY" => Some(Country::Uruguay),
-            "UZ" => Some(Country::Uzbekistan),
-            "VU" => Some(Country::Vanuatu),
-            "VE" => Some(Country::VenezuelaBolivarianRepublicOf),
-            "VN" => Some(Country::VietNam),
-            "VG" => Some(Country::VirginIslandsBritish),
-            "VI" => Some(Country::VirginIslandsUS),
-            "WF" => Some(Country::WallisAndFutuna),
-            "EH" => Some(Country::WesternSahara),
-            "YE" => Some(Country::Yemen),
-            "ZM" => Some(Country::Zambia),
-            "ZW" => Some(Country::Zimbabwe),
-
-            _ => None,
-        }
-    }
     pub fn as_str(&self) -> &str {
         match *self {
             Country::Afghanistan => "AF",
@@ -884,267 +667,276 @@ impl Country {
         }
     }
 }
-impl fmt::Debug for Country {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Country::Afghanistan => write!(f, "AF"),
-            Country::AlandIslands => write!(f, "AX"),
-            Country::Albania => write!(f, "AL"),
-            Country::Algeria => write!(f, "DZ"),
-            Country::AmericanSamoa => write!(f, "AS"),
-            Country::Andorra => write!(f, "AD"),
-            Country::Angola => write!(f, "AO"),
-            Country::Anguilla => write!(f, "AI"),
-            Country::Antarctica => write!(f, "AQ"),
-            Country::AntiguaAndBarbuda => write!(f, "AG"),
-            Country::Argentina => write!(f, "AR"),
-            Country::Armenia => write!(f, "AM"),
-            Country::Aruba => write!(f, "AW"),
-            Country::Australia => write!(f, "AU"),
-            Country::Austria => write!(f, "AT"),
-            Country::Azerbaijan => write!(f, "AZ"),
-            Country::Bahamas => write!(f, "BS"),
-            Country::Bahrain => write!(f, "BH"),
-            Country::Bangladesh => write!(f, "BD"),
-            Country::Barbados => write!(f, "BB"),
-            Country::Belarus => write!(f, "BY"),
-            Country::Belgium => write!(f, "BE"),
-            Country::Belize => write!(f, "BZ"),
-            Country::Benin => write!(f, "BJ"),
-            Country::Bermuda => write!(f, "BM"),
-            Country::Bhutan => write!(f, "BT"),
-            Country::BoliviaPlurinationalStateOf => write!(f, "BO"),
-            Country::BonaireSintEustatiusAndSaba => write!(f, "BQ"),
-            Country::BosniaAndHerzegovina => write!(f, "BA"),
-            Country::Botswana => write!(f, "BW"),
-            Country::BouvetIsland => write!(f, "BV"),
-            Country::Brazil => write!(f, "BR"),
-            Country::BritishIndianOceanTerritory => write!(f, "IO"),
-            Country::BruneiDarussalam => write!(f, "BN"),
-            Country::Bulgaria => write!(f, "BG"),
-            Country::BurkinaFaso => write!(f, "BF"),
-            Country::Burundi => write!(f, "BI"),
-            Country::Cambodia => write!(f, "KH"),
-            Country::Cameroon => write!(f, "CM"),
-            Country::Canada => write!(f, "CA"),
-            Country::CapeVerde => write!(f, "CV"),
-            Country::CaymanIslands => write!(f, "KY"),
-            Country::CentralAfricanRepublic => write!(f, "CF"),
-            Country::Chad => write!(f, "TD"),
-            Country::Chile => write!(f, "CL"),
-            Country::China => write!(f, "CN"),
-            Country::ChristmasIsland => write!(f, "CX"),
-            Country::CocosKeelingIslands => write!(f, "CC"),
-            Country::Colombia => write!(f, "CO"),
-            Country::Comoros => write!(f, "KM"),
-            Country::Congo => write!(f, "CG"),
-            Country::CongoTheDemocraticRepublicOfThe => write!(f, "CD"),
-            Country::CookIslands => write!(f, "CK"),
-            Country::CostaRica => write!(f, "CR"),
-            Country::CoteDivoire => write!(f, "CI"),
-            Country::Croatia => write!(f, "HR"),
-            Country::Cuba => write!(f, "CU"),
-            Country::Curacao => write!(f, "CW"),
-            Country::Cyprus => write!(f, "CY"),
-            Country::CzechRepublic => write!(f, "CZ"),
-            Country::Denmark => write!(f, "DK"),
-            Country::Djibouti => write!(f, "DJ"),
-            Country::Dominica => write!(f, "DM"),
-            Country::DominicanRepublic => write!(f, "DO"),
-            Country::Ecuador => write!(f, "EC"),
-            Country::Egypt => write!(f, "EG"),
-            Country::ElSalvador => write!(f, "SV"),
-            Country::EquatorialGuinea => write!(f, "GQ"),
-            Country::Eritrea => write!(f, "ER"),
-            Country::Estonia => write!(f, "EE"),
-            Country::Ethiopia => write!(f, "ET"),
-            Country::FalklandIslandsMalvinas => write!(f, "FK"),
-            Country::FaroeIslands => write!(f, "FO"),
-            Country::Fiji => write!(f, "FJ"),
-            Country::Finland => write!(f, "FI"),
-            Country::France => write!(f, "FR"),
-            Country::FrenchGuiana => write!(f, "GF"),
-            Country::FrenchPolynesia => write!(f, "PF"),
-            Country::FrenchSouthernTerritories => write!(f, "TF"),
-            Country::Gabon => write!(f, "GA"),
-            Country::Gambia => write!(f, "GM"),
-            Country::Georgia => write!(f, "GE"),
-            Country::Germany => write!(f, "DE"),
-            Country::Ghana => write!(f, "GH"),
-            Country::Gibraltar => write!(f, "GI"),
-            Country::Greece => write!(f, "GR"),
-            Country::Greenland => write!(f, "GL"),
-            Country::Grenada => write!(f, "GD"),
-            Country::Guadeloupe => write!(f, "GP"),
-            Country::Guam => write!(f, "GU"),
-            Country::Guatemala => write!(f, "GT"),
-            Country::Guernsey => write!(f, "GG"),
-            Country::Guinea => write!(f, "GN"),
-            Country::GuineaBissau => write!(f, "GW"),
-            Country::Guyana => write!(f, "GY"),
-            Country::Haiti => write!(f, "HT"),
-            Country::HeardIslandAndMcdonaldIslands => write!(f, "HM"),
-            Country::HolySeeVaticanCityState => write!(f, "VA"),
-            Country::Honduras => write!(f, "HN"),
-            Country::HongKong => write!(f, "HK"),
-            Country::Hungary => write!(f, "HU"),
-            Country::Iceland => write!(f, "IS"),
-            Country::India => write!(f, "IN"),
-            Country::Indonesia => write!(f, "ID"),
-            Country::IranIslamicRepublicOf => write!(f, "IR"),
-            Country::Iraq => write!(f, "IQ"),
-            Country::Ireland => write!(f, "IE"),
-            Country::IsleOfMan => write!(f, "IM"),
-            Country::Israel => write!(f, "IL"),
-            Country::Italy => write!(f, "IT"),
-            Country::Jamaica => write!(f, "JM"),
-            Country::Japan => write!(f, "JP"),
-            Country::Jersey => write!(f, "JE"),
-            Country::Jordan => write!(f, "JO"),
-            Country::Kazakhstan => write!(f, "KZ"),
-            Country::Kenya => write!(f, "KE"),
-            Country::Kiribati => write!(f, "KI"),
-            Country::KoreaDemocraticPeopleRepublicOf => write!(f, "KP"),
-            Country::KoreaRepublicOf => write!(f, "KR"),
-            Country::Kuwait => write!(f, "KW"),
-            Country::Kyrgyzstan => write!(f, "KG"),
-            Country::LaoPeopleDemocraticRepublic => write!(f, "LA"),
-            Country::Latvia => write!(f, "LV"),
-            Country::Lebanon => write!(f, "LB"),
-            Country::Lesotho => write!(f, "LS"),
-            Country::Liberia => write!(f, "LR"),
-            Country::Libya => write!(f, "LY"),
-            Country::Liechtenstein => write!(f, "LI"),
-            Country::Lithuania => write!(f, "LT"),
-            Country::Luxembourg => write!(f, "LU"),
-            Country::Macao => write!(f, "MO"),
-            Country::MacedoniaTheFormerYugoslavRepublicOf => write!(f, "MK"),
-            Country::Madagascar => write!(f, "MG"),
-            Country::Malawi => write!(f, "MW"),
-            Country::Malaysia => write!(f, "MY"),
-            Country::Maldives => write!(f, "MV"),
-            Country::Mali => write!(f, "ML"),
-            Country::Malta => write!(f, "MT"),
-            Country::MarshallIslands => write!(f, "MH"),
-            Country::Martinique => write!(f, "MQ"),
-            Country::Mauritania => write!(f, "MR"),
-            Country::Mauritius => write!(f, "MU"),
-            Country::Mayotte => write!(f, "YT"),
-            Country::Mexico => write!(f, "MX"),
-            Country::MicronesiaFederatedStatesOf => write!(f, "FM"),
-            Country::MoldovaRepublicOf => write!(f, "MD"),
-            Country::Monaco => write!(f, "MC"),
-            Country::Mongolia => write!(f, "MN"),
-            Country::Montenegro => write!(f, "ME"),
-            Country::Montserrat => write!(f, "MS"),
-            Country::Morocco => write!(f, "MA"),
-            Country::Mozambique => write!(f, "MZ"),
-            Country::Myanmar => write!(f, "MM"),
-            Country::Namibia => write!(f, "NA"),
-            Country::Nauru => write!(f, "NR"),
-            Country::Nepal => write!(f, "NP"),
-            Country::Netherlands => write!(f, "NL"),
-            Country::NewCaledonia => write!(f, "NC"),
-            Country::NewZealand => write!(f, "NZ"),
-            Country::Nicaragua => write!(f, "NI"),
-            Country::Niger => write!(f, "NE"),
-            Country::Nigeria => write!(f, "NG"),
-            Country::Niue => write!(f, "NU"),
-            Country::NorfolkIsland => write!(f, "NF"),
-            Country::NorthernMarianaIslands => write!(f, "MP"),
-            Country::Norway => write!(f, "NO"),
-            Country::Oman => write!(f, "OM"),
-            Country::Pakistan => write!(f, "PK"),
-            Country::Palau => write!(f, "PW"),
-            Country::PalestineStateOf => write!(f, "PS"),
-            Country::Panama => write!(f, "PA"),
-            Country::PapuaNewGuinea => write!(f, "PG"),
-            Country::Paraguay => write!(f, "PY"),
-            Country::Peru => write!(f, "PE"),
-            Country::Philippines => write!(f, "PH"),
-            Country::Pitcairn => write!(f, "PN"),
-            Country::Poland => write!(f, "PL"),
-            Country::Portugal => write!(f, "PT"),
-            Country::PuertoRico => write!(f, "PR"),
-            Country::Qatar => write!(f, "QA"),
-            Country::Reunion => write!(f, "RE"),
-            Country::Romania => write!(f, "RO"),
-            Country::RussianFederation => write!(f, "RU"),
-            Country::Rwanda => write!(f, "RW"),
-            Country::SaintBarthelemy => write!(f, "BL"),
-            Country::SaintHelenaAscensionAndTristanDaCunha => write!(f, "SH"),
-            Country::SaintKittsAndNevis => write!(f, "KN"),
-            Country::SaintLucia => write!(f, "LC"),
-            Country::SaintMartinFrenchPart => write!(f, "MF"),
-            Country::SaintPierreAndMiquelon => write!(f, "PM"),
-            Country::SaintVincentAndTheGrenadines => write!(f, "VC"),
-            Country::Samoa => write!(f, "WS"),
-            Country::SanMarino => write!(f, "SM"),
-            Country::SaoTomeAndPrincipe => write!(f, "ST"),
-            Country::SaudiArabia => write!(f, "SA"),
-            Country::Senegal => write!(f, "SN"),
-            Country::Serbia => write!(f, "RS"),
-            Country::Seychelles => write!(f, "SC"),
-            Country::SierraLeone => write!(f, "SL"),
-            Country::Singapore => write!(f, "SG"),
-            Country::SintMaartenDutchPart => write!(f, "SX"),
-            Country::Slovakia => write!(f, "SK"),
-            Country::Slovenia => write!(f, "SI"),
-            Country::SolomonIslands => write!(f, "SB"),
-            Country::Somalia => write!(f, "SO"),
-            Country::SouthAfrica => write!(f, "ZA"),
-            Country::SouthGeorgiaAndTheSouthSandwichIslands => write!(f, "GS"),
-            Country::SouthSudan => write!(f, "SS"),
-            Country::Spain => write!(f, "ES"),
-            Country::SriLanka => write!(f, "LK"),
-            Country::Sudan => write!(f, "SD"),
-            Country::Suriname => write!(f, "SR"),
-            Country::SvalbardAndJanMayen => write!(f, "SJ"),
-            Country::Swaziland => write!(f, "SZ"),
-            Country::Sweden => write!(f, "SE"),
-            Country::Switzerland => write!(f, "CH"),
-            Country::SyrianArabRepublic => write!(f, "SY"),
-            Country::TaiwanProvinceOfChina => write!(f, "TW"),
-            Country::Tajikistan => write!(f, "TJ"),
-            Country::TanzaniaUnitedRepublicOf => write!(f, "TZ"),
-            Country::Thailand => write!(f, "TH"),
-            Country::TimorLeste => write!(f, "TL"),
-            Country::Togo => write!(f, "TG"),
-            Country::Tokelau => write!(f, "TK"),
-            Country::Tonga => write!(f, "TO"),
-            Country::TrinidadAndTobago => write!(f, "TT"),
-            Country::Tunisia => write!(f, "TN"),
-            Country::Turkey => write!(f, "TR"),
-            Country::Turkmenistan => write!(f, "TM"),
-            Country::TurksAndCaicosIslands => write!(f, "TC"),
-            Country::Tuvalu => write!(f, "TV"),
-            Country::Uganda => write!(f, "UG"),
-            Country::Ukraine => write!(f, "UA"),
-            Country::UnitedArabEmirates => write!(f, "AE"),
-            Country::UnitedKingdom => write!(f, "GB"),
-            Country::UnitedStates => write!(f, "US"),
-            Country::UnitedStatesMinorOutlyingIslands => write!(f, "UM"),
-            Country::Uruguay => write!(f, "UY"),
-            Country::Uzbekistan => write!(f, "UZ"),
-            Country::Vanuatu => write!(f, "VU"),
-            Country::VenezuelaBolivarianRepublicOf => write!(f, "VE"),
-            Country::VietNam => write!(f, "VN"),
-            Country::VirginIslandsBritish => write!(f, "VG"),
-            Country::VirginIslandsUS => write!(f, "VI"),
-            Country::WallisAndFutuna => write!(f, "WF"),
-            Country::WesternSahara => write!(f, "EH"),
-            Country::Yemen => write!(f, "YE"),
-            Country::Zambia => write!(f, "ZM"),
-            Country::Zimbabwe => write!(f, "ZW"),
+impl FromStr for Country {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "AF" => Ok(Country::Afghanistan),
+            "AX" => Ok(Country::AlandIslands),
+            "AL" => Ok(Country::Albania),
+            "DZ" => Ok(Country::Algeria),
+            "AS" => Ok(Country::AmericanSamoa),
+            "AD" => Ok(Country::Andorra),
+            "AO" => Ok(Country::Angola),
+            "AI" => Ok(Country::Anguilla),
+            "AQ" => Ok(Country::Antarctica),
+            "AG" => Ok(Country::AntiguaAndBarbuda),
+            "AR" => Ok(Country::Argentina),
+            "AM" => Ok(Country::Armenia),
+            "AW" => Ok(Country::Aruba),
+            "AU" => Ok(Country::Australia),
+            "AT" => Ok(Country::Austria),
+            "AZ" => Ok(Country::Azerbaijan),
+            "BS" => Ok(Country::Bahamas),
+            "BH" => Ok(Country::Bahrain),
+            "BD" => Ok(Country::Bangladesh),
+            "BB" => Ok(Country::Barbados),
+            "BY" => Ok(Country::Belarus),
+            "BE" => Ok(Country::Belgium),
+            "BZ" => Ok(Country::Belize),
+            "BJ" => Ok(Country::Benin),
+            "BM" => Ok(Country::Bermuda),
+            "BT" => Ok(Country::Bhutan),
+            "BO" => Ok(Country::BoliviaPlurinationalStateOf),
+            "BQ" => Ok(Country::BonaireSintEustatiusAndSaba),
+            "BA" => Ok(Country::BosniaAndHerzegovina),
+            "BW" => Ok(Country::Botswana),
+            "BV" => Ok(Country::BouvetIsland),
+            "BR" => Ok(Country::Brazil),
+            "IO" => Ok(Country::BritishIndianOceanTerritory),
+            "BN" => Ok(Country::BruneiDarussalam),
+            "BG" => Ok(Country::Bulgaria),
+            "BF" => Ok(Country::BurkinaFaso),
+            "BI" => Ok(Country::Burundi),
+            "KH" => Ok(Country::Cambodia),
+            "CM" => Ok(Country::Cameroon),
+            "CA" => Ok(Country::Canada),
+            "CV" => Ok(Country::CapeVerde),
+            "KY" => Ok(Country::CaymanIslands),
+            "CF" => Ok(Country::CentralAfricanRepublic),
+            "TD" => Ok(Country::Chad),
+            "CL" => Ok(Country::Chile),
+            "CN" => Ok(Country::China),
+            "CX" => Ok(Country::ChristmasIsland),
+            "CC" => Ok(Country::CocosKeelingIslands),
+            "CO" => Ok(Country::Colombia),
+            "KM" => Ok(Country::Comoros),
+            "CG" => Ok(Country::Congo),
+            "CD" => Ok(Country::CongoTheDemocraticRepublicOfThe),
+            "CK" => Ok(Country::CookIslands),
+            "CR" => Ok(Country::CostaRica),
+            "CI" => Ok(Country::CoteDivoire),
+            "HR" => Ok(Country::Croatia),
+            "CU" => Ok(Country::Cuba),
+            "CW" => Ok(Country::Curacao),
+            "CY" => Ok(Country::Cyprus),
+            "CZ" => Ok(Country::CzechRepublic),
+            "DK" => Ok(Country::Denmark),
+            "DJ" => Ok(Country::Djibouti),
+            "DM" => Ok(Country::Dominica),
+            "DO" => Ok(Country::DominicanRepublic),
+            "EC" => Ok(Country::Ecuador),
+            "EG" => Ok(Country::Egypt),
+            "SV" => Ok(Country::ElSalvador),
+            "GQ" => Ok(Country::EquatorialGuinea),
+            "ER" => Ok(Country::Eritrea),
+            "EE" => Ok(Country::Estonia),
+            "ET" => Ok(Country::Ethiopia),
+            "FK" => Ok(Country::FalklandIslandsMalvinas),
+            "FO" => Ok(Country::FaroeIslands),
+            "FJ" => Ok(Country::Fiji),
+            "FI" => Ok(Country::Finland),
+            "FR" => Ok(Country::France),
+            "GF" => Ok(Country::FrenchGuiana),
+            "PF" => Ok(Country::FrenchPolynesia),
+            "TF" => Ok(Country::FrenchSouthernTerritories),
+            "GA" => Ok(Country::Gabon),
+            "GM" => Ok(Country::Gambia),
+            "GE" => Ok(Country::Georgia),
+            "DE" => Ok(Country::Germany),
+            "GH" => Ok(Country::Ghana),
+            "GI" => Ok(Country::Gibraltar),
+            "GR" => Ok(Country::Greece),
+            "GL" => Ok(Country::Greenland),
+            "GD" => Ok(Country::Grenada),
+            "GP" => Ok(Country::Guadeloupe),
+            "GU" => Ok(Country::Guam),
+            "GT" => Ok(Country::Guatemala),
+            "GG" => Ok(Country::Guernsey),
+            "GN" => Ok(Country::Guinea),
+            "GW" => Ok(Country::GuineaBissau),
+            "GY" => Ok(Country::Guyana),
+            "HT" => Ok(Country::Haiti),
+            "HM" => Ok(Country::HeardIslandAndMcdonaldIslands),
+            "VA" => Ok(Country::HolySeeVaticanCityState),
+            "HN" => Ok(Country::Honduras),
+            "HK" => Ok(Country::HongKong),
+            "HU" => Ok(Country::Hungary),
+            "IS" => Ok(Country::Iceland),
+            "IN" => Ok(Country::India),
+            "ID" => Ok(Country::Indonesia),
+            "IR" => Ok(Country::IranIslamicRepublicOf),
+            "IQ" => Ok(Country::Iraq),
+            "IE" => Ok(Country::Ireland),
+            "IM" => Ok(Country::IsleOfMan),
+            "IL" => Ok(Country::Israel),
+            "IT" => Ok(Country::Italy),
+            "JM" => Ok(Country::Jamaica),
+            "JP" => Ok(Country::Japan),
+            "JE" => Ok(Country::Jersey),
+            "JO" => Ok(Country::Jordan),
+            "KZ" => Ok(Country::Kazakhstan),
+            "KE" => Ok(Country::Kenya),
+            "KI" => Ok(Country::Kiribati),
+            "KP" => Ok(Country::KoreaDemocraticPeopleRepublicOf),
+            "KR" => Ok(Country::KoreaRepublicOf),
+            "KW" => Ok(Country::Kuwait),
+            "KG" => Ok(Country::Kyrgyzstan),
+            "LA" => Ok(Country::LaoPeopleDemocraticRepublic),
+            "LV" => Ok(Country::Latvia),
+            "LB" => Ok(Country::Lebanon),
+            "LS" => Ok(Country::Lesotho),
+            "LR" => Ok(Country::Liberia),
+            "LY" => Ok(Country::Libya),
+            "LI" => Ok(Country::Liechtenstein),
+            "LT" => Ok(Country::Lithuania),
+            "LU" => Ok(Country::Luxembourg),
+            "MO" => Ok(Country::Macao),
+            "MK" => Ok(Country::MacedoniaTheFormerYugoslavRepublicOf),
+            "MG" => Ok(Country::Madagascar),
+            "MW" => Ok(Country::Malawi),
+            "MY" => Ok(Country::Malaysia),
+            "MV" => Ok(Country::Maldives),
+            "ML" => Ok(Country::Mali),
+            "MT" => Ok(Country::Malta),
+            "MH" => Ok(Country::MarshallIslands),
+            "MQ" => Ok(Country::Martinique),
+            "MR" => Ok(Country::Mauritania),
+            "MU" => Ok(Country::Mauritius),
+            "YT" => Ok(Country::Mayotte),
+            "MX" => Ok(Country::Mexico),
+            "FM" => Ok(Country::MicronesiaFederatedStatesOf),
+            "MD" => Ok(Country::MoldovaRepublicOf),
+            "MC" => Ok(Country::Monaco),
+            "MN" => Ok(Country::Mongolia),
+            "ME" => Ok(Country::Montenegro),
+            "MS" => Ok(Country::Montserrat),
+            "MA" => Ok(Country::Morocco),
+            "MZ" => Ok(Country::Mozambique),
+            "MM" => Ok(Country::Myanmar),
+            "NA" => Ok(Country::Namibia),
+            "NR" => Ok(Country::Nauru),
+            "NP" => Ok(Country::Nepal),
+            "NL" => Ok(Country::Netherlands),
+            "NC" => Ok(Country::NewCaledonia),
+            "NZ" => Ok(Country::NewZealand),
+            "NI" => Ok(Country::Nicaragua),
+            "NE" => Ok(Country::Niger),
+            "NG" => Ok(Country::Nigeria),
+            "NU" => Ok(Country::Niue),
+            "NF" => Ok(Country::NorfolkIsland),
+            "MP" => Ok(Country::NorthernMarianaIslands),
+            "NO" => Ok(Country::Norway),
+            "OM" => Ok(Country::Oman),
+            "PK" => Ok(Country::Pakistan),
+            "PW" => Ok(Country::Palau),
+            "PS" => Ok(Country::PalestineStateOf),
+            "PA" => Ok(Country::Panama),
+            "PG" => Ok(Country::PapuaNewGuinea),
+            "PY" => Ok(Country::Paraguay),
+            "PE" => Ok(Country::Peru),
+            "PH" => Ok(Country::Philippines),
+            "PN" => Ok(Country::Pitcairn),
+            "PL" => Ok(Country::Poland),
+            "PT" => Ok(Country::Portugal),
+            "PR" => Ok(Country::PuertoRico),
+            "QA" => Ok(Country::Qatar),
+            "RE" => Ok(Country::Reunion),
+            "RO" => Ok(Country::Romania),
+            "RU" => Ok(Country::RussianFederation),
+            "RW" => Ok(Country::Rwanda),
+            "BL" => Ok(Country::SaintBarthelemy),
+            "SH" => Ok(Country::SaintHelenaAscensionAndTristanDaCunha),
+            "KN" => Ok(Country::SaintKittsAndNevis),
+            "LC" => Ok(Country::SaintLucia),
+            "MF" => Ok(Country::SaintMartinFrenchPart),
+            "PM" => Ok(Country::SaintPierreAndMiquelon),
+            "VC" => Ok(Country::SaintVincentAndTheGrenadines),
+            "WS" => Ok(Country::Samoa),
+            "SM" => Ok(Country::SanMarino),
+            "ST" => Ok(Country::SaoTomeAndPrincipe),
+            "SA" => Ok(Country::SaudiArabia),
+            "SN" => Ok(Country::Senegal),
+            "RS" => Ok(Country::Serbia),
+            "SC" => Ok(Country::Seychelles),
+            "SL" => Ok(Country::SierraLeone),
+            "SG" => Ok(Country::Singapore),
+            "SX" => Ok(Country::SintMaartenDutchPart),
+            "SK" => Ok(Country::Slovakia),
+            "SI" => Ok(Country::Slovenia),
+            "SB" => Ok(Country::SolomonIslands),
+            "SO" => Ok(Country::Somalia),
+            "ZA" => Ok(Country::SouthAfrica),
+            "GS" => Ok(Country::SouthGeorgiaAndTheSouthSandwichIslands),
+            "SS" => Ok(Country::SouthSudan),
+            "ES" => Ok(Country::Spain),
+            "LK" => Ok(Country::SriLanka),
+            "SD" => Ok(Country::Sudan),
+            "SR" => Ok(Country::Suriname),
+            "SJ" => Ok(Country::SvalbardAndJanMayen),
+            "SZ" => Ok(Country::Swaziland),
+            "SE" => Ok(Country::Sweden),
+            "CH" => Ok(Country::Switzerland),
+            "SY" => Ok(Country::SyrianArabRepublic),
+            "TW" => Ok(Country::TaiwanProvinceOfChina),
+            "TJ" => Ok(Country::Tajikistan),
+            "TZ" => Ok(Country::TanzaniaUnitedRepublicOf),
+            "TH" => Ok(Country::Thailand),
+            "TL" => Ok(Country::TimorLeste),
+            "TG" => Ok(Country::Togo),
+            "TK" => Ok(Country::Tokelau),
+            "TO" => Ok(Country::Tonga),
+            "TT" => Ok(Country::TrinidadAndTobago),
+            "TN" => Ok(Country::Tunisia),
+            "TR" => Ok(Country::Turkey),
+            "TM" => Ok(Country::Turkmenistan),
+            "TC" => Ok(Country::TurksAndCaicosIslands),
+            "TV" => Ok(Country::Tuvalu),
+            "UG" => Ok(Country::Uganda),
+            "UA" => Ok(Country::Ukraine),
+            "AE" => Ok(Country::UnitedArabEmirates),
+            "GB" => Ok(Country::UnitedKingdom),
+            "US" => Ok(Country::UnitedStates),
+            "UM" => Ok(Country::UnitedStatesMinorOutlyingIslands),
+            "UY" => Ok(Country::Uruguay),
+            "UZ" => Ok(Country::Uzbekistan),
+            "VU" => Ok(Country::Vanuatu),
+            "VE" => Ok(Country::VenezuelaBolivarianRepublicOf),
+            "VN" => Ok(Country::VietNam),
+            "VG" => Ok(Country::VirginIslandsBritish),
+            "VI" => Ok(Country::VirginIslandsUS),
+            "WF" => Ok(Country::WallisAndFutuna),
+            "EH" => Ok(Country::WesternSahara),
+            "YE" => Ok(Country::Yemen),
+            "ZM" => Ok(Country::Zambia),
+            "ZW" => Ok(Country::Zimbabwe),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
+}
+#[test]
+fn test_convert_country_from_str() {
+    let country = Country::from_str("JP");
+    assert_eq!(country.unwrap(), Country::Japan);
+    let unknown_country = Country::from_str("not exist enum");
+    assert_eq!(unknown_country.is_err(), true);
 }
 
 ///repeat state: track, context or off.
 /// - track will repeat the current track.
 /// - context will repeat the current context.
 /// - off will turn repeat off.
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
+#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum RepeatState {
     Off,
@@ -1152,14 +944,6 @@ pub enum RepeatState {
     Context,
 }
 impl RepeatState {
-    pub fn from_str(s: &str) -> Option<RepeatState> {
-        match s {
-            "off" => Some(RepeatState::Off),
-            "track" => Some(RepeatState::Track),
-            "context" => Some(RepeatState::Context),
-            _ => None,
-        }
-    }
     pub fn as_str(&self) -> &str {
         match *self {
             RepeatState::Off => "off",
@@ -1168,9 +952,27 @@ impl RepeatState {
         }
     }
 }
+impl FromStr for RepeatState {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "off" => Ok(RepeatState::Off),
+            "track" => Ok(RepeatState::Track),
+            "context" => Ok(RepeatState::Context),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+        }
+    }
+}
 
+#[test]
+fn test_convert_repeat_state_from_str() {
+    let repeat_state = RepeatState::from_str("off");
+    assert_eq!(repeat_state.unwrap(), RepeatState::Off);
+    let unknown_state = RepeatState::from_str("not exist enum");
+    assert_eq!(unknown_state.is_err(), true);
+}
 /// Type for search: artist, album, track, playlist
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum SearchType {
     Artist,
@@ -1180,15 +982,6 @@ pub enum SearchType {
 }
 
 impl SearchType {
-    pub fn from_str(s: &str) -> Option<SearchType> {
-        match s {
-            "artist" => Some(SearchType::Artist),
-            "album" => Some(SearchType::Album),
-            "track" => Some(SearchType::Track),
-            "playlist" => Some(SearchType::Playlist),
-            _ => None,
-        }
-    }
     pub fn as_str(&self) -> &str {
         match *self {
             SearchType::Album => "album",
@@ -1198,16 +991,25 @@ impl SearchType {
         }
     }
 }
-
-impl fmt::Debug for SearchType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            SearchType::Album => write!(f, "album"),
-            SearchType::Artist => write!(f, "artist"),
-            SearchType::Track => write!(f, "track"),
-            SearchType::Playlist => write!(f, "playlist"),
+impl FromStr for SearchType {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "artist" => Ok(SearchType::Artist),
+            "album" => Ok(SearchType::Album),
+            "track" => Ok(SearchType::Track),
+            "playlist" => Ok(SearchType::Playlist),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
+}
+
+#[test]
+fn test_convert_search_type_from_str() {
+    let search_type = SearchType::from_str("artist");
+    assert_eq!(search_type.unwrap(), SearchType::Artist);
+    let unknown_search_type = SearchType::from_str("unknown_search_type");
+    assert_eq!(unknown_search_type.is_err(), true);
 }
 
 /// Device Type: computer, smartphone, speaker, TV, etc.
