@@ -7,15 +7,15 @@ pub struct Offset {
 }
 
 pub fn for_position(position: u32) -> Option<Offset> {
-    return Some(Offset {
+    Some(Offset {
         position: Some(position),
         uri: None,
-    });
+    })
 }
 
 pub fn for_uri(uri: String) -> Option<Offset> {
-    return Some(Offset {
+    Some(Offset {
         position: None,
         uri: Some(uri),
-    });
+    })
 }

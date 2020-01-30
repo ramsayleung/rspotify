@@ -34,8 +34,12 @@ pub fn generate_random_string(length: usize) -> String {
 /// `redirect_uri=my_uri&state=my-state&scope=test-scope`
 /// Since hashmap is not sorted, so the order of key-value-pairs
 /// may differ from times
-pub fn convert_map_to_string<K: Debug + Eq + Hash + ToString, V: Debug + ToString>(
-    map: &HashMap<K, V>,
+pub fn convert_map_to_string<
+    K: Debug + Eq + Hash + ToString,
+    V: Debug + ToString,
+    S: ::std::hash::BuildHasher,
+>(
+    map: &HashMap<K, V, S>,
 ) -> String {
     let mut string: String = String::new();
     for (key, value) in map.iter() {
