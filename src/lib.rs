@@ -83,7 +83,22 @@
 #[macro_use]
 extern crate log;
 extern crate env_logger;
-extern crate reqwest;
+
+#[cfg(any(feature = "default-tls", feature = "default-tls-blocking"))]
+extern crate reqwest_default_tls as reqwest;
+
+#[cfg(any(feature = "native-tls-crate", feature = "native-tls-crate-blocking"))]
+extern crate reqwest_native_tls as reqwest;
+
+#[cfg(any(
+    feature = "native-tls-vendored",
+    feature = "native-tls-vendored-blocking"
+))]
+extern crate reqwest_native_tls_vendored as reqwest;
+
+#[cfg(any(feature = "rustls-tls", feature = "rustls-tls-blocking"))]
+extern crate reqwest_rustls_tls as reqwest;
+
 extern crate serde;
 #[macro_use]
 extern crate serde_json;
