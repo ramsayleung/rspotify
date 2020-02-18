@@ -76,7 +76,7 @@ fn test_album_type_convert_from_str() {
     assert_eq!(empty_type.is_err(), true);
 }
 
-///  Type: ‘artist’, ‘album’,‘track’ or ‘playlist’
+///  Type: ‘artist’, ‘album’,‘track’, ‘playlist’, 'show' or 'episode'
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
@@ -85,6 +85,8 @@ pub enum Type {
     Track,
     Playlist,
     User,
+    Show,
+    Episode,
 }
 impl Type {
     pub fn as_str(&self) -> &str {
@@ -94,6 +96,8 @@ impl Type {
             Type::Track => "track",
             Type::Playlist => "playlist",
             Type::User => "user",
+            Type::Show => "show",
+            Type::Episode => "episode",
         }
     }
 }
@@ -106,6 +110,8 @@ impl FromStr for Type {
             "track" => Ok(Type::Track),
             "playlist" => Ok(Type::Playlist),
             "user" => Ok(Type::User),
+            "show" => Ok(Type::Show),
+            "episode" => Ok(Type::Episode),
             _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }

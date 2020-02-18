@@ -51,7 +51,7 @@ pub struct PlaylistTrack {
     pub added_at: DateTime<Utc>,
     pub added_by: Option<PublicUser>,
     pub is_local: bool,
-    pub track: FullTrack,
+    pub track: Option<FullTrack>,
 }
 ///[get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
