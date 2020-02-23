@@ -80,15 +80,18 @@ pub fn request_token(spotify_oauth: &mut SpotifyOAuth) {
     }
 }
 
-pub fn process_token(spotify_oauth: &mut SpotifyOAuth, input: &mut String) -> Option<TokenInfo> {
+pub async fn process_token(
+    spotify_oauth: &mut SpotifyOAuth,
+    input: &mut String,
+) -> Option<TokenInfo> {
     match spotify_oauth.parse_response_code(input) {
-        Some(code) => spotify_oauth.get_access_token(&code),
+        Some(code) => spotify_oauth.get_access_token(&code).await,
         None => None,
     }
 }
 
 /// get tokenInfo by Authorization
-pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+pub async fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
         None => {
@@ -96,7 +99,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
             println!("Enter the URL you were redirected to: ");
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
-                Ok(_) => process_token(spotify_oauth, &mut input),
+                Ok(_) => process_token(spotify_oauth, &mut input).await,
                 Err(_) => None,
             }
         }
@@ -104,8 +107,8 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
 }
 
 /// get tokenInfo by authorization and code
-pub fn get_token_by_code(spotify_oauth: &mut SpotifyOAuth, code: &str) -> Option<TokenInfo> {
-    spotify_oauth.get_access_token(&code)
+pub async fn get_token_by_code(spotify_oauth: &mut SpotifyOAuth, code: &str) -> Option<TokenInfo> {
+    spotify_oauth.get_access_token(&code).await
 }
 
 #[cfg(test)]

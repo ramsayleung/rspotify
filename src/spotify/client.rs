@@ -2,8 +2,9 @@
 // 3rd-part library
 use chrono::prelude::*;
 use failure;
-use reqwest::blocking::Client;
+// use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::Client;
 use reqwest::Method;
 use reqwest::StatusCode;
 use serde::de::Deserialize;
@@ -62,8 +63,8 @@ impl fmt::Display for ApiError {
         }
     }
 }
-impl From<&reqwest::blocking::Response> for ApiError {
-    fn from(response: &reqwest::blocking::Response) -> Self {
+impl From<&reqwest::Response> for ApiError {
+    fn from(response: &reqwest::Response) -> Self {
         match response.status() {
             StatusCode::UNAUTHORIZED => ApiError::Unauthorized,
             StatusCode::TOO_MANY_REQUESTS => {
@@ -134,7 +135,7 @@ impl Spotify {
         "Bearer ".to_owned() + &token
     }
 
-    fn internal_call(
+    async fn internal_call(
         &self,
         method: Method,
         url: &str,
@@ -160,21 +161,15 @@ impl Spotify {
                 builder
             };
 
-            builder.send().unwrap()
+            builder.send().await?
         };
-
-        let mut buf = String::new();
-        response
-            .read_to_string(&mut buf)
-            .expect("failed to read response");
-        if response.status().is_success() {
-            Ok(buf)
-        } else {
-            Err(failure::Error::from(ApiError::from(&response)))
+        match response.error_for_status() {
+            Ok(res) => Ok(res.text().await?),
+            Err(_) => Err(failure::Error::from(ApiError::from(&response))),
         }
     }
     ///send get request
-    fn get(
+    async fn get(
         &self,
         url: &str,
         params: &mut HashMap<String, String>,
@@ -185,23 +180,24 @@ impl Spotify {
             url_with_params.push('?');
             url_with_params.push_str(&param);
             self.internal_call(Method::GET, &url_with_params, None)
+                .await
         } else {
-            self.internal_call(Method::GET, url, None)
+            self.internal_call(Method::GET, url, None).await
         }
     }
 
     ///send post request
-    fn post(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Method::POST, url, Some(payload))
+    async fn post(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
+        self.internal_call(Method::POST, url, Some(payload)).await
     }
     ///send put request
-    fn put(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Method::PUT, url, Some(payload))
+    async fn put(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
+        self.internal_call(Method::PUT, url, Some(payload)).await
     }
 
     /// send delete request
-    fn delete(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Method::DELETE, url, Some(payload))
+    async fn delete(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
+        self.internal_call(Method::DELETE, url, Some(payload)).await
     }
 
     ///[get-track](https://developer.spotify.com/web-api/get-track/)

@@ -3,7 +3,7 @@
 use chrono::prelude::*;
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
-use reqwest::blocking::Client;
+use reqwest::Client;
 use serde_json;
 
 // use built-in library
@@ -142,7 +142,7 @@ impl SpotifyClientCredentials {
     }
     /// get access token from self.token_info, if self.token_info is none or is
     /// expired. fetch token info by HTTP request
-    pub fn get_access_token(&self) -> String {
+    pub async fn get_access_token(&self) -> String {
         let access_token = match self.token_info {
             Some(ref token_info) => {
                 if !self.is_token_expired(token_info) {
@@ -156,7 +156,7 @@ impl SpotifyClientCredentials {
         };
         match access_token {
             Some(access_token) => access_token.to_owned(),
-            None => match self.request_access_token() {
+            None => match self.request_access_token().await {
                 Some(new_token_info) => {
                     debug!("token info: {:?}", &new_token_info);
                     new_token_info.access_token
@@ -168,11 +168,12 @@ impl SpotifyClientCredentials {
     fn is_token_expired(&self, token_info: &TokenInfo) -> bool {
         is_token_expired(token_info)
     }
-    fn request_access_token(&self) -> Option<TokenInfo> {
+    async fn request_access_token(&self) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("grant_type", "client_credentials");
-        if let Some(mut token_info) =
-            self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        if let Some(mut token_info) = self
+            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
+            .await
         {
             let expires_in = token_info.expires_in;
             token_info.set_expires_at(datetime_to_timestamp(expires_in));
@@ -181,13 +182,13 @@ impl SpotifyClientCredentials {
             None
         }
     }
-    fn fetch_access_token(
+    async fn fetch_access_token(
         &self,
         client_id: &str,
         client_secret: &str,
         payload: &HashMap<&str, &str>,
     ) -> Option<TokenInfo> {
-        fetch_access_token(client_id, client_secret, payload)
+        fetch_access_token(client_id, client_secret, payload).await
     }
 }
 
@@ -303,15 +304,16 @@ impl SpotifyOAuth {
         }
     }
     /// gets the access_token for the app given the code
-    pub fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
+    pub async fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("redirect_uri", &self.redirect_uri);
         payload.insert("code", code);
         payload.insert("grant_type", "authorization_code");
         payload.insert("scope", &self.scope);
         payload.insert("state", &self.state);
-        if let Some(token_info) =
-            self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        if let Some(token_info) = self
+            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
+            .await
         {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
@@ -331,14 +333,14 @@ impl SpotifyOAuth {
         }
     }
     /// fetch access_token
-    fn fetch_access_token(
+    async fn fetch_access_token(
         &self,
         client_id: &str,
         client_secret: &str,
         payload: &HashMap<&str, &str>,
     ) -> Option<TokenInfo> {
         trace!("fetch_access_token->payload {:?}", &payload);
-        fetch_access_token(client_id, client_secret, payload)
+        fetch_access_token(client_id, client_secret, payload).await
     }
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
@@ -438,7 +440,7 @@ fn save_token_info(token_info: &str, path: &Path) {
         .expect("error when write file");
 }
 
-fn fetch_access_token(
+async fn fetch_access_token(
     _client_id: &str,
     _client_secret: &str,
     payload: &HashMap<&str, &str>,
@@ -452,33 +454,33 @@ fn fetch_access_token(
         .basic_auth(client_id, Some(client_secret))
         .form(&payload)
         .send()
+        .await
         .expect("send request failed");
-    let mut buf = String::new();
-    response
-        .read_to_string(&mut buf)
-        .expect("failed to read response");
-    if response.status().is_success() {
-        debug!("response content: {:?}", buf);
-        let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
-        // .expect("parsing response content to tokenInfo error");
-        let expires_in = token_info.expires_in;
-        token_info.set_expires_at(datetime_to_timestamp(expires_in));
-        if token_info.refresh_token.is_none() {
-            match payload.get("refresh_token") {
-                Some(payload_refresh_token) => {
-                    token_info.set_refresh_token(payload_refresh_token);
-                    return Some(token_info);
-                }
-                None => {
-                    debug!("could not find refresh_token");
+    match response.error_for_status() {
+        Ok(res) => {
+            let buf = res.text().await.unwrap();
+            debug!("response content: {:?}", buf);
+            let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
+            // .expect("parsing response content to tokenInfo error");
+            let expires_in = token_info.expires_in;
+            token_info.set_expires_at(datetime_to_timestamp(expires_in));
+            if token_info.refresh_token.is_none() {
+                match payload.get("refresh_token") {
+                    Some(payload_refresh_token) => {
+                        token_info.set_refresh_token(payload_refresh_token);
+                        return Some(token_info);
+                    }
+                    None => {
+                        debug!("could not find refresh_token");
+                    }
                 }
             }
+            Some(token_info)
         }
-        Some(token_info)
-    } else {
-        error!("fetch access token request failed, payload:{:?}", &payload);
-        error!("{:?}", response);
-        None
+        Err(_) => {
+            error!("fetch access token request failed, payload:{:?}", &payload);
+            None
+        }
     }
 }
 
