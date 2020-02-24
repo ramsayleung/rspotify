@@ -18,23 +18,23 @@ use std::fmt;
 use std::io::Read;
 use std::string::String;
 
-use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
-use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
-use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
-use super::model::category::PageCategory;
-use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
-use super::model::cud_result::CUDResult;
-use super::model::device::DevicePayload;
-use super::model::page::{CursorBasedPage, Page};
-use super::model::playing::{PlayHistory, Playing};
-use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use super::model::recommend::Recommendations;
-use super::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
-use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
-use super::model::user::{PrivateUser, PublicUser};
-use super::oauth2::SpotifyClientCredentials;
-use super::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
-use super::util::convert_map_to_string;
+use crate::blocking::oauth2::SpotifyClientCredentials;
+use crate::blocking::util::convert_map_to_string;
+use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
+use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
+use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
+use crate::model::category::PageCategory;
+use crate::model::context::{FullPlayingContext, SimplifiedPlayingContext};
+use crate::model::cud_result::CUDResult;
+use crate::model::device::DevicePayload;
+use crate::model::page::{CursorBasedPage, Page};
+use crate::model::playing::{PlayHistory, Playing};
+use crate::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
+use crate::model::recommend::Recommendations;
+use crate::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
+use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
+use crate::model::user::{PrivateUser, PublicUser};
+use crate::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
 lazy_static! {
     /// HTTP Client
     pub static ref CLIENT: Client = Client::new();
@@ -1643,7 +1643,7 @@ impl Spotify {
         device_id: Option<String>,
         context_uri: Option<String>,
         uris: Option<Vec<String>>,
-        offset: Option<super::model::offset::Offset>,
+        offset: Option<crate::model::offset::Offset>,
         position_ms: Option<u32>,
     ) -> Result<(), failure::Error> {
         if context_uri.is_some() && uris.is_some() {

@@ -31,3 +31,10 @@ failure = "0.1"
 [dependencies.chrono]
 features = ["serde", "rustc-serialize"]
 version = "0.4"
+
+[features]
+blocking = []
+
+[[example]]
+name = "device"
+required-features = ["blocking"]

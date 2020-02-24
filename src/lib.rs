@@ -103,6 +103,8 @@ extern crate percent_encoding;
 extern crate rand;
 extern crate url;
 
+#[cfg(feature = "blocking")]
+pub mod blocking;
 pub mod client;
 pub mod model;
 pub mod oauth2;
