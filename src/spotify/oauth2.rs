@@ -269,7 +269,7 @@ impl SpotifyOAuth {
         }
         self
     }
-    pub fn get_cached_token(&mut self) -> Option<TokenInfo> {
+    pub async fn get_cached_token(&mut self) -> Option<TokenInfo> {
         let display = self.cache_path.display();
         let mut file = match File::open(&self.cache_path) {
             Ok(file) => file,
@@ -293,7 +293,7 @@ impl SpotifyOAuth {
                     None
                 } else if self.is_token_expired(&token_info) {
                     if let Some(refresh_token) = token_info.refresh_token {
-                        self.refresh_access_token(&refresh_token)
+                        self.refresh_access_token(&refresh_token).await
                     } else {
                         None
                     }
@@ -377,12 +377,13 @@ impl SpotifyOAuth {
 
     /// after refresh access_token, the response may be empty
     /// when refresh_token again
-    pub fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
+    pub async fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
-        if let Some(token_info) =
-            self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        if let Some(token_info) = self
+            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
+            .await
         {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
@@ -449,7 +450,7 @@ async fn fetch_access_token(
     let client_id = _client_id.to_owned();
     let client_secret = _client_secret.to_owned();
     let url = "https://accounts.spotify.com/api/token";
-    let mut response = client
+    let response = client
         .post(url)
         .basic_auth(client_id, Some(client_secret))
         .form(&payload)

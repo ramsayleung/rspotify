@@ -92,7 +92,7 @@ pub async fn process_token(
 
 /// get tokenInfo by Authorization
 pub async fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
-    match spotify_oauth.get_cached_token() {
+    match spotify_oauth.get_cached_token().await {
         Some(token_info) => Some(token_info),
         None => {
             request_token(spotify_oauth);
