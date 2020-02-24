@@ -244,13 +244,13 @@ impl Spotify {
     ///returns a single artist given the artist's ID, URI or URL
     ///Parameters:
     ///- artist_id - an artist ID, URI or URL
-    // pub fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
-    //     let trid = self.get_id(Type::Artist, artist_id);
-    //     let url = format!("artists/{}", trid);
-    //     // url.push_str(&trid);
-    //     let result = self.get(&url, &mut HashMap::new())?;
-    //     self.convert_result::<FullArtist>(&result)
-    // }
+    pub async fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
+        let trid = self.get_id(Type::Artist, artist_id);
+        let url = format!("artists/{}", trid);
+        // url.push_str(&trid);
+        let result = self.get(&url, &mut HashMap::new()).await?;
+        self.convert_result::<FullArtist>(&result)
+    }
 
     // ///[get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
     // ///returns a list of artists given the artist IDs, URIs, or URLs

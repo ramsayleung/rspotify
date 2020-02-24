@@ -32,9 +32,19 @@ failure = "0.1"
 features = ["serde", "rustc-serialize"]
 version = "0.4"
 
+[dev-dependencies]
+tokio = { version = "0.2", features = ["full"] }
+futures = "0.3"
+
 [features]
 blocking = []
 
 [[example]]
 name = "device"
 required-features = ["blocking"]
+path = "examples/blocking/device.rs"
+
+[[example]]
+name = "artist_top_tracks"
+required-features = ["blocking"]
+path = "examples/blocking/artist_top_tracks.rs"
