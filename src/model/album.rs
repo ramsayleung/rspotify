@@ -7,7 +7,7 @@ use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
-use crate::spotify::senum::{AlbumType, Type};
+use crate::senum::{AlbumType, Type};
 
 ///[link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
 /// Simplified Album Object

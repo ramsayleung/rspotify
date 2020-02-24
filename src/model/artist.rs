@@ -2,7 +2,7 @@
 
 use super::image::Image;
 use super::page::CursorBasedPage;
-use crate::spotify::senum::Type;
+use crate::senum::Type;
 use serde_json::Value;
 use std::collections::HashMap;
 ///[artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)
