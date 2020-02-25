@@ -197,7 +197,8 @@ impl Spotify {
     where
         T: for<'de> serde::Deserialize<'de>,
     {
-        self.internal_call(Method::POST, url, Some(payload)).await
+        self.internal_call::<T>(Method::POST, url, Some(payload))
+            .await
     }
 
     ///send put request
@@ -205,7 +206,8 @@ impl Spotify {
     where
         T: for<'de> serde::Deserialize<'de>,
     {
-        self.internal_call(Method::PUT, url, Some(payload)).await
+        self.internal_call::<T>(Method::PUT, url, Some(payload))
+            .await
     }
 
     /// send delete request
@@ -213,7 +215,8 @@ impl Spotify {
     where
         T: for<'de> serde::Deserialize<'de>,
     {
-        self.internal_call(Method::DELETE, url, Some(payload)).await
+        self.internal_call::<T>(Method::DELETE, url, Some(payload))
+            .await
     }
 
     ///[get-track](https://developer.spotify.com/web-api/get-track/)
@@ -1060,7 +1063,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1149,7 +1152,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1196,7 +1199,7 @@ impl Spotify {
     ///- artist_ids - a list of artist IDs
     pub async fn user_follow_artists(&self, artist_ids: &[String]) -> Result<(), failure::Error> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1233,7 +1236,7 @@ impl Spotify {
     ///- user_ids - a list of artist IDs
     pub async fn user_follow_users(&self, user_ids: &[String]) -> Result<(), failure::Error> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1529,7 +1532,7 @@ impl Spotify {
         payload.insert("devie_ids".to_owned(), device_ids.into());
         payload.insert("play".to_owned(), force_play.into());
         let url = String::from("me/player");
-        self.put(&url, &Value::Object(payload)).await?;
+        self.put::<Value>(&url, &Value::Object(payload)).await?;
         Ok(())
     }
 
@@ -1583,7 +1586,7 @@ impl Spotify {
             params.insert("position_ms".to_owned(), _position_ms.into());
         };
         let url = self.append_device_id("me/player/play", device_id);
-        self.put(&url, &Value::Object(params)).await?;
+        self.put::<Value>(&url, &Value::Object(params)).await?;
         Ok(())
     }
 
@@ -1593,7 +1596,7 @@ impl Spotify {
     ///- device_id - device target for playback
     pub async fn pause_playback(&self, device_id: Option<String>) -> Result<(), failure::Error> {
         let url = self.append_device_id("me/player/pause", device_id);
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1631,7 +1634,7 @@ impl Spotify {
             &format!("me/player/seek?position_ms={}", position_ms),
             device_id,
         );
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1649,7 +1652,7 @@ impl Spotify {
             &format!("me/player/repeat?state={}", state.as_str()),
             device_id,
         );
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
@@ -1670,7 +1673,7 @@ impl Spotify {
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,
         );
-        self.put(&url, &json!({})).await?;
+        self.put::<Value>(&url, &json!({})).await?;
         Ok(())
     }
 
