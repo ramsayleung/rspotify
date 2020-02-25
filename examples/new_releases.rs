@@ -5,7 +5,8 @@ use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::senum::Country;
 use rspotify::spotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -19,7 +20,7 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -33,7 +34,7 @@ fn main() {
                 .client_credentials_manager(client_credential)
                 .build();
 
-            let albums = spotify.new_releases(Some(Country::Sweden), 10, 0);
+            let albums = spotify.new_releases(Some(Country::Sweden), 10, 0).await;
             println!("{:?}", albums);
         }
         None => println!("auth failed"),

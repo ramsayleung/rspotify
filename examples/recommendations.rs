@@ -7,7 +7,8 @@ use rspotify::spotify::senum::Country;
 use rspotify::spotify::util::get_token;
 use serde_json::map::Map;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -21,7 +22,7 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -39,14 +40,16 @@ fn main() {
             let seed_tracks = vec!["0c6xIDDpzE81m2q797ordA".to_owned()];
             payload.insert("min_energy".to_owned(), 0.4.into());
             payload.insert("min_popularity".to_owned(), 50.into());
-            let result = spotify.recommendations(
-                Some(seed_artists),
-                None,
-                Some(seed_tracks),
-                10,
-                Some(Country::UnitedStates),
-                &payload,
-            );
+            let result = spotify
+                .recommendations(
+                    Some(seed_artists),
+                    None,
+                    Some(seed_tracks),
+                    10,
+                    Some(Country::UnitedStates),
+                    &payload,
+                )
+                .await;
             println!("search result:{:?}", result);
         }
         None => println!("auth failed"),

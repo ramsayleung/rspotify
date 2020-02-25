@@ -5,7 +5,8 @@ use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::senum::RepeatState;
 use rspotify::spotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -21,7 +22,7 @@ fn main() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -34,7 +35,7 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            match spotify.repeat(RepeatState::Context, None) {
+            match spotify.repeat(RepeatState::Context, None).await {
                 Ok(_) => println!("repeat successful"),
                 Err(_) => eprintln!("repeat failed"),
             }

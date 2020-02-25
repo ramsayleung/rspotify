@@ -4,7 +4,8 @@ use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -18,7 +19,7 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -36,7 +37,7 @@ fn main() {
             let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
             artist_ids.push(artist_id1);
             artist_ids.push(artist_id2);
-            let result = spotify.user_artist_check_follow(&artist_ids);
+            let result = spotify.user_artist_check_follow(&artist_ids).await;
             println!("result:{:?}", result);
         }
         None => println!("auth failed"),

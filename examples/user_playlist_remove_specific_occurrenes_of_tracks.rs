@@ -6,7 +6,8 @@ use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::util::get_token;
 use serde_json::map::Map;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -22,7 +23,7 @@ fn main() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -59,12 +60,14 @@ fn main() {
             );
             map2.insert("position".to_string(), position2.into());
             tracks.push(map2);
-            let result = spotify.user_playlist_remove_specific_occurrenes_of_tracks(
-                user_id,
-                &playlist_id,
-                tracks,
-                None,
-            );
+            let result = spotify
+                .user_playlist_remove_specific_occurrenes_of_tracks(
+                    user_id,
+                    &playlist_id,
+                    tracks,
+                    None,
+                )
+                .await;
             println!("result:{:?}", result);
         }
         None => println!("auth failed"),

@@ -3,7 +3,8 @@ extern crate rspotify;
 use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::SpotifyClientCredentials;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -22,6 +23,6 @@ fn main() {
     tracks_ids.push(track_id1);
     let track_id2 = String::from("spotify:track:24JygzOLM0EmRQeGtFcIcG");
     tracks_ids.push(track_id2);
-    let features = spotify.audios_features(&tracks_ids);
+    let features = spotify.audios_features(&tracks_ids).await;
     println!("{:?}", features);
 }

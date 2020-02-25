@@ -4,7 +4,8 @@ use rspotify::spotify::client::Spotify;
 use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::spotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -20,7 +21,7 @@ fn main() {
     let mut spotify_oauth = SpotifyOAuth::default()
         .scope("playlist-read-private")
         .build();
-    match get_token(&mut spotify_oauth) {
+    match get_token(&mut spotify_oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -34,7 +35,7 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let playlists = spotify.current_user_playlists(10, None);
+            let playlists = spotify.current_user_playlists(10, None).await;
             println!("{:?}", playlists);
         }
         None => println!("auth failed"),

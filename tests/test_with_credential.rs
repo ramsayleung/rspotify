@@ -201,6 +201,6 @@ async fn test_fake_playlist() {
       .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
       .build();
 
-   let playlist = spotify.playlist("fake_id", None, None);
+   let playlist = spotify.playlist("fake_id", None, None).await;
    assert!(!playlist.is_ok());
 }
