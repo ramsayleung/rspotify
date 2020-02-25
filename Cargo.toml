@@ -48,3 +48,8 @@ path = "examples/blocking/device.rs"
 name = "artist_top_tracks"
 required-features = ["blocking"]
 path = "examples/blocking/artist_top_tracks.rs"
+
+[[example]]
+name = "categories"
+required-features = ["blocking"]
+path = "examples/blocking/categories.rs"
