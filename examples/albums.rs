@@ -1,9 +1,10 @@
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::SpotifyClientCredentials;
+use rspotify::client::Spotify;
+use rspotify::oauth2::SpotifyClientCredentials;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -21,6 +22,6 @@ fn main() {
     let birdy_uri2 = String::from("spotify:album:6JWc4iAiJ9FjyK0B59ABb4");
     let birdy_uri3 = String::from("spotify:album:6UXCm6bOO4gFlDQZV5yL37");
     let track_uris = vec![birdy_uri1, birdy_uri2, birdy_uri3];
-    let albums = spotify.albums(track_uris);
+    let albums = spotify.albums(track_uris).await;
     println!("{:?}", albums);
 }

@@ -342,6 +342,7 @@ impl SpotifyOAuth {
         trace!("fetch_access_token->payload {:?}", &payload);
         fetch_access_token(client_id, client_secret, payload).await
     }
+
     /// Parse the response code in the given response url
     pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
         url.split("?code=")
@@ -457,31 +458,31 @@ async fn fetch_access_token(
         .send()
         .await
         .expect("send request failed");
-    match response.error_for_status() {
-        Ok(res) => {
-            let buf = res.text().await.unwrap();
-            debug!("response content: {:?}", buf);
-            let mut token_info: TokenInfo = serde_json::from_str(&buf).unwrap();
-            // .expect("parsing response content to tokenInfo error");
-            let expires_in = token_info.expires_in;
-            token_info.set_expires_at(datetime_to_timestamp(expires_in));
-            if token_info.refresh_token.is_none() {
-                match payload.get("refresh_token") {
-                    Some(payload_refresh_token) => {
-                        token_info.set_refresh_token(payload_refresh_token);
-                        return Some(token_info);
-                    }
-                    None => {
-                        debug!("could not find refresh_token");
-                    }
+
+    if response.status().is_success() {
+        debug!("response content: {:?}", response);
+        let mut token_info: TokenInfo = response
+            .json()
+            .await
+            .expect("Error parsing token_info response");
+        let expires_in = token_info.expires_in;
+        token_info.set_expires_at(datetime_to_timestamp(expires_in));
+        if token_info.refresh_token.is_none() {
+            match payload.get("refresh_token") {
+                Some(payload_refresh_token) => {
+                    token_info.set_refresh_token(payload_refresh_token);
+                    return Some(token_info);
+                }
+                None => {
+                    debug!("could not find refresh_token");
                 }
             }
-            Some(token_info)
         }
-        Err(_) => {
-            error!("fetch access token request failed, payload:{:?}", &payload);
-            None
-        }
+        Some(token_info)
+    } else {
+        error!("fetch access token request failed, payload:{:?}", &payload);
+        error!("{:?}", response);
+        None
     }
 }
 

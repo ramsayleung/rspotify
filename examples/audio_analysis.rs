@@ -1,9 +1,10 @@
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::SpotifyClientCredentials;
+use rspotify::client::Spotify;
+use rspotify::oauth2::SpotifyClientCredentials;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -18,6 +19,6 @@ fn main() {
         .client_credentials_manager(client_credential)
         .build();
     let track = "06AKEBrKUckW0KREUWRnvT";
-    let analysis = spotify.audio_analysis(track);
+    let analysis = spotify.audio_analysis(track).await;
     println!("{:?}", analysis);
 }

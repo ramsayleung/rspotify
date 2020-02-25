@@ -6,3 +6,4 @@
 cmake-build-debug
 */.test_token
 Cargo.lock
+.DS_Store
