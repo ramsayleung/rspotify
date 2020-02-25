@@ -15,11 +15,11 @@ use rspotify::spotify::util::get_token;
 // run in a CI envirnment like travis, so I just ignore them all. You could
 // delete the #[ignore] tag, and run it on your local machine.
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_categories() {
+async fn test_categories() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -28,19 +28,21 @@ fn test_categories() {
                 .client_credentials_manager(client_credential)
                 .build();
 
-            let categories = spotify.categories(None, Some(Country::UnitedStates), 10, 0);
+            let categories = spotify
+                .categories(None, Some(Country::UnitedStates), 10, 0)
+                .await;
             assert!(categories.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_playback() {
+async fn test_current_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -48,19 +50,19 @@ fn test_current_playback() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playback(None);
+            let context = spotify.current_playback(None).await;
             assert!(context.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_playing() {
+async fn test_current_playing() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-currently-playing")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -68,18 +70,18 @@ fn test_current_playing() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playing(None);
+            let context = spotify.current_playing(None).await;
             assert!(context.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_followed_artists() {
+async fn test_current_user_followed_artists() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -87,20 +89,20 @@ fn test_current_user_followed_artists() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let artists = spotify.current_user_followed_artists(10, None);
+            let artists = spotify.current_user_followed_artists(10, None).await;
             assert!(artists.is_ok())
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_playing_track() {
+async fn test_current_user_playing_track() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-currently-playing user-read-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -108,20 +110,20 @@ fn test_current_user_playing_track() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let playing = spotify.current_user_playing_track();
+            let playing = spotify.current_user_playing_track().await;
             assert!(playing.is_ok())
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_playlists() {
+async fn test_current_user_playlists() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-read-private")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -129,19 +131,19 @@ fn test_current_user_playlists() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let playlists = spotify.current_user_playlists(10, None);
+            let playlists = spotify.current_user_playlists(10, None).await;
             assert!(playlists.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_recently_played() {
+async fn test_current_user_recently_played() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-recently-played")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -149,18 +151,18 @@ fn test_current_user_recently_played() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let history = spotify.current_user_recently_played(10);
+            let history = spotify.current_user_recently_played(10).await;
             assert!(history.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_albums_add() {
+async fn test_current_user_saved_albums_add() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -173,18 +175,18 @@ fn test_current_user_saved_albums_add() {
             let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
             album_ids.push(album_id2);
             album_ids.push(album_id1);
-            let result = spotify.current_user_saved_albums_add(&album_ids);
+            let result = spotify.current_user_saved_albums_add(&album_ids).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_albums_delete() {
+async fn test_current_user_saved_albums_delete() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -197,18 +199,18 @@ fn test_current_user_saved_albums_delete() {
             let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
             album_ids.push(album_id2);
             album_ids.push(album_id1);
-            let result = spotify.current_user_saved_albums_delete(&album_ids);
+            let result = spotify.current_user_saved_albums_delete(&album_ids).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_albums() {
+async fn test_current_user_saved_albums() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -216,18 +218,18 @@ fn test_current_user_saved_albums() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let albums = spotify.current_user_saved_albums(10, 0);
+            let albums = spotify.current_user_saved_albums(10, 0).await;
             assert!(albums.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_tracks_add() {
+async fn test_current_user_saved_tracks_add() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -240,18 +242,18 @@ fn test_current_user_saved_tracks_add() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.current_user_saved_tracks_add(&tracks_ids);
+            let result = spotify.current_user_saved_tracks_add(&tracks_ids).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_tracks_contains() {
+async fn test_current_user_saved_tracks_contains() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -264,18 +266,20 @@ fn test_current_user_saved_tracks_contains() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.current_user_saved_tracks_contains(&tracks_ids);
+            let result = spotify
+                .current_user_saved_tracks_contains(&tracks_ids)
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_tracks_delete() {
+async fn test_current_user_saved_tracks_delete() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -288,17 +292,17 @@ fn test_current_user_saved_tracks_delete() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.current_user_saved_tracks_delete(&tracks_ids);
+            let result = spotify.current_user_saved_tracks_delete(&tracks_ids).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_saved_tracks() {
+async fn test_current_user_saved_tracks() {
     let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -306,17 +310,17 @@ fn test_current_user_saved_tracks() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let tracks = spotify.current_user_saved_tracks(10, 0);
+            let tracks = spotify.current_user_saved_tracks(10, 0).await;
             assert!(tracks.is_ok());
         }
         None => assert!(false),
     }
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_top_artists() {
+async fn test_current_user_top_artists() {
     let mut oauth = SpotifyOAuth::default().scope("user-top-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -324,18 +328,20 @@ fn test_current_user_top_artists() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let artist = spotify.current_user_top_artists(10, 0, TimeRange::ShortTerm);
+            let artist = spotify
+                .current_user_top_artists(10, 0, TimeRange::ShortTerm)
+                .await;
             assert!(artist.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_current_user_top_tracks() {
+async fn test_current_user_top_tracks() {
     let mut oauth = SpotifyOAuth::default().scope("user-top-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -343,20 +349,22 @@ fn test_current_user_top_tracks() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let tracks = spotify.current_user_top_tracks(10, 0, TimeRange::ShortTerm);
+            let tracks = spotify
+                .current_user_top_tracks(10, 0, TimeRange::ShortTerm)
+                .await;
             assert!(tracks.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_device() {
+async fn test_device() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -364,18 +372,18 @@ fn test_device() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let devices = spotify.device();
+            let devices = spotify.device().await;
             assert!(devices.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_featured_playlists() {
+async fn test_featured_playlists() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -385,20 +393,22 @@ fn test_featured_playlists() {
                 .build();
 
             let now: DateTime<Utc> = Utc::now();
-            let playlists = spotify.featured_playlists(None, None, Some(now), 10, 0);
+            let playlists = spotify
+                .featured_playlists(None, None, Some(now), 10, 0)
+                .await;
             assert!(playlists.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_me() {
+async fn test_me() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-read-birthdate user-read-private user-read-email")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -406,18 +416,18 @@ fn test_me() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let user = spotify.me();
+            let user = spotify.me().await;
             assert!(user.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_new_releases() {
+async fn test_new_releases() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -426,20 +436,20 @@ fn test_new_releases() {
                 .client_credentials_manager(client_credential)
                 .build();
 
-            let albums = spotify.new_releases(Some(Country::Sweden), 10, 0);
+            let albums = spotify.new_releases(Some(Country::Sweden), 10, 0).await;
             assert!(albums.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_next_playback() {
+async fn test_next_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -448,20 +458,20 @@ fn test_next_playback() {
                 .client_credentials_manager(client_credential)
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-            let result = spotify.next_track(Some(device_id));
+            let result = spotify.next_track(Some(device_id)).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_pause_playback() {
+async fn test_pause_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -470,20 +480,20 @@ fn test_pause_playback() {
                 .client_credentials_manager(client_credential)
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-            let result = spotify.pause_playback(Some(device_id));
+            let result = spotify.pause_playback(Some(device_id)).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_previous_playback() {
+async fn test_previous_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -492,18 +502,18 @@ fn test_previous_playback() {
                 .client_credentials_manager(client_credential)
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-            let result = spotify.previous_track(Some(device_id));
+            let result = spotify.previous_track(Some(device_id)).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_recommendations() {
+async fn test_recommendations() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -516,27 +526,29 @@ fn test_recommendations() {
             let seed_tracks = vec!["0c6xIDDpzE81m2q797ordA".to_owned()];
             payload.insert("min_energy".to_owned(), 0.4.into());
             payload.insert("min_popularity".to_owned(), 50.into());
-            let result = spotify.recommendations(
-                Some(seed_artists),
-                None,
-                Some(seed_tracks),
-                10,
-                Some(Country::UnitedStates),
-                &payload,
-            );
+            let result = spotify
+                .recommendations(
+                    Some(seed_artists),
+                    None,
+                    Some(seed_tracks),
+                    10,
+                    Some(Country::UnitedStates),
+                    &payload,
+                )
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_repeat() {
+async fn test_repeat() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -544,18 +556,18 @@ fn test_repeat() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let result = spotify.repeat(RepeatState::Context, None);
+            let result = spotify.repeat(RepeatState::Context, None).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_search_album() {
+async fn test_search_album() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -564,18 +576,18 @@ fn test_search_album() {
                 .client_credentials_manager(client_credential)
                 .build();
             let query = "album:arrival artist:abba";
-            let result = spotify.search_album(query, 10, 0, None);
+            let result = spotify.search_album(query, 10, 0, None).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_search_artist() {
+async fn test_search_artist() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -584,18 +596,20 @@ fn test_search_artist() {
                 .client_credentials_manager(client_credential)
                 .build();
             let query = "tania bowra";
-            let result = spotify.search_artist(query, 10, 0, Some(Country::UnitedStates));
+            let result = spotify
+                .search_artist(query, 10, 0, Some(Country::UnitedStates))
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_search_playlist() {
+async fn test_search_playlist() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -604,18 +618,20 @@ fn test_search_playlist() {
                 .client_credentials_manager(client_credential)
                 .build();
             let query = "\"doom metal\"";
-            let result = spotify.search_playlist(query, 10, 0, Some(Country::UnitedStates));
+            let result = spotify
+                .search_playlist(query, 10, 0, Some(Country::UnitedStates))
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_search_track() {
+async fn test_search_track() {
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -624,20 +640,22 @@ fn test_search_track() {
                 .client_credentials_manager(client_credential)
                 .build();
             let query = "abba";
-            let result = spotify.search_track(query, 10, 0, Some(Country::UnitedStates));
+            let result = spotify
+                .search_track(query, 10, 0, Some(Country::UnitedStates))
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_seek_track() {
+async fn test_seek_track() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -645,20 +663,20 @@ fn test_seek_track() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let result = spotify.seek_track(25000, None);
+            let result = spotify.seek_track(25000, None).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_shuffle() {
+async fn test_shuffle() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -666,20 +684,20 @@ fn test_shuffle() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let result = spotify.shuffle(true, None);
+            let result = spotify.shuffle(true, None).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_start_playback() {
+async fn test_start_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -689,20 +707,21 @@ fn test_start_playback() {
                 .build();
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
             let uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
-            let result =
-                spotify.start_playback(Some(device_id), None, Some(uris), for_position(0), None);
+            let result = spotify
+                .start_playback(Some(device_id), None, Some(uris), for_position(0), None)
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_transfer_playback() {
+async fn test_transfer_playback() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -711,18 +730,18 @@ fn test_transfer_playback() {
                 .client_credentials_manager(client_credential)
                 .build();
             let device_id = "74ASZWbe4lXaubB36ztrGX";
-            let result = spotify.transfer_playback(device_id, true);
+            let result = spotify.transfer_playback(device_id, true).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_follow_artist() {
+async fn test_user_follow_artist() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -735,18 +754,18 @@ fn test_user_follow_artist() {
             let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
             artists.push(artist_id2);
             artists.push(artist_id1);
-            let result = spotify.user_follow_artists(&artists);
+            let result = spotify.user_follow_artists(&artists).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_unfollow_artist() {
+async fn test_user_unfollow_artist() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -759,18 +778,18 @@ fn test_user_unfollow_artist() {
             let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
             artists.push(artist_id2);
             artists.push(artist_id1);
-            let result = spotify.user_unfollow_artists(&artists);
+            let result = spotify.user_unfollow_artists(&artists).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_follow_users() {
+async fn test_user_follow_users() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -781,18 +800,18 @@ fn test_user_follow_users() {
             let mut users = vec![];
             let user_id1 = String::from("exampleuser01");
             users.push(user_id1);
-            let result = spotify.user_follow_users(&users);
+            let result = spotify.user_follow_users(&users).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_unfollow_users() {
+async fn test_user_unfollow_users() {
     let mut oauth = SpotifyOAuth::default().scope("user-follow-modify").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -803,20 +822,20 @@ fn test_user_unfollow_users() {
             let mut users = vec![];
             let user_id1 = String::from("exampleuser01");
             users.push(user_id1);
-            let result = spotify.user_unfollow_users(&users);
+            let result = spotify.user_unfollow_users(&users).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_add_tracks() {
+async fn test_user_playlist_add_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -831,20 +850,22 @@ fn test_user_playlist_add_tracks() {
             tracks_ids.push(track_id1);
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
-            let result = spotify.user_playlist_add_tracks(user_id, playlist_id, &tracks_ids, None);
+            let result = spotify
+                .user_playlist_add_tracks(user_id, playlist_id, &tracks_ids, None)
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_change_detail() {
+async fn test_user_playlist_change_detail() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -855,26 +876,28 @@ fn test_user_playlist_change_detail() {
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
             let playlist_name = "A New Playlist-update";
-            let result = spotify.user_playlist_change_detail(
-                user_id,
-                playlist_id,
-                Some(playlist_name),
-                Some(false),
-                None,
-                None,
-            );
+            let result = spotify
+                .user_playlist_change_detail(
+                    user_id,
+                    playlist_id,
+                    Some(playlist_name),
+                    Some(false),
+                    None,
+                    None,
+                )
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_check_follow() {
+async fn test_user_playlist_check_follow() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -889,19 +912,21 @@ fn test_user_playlist_check_follow() {
             user_ids.push(user_id1);
             let user_id2 = String::from("elogain");
             user_ids.push(user_id2);
-            let result = spotify.user_playlist_check_follow(owner_id, playlist_id, &user_ids);
+            let result = spotify
+                .user_playlist_check_follow(owner_id, playlist_id, &user_ids)
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_create() {
+async fn test_user_playlist_create() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -911,20 +936,22 @@ fn test_user_playlist_create() {
                 .build();
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_name = "A New Playlist";
-            let playlists = spotify.user_playlist_create(user_id, playlist_name, false, None);
+            let playlists = spotify
+                .user_playlist_create(user_id, playlist_name, false, None)
+                .await;
             assert!(playlists.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_follow_playlist() {
+async fn test_user_playlist_follow_playlist() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -934,20 +961,22 @@ fn test_user_playlist_follow_playlist() {
                 .build();
             let owner_id = "jmperezperez";
             let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
-            let result = spotify.user_playlist_follow_playlist(owner_id, playlist_id, true);
+            let result = spotify
+                .user_playlist_follow_playlist(owner_id, playlist_id, true)
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_recorder_tracks() {
+async fn test_user_playlist_recorder_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -960,27 +989,29 @@ fn test_user_playlist_recorder_tracks() {
             let range_start = 0;
             let insert_before = 1;
             let range_length = 1;
-            let result = spotify.user_playlist_recorder_tracks(
-                user_id,
-                playlist_id,
-                range_start,
-                range_length,
-                insert_before,
-                None,
-            );
+            let result = spotify
+                .user_playlist_recorder_tracks(
+                    user_id,
+                    playlist_id,
+                    range_start,
+                    range_length,
+                    insert_before,
+                    None,
+                )
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_remove_all_occurrences_of_tracks() {
+async fn test_user_playlist_remove_all_occurrences_of_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -995,25 +1026,27 @@ fn test_user_playlist_remove_all_occurrences_of_tracks() {
             let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
             tracks_ids.push(track_id2);
             tracks_ids.push(track_id1);
-            let result = spotify.user_playlist_remove_all_occurrences_of_tracks(
-                user_id,
-                playlist_id,
-                &tracks_ids,
-                None,
-            );
+            let result = spotify
+                .user_playlist_remove_all_occurrences_of_tracks(
+                    user_id,
+                    playlist_id,
+                    &tracks_ids,
+                    None,
+                )
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
+async fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1043,25 +1076,27 @@ fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
             );
             map2.insert("position".to_string(), position2.into());
             tracks.push(map2);
-            let result = spotify.user_playlist_remove_specific_occurrenes_of_tracks(
-                user_id,
-                &playlist_id,
-                tracks,
-                None,
-            );
+            let result = spotify
+                .user_playlist_remove_specific_occurrenes_of_tracks(
+                    user_id,
+                    &playlist_id,
+                    tracks,
+                    None,
+                )
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_replace_tracks() {
+async fn test_user_playlist_replace_tracks() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1078,17 +1113,18 @@ fn test_user_playlist_replace_tracks() {
             tracks_ids.push(track_id1);
             spotify
                 .user_playlist_replace_tracks(user_id, playlist_id, &tracks_ids)
+                .await
                 .expect("replace tracks in a playlist failed");
             assert!(true);
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist() {
+async fn test_user_playlist() {
     let mut spotify_oauth = SpotifyOAuth::default().build();
-    match get_token(&mut spotify_oauth) {
+    match get_token(&mut spotify_oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1098,20 +1134,22 @@ fn test_user_playlist() {
                 .build();
             let user_id = "spotify";
             let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
-            let playlists = spotify.user_playlist(user_id, Some(&mut playlist_id), None, None);
+            let playlists = spotify
+                .user_playlist(user_id, Some(&mut playlist_id), None, None)
+                .await;
             assert!(playlists.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlists() {
+async fn test_user_playlists() {
     let mut spotify_oauth = SpotifyOAuth::default()
         .scope("playlist-read-private, playlist-read-collaborative")
         .build();
-    match get_token(&mut spotify_oauth) {
+    match get_token(&mut spotify_oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1120,18 +1158,18 @@ fn test_user_playlists() {
                 .client_credentials_manager(client_credential)
                 .build();
             let user_id = "2257tjys2e2u2ygfke42niy2q";
-            let playlists = spotify.user_playlists(user_id, Some(10), None);
+            let playlists = spotify.user_playlists(user_id, Some(10), None).await;
             assert!(playlists.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_tracks() {
+async fn test_user_playlist_tracks() {
     let mut spotify_oauth = SpotifyOAuth::default().build();
-    match get_token(&mut spotify_oauth) {
+    match get_token(&mut spotify_oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1142,20 +1180,21 @@ fn test_user_playlist_tracks() {
                 .build();
             let user_id = "spotify";
             let playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
-            let playlists =
-                spotify.user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None);
+            let playlists = spotify
+                .user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None)
+                .await;
             assert!(playlists.is_ok());
         }
         None => assert!(false),
     };
 }
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_user_playlist_unfollow() {
+async fn test_user_playlist_unfollow() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1165,20 +1204,20 @@ fn test_user_playlist_unfollow() {
                 .build();
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "65V6djkcVRyOStLd8nza8E";
-            let result = spotify.user_playlist_unfollow(user_id, playlist_id);
+            let result = spotify.user_playlist_unfollow(user_id, playlist_id).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
     };
 }
 
-#[test]
+#[tokio::test]
 #[ignore]
-fn test_volume() {
+async fn test_volume() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -1186,7 +1225,7 @@ fn test_volume() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let result = spotify.volume(78, None);
+            let result = spotify.volume(78, None).await;
             assert!(result.is_ok());
         }
         None => assert!(false),
