@@ -223,8 +223,7 @@ impl Spotify {
     pub async fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
-        let result = self.get::<FullTrack>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<FullTrack>(&url, &mut HashMap::new()).await
     }
 
     ///[get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
@@ -248,8 +247,7 @@ impl Spotify {
             params.insert("market".to_owned(), _market.as_str().to_owned());
         }
         trace!("{:?}", &url);
-        let result = self.get::<FullTracks>(&url, &mut params).await;
-        result
+        self.get::<FullTracks>(&url, &mut params).await
     }
 
     ///[get-artist](https://developer.spotify.com/web-api/get-artist/)
@@ -259,8 +257,7 @@ impl Spotify {
     pub async fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}", trid);
-        let result = self.get::<FullArtist>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<FullArtist>(&url, &mut HashMap::new()).await
     }
 
     ///[get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
@@ -273,8 +270,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Artist, &artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
-        let result = self.get::<FullArtists>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<FullArtists>(&url, &mut HashMap::new()).await
     }
 
     ///[get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
@@ -307,8 +303,7 @@ impl Spotify {
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
-        let result = self.get::<Page<SimplifiedAlbum>>(&url, &mut params).await;
-        result
+        self.get::<Page<SimplifiedAlbum>>(&url, &mut params).await
     }
 
     ///[get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
@@ -331,8 +326,7 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
 
-        let result = self.get::<FullTracks>(&url, &mut params).await;
-        result
+        self.get::<FullTracks>(&url, &mut params).await
     }
 
     ///[get related artists](https://developer.spotify.com/web-api/get-related-artists/)
@@ -349,8 +343,7 @@ impl Spotify {
         let url = format!("artists/{}/related-artists", trid);
         // url.push_str(&trid);
         // url.push_str("/related-artists");
-        let result = self.get::<FullArtists>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<FullArtists>(&url, &mut HashMap::new()).await
     }
 
     ///[get album](https://developer.spotify.com/web-api/get-album/)
@@ -361,8 +354,7 @@ impl Spotify {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}", trid);
         // url.push_str(&trid);
-        let result = self.get::<FullAlbum>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<FullAlbum>(&url, &mut HashMap::new()).await
     }
 
     ///[get several albums](https://developer.spotify.com/web-api/get-several-albums/)
@@ -376,8 +368,7 @@ impl Spotify {
         }
         let url = format!("albums/?ids={}", ids.join(","));
         // url.push_str(&ids.join(","));
-        let result = self.get::<FullAlbums>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<FullAlbums>(&url, &mut HashMap::new()).await
     }
 
     ///[search for items](https://developer.spotify.com/web-api/search-item/)
@@ -435,10 +426,8 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> Result<SearchAlbums, failure::Error> {
-        let result = self
-            .search::<SearchAlbums, L, O>(q, SearchType::Album, limit, offset, market)
-            .await;
-        result
+        self.search::<SearchAlbums, L, O>(q, SearchType::Album, limit, offset, market)
+            .await
     }
 
     ///search item, type is artist
@@ -458,10 +447,8 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> Result<SearchArtists, failure::Error> {
-        let result = self
-            .search::<SearchArtists, L, O>(q, SearchType::Artist, limit, offset, market)
-            .await;
-        result
+        self.search::<SearchArtists, L, O>(q, SearchType::Artist, limit, offset, market)
+            .await
     }
 
     ///search item, type is track
@@ -481,10 +468,8 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> Result<SearchTracks, failure::Error> {
-        let result = self
-            .search::<SearchTracks, L, O>(q, SearchType::Track, limit, offset, market)
-            .await;
-        result
+        self.search::<SearchTracks, L, O>(q, SearchType::Track, limit, offset, market)
+            .await
     }
     ///search item, type is playlist
     ///[search for items](https://developer.spotify.com/web-api/search-item/)
@@ -503,10 +488,8 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> Result<SearchPlaylists, failure::Error> {
-        let result = self
-            .search::<SearchPlaylists, L, O>(q, SearchType::Playlist, limit, offset, market)
-            .await;
-        result
+        self.search::<SearchPlaylists, L, O>(q, SearchType::Playlist, limit, offset, market)
+            .await
     }
 
     ///[get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
@@ -528,8 +511,7 @@ impl Spotify {
         // url.push_str("/tracks");
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get::<Page<SimplifiedTrack>>(&url, &mut params).await;
-        result
+        self.get::<Page<SimplifiedTrack>>(&url, &mut params).await
     }
 
     ///[get users profile](https://developer.spotify.com/web-api/get-users-profile/)
@@ -538,8 +520,7 @@ impl Spotify {
     ///- user - the id of the usr
     pub async fn user(&self, user_id: &str) -> Result<PublicUser, failure::Error> {
         let url = format!("users/{}", user_id);
-        let result = self.get::<PublicUser>(&url, &mut HashMap::new()).await;
-        result
+        self.get::<PublicUser>(&url, &mut HashMap::new()).await
     }
 
     ///[get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
@@ -563,8 +544,7 @@ impl Spotify {
 
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("playlists/{}", plid);
-        let result = self.get::<FullPlaylist>(&url, &mut params).await;
-        result
+        self.get::<FullPlaylist>(&url, &mut params).await
     }
 
     ///[get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
@@ -582,10 +562,8 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
 
         let url = String::from("me/playlists");
-        let result = self
-            .get::<Page<SimplifiedPlaylist>>(&url, &mut params)
-            .await;
-        result
+        self.get::<Page<SimplifiedPlaylist>>(&url, &mut params)
+            .await
     }
 
     ///[get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
@@ -604,10 +582,8 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         let url = format!("users/{}/playlists", user_id);
-        let result = self
-            .get::<Page<SimplifiedPlaylist>>(&url, &mut params)
-            .await;
-        result
+        self.get::<Page<SimplifiedPlaylist>>(&url, &mut params)
+            .await
     }
 
     ///[get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
@@ -634,13 +610,11 @@ impl Spotify {
             Some(_playlist_id) => {
                 let plid = self.get_id(Type::Playlist, _playlist_id);
                 let url = format!("users/{}/playlists/{}", user_id, plid);
-                let result = self.get::<FullPlaylist>(&url, &mut params).await;
-                result
+                self.get::<FullPlaylist>(&url, &mut params).await
             }
             None => {
                 let url = format!("users/{}/starred", user_id);
-                let result = self.get::<FullPlaylist>(&url, &mut params).await;
-                result
+                self.get::<FullPlaylist>(&url, &mut params).await
             }
         }
     }
@@ -674,8 +648,7 @@ impl Spotify {
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.get::<Page<PlaylistTrack>>(&url, &mut params).await;
-        result
+        self.get::<Page<PlaylistTrack>>(&url, &mut params).await
     }
 
     ///[create playlist](https://developer.spotify.com/web-api/create-playlist/)
@@ -700,8 +673,7 @@ impl Spotify {
             "description": description
         });
         let url = format!("users/{}/playlists", user_id);
-        let result = self.post::<FullPlaylist>(&url, &params).await;
-        result
+        self.post::<FullPlaylist>(&url, &params).await
     }
 
     ///[change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
@@ -778,8 +750,7 @@ impl Spotify {
         }
         params.insert("uris".to_owned(), uris.into());
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.post::<CUDResult>(&url, &Value::Object(params)).await;
-        result
+        self.post::<CUDResult>(&url, &Value::Object(params)).await
     }
     ///[replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     ///Replace all tracks in a playlist
@@ -835,8 +806,7 @@ impl Spotify {
         params.insert("range_length".to_owned(), range_length.into());
         params.insert("insert_before".to_owned(), insert_before.into());
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.put::<CUDResult>(&url, &Value::Object(params)).await;
-        result
+        self.put::<CUDResult>(&url, &Value::Object(params)).await
     }
 
     ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -870,8 +840,7 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.delete::<CUDResult>(&url, &Value::Object(params)).await;
-        result
+        self.delete::<CUDResult>(&url, &Value::Object(params)).await
     }
 
     ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -910,8 +879,7 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.delete::<CUDResult>(&url, &Value::Object(params)).await;
-        result
+        self.delete::<CUDResult>(&url, &Value::Object(params)).await
     }
 
     ///[follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
@@ -959,8 +927,7 @@ impl Spotify {
             user_ids.join(",")
         );
         let mut dumb: HashMap<String, String> = HashMap::new();
-        let result = self.get::<Vec<bool>>(&url, &mut dumb).await;
-        result
+        self.get::<Vec<bool>>(&url, &mut dumb).await
     }
     ///[get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     ///Get detailed profile information about the current user.
@@ -968,8 +935,7 @@ impl Spotify {
     pub async fn me(&self) -> Result<PrivateUser, failure::Error> {
         let mut dumb: HashMap<String, String> = HashMap::new();
         let url = String::from("me/");
-        let result = self.get::<PrivateUser>(&url, &mut dumb).await;
-        result
+        self.get::<PrivateUser>(&url, &mut dumb).await
     }
     ///Get detailed profile information about the current user.
     ///An alias for the 'me' method.
@@ -1003,8 +969,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/albums");
-        let result = self.get::<Page<SavedAlbum>>(&url, &mut params).await;
-        result
+        self.get::<Page<SavedAlbum>>(&url, &mut params).await
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     ///Parameters:
@@ -1022,8 +987,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("me/tracks");
-        let result = self.get::<Page<SavedTrack>>(&url, &mut params).await;
-        result
+        self.get::<Page<SavedTrack>>(&url, &mut params).await
     }
     ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
     ///Gets a list of the artists followed by the current authorized user
@@ -1043,8 +1007,7 @@ impl Spotify {
         }
         params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
         let url = String::from("me/following");
-        let result = self.get::<CursorPageFullArtists>(&url, &mut params).await;
-        result
+        self.get::<CursorPageFullArtists>(&url, &mut params).await
     }
 
     ///[remove tracks users](https://developer.spotify.com/web-api/remove-tracks-user/)
@@ -1080,8 +1043,7 @@ impl Spotify {
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
         let mut dumb = HashMap::new();
-        let result = self.get::<Vec<bool>>(&url, &mut dumb).await;
-        result
+        self.get::<Vec<bool>>(&url, &mut dumb).await
     }
 
     ///[save tracks user ](https://developer.spotify.com/web-api/save-tracks-user/)
@@ -1127,8 +1089,7 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.to_string());
         params.insert("time_range".to_owned(), time_range.as_str().to_owned());
         let url = String::from("me/top/artists");
-        let result = self.get::<Page<FullArtist>>(&url, &mut params).await;
-        result
+        self.get::<Page<FullArtist>>(&url, &mut params).await
     }
 
     ///[get users top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
@@ -1155,8 +1116,7 @@ impl Spotify {
         params.insert("offset".to_owned(), offset.to_string());
         params.insert("time_range".to_owned(), time_range.as_str().to_owned());
         let url = String::from("me/top/tracks");
-        let result = self.get::<Page<FullTrack>>(&url, &mut params).await;
-        result
+        self.get::<Page<FullTrack>>(&url, &mut params).await
     }
 
     ///[get recently played](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
@@ -1171,10 +1131,8 @@ impl Spotify {
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         let url = String::from("me/player/recently-played");
-        let result = self
-            .get::<CursorBasedPage<PlayHistory>>(&url, &mut params)
-            .await;
-        result
+        self.get::<CursorBasedPage<PlayHistory>>(&url, &mut params)
+            .await
     }
 
     ///[save albums user](https://developer.spotify.com/web-api/save-albums-user/)
@@ -1229,8 +1187,7 @@ impl Spotify {
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
         let mut dumb = HashMap::new();
-        let result = self.get::<Vec<bool>>(&url, &mut dumb).await;
-        result
+        self.get::<Vec<bool>>(&url, &mut dumb).await
     }
 
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
@@ -1267,8 +1224,7 @@ impl Spotify {
             artsit_ids.join(",")
         );
         let mut dumb = HashMap::new();
-        let result = self.get::<Vec<bool>>(&url, &mut dumb).await;
-        result
+        self.get::<Vec<bool>>(&url, &mut dumb).await
     }
 
     ///[follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
@@ -1330,8 +1286,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/featured-playlists");
-        let result = self.get::<FeaturedPlaylists>(&url, &mut params).await;
-        result
+        self.get::<FeaturedPlaylists>(&url, &mut params).await
     }
 
     ///[get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
@@ -1358,8 +1313,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/new-releases");
-        let result = self.get::<PageSimpliedAlbums>(&url, &mut params).await;
-        result
+        self.get::<PageSimpliedAlbums>(&url, &mut params).await
     }
 
     ///[get list categories](https://developer.spotify.com/web-api/get-list-categories/)
@@ -1393,8 +1347,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = String::from("browse/categories");
-        let result = self.get::<PageCategory>(&url, &mut params).await;
-        result
+        self.get::<PageCategory>(&url, &mut params).await
     }
 
     ///[get recommendtions](https://developer.spotify.com/web-api/get-recommendations/)
@@ -1476,8 +1429,7 @@ impl Spotify {
         //     }
         // }
         let url = String::from("recommendations");
-        let result = self.get::<Recommendations>(&url, &mut params).await;
-        result
+        self.get::<Recommendations>(&url, &mut params).await
     }
     ///[get audio features](https://developer.spotify.com/web-api/get-audio-features/)
     ///Get audio features for a track
@@ -1486,8 +1438,7 @@ impl Spotify {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
         let mut dumb = HashMap::new();
-        let result = self.get::<AudioFeatures>(&url, &mut dumb).await;
-        result
+        self.get::<AudioFeatures>(&url, &mut dumb).await
     }
 
     ///[get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
@@ -1515,8 +1466,7 @@ impl Spotify {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
         let mut dumb = HashMap::new();
-        let result = self.get::<AudioAnalysis>(&url, &mut dumb).await;
-        result
+        self.get::<AudioAnalysis>(&url, &mut dumb).await
     }
 
     ///[get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
@@ -1524,8 +1474,7 @@ impl Spotify {
     pub async fn device(&self) -> Result<DevicePayload, failure::Error> {
         let url = String::from("me/player/devices");
         let mut dumb = HashMap::new();
-        let result = self.get::<DevicePayload>(&url, &mut dumb).await;
-        result
+        self.get::<DevicePayload>(&url, &mut dumb).await
     }
 
     ///[get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
