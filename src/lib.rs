@@ -37,9 +37,9 @@
 //! ``` rust
 //! extern crate rspotify;
 //!
-//! use rspotify::spotify::client::Spotify;
-//! use rspotify::spotify::util::get_token;
-//! use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+//! use rspotify::client::Spotify;
+//! use rspotify::util::get_token;
+//! use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 //!
 //! #[tokio::main]
 //! async fn main() {
