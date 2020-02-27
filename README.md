@@ -40,7 +40,7 @@ Even if your script does not have an accessible URL you need to specify one when
 
 In order to help other developers to get used to `rspotify`, I registerd a Spotify account with temporary email. Your guys could test `rspotify` with this account's `CLIENT_ID` and `CLIENT_SECRET`, check [.env file](./.env) for more details.
 
-## Examples
+### Examples
 
 If you have a use case you are interested in, you could check the
 [examples](./examples), which has all kinds of detailed examples. For example,
@@ -48,64 +48,81 @@ If you want to get recently played history, you could check
 [current_user_recently_played](./examples/current_user_recently_played.rs). This is
 the example code:
 
+``` toml
+[dependencies]
+rspotify = { version = "0.9"}
+tokio = { version = "0.2", features = ["full"] }
+```
+
 ``` rust
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::util::get_token;
-use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::client::Spotify;
+use rspotify::oauth2::SpotifyClientCredentials;
+use rspotify::senum::Country;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
-    // export REDIRECT_URI=your-direct-uri
+    let client_credential = SpotifyClientCredentials::default().build();
 
-    // Or set client_id, client_secret,redirect_uri explictly
-    // let oauth = SpotifyOAuth::default()
+    // Or set client_id and client_secret explictly
+    // let client_credential = SpotifyClientCredentials::default()
     //     .client_id("this-is-my-client-id")
     //     .client_secret("this-is-my-client-secret")
-    //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
-
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-recently-played")
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
         .build();
-    match get_token(&mut oauth) {
-        Some(token_info) => {
-            let client_credential = SpotifyClientCredentials::default()
-                .token_info(token_info)
-                .build();
-            // Or set client_id and client_secret explictly
-            // let client_credential = SpotifyClientCredentials::default()
-            //     .client_id("this-is-my-client-id")
-            //     .client_secret("this-is-my-client-secret")
-            //     .build();
-            let spotify = Spotify::default()
-                .client_credentials_manager(client_credential)
-                .build();
-            let history = spotify.current_user_recently_played(10);
-            println!("{:?}", history);
-        }
-        None => println!("auth failed"),
-    };
+    let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
+    let tracks = spotify
+        .artist_top_tracks(birdy_uri, Country::UnitedStates)
+        .await;
+    println!("{:?}", tracks.unwrap());
 }
-
 ```
 
-### API Documentation
+### Blocking API example
+There is an optional "blocking" client API that can be enabled:
+
+``` toml
+[dependencies]
+rspotify = { version = "0.9", features=["blocking"]}
+```
+
+``` rust
+extern crate rspotify;
+
+use rspotify::blocking::client::Spotify;
+use rspotify::blocking::oauth2::SpotifyClientCredentials;
+use rspotify::senum::Country;
+
+fn main() {
+    let client_credential = SpotifyClientCredentials::default().build();
+    let spotify = Spotify::default()
+        .client_credentials_manager(client_credential)
+        .build();
+    let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
+    let tracks = spotify.artist_top_tracks(birdy_uri, Country::UnitedStates);
+    println!("{:?}", tracks.unwrap());
+}
+```
+
+## API Documentation
 
 For more API information, you could check [rspotify Api documentation](https://docs.rs/crate/rspotify)
 
-### CHANGELOG
+## CHANGELOG
 
 Please see the [CHANGELOG](./CHANGELOG.md) for a release history.
 
-### Contribution
+## Contribution
 
 If you find any problem or have suggestions about this crate, please submit an
 issue. Moreover, any pull request ,code review and feedback are welcome.
 
-### License
+## License
 
 [MIT](./LICENSE)

@@ -1,3 +1,10 @@
+## 0.9 (2020/02/28)
+
+- Adds `async/await` support.
+- Keeps the previous synchronous API, enabled by extra feature `blocking`, disabled by default.
+- Shorten the import path.
+- Add missing `Show` and `Episode` types.
+
 ## 0.8 (2020/01/30)
 
 - Provide more informational error strings for API.

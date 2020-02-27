@@ -1,10 +1,11 @@
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::util::get_token;
+use rspotify::client::Spotify;
+use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -20,7 +21,7 @@ fn main() {
     let mut spotify_oauth = SpotifyOAuth::default()
         .scope("playlist-read-private, playlist-read-collaborative")
         .build();
-    match get_token(&mut spotify_oauth) {
+    match get_token(&mut spotify_oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -37,7 +38,7 @@ fn main() {
             //this is my(samray's) user_id, so just change
             // user_id to yours, or you will get a 403 forbidden error
             let user_id = "2257tjys2e2u2ygfke42niy2q";
-            let playlists = spotify.user_playlists(user_id, Some(10), None);
+            let playlists = spotify.user_playlists(user_id, Some(10), None).await;
             println!("{:?}", playlists);
         }
         None => println!("auth failed"),

@@ -1,10 +1,12 @@
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::senum::Country;
-use rspotify::spotify::util::get_token;
-fn main() {
+use rspotify::client::Spotify;
+use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::senum::Country;
+use rspotify::util::get_token;
+
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -18,7 +20,7 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -32,7 +34,9 @@ fn main() {
                 .client_credentials_manager(client_credential)
                 .build();
             let query = "\"doom metal\"";
-            let result = spotify.search_playlist(query, 10, 0, Some(Country::UnitedStates));
+            let result = spotify
+                .search_playlist(query, 10, 0, Some(Country::UnitedStates))
+                .await;
             println!("search result:{:?}", result);
         }
         None => println!("auth failed"),

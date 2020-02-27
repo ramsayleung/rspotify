@@ -37,11 +37,12 @@
 //! ``` rust
 //! extern crate rspotify;
 //!
-//! use rspotify::spotify::client::Spotify;
-//! use rspotify::spotify::util::get_token;
-//! use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+//! use rspotify::client::Spotify;
+//! use rspotify::util::get_token;
+//! use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 //!
-//! fn main() {
+//! #[tokio::main]
+//! async fn main() {
 //! // Set client_id and client_secret in .env file or
 //! // export CLIENT_ID="your client_id"
 //! // export CLIENT_SECRET="secret"
@@ -57,7 +58,7 @@
 //! let mut oauth = SpotifyOAuth::default()
 //! .scope("user-read-recently-played")
 //! .build();
-//! match get_token(&mut oauth) {
+//! match get_token(&mut oauth).await {
 //! Some(token_info) => {
 //! let client_credential = SpotifyClientCredentials::default()
 //! .token_info(token_info)
@@ -70,7 +71,7 @@
 //! let spotify = Spotify::default()
 //! .client_credentials_manager(client_credential)
 //! .build();
-//! let history = spotify.current_user_recently_played(10);
+//! let history = spotify.current_user_recently_played(10).await;
 //! println!("{:?}", history);
 //! }
 //! None => println!("auth failed"),
@@ -103,5 +104,11 @@ extern crate percent_encoding;
 extern crate rand;
 extern crate url;
 
-/// Spotify API Module
-pub mod spotify;
+#[cfg(feature = "blocking")]
+pub mod blocking;
+
+pub mod client;
+pub mod model;
+pub mod oauth2;
+pub mod senum;
+pub mod util;

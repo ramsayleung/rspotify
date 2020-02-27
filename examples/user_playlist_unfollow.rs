@@ -1,10 +1,11 @@
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::util::get_token;
+use rspotify::client::Spotify;
+use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -20,7 +21,7 @@ fn main() {
     let mut oauth = SpotifyOAuth::default()
         .scope("playlist-modify-private playlist-modify-public")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -37,7 +38,7 @@ fn main() {
             //you may occur an 403 error with "Insufficient client scope" message
             let user_id = "2257tjys2e2u2ygfke42niy2q";
             let playlist_id = "65V6djkcVRyOStLd8nza8E";
-            match spotify.user_playlist_unfollow(user_id, playlist_id) {
+            match spotify.user_playlist_unfollow(user_id, playlist_id).await {
                 Ok(_) => println!("unfollow user playlist successful"),
                 Err(_) => eprintln!("unfollow user failed"),
             }

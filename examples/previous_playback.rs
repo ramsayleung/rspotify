@@ -1,10 +1,11 @@
 extern crate rspotify;
 
-use rspotify::spotify::client::Spotify;
-use rspotify::spotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::spotify::util::get_token;
+use rspotify::client::Spotify;
+use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -20,7 +21,7 @@ fn main() {
     let mut oauth = SpotifyOAuth::default()
         .scope("user-modify-playback-state")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -36,7 +37,7 @@ fn main() {
             // this is the example device_id from spotify website,
             // so it will raise a 403 error, just change this device_id to yours
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-            match spotify.previous_track(Some(device_id)) {
+            match spotify.previous_track(Some(device_id)).await {
                 Ok(_) => println!("change to previous playback successful"),
                 Err(_) => eprintln!("change to previous playback failed"),
             }
