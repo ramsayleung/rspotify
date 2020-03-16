@@ -1795,7 +1795,7 @@ impl Spotify {
         let mut params = Map::new();
         params.insert("uri".to_owned(), item.into());
         let url = self.append_device_id("me/player/queue", device_id);
-        let res = self.post(&url, &Value::Object(params)).await?; 
+        let res = self.post(&url, &Value::Object(params)).await?;
         self.convert_result::<CUDResult>(&res)
     }
 
