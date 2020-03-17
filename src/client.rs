@@ -1791,12 +1791,12 @@ impl Spotify {
         &self,
         item: String,
         device_id: Option<String>,
-    ) -> Result<CUDResult, failure::Error> {
-        let mut params = Map::new();
-        params.insert("uri".to_owned(), item.into());
-        let url = self.append_device_id("me/player/queue", device_id);
-        let res = self.post(&url, &Value::Object(params)).await?;
-        self.convert_result::<CUDResult>(&res)
+    ) -> Result<(), failure::Error> {
+        let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
+        match self.post(&url, &json!({})).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(
