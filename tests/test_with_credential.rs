@@ -204,3 +204,14 @@ async fn test_fake_playlist() {
     let playlist = spotify.playlist("fake_id", None, None).await;
     assert!(!playlist.is_ok());
 }
+
+#[tokio::test]
+async fn test_add_queue() {
+    let spotify = Spotify::default()
+        .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
+        .build();
+
+    let birdy_uri = String::from("spotify:track:6rqhFgbbKwnb9MLmUQDhG6");
+    let res = spotify.add_item_to_queue(birdy_uri, None).await;
+    assert!(!res.is_ok());
+}
