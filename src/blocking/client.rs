@@ -1789,6 +1789,24 @@ impl Spotify {
         }
     }
 
+    ///[Add an item to the end fo the user's current playback queue](https://developer.spotify.com/console/post-queue/)
+    /// Add and item to the end of the user's playback queue
+    ///             Parameters:
+    /// - uri - THe uri of the item to add, Track or Episode
+    /// - device id - The id of the device targeting
+    ///                 - If no device ID provided the user's currently active device is targeted
+    pub fn add_item_to_queue(
+        &self,
+        item: String,
+        device_id: Option<String>,
+    ) -> Result<(), failure::Error> {
+        let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
+        match self.post(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(
         &self,
         input: &'a str,
