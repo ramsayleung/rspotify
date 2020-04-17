@@ -1612,7 +1612,7 @@ impl Spotify {
         let device_ids = vec![device_id.to_owned()];
         let force_play = force_play.into().unwrap_or(true);
         let mut payload = Map::new();
-        payload.insert("devie_ids".to_owned(), device_ids.into());
+        payload.insert("device_ids".to_owned(), device_ids.into());
         payload.insert("play".to_owned(), force_play.into());
         let url = String::from("me/player");
         match self.put(&url, &Value::Object(payload)) {
