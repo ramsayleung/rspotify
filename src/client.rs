@@ -96,9 +96,10 @@ impl ApiError {
                 }
             }
             status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => {
-                match response.json::<ApiError>().await {
-                    Ok(reason) => reason,
-                    Err(_) => ApiError::Other(status.as_u16()),
+                if let Ok(reason) = response.json::<ApiError>().await {
+                    reason
+                } else {
+                    ApiError::Other(status.as_u16())
                 }
             }
             status => ApiError::Other(status.as_u16()),

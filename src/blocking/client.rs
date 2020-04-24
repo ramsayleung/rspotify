@@ -40,10 +40,21 @@ lazy_static! {
     pub static ref CLIENT: Client = Client::new();
 }
 /// Describes API errors
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub enum ApiError {
     Unauthorized,
     RateLimited(Option<usize>),
+    #[serde(alias = "error")]
+    RegularError {
+        status: u16,
+        message: String,
+    },
+    #[serde(alias = "error")]
+    PlayerError {
+        status: u16,
+        message: String,
+        reason: String,
+    },
     Other(u16),
 }
 impl failure::Fail for ApiError {}
@@ -58,12 +69,24 @@ impl fmt::Display for ApiError {
                     write!(f, "Exceeded API request limit")
                 }
             }
+            ApiError::RegularError { status, message } => {
+                write!(f, "Spotify API error code {}: {}", status, message)
+            }
+            ApiError::PlayerError {
+                status,
+                message,
+                reason,
+            } => write!(
+                f,
+                "Spotify API error code {} {}: {}",
+                status, reason, message
+            ),
             ApiError::Other(s) => write!(f, "Spotify API reported error code {}", s),
         }
     }
 }
-impl From<&reqwest::blocking::Response> for ApiError {
-    fn from(response: &reqwest::blocking::Response) -> Self {
+impl From<reqwest::blocking::Response> for ApiError {
+    fn from(response: reqwest::blocking::Response) -> Self {
         match response.status() {
             StatusCode::UNAUTHORIZED => ApiError::Unauthorized,
             StatusCode::TOO_MANY_REQUESTS => {
@@ -71,6 +94,13 @@ impl From<&reqwest::blocking::Response> for ApiError {
                     ApiError::RateLimited(duration.parse::<usize>().ok())
                 } else {
                     ApiError::RateLimited(None)
+                }
+            }
+            status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => {
+                if let Ok(reason) = response.json::<ApiError>() {
+                    reason
+                } else {
+                    ApiError::Other(status.as_u16())
                 }
             }
             status => ApiError::Other(status.as_u16()),
@@ -170,7 +200,7 @@ impl Spotify {
         if response.status().is_success() {
             Ok(buf)
         } else {
-            Err(failure::Error::from(ApiError::from(&response)))
+            Err(failure::Error::from(ApiError::from(response)))
         }
     }
     ///send get request
