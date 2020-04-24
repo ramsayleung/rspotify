@@ -1,13 +1,11 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
 use chrono::prelude::*;
-use failure;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Method;
 use reqwest::StatusCode;
 use serde::de::Deserialize;
-use serde_json;
 use serde_json::map::Map;
 use serde_json::Value;
 
