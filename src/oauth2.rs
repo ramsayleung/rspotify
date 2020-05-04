@@ -4,7 +4,6 @@ use chrono::prelude::*;
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use reqwest::Client;
-use serde_json;
 
 // use built-in library
 use std::collections::{HashMap, HashSet};

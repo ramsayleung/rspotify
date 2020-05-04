@@ -1,13 +1,11 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
 use chrono::prelude::*;
-use failure;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
 use reqwest::Method;
 use reqwest::StatusCode;
 use serde::de::Deserialize;
-use serde_json;
 use serde_json::map::Map;
 use serde_json::Value;
 
@@ -39,10 +37,21 @@ lazy_static! {
     pub static ref CLIENT: Client = Client::new();
 }
 /// Describes API errors
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub enum ApiError {
     Unauthorized,
     RateLimited(Option<usize>),
+    #[serde(alias = "error")]
+    RegularError {
+        status: u16,
+        message: String,
+    },
+    #[serde(alias = "error")]
+    PlayerError {
+        status: u16,
+        message: String,
+        reason: String,
+    },
     Other(u16),
 }
 impl failure::Fail for ApiError {}
@@ -57,12 +66,24 @@ impl fmt::Display for ApiError {
                     write!(f, "Exceeded API request limit")
                 }
             }
+            ApiError::RegularError { status, message } => {
+                write!(f, "Spotify API error code {}: {}", status, message)
+            }
+            ApiError::PlayerError {
+                status,
+                message,
+                reason,
+            } => write!(
+                f,
+                "Spotify API error code {} {}: {}",
+                status, reason, message
+            ),
             ApiError::Other(s) => write!(f, "Spotify API reported error code {}", s),
         }
     }
 }
-impl From<&reqwest::Response> for ApiError {
-    fn from(response: &reqwest::Response) -> Self {
+impl ApiError {
+    async fn from_response(response: reqwest::Response) -> Self {
         match response.status() {
             StatusCode::UNAUTHORIZED => ApiError::Unauthorized,
             StatusCode::TOO_MANY_REQUESTS => {
@@ -70,6 +91,13 @@ impl From<&reqwest::Response> for ApiError {
                     ApiError::RateLimited(duration.parse::<usize>().ok())
                 } else {
                     ApiError::RateLimited(None)
+                }
+            }
+            status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => {
+                if let Ok(reason) = response.json::<ApiError>().await {
+                    reason
+                } else {
+                    ApiError::Other(status.as_u16())
                 }
             }
             status => ApiError::Other(status.as_u16()),
@@ -171,7 +199,9 @@ impl Spotify {
                 ))),
             }
         } else {
-            Err(failure::Error::from(ApiError::from(&response)))
+            Err(failure::Error::from(
+                ApiError::from_response(response).await,
+            ))
         }
     }
     ///send get request
