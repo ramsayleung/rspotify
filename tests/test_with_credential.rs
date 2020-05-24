@@ -3,11 +3,12 @@ extern crate rspotify;
 extern crate lazy_static;
 
 use rspotify::client::Spotify;
-
 use rspotify::oauth2::SpotifyClientCredentials;
 use rspotify::senum::{AlbumType, Country};
+use std::future::Future;
+use tokio;
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 lazy_static! {
    // Set client_id and client_secret in .env file or
@@ -33,15 +34,28 @@ async fn test_album() {
 
 #[tokio::test]
 async fn test_albums() {
-    let spotify = Spotify::default()
-        .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
-        .build();
-    let birdy_uri1 = String::from("spotify:album:41MnTivkwTO3UUJ8DrqEJJ");
-    let birdy_uri2 = String::from("spotify:album:6JWc4iAiJ9FjyK0B59ABb4");
-    let birdy_uri3 = String::from("spotify:album:6UXCm6bOO4gFlDQZV5yL37");
-    let track_uris = vec![birdy_uri1, birdy_uri2, birdy_uri3];
-    let albums = spotify.albums(track_uris).await;
-    assert!(albums.is_ok())
+    let any_success = Arc::new(Mutex::new(false));
+    let mut handlers = Vec::new();
+    // run function for 50 times, pass if any call of all is ok.
+    for _ in 0..50 {
+        let any_success = Arc::clone(&any_success);
+        let handler = tokio::spawn(async move {
+            let spotify = Spotify::default()
+                .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
+                .build();
+            let birdy_uri1 = String::from("spotify:album:41MnTivkwTO3UUJ8DrqEJJ");
+            let birdy_uri2 = String::from("spotify:album:6JWc4iAiJ9FjyK0B59ABb4");
+            let birdy_uri3 = String::from("spotify:album:6UXCm6bOO4gFlDQZV5yL37");
+            let track_uris = vec![birdy_uri1, birdy_uri2, birdy_uri3];
+            let albums = spotify.albums(track_uris).await;
+            let mut pass = any_success.lock().unwrap();
+            *pass |= albums.is_ok();
+        });
+        handlers.push(handler);
+    }
+    futures::future::join_all(handlers).await;
+    let pass = any_success.lock().unwrap();
+    assert!(*pass)
 }
 
 #[tokio::test]
