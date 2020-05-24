@@ -2,7 +2,6 @@
 use chrono::prelude::*;
 use rand::distributions::Alphanumeric;
 use rand::{self, Rng};
-use webbrowser;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
