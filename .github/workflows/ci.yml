@@ -22,6 +22,36 @@ jobs:
         with:
           command: check
 
+  cross-compile:
+    name: Cross Compile
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - arm-unknown-linux-gnueabihf
+          - armv7-unknown-linux-gnueabihf
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install gcc for armhf
+        run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.target }}
+
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --target ${{ matrix.target }} --no-default-features --features "rustls-tls"
+
   test:
     name: Test Suite
     runs-on: ubuntu-latest
