@@ -84,7 +84,7 @@
 extern crate log;
 extern crate env_logger;
 
-#[cfg(any(feature = "default-tls", feature = "default-tls-blocking"))]
+#[cfg(any(feature = "default-tls", feature = "blocking"))]
 extern crate reqwest_default_tls as reqwest;
 
 #[cfg(any(feature = "native-tls-crate", feature = "native-tls-crate-blocking"))]

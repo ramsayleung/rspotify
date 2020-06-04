@@ -42,7 +42,7 @@ futures = "0.3"
 [features]
 default = ["default-tls"]
 default-tls = ["reqwest-default-tls"]
-default-tls-blocking = ["reqwest-default-tls/blocking"]
+blocking = ["reqwest-default-tls/blocking"]
 # Enables native-tls specific functionality not available by default.
 native-tls = ["reqwest-native-tls"]
 native-tls-blocking = ["reqwest-native-tls/blocking"]
@@ -376,3 +376,8 @@ path = "examples/blocking/user_unfollow_users.rs"
 name = "volume"
 required-features = ["blocking"]
 path = "examples/blocking/volume.rs"
+
+[[example]]
+name = "blocking_get_access_token_without_cache"
+required-features = ["blocking"]
+path = "examples/blocking/get_access_token_without_cache.rs"
