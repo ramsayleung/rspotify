@@ -302,18 +302,21 @@ impl SpotifyOAuth {
             }
         }
     }
-    /// gets the access_token for the app given the code
-    pub async fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
+    /// gets the access_token for the app with the given code without caching(without saving token to `cache_path`)
+    pub async fn get_access_token_without_cache(&self, code: &str) -> Option<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("redirect_uri", &self.redirect_uri);
         payload.insert("code", code);
         payload.insert("grant_type", "authorization_code");
         payload.insert("scope", &self.scope);
         payload.insert("state", &self.state);
-        if let Some(token_info) = self
-            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
             .await
-        {
+    }
+
+    /// gets the access_token for the app with given the code
+    pub async fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
+        if let Some(token_info) = self.get_access_token_without_cache(code).await {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     trace!("get_access_token->token_info[{:?}]", &token_info_string);
@@ -375,16 +378,22 @@ impl SpotifyOAuth {
         authorize_url
     }
 
-    /// after refresh access_token, the response may be empty
-    /// when refresh_token again
-    pub async fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
+    /// refreshes token without saving token as cache.
+    pub async fn refresh_access_token_without_cache(
+        &self,
+        refresh_token: &str,
+    ) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
-        if let Some(token_info) = self
-            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
+        self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
             .await
-        {
+    }
+
+    /// after refresh access_token, the response may be empty
+    /// when refresh_token again
+    pub async fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
+        if let Some(token_info) = self.refresh_access_token_without_cache(refresh_token).await {
             match serde_json::to_string(&token_info) {
                 Ok(token_info_string) => {
                     self.save_token_info(&token_info_string);

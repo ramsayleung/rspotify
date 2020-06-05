@@ -87,6 +87,16 @@ pub fn process_token(spotify_oauth: &mut SpotifyOAuth, input: &mut String) -> Op
     }
 }
 
+pub fn process_token_without_cache(
+    spotify_oauth: &mut SpotifyOAuth,
+    input: &mut String,
+) -> Option<TokenInfo> {
+    match spotify_oauth.parse_response_code(input) {
+        Some(code) => spotify_oauth.get_access_token_without_cache(&code),
+        None => None,
+    }
+}
+
 /// get tokenInfo by Authorization
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     match spotify_oauth.get_cached_token() {
@@ -100,6 +110,17 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
                 Err(_) => None,
             }
         }
+    }
+}
+
+/// get tokenInfo by Authorization without cache.
+pub fn get_token_without_cache(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+    request_token(spotify_oauth);
+    println!("Enter the URL you were redirected to: ");
+    let mut input = String::new();
+    match io::stdin().read_line(&mut input) {
+        Ok(_) => process_token_without_cache(spotify_oauth, &mut input),
+        Err(_) => None,
     }
 }
 
