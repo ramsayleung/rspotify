@@ -310,9 +310,8 @@ impl SpotifyOAuth {
         payload.insert("grant_type", "authorization_code");
         payload.insert("scope", &self.scope);
         payload.insert("state", &self.state);
-        return self
-            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
-            .await;
+        self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+            .await
     }
 
     /// gets the access_token for the app with given the code
@@ -387,9 +386,8 @@ impl SpotifyOAuth {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
-        return self
-            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
-            .await;
+        self.fetch_access_token(&self.client_id, &self.client_secret, &payload)
+            .await
     }
 
     /// after refresh access_token, the response may be empty
