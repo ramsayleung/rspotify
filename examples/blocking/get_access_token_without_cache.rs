@@ -36,7 +36,9 @@ fn main() {
             let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
             let playlists = spotify.user_playlist(user_id, Some(&mut playlist_id), None, None);
             println!("{:?}", playlists);
-            match spotify_oauth.refresh_access_token_without_cache(&token_info.refresh_token.unwrap()) {
+            match spotify_oauth
+                .refresh_access_token_without_cache(&token_info.refresh_token.unwrap())
+            {
                 Some(refresh_token) => {
                     println!("refresh token: {:?}", refresh_token);
                 }

@@ -40,8 +40,11 @@ async fn main() {
             let result = spotify.user_artist_check_follow(&artist_ids).await;
             println!("result:{:?}", result);
             // refresh token without cache
-            match oauth.refresh_access_token_without_cache(&token_info.refresh_token.unwrap()).await{
-                Some(refresh_token) =>{
+            match oauth
+                .refresh_access_token_without_cache(&token_info.refresh_token.unwrap())
+                .await
+            {
+                Some(refresh_token) => {
                     println!("refresh token: {:?}", refresh_token);
                 }
                 None => println!("refresh token failed"),
