@@ -381,3 +381,8 @@ path = "examples/blocking/volume.rs"
 name = "blocking_get_access_token_without_cache"
 required-features = ["blocking"]
 path = "examples/blocking/get_access_token_without_cache.rs"
+
+[[example]]
+name = "blocking_save_shows"
+required-features = ["blocking"]
+path = "examples/blocking/save_shows.rs"

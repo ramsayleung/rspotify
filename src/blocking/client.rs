@@ -1834,6 +1834,18 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+    /// [Save Shows for Current User](https://developer.spotify.com/console/put-current-user-saved-shows)
+    /// Add a show or a list of shows to a user’s library
+    /// Parameters:
+    /// ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    pub fn save_shows(&self, ids: Vec<String>) -> Result<(), failure::Error> {
+        let joined_ids = ids.join(",");
+        let url = format!("me/shows/?ids={}", joined_ids);
+        match self.put(&url, &json!({})) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(
         &self,
