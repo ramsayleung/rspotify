@@ -13,6 +13,6 @@ pub mod playing;
 pub mod playlist;
 pub mod recommend;
 pub mod search;
+pub mod show;
 pub mod track;
 pub mod user;
-pub mod show;
