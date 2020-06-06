@@ -25,6 +25,11 @@ pub struct SimplifiedShow {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SeversalSimplifiedShows {
+    pub shows: Vec<SimplifiedShow>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Show {
     pub added_at: String,
     pub show: SimplifiedShow,

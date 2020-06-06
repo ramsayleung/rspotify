@@ -396,3 +396,8 @@ path = "examples/blocking/get_saved_show.rs"
 name = "blocking_get_a_show"
 required-features = ["blocking"]
 path = "examples/blocking/get_a_show.rs"
+
+[[example]]
+name = "blocking_get_several_shows"
+required-features = ["blocking"]
+path = "examples/blocking/get_several_shows.rs"

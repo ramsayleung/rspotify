@@ -27,7 +27,7 @@ use super::model::playing::{PlayHistory, Playing};
 use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::recommend::Recommendations;
 use super::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
-use super::model::show::{FullShow, Show};
+use super::model::show::{FullShow, SeversalSimplifiedShows, Show};
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::SpotifyClientCredentials;
@@ -1880,6 +1880,27 @@ impl Spotify {
         }
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<FullShow>(&result)
+    }
+
+    /// Get Spotify catalog information for multiple shows based on their Spotify IDs.
+    /// [Get seversal shows](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
+    /// Query Parameters
+    /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
+    /// - market(Optional) An ISO 3166-1 alpha-2 country code.
+    pub async fn get_several_shows(
+        &self,
+        ids: Vec<String>,
+        market: Option<Country>,
+    ) -> Result<SeversalSimplifiedShows, failure::Error> {
+        let joined_ids = ids.join(",");
+        let url = "shows";
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        params.insert("ids".to_owned(), joined_ids);
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<SeversalSimplifiedShows>(&result)
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(
