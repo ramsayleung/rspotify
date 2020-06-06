@@ -421,3 +421,8 @@ path = "examples/blocking/get_several_episodes.rs"
 name = "blocking_check_users_saved_shows"
 required-features = ["blocking"]
 path = "examples/blocking/check_users_saved_shows.rs"
+
+[[example]]
+name = "blocking_remove_users_saved_shows"
+required-features = ["blocking"]
+path = "examples/blocking/remove_users_saved_shows.rs"

@@ -2006,6 +2006,32 @@ impl Spotify {
         self.convert_result::<Vec<bool>>(&result)
     }
 
+    /// Delete one or more shows from current Spotify user's library.
+    /// Changes to a user's saved shows may not be visible in other Spotify applications immediately.
+    /// [Remove user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
+    /// Query Parameters
+    /// - ids: Required. A comma-separated list of Spotify IDs for the shows to be deleted from the user’s library.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub fn remove_users_saved_shows(
+        &self,
+        ids: Vec<String>,
+        market: Option<Country>,
+    ) -> Result<(), failure::Error> {
+        let joined_ids = ids.join(",");
+        let url = format!("me/shows?ids={}", joined_ids);
+        let mut payload = Map::new();
+        if let Some(_market) = market {
+            payload.insert(
+                "country".to_owned(),
+                serde_json::Value::String(_market.as_str().to_owned()),
+            );
+        }
+        match self.delete(&url, &Value::Object(payload)) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
     ///Append device ID to API path.
     fn append_device_id(&self, path: &str, device_id: Option<String>) -> String {
         let mut new_path = path.to_string();
