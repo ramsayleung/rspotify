@@ -386,3 +386,8 @@ path = "examples/blocking/get_access_token_without_cache.rs"
 name = "blocking_save_shows"
 required-features = ["blocking"]
 path = "examples/blocking/save_shows.rs"
+
+[[example]]
+name = "blocking_get_saved_show"
+required-features = ["blocking"]
+path = "examples/blocking/get_saved_show.rs"

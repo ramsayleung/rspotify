@@ -27,6 +27,7 @@ use super::model::playing::{PlayHistory, Playing};
 use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::recommend::Recommendations;
 use super::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
+use super::model::show::Show;
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::SpotifyClientCredentials;
@@ -1832,7 +1833,7 @@ impl Spotify {
     /// [Save Shows for Current User](https://developer.spotify.com/console/put-current-user-saved-shows)
     /// Add a show or a list of shows to a user’s library
     /// Parameters:
-    /// ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    /// - ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
     pub async fn save_shows(&self, ids: Vec<String>) -> Result<(), failure::Error> {
         let joined_ids = ids.join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
@@ -1841,6 +1842,26 @@ impl Spotify {
             Err(e) => Err(e),
         }
     }
+
+    /// Get a list of shows saved in the current Spotify user’s library. Optional parameters can be used to limit the number of shows returned.
+    /// [Get user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
+    /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
+    /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        limit: L,
+        offset: O,
+    ) -> Result<Page<Show>, failure::Error> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        let url = "me/shows";
+        let result = self.get(url, &mut params).await?;
+        self.convert_result::<Page<Show>>(&result)
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(
         &self,
         input: &'a str,

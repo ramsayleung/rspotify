@@ -30,6 +30,7 @@ use crate::model::playing::{PlayHistory, Playing};
 use crate::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use crate::model::recommend::Recommendations;
 use crate::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
+use crate::model::show::Show;
 use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use crate::model::user::{PrivateUser, PublicUser};
 use crate::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
@@ -1845,6 +1846,25 @@ impl Spotify {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
+    }
+
+    /// Get a list of shows saved in the current Spotify user’s library. Optional parameters can be used to limit the number of shows returned.
+    /// [Get user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
+    /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
+    /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    pub fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        limit: L,
+        offset: O,
+    ) -> Result<Page<Show>, failure::Error> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        let url = "me/shows";
+        let result = self.get(url, &mut params)?;
+        self.convert_result::<Page<Show>>(&result)
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(
