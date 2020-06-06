@@ -18,7 +18,9 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default().scope("user-read-playback-position").build();
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-read-playback-position")
+        .build();
     match get_token(&mut oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
