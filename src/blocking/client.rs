@@ -30,7 +30,7 @@ use crate::model::playing::{PlayHistory, Playing};
 use crate::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use crate::model::recommend::Recommendations;
 use crate::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
-use crate::model::show::Show;
+use crate::model::show::{FullShow, Show};
 use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use crate::model::user::{PrivateUser, PublicUser};
 use crate::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
@@ -1865,6 +1865,26 @@ impl Spotify {
         let url = "me/shows";
         let result = self.get(url, &mut params)?;
         self.convert_result::<Page<Show>>(&result)
+    }
+
+    /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
+    /// [Get a show](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
+    /// Path Parameters:
+    /// - id: The Spotify ID for the show.
+    /// Query Parameters
+    /// - market(Optional): An ISO 3166-1 alpha-2 country code.
+    pub fn get_a_show(
+        &self,
+        id: String,
+        market: Option<Country>,
+    ) -> Result<FullShow, failure::Error> {
+        let url = format!("shows/{}", id);
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullShow>(&result)
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(
