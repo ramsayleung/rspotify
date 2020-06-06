@@ -27,7 +27,7 @@ use super::model::playing::{PlayHistory, Playing};
 use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::recommend::Recommendations;
 use super::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
-use super::model::show::{FullShow, SeversalSimplifiedShows, Show};
+use super::model::show::{FullShow, SeversalSimplifiedShows, Show, SimplifiedEpisode};
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::SpotifyClientCredentials;
@@ -1901,6 +1901,33 @@ impl Spotify {
         params.insert("ids".to_owned(), joined_ids);
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<SeversalSimplifiedShows>(&result)
+    }
+    /// Get Spotify catalog information about an show’s episodes. Optional parameters can be used to limit the number of episodes returned.
+    /// [Get a show's episodes](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
+    /// Path Parameters
+    /// - id: The Spotify ID for the show.
+    /// Query Parameters
+    /// - limit: Optional. The maximum number of episodes to return. Default: 20. Minimum: 1. Maximum: 50.
+    /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        id: String,
+        limit: L,
+        offset: O,
+        market: Option<Country>,
+    ) -> Result<Page<SimplifiedEpisode>, failure::Error> {
+        let url = format!("shows/{}/episodes", id);
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<Page<SimplifiedEpisode>>(&result)
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(

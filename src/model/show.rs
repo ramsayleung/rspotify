@@ -42,7 +42,7 @@ pub struct FullShow {
     pub copyrights: Vec<HashMap<String, String>>,
     pub description: String,
     pub explicit: bool,
-    pub episodes: Page<Episode>,
+    pub episodes: Page<SimplifiedEpisode>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: String,
@@ -59,7 +59,7 @@ pub struct FullShow {
 
 /// [Episode object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Episode {
+pub struct SimplifiedEpisode {
     pub audio_preview_url: String,
     pub description: String,
     pub duration_ms: u32,

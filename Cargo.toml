@@ -401,3 +401,8 @@ path = "examples/blocking/get_a_show.rs"
 name = "blocking_get_several_shows"
 required-features = ["blocking"]
 path = "examples/blocking/get_several_shows.rs"
+
+[[example]]
+name = "blocking_get_shows_episodes"
+required-features = ["blocking"]
+path = "examples/blocking/get_shows_episodes.rs"
