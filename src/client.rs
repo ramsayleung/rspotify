@@ -1973,6 +1973,22 @@ impl Spotify {
         self.convert_result::<SeveralEpisodes>(&result)
     }
 
+    /// Check if one or more shows is already saved in the current Spotify user’s library.
+    /// [Check users saved shows](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
+    /// Query Parameters
+    /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
+    pub async fn check_users_saved_shows(
+        &self,
+        ids: Vec<String>,
+    ) -> Result<Vec<bool>, failure::Error> {
+        let url = "me/shows/contains";
+        let joined_ids = ids.join(",");
+        let mut params = HashMap::new();
+        params.insert("ids".to_owned(), joined_ids);
+        let result = self.get(url, &mut params).await?;
+        self.convert_result::<Vec<bool>>(&result)
+    }
+
     pub fn convert_result<'a, T: Deserialize<'a>>(
         &self,
         input: &'a str,
