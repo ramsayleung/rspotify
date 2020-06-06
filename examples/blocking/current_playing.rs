@@ -3,6 +3,7 @@ extern crate rspotify;
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token;
+use rspotify::senum::AdditionalType;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -33,8 +34,15 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playing(None);
-            println!("{:?}", context);
+            let additional_types = vec![AdditionalType::Episode];
+            let result = spotify.current_playing(None, Some(additional_types));
+            match result {
+                Ok(context) => match context {
+                    Some(current_playing) => println!("get current_playing {:?}", current_playing),
+                    None => println!("Nothing is playing"),
+                },
+                Err(err) => println!("get current_playing error {:?}", err),
+            }
         }
         None => println!("auth failed"),
     };

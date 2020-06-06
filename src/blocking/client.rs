@@ -22,7 +22,7 @@ use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum,
 use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
 use crate::model::category::PageCategory;
-use crate::model::context::{FullPlayingContext, SimplifiedPlayingContext};
+use crate::model::context::{CurrentlyPlaying, FullPlayingContext};
 use crate::model::cud_result::CUDResult;
 use crate::model::device::DevicePayload;
 use crate::model::page::{CursorBasedPage, Page};
@@ -35,7 +35,7 @@ use crate::model::show::{
 };
 use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use crate::model::user::{PrivateUser, PublicUser};
-use crate::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
+use crate::senum::{AdditionalType, AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
 lazy_static! {
     /// HTTP Client
     pub static ref CLIENT: Client = Client::new();
@@ -1605,23 +1605,35 @@ impl Spotify {
 
     ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     /// Get the User’s Currently Playing Track
-    ///        Parameters:
-    ///        - market - an ISO 3166-1 alpha-2 country code.
+    /// Query Parameters:
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
     pub fn current_playing(
         &self,
         market: Option<Country>,
-    ) -> Result<Option<SimplifiedPlayingContext>, failure::Error> {
+        additional_types: Option<Vec<AdditionalType>>,
+    ) -> Result<Option<CurrentlyPlaying>, failure::Error> {
         let url = String::from("me/player/currently-playing");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        if let Some(_additional_types) = additional_types {
+            params.insert(
+                "additional_types".to_owned(),
+                _additional_types
+                    .iter()
+                    .map(|&x| x.as_str().to_owned())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         match self.get(&url, &mut params) {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<SimplifiedPlayingContext>>(&result)
+                    self.convert_result::<Option<CurrentlyPlaying>>(&result)
                 }
             }
             Err(e) => Err(e),

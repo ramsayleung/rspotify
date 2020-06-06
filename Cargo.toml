@@ -73,7 +73,7 @@ path = "examples/blocking/current_playback.rs"
             
 
 [[example]]
-name = "current_playing"
+name = "blocking_current_playing"
 required-features = ["blocking"]
 path = "examples/blocking/current_playing.rs"
             
