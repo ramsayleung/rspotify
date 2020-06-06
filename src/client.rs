@@ -27,7 +27,7 @@ use super::model::playing::{PlayHistory, Playing};
 use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::recommend::Recommendations;
 use super::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
-use super::model::show::{FullShow, SeversalSimplifiedShows, Show, SimplifiedEpisode};
+use super::model::show::{FullEpisode, FullShow, SeversalSimplifiedShows, Show, SimplifiedEpisode};
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::SpotifyClientCredentials;
@@ -1928,6 +1928,26 @@ impl Spotify {
         }
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<Page<SimplifiedEpisode>>(&result)
+    }
+
+    /// Get Spotify catalog information for a single episode identified by its unique Spotify ID.
+    /// [Get an Episode](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
+    /// Path Parameters
+    /// - id: The Spotify ID for the episode.
+    ///  Query Parameters
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub async fn get_an_episode(
+        &self,
+        id: String,
+        market: Option<Country>,
+    ) -> Result<FullEpisode, failure::Error> {
+        let url = format!("episodes/{}", id);
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<FullEpisode>(&result)
     }
 
     pub fn convert_result<'a, T: Deserialize<'a>>(

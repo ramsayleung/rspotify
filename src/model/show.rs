@@ -60,7 +60,7 @@ pub struct FullShow {
 /// [Episode object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedEpisode {
-    pub audio_preview_url: String,
+    pub audio_preview_url: Option<String>,
     pub description: String,
     pub duration_ms: u32,
     pub explicit: bool,
@@ -70,11 +70,39 @@ pub struct SimplifiedEpisode {
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
+    /// Note: This field is deprecated and might be removed in the future. Please use the languages field instead
+    pub language: String,
     pub languages: Vec<String>,
     pub name: String,
     pub release_date: String,
     pub release_date_precision: String,
     pub resume_point: Option<ResumePoint>,
+    #[serde(rename = "type")]
+    pub _type: String,
+    pub uri: String,
+}
+
+/// [Episode object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-full)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FullEpisode {
+    pub audio_preview_url: Option<String>,
+    pub description: String,
+    pub duration_ms: u32,
+    pub explicit: bool,
+    pub external_urls: HashMap<String, String>,
+    pub href: String,
+    pub id: String,
+    pub images: Vec<Image>,
+    pub is_externally_hosted: bool,
+    pub is_playable: bool,
+    /// Note: This field is deprecated and might be removed in the future. Please use the languages field instead
+    pub language: String,
+    pub languages: Vec<String>,
+    pub name: String,
+    pub release_date: String,
+    pub release_date_precision: String,
+    pub resume_point: Option<ResumePoint>,
+    pub show: SimplifiedShow,
     #[serde(rename = "type")]
     pub _type: String,
     pub uri: String,

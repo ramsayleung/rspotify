@@ -30,7 +30,7 @@ use crate::model::playing::{PlayHistory, Playing};
 use crate::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use crate::model::recommend::Recommendations;
 use crate::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
-use crate::model::show::{FullShow, SeversalSimplifiedShows, Show, SimplifiedEpisode};
+use crate::model::show::{FullEpisode, FullShow, SeversalSimplifiedShows, Show, SimplifiedEpisode};
 use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use crate::model::user::{PrivateUser, PublicUser};
 use crate::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
@@ -1948,6 +1948,26 @@ impl Spotify {
         }
         let result = self.get(&url, &mut params)?;
         self.convert_result::<Page<SimplifiedEpisode>>(&result)
+    }
+
+    /// Get Spotify catalog information for a single episode identified by its unique Spotify ID.
+    /// [Get an Episode](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
+    /// Path Parameters
+    /// - id: The Spotify ID for the episode.
+    ///  Query Parameters
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub fn get_an_episode(
+        &self,
+        id: String,
+        market: Option<Country>,
+    ) -> Result<FullEpisode, failure::Error> {
+        let url = format!("episodes/{}", id);
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullEpisode>(&result)
     }
 
     ///Append device ID to API path.
