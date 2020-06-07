@@ -1,11 +1,12 @@
 extern crate rspotify;
 
-use rspotify::blocking::client::Spotify;
-use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::blocking::util::get_token;
-use rspotify::senum::AdditionalType;
+use rspotify::client::Spotify;
+use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::senum::Country;
+use rspotify::util::get_token;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -19,9 +20,9 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-currently-playing")
+        .scope("user-read-playback-position")
         .build();
-    match get_token(&mut oauth) {
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -34,14 +35,13 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let additional_types = vec![AdditionalType::Episode];
-            let result = spotify.current_playing(None, Some(additional_types));
+            let id = "38bS44xjbVVZ3No3ByF1dJ".to_owned();
+            let result = spotify
+                .get_shows_episodes(id, 10, 0, Some(Country::France))
+                .await;
             match result {
-                Ok(context) => match context {
-                    Some(current_playing) => println!("get current_playing {:?}", current_playing),
-                    None => println!("Nothing is playing"),
-                },
-                Err(err) => println!("get current_playing error {:?}", err),
+                Ok(episodes) => println!("{:?}", episodes),
+                Err(_) => println!("get episodes of shows failed"),
             }
         }
         None => println!("auth failed"),

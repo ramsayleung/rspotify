@@ -19,18 +19,23 @@ use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum,
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
 use super::model::category::PageCategory;
-use super::model::context::{FullPlayingContext, SimplifiedPlayingContext};
+use super::model::context::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
 use super::model::cud_result::CUDResult;
 use super::model::device::DevicePayload;
 use super::model::page::{CursorBasedPage, Page};
 use super::model::playing::{PlayHistory, Playing};
 use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
 use super::model::recommend::Recommendations;
-use super::model::search::{SearchAlbums, SearchArtists, SearchPlaylists, SearchTracks};
+use super::model::search::SearchResult;
+use super::model::show::{
+    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
+};
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::SpotifyClientCredentials;
-use super::senum::{AlbumType, Country, RepeatState, SearchType, TimeRange, Type};
+use super::senum::{
+    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
+};
 use super::util::convert_map_to_string;
 lazy_static! {
     /// HTTP Client
@@ -398,124 +403,42 @@ impl Spotify {
     ///Search for an Item
     ///Get Spotify catalog information about artists, albums, tracks or
     /// playlists that match a keyword string.
-    ///            Parameters:
+    /// Parameters:
     ///- q - the search query
     ///- limit  - the number of items to return
     ///- offset - the index of the first item to return
-    ///- type - the type of item to return. One of 'artist', 'album',
-    ///'track' or 'playlist'
+    ///- type - the type of item to return. One of 'artist', 'album', 'track',
+    /// 'playlist', 'show' or 'episode'
     ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    ///- include_external: Optional.Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally.  
+    pub async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         q: &str,
         _type: SearchType,
         limit: L,
         offset: O,
         market: Option<Country>,
-    ) -> Result<String, failure::Error> {
+        include_external: Option<IncludeExternal>,
+    ) -> Result<SearchResult, failure::Error> {
         let mut params = HashMap::new();
         let limit = limit.into().unwrap_or(10);
         let offset = offset.into().unwrap_or(0);
         if let Some(_market) = market {
             params.insert("market".to_owned(), _market.as_str().to_owned());
         }
+        if let Some(_include_external) = include_external {
+            params.insert(
+                "include_external".to_owned(),
+                _include_external.as_str().to_owned(),
+            );
+        }
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         params.insert("q".to_owned(), q.to_owned());
         params.insert("type".to_owned(), _type.as_str().to_owned());
         let url = String::from("search");
-        self.get(&url, &mut params).await
-    }
-
-    ///search item, type is album
-    ///[search for items](https://developer.spotify.com/web-api/search-item/)
-    ///Get Spotify catalog information about artists, albums, tracks or
-    /// playlists that match a keyword string.
-    ///            Parameters:
-    ///- q - the search query
-    ///- limit  - the number of items to return
-    ///- offset - the index of the first item to return
-    ///'track' or 'playlist'
-    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub async fn search_album<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        q: &str,
-        limit: L,
-        offset: O,
-        market: Option<Country>,
-    ) -> Result<SearchAlbums, failure::Error> {
-        let result = self
-            .search(q, SearchType::Album, limit, offset, market)
-            .await?;
-        self.convert_result::<SearchAlbums>(&result)
-    }
-
-    ///search item, type is artist
-    ///[search for items](https://developer.spotify.com/web-api/search-item/)
-    ///Get Spotify catalog information about artists, albums, tracks or
-    /// playlists that match a keyword string.
-    ///            Parameters:
-    ///- q - the search query
-    ///- limit  - the number of items to return
-    ///- offset - the index of the first item to return
-    ///'track' or 'playlist'
-    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub async fn search_artist<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        q: &str,
-        limit: L,
-        offset: O,
-        market: Option<Country>,
-    ) -> Result<SearchArtists, failure::Error> {
-        let result = self
-            .search(q, SearchType::Artist, limit, offset, market)
-            .await?;
-        self.convert_result::<SearchArtists>(&result)
-    }
-
-    ///search item, type is track
-    ///[search for items](https://developer.spotify.com/web-api/search-item/)
-    ///Get Spotify catalog information about artists, albums, tracks or
-    /// playlists that match a keyword string.
-    ///            Parameters:
-    ///- q - the search query
-    ///- limit  - the number of items to return
-    ///- offset - the index of the first item to return
-    ///'track' or 'playlist'
-    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub async fn search_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        q: &str,
-        limit: L,
-        offset: O,
-        market: Option<Country>,
-    ) -> Result<SearchTracks, failure::Error> {
-        let result = self
-            .search(q, SearchType::Track, limit, offset, market)
-            .await?;
-        self.convert_result::<SearchTracks>(&result)
-    }
-    ///search item, type is playlist
-    ///[search for items](https://developer.spotify.com/web-api/search-item/)
-    ///Get Spotify catalog information about artists, albums, tracks or
-    /// playlists that match a keyword string.
-    ///            Parameters:
-    ///- q - the search query
-    ///- limit  - the number of items to return
-    ///- offset - the index of the first item to return
-    ///'track' or 'playlist'
-    ///- market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub async fn search_playlist<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        q: &str,
-        limit: L,
-        offset: O,
-        market: Option<Country>,
-    ) -> Result<SearchPlaylists, failure::Error> {
-        let result = self
-            .search(q, SearchType::Playlist, limit, offset, market)
-            .await?;
-        self.convert_result::<SearchPlaylists>(&result)
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<SearchResult>(&result)
     }
 
     ///[get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
@@ -880,7 +803,7 @@ impl Spotify {
     }
 
     ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
-    ///Removes all occurrences of the given tracks from the given playlist
+    ///Removes specfic occurrences of the given tracks from the given playlist
     ///Parameters:
     ///- user_id - the id of the user
     ///- playlist_id - the id of the playlist
@@ -1128,7 +1051,6 @@ impl Spotify {
     ///- limit - the number of entities to return
     ///- offset - the index of the first entity to return
     ///- time_range - Over what time frame are the affinities computed
-
     pub async fn current_user_top_artists<
         L: Into<Option<u32>>,
         O: Into<Option<u32>>,
@@ -1567,23 +1489,35 @@ impl Spotify {
 
     ///[get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
     ///Get Information About The User’s Current Playback
-    ///        Parameters:
-    ///        - market - an ISO 3166-1 alpha-2 country code.
+    /// Parameters:
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
     pub async fn current_playback(
         &self,
         market: Option<Country>,
-    ) -> Result<Option<FullPlayingContext>, failure::Error> {
+        additional_types: Option<Vec<AdditionalType>>,
+    ) -> Result<Option<CurrentlyPlaybackContext>, failure::Error> {
         let url = String::from("me/player");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        if let Some(_additional_types) = additional_types {
+            params.insert(
+                "additional_types".to_owned(),
+                _additional_types
+                    .iter()
+                    .map(|&x| x.as_str().to_owned())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         match self.get(&url, &mut params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<FullPlayingContext>>(&result)
+                    self.convert_result::<Option<CurrentlyPlaybackContext>>(&result)
                 }
             }
             Err(e) => Err(e),
@@ -1592,23 +1526,35 @@ impl Spotify {
 
     ///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     /// Get the User’s Currently Playing Track
-    ///        Parameters:
-    ///        - market - an ISO 3166-1 alpha-2 country code.
+    /// Parameters:
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
     pub async fn current_playing(
         &self,
         market: Option<Country>,
-    ) -> Result<Option<SimplifiedPlayingContext>, failure::Error> {
+        additional_types: Option<Vec<AdditionalType>>,
+    ) -> Result<Option<CurrentlyPlayingContext>, failure::Error> {
         let url = String::from("me/player/currently-playing");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        if let Some(_additional_types) = additional_types {
+            params.insert(
+                "additional_types".to_owned(),
+                _additional_types
+                    .iter()
+                    .map(|&x| x.as_str().to_owned())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         match self.get(&url, &mut params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<SimplifiedPlayingContext>>(&result)
+                    self.convert_result::<Option<CurrentlyPlayingContext>>(&result)
                 }
             }
             Err(e) => Err(e),
@@ -1812,7 +1758,7 @@ impl Spotify {
     }
 
     ///[Add an item to the end fo the user's current playback queue](https://developer.spotify.com/console/post-queue/)
-    /// Add and item to the end of the user's playback queue
+    /// Add an item to the end of the user's playback queue
     ///             Parameters:
     /// - uri - THe uri of the item to add, Track or Episode
     /// - device id - The id of the device targeting
@@ -1824,6 +1770,189 @@ impl Spotify {
     ) -> Result<(), failure::Error> {
         let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
         match self.post(&url, &json!({})).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// [Save Shows for Current User](https://developer.spotify.com/console/put-current-user-saved-shows)
+    /// Add a show or a list of shows to a user’s library
+    /// Parameters:
+    /// - ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    pub async fn save_shows(&self, ids: Vec<String>) -> Result<(), failure::Error> {
+        let joined_ids = ids.join(",");
+        let url = format!("me/shows/?ids={}", joined_ids);
+        match self.put(&url, &json!({})).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Get a list of shows saved in the current Spotify user’s library. Optional parameters can be used to limit the number of shows returned.
+    /// [Get user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
+    /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
+    /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        limit: L,
+        offset: O,
+    ) -> Result<Page<Show>, failure::Error> {
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        let url = "me/shows";
+        let result = self.get(url, &mut params).await?;
+        self.convert_result::<Page<Show>>(&result)
+    }
+
+    /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
+    /// [Get a show](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
+    /// Path Parameters:
+    /// - id: The Spotify ID for the show.
+    /// Query Parameters
+    /// - market(Optional): An ISO 3166-1 alpha-2 country code.
+    pub async fn get_a_show(
+        &self,
+        id: String,
+        market: Option<Country>,
+    ) -> Result<FullShow, failure::Error> {
+        let url = format!("shows/{}", id);
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<FullShow>(&result)
+    }
+
+    /// Get Spotify catalog information for multiple shows based on their Spotify IDs.
+    /// [Get seversal shows](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
+    /// Query Parameters
+    /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
+    /// - market(Optional) An ISO 3166-1 alpha-2 country code.
+    pub async fn get_several_shows(
+        &self,
+        ids: Vec<String>,
+        market: Option<Country>,
+    ) -> Result<SeversalSimplifiedShows, failure::Error> {
+        let joined_ids = ids.join(",");
+        let url = "shows";
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        params.insert("ids".to_owned(), joined_ids);
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<SeversalSimplifiedShows>(&result)
+    }
+    /// Get Spotify catalog information about an show’s episodes. Optional parameters can be used to limit the number of episodes returned.
+    /// [Get a show's episodes](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
+    /// Path Parameters
+    /// - id: The Spotify ID for the show.
+    /// Query Parameters
+    /// - limit: Optional. The maximum number of episodes to return. Default: 20. Minimum: 1. Maximum: 50.
+    /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        id: String,
+        limit: L,
+        offset: O,
+        market: Option<Country>,
+    ) -> Result<Page<SimplifiedEpisode>, failure::Error> {
+        let url = format!("shows/{}/episodes", id);
+        let mut params = HashMap::new();
+        let limit = limit.into().unwrap_or(20);
+        let offset = offset.into().unwrap_or(0);
+        params.insert("limit".to_owned(), limit.to_string());
+        params.insert("offset".to_owned(), offset.to_string());
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<Page<SimplifiedEpisode>>(&result)
+    }
+
+    /// Get Spotify catalog information for a single episode identified by its unique Spotify ID.
+    /// [Get an Episode](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
+    /// Path Parameters
+    /// - id: The Spotify ID for the episode.
+    ///  Query Parameters
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub async fn get_an_episode(
+        &self,
+        id: String,
+        market: Option<Country>,
+    ) -> Result<FullEpisode, failure::Error> {
+        let url = format!("episodes/{}", id);
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        let result = self.get(&url, &mut params).await?;
+        self.convert_result::<FullEpisode>(&result)
+    }
+
+    /// Get Spotify catalog information for multiple episodes based on their Spotify IDs.
+    /// [Get seversal episodes](https://developer.spotify.com/documentation/web-api/reference/episodes/get-several-episodes/)
+    /// Query Parameters
+    /// - ids: Required. A comma-separated list of the Spotify IDs for the episodes. Maximum: 50 IDs.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub async fn get_several_episodes(
+        &self,
+        ids: Vec<String>,
+        market: Option<Country>,
+    ) -> Result<SeveralEpisodes, failure::Error> {
+        let url = "episodes";
+        let joined_ids = ids.join(",");
+        let mut params = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        params.insert("ids".to_owned(), joined_ids);
+        let result = self.get(url, &mut params).await?;
+        self.convert_result::<SeveralEpisodes>(&result)
+    }
+
+    /// Check if one or more shows is already saved in the current Spotify user’s library.
+    /// [Check users saved shows](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
+    /// Query Parameters
+    /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
+    pub async fn check_users_saved_shows(
+        &self,
+        ids: Vec<String>,
+    ) -> Result<Vec<bool>, failure::Error> {
+        let url = "me/shows/contains";
+        let joined_ids = ids.join(",");
+        let mut params = HashMap::new();
+        params.insert("ids".to_owned(), joined_ids);
+        let result = self.get(url, &mut params).await?;
+        self.convert_result::<Vec<bool>>(&result)
+    }
+
+    /// Delete one or more shows from current Spotify user's library.
+    /// Changes to a user's saved shows may not be visible in other Spotify applications immediately.
+    /// [Remove user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
+    /// Query Parameters
+    /// - ids: Required. A comma-separated list of Spotify IDs for the shows to be deleted from the user’s library.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    pub async fn remove_users_saved_shows(
+        &self,
+        ids: Vec<String>,
+        market: Option<Country>,
+    ) -> Result<(), failure::Error> {
+        let joined_ids = ids.join(",");
+        let url = format!("me/shows?ids={}", joined_ids);
+        let mut payload = Map::new();
+        if let Some(_market) = market {
+            payload.insert(
+                "country".to_owned(),
+                serde_json::Value::String(_market.as_str().to_owned()),
+            );
+        }
+        match self.delete(&url, &Value::Object(payload)).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }

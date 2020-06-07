@@ -3,6 +3,7 @@ extern crate rspotify;
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token;
+use rspotify::senum::Country;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -17,7 +18,9 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
+    let mut oauth = SpotifyOAuth::default()
+        .scope("user-read-playback-position")
+        .build();
     match get_token(&mut oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -31,9 +34,12 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let query = "album:arrival artist:abba";
-            let result = spotify.search_album(query, 10, 0, None);
-            println!("search result:{:?}", result);
+            let ids = vec![
+                "5CfCWKI5pZ28U0uOzXkDHe".to_owned(),
+                "5as3aKmN2k11yfDDDSrvaZ".to_owned(),
+            ];
+            let shows = spotify.get_several_shows(ids, Some(Country::France));
+            println!("{:?}", shows);
         }
         None => println!("auth failed"),
     };

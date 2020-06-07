@@ -8,7 +8,7 @@ use serde_json::map::Map;
 use rspotify::client::Spotify;
 use rspotify::model::offset::for_position;
 use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::senum::{Country, RepeatState, TimeRange};
+use rspotify::senum::{Country, RepeatState, SearchType, TimeRange};
 use rspotify::util::get_token;
 
 // Because of all these tests need to poll up the browser, it is impossible to
@@ -50,7 +50,7 @@ async fn test_current_playback() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playback(None).await;
+            let context = spotify.current_playback(None, None).await;
             assert!(context.is_ok());
         }
         None => assert!(false),
@@ -70,7 +70,7 @@ async fn test_current_playing() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playing(None).await;
+            let context = spotify.current_playing(None, None).await;
             assert!(context.is_ok());
         }
         None => assert!(false),
@@ -576,7 +576,9 @@ async fn test_search_album() {
                 .client_credentials_manager(client_credential)
                 .build();
             let query = "album:arrival artist:abba";
-            let result = spotify.search_album(query, 10, 0, None).await;
+            let result = spotify
+                .search(query, SearchType::Album, 10, 0, None, None)
+                .await;
             assert!(result.is_ok());
         }
         None => assert!(false),
@@ -597,7 +599,14 @@ async fn test_search_artist() {
                 .build();
             let query = "tania bowra";
             let result = spotify
-                .search_artist(query, 10, 0, Some(Country::UnitedStates))
+                .search(
+                    query,
+                    SearchType::Artist,
+                    10,
+                    0,
+                    Some(Country::UnitedStates),
+                    None,
+                )
                 .await;
             assert!(result.is_ok());
         }
@@ -619,7 +628,14 @@ async fn test_search_playlist() {
                 .build();
             let query = "\"doom metal\"";
             let result = spotify
-                .search_playlist(query, 10, 0, Some(Country::UnitedStates))
+                .search(
+                    query,
+                    SearchType::Playlist,
+                    10,
+                    0,
+                    Some(Country::UnitedStates),
+                    None,
+                )
                 .await;
             assert!(result.is_ok());
         }
@@ -641,7 +657,14 @@ async fn test_search_track() {
                 .build();
             let query = "abba";
             let result = spotify
-                .search_track(query, 10, 0, Some(Country::UnitedStates))
+                .search(
+                    query,
+                    SearchType::Track,
+                    10,
+                    0,
+                    Some(Country::UnitedStates),
+                    None,
+                )
                 .await;
             assert!(result.is_ok());
         }

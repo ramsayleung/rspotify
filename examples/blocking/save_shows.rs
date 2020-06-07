@@ -3,7 +3,6 @@ extern crate rspotify;
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token;
-use rspotify::senum::AdditionalType;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -18,9 +17,7 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-currently-playing")
-        .build();
+    let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -34,15 +31,13 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let additional_types = vec![AdditionalType::Episode];
-            let result = spotify.current_playing(None, Some(additional_types));
-            match result {
-                Ok(context) => match context {
-                    Some(current_playing) => println!("get current_playing {:?}", current_playing),
-                    None => println!("Nothing is playing"),
-                },
-                Err(err) => println!("get current_playing error {:?}", err),
-            }
+            let ids = vec![
+                "5AvwZVawapvyhJUIx71pdJ".to_owned(),
+                "6ups0LMt1G8n81XLlkbsPo".to_owned(),
+                "5AvwZVawapvyhJUIx71pdJ".to_owned(),
+            ];
+            let result = spotify.save_shows(ids);
+            println!("result: {:?}", result);
         }
         None => println!("auth failed"),
     };

@@ -67,13 +67,13 @@ required-features = ["blocking"]
 path = "examples/blocking/categories.rs"
 
 [[example]]
-name = "current_playback"
+name = "blocking_current_playback"
 required-features = ["blocking"]
 path = "examples/blocking/current_playback.rs"
             
 
 [[example]]
-name = "current_playing"
+name = "blocking_current_playing"
 required-features = ["blocking"]
 path = "examples/blocking/current_playing.rs"
             
@@ -217,27 +217,9 @@ path = "examples/blocking/repeat.rs"
             
 
 [[example]]
-name = "search_album"
+name = "blocking_search"
 required-features = ["blocking"]
-path = "examples/blocking/search_album.rs"
-            
-
-[[example]]
-name = "search_artist"
-required-features = ["blocking"]
-path = "examples/blocking/search_artist.rs"
-            
-
-[[example]]
-name = "search_playlist"
-required-features = ["blocking"]
-path = "examples/blocking/search_playlist.rs"
-            
-
-[[example]]
-name = "search_track"
-required-features = ["blocking"]
-path = "examples/blocking/search_track.rs"
+path = "examples/blocking/search.rs"
             
 
 [[example]]
@@ -381,3 +363,48 @@ path = "examples/blocking/volume.rs"
 name = "blocking_get_access_token_without_cache"
 required-features = ["blocking"]
 path = "examples/blocking/get_access_token_without_cache.rs"
+
+[[example]]
+name = "blocking_save_shows"
+required-features = ["blocking"]
+path = "examples/blocking/save_shows.rs"
+
+[[example]]
+name = "blocking_get_saved_show"
+required-features = ["blocking"]
+path = "examples/blocking/get_saved_show.rs"
+
+[[example]]
+name = "blocking_get_a_show"
+required-features = ["blocking"]
+path = "examples/blocking/get_a_show.rs"
+
+[[example]]
+name = "blocking_get_several_shows"
+required-features = ["blocking"]
+path = "examples/blocking/get_several_shows.rs"
+
+[[example]]
+name = "blocking_get_shows_episodes"
+required-features = ["blocking"]
+path = "examples/blocking/get_shows_episodes.rs"
+
+[[example]]
+name = "blocking_get_an_episode"
+required-features = ["blocking"]
+path = "examples/blocking/get_an_episode.rs"
+
+[[example]]
+name = "blocking_get_several_episodes"
+required-features = ["blocking"]
+path = "examples/blocking/get_several_episodes.rs"
+
+[[example]]
+name = "blocking_check_users_saved_shows"
+required-features = ["blocking"]
+path = "examples/blocking/check_users_saved_shows.rs"
+
+[[example]]
+name = "blocking_remove_users_saved_shows"
+required-features = ["blocking"]
+path = "examples/blocking/remove_users_saved_shows.rs"

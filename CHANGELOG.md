@@ -1,3 +1,23 @@
+## 0.10 (ongoing)
+
+- Add `get_access_token_without_cache` and `refresh_access_token_without_cache` to get and refresh access token without caching it.
+- Add `cross compile` support.
+- Add `podcast` support:
+  + add `save_shows` endpoint.
+  + add `get_saved_shows` endpoint.
+  + add `get_a_show` endpoint.
+  + add `get_several_shows` endpoint.
+  + add `get_shows_episodes` endpoint.
+  + add `get_an_episode` endpoint.
+  + add `get_several_episodes` endpoint.
+  + add `check_users_saved_shows` endpoint.
+  + add `remove_users_saved_shows` endpoint
+  *Breaking Change*
+  + update the `current_playing` endpoint, add a new parameter named `additional_types`, and add some new fields for return object, change the return object type from `SimplifiedPlayingContext` to `CurrentlyPlaybackContext.`
+  + update the `current_playback` endpoint, add a new parameter named `current_playback`, and add some new fields for return object, change the return object type from `FullPlayingContext` to `CurrentlyPlaybackContext`.
+  + update the `search` endpoint, which adds support of podcast shows and spisodes, add a new parameter named `include_external`, change `search` function from private to public.
+  + remove `search_album`, `search_artist`, `search_playlist`, and `search_track`, now there is only search method left, it's the `search` endpoint.
+
 ## 0.9 (2020/02/28)
 
 - Adds `async/await` support.

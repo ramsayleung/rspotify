@@ -3,7 +3,7 @@ extern crate rspotify;
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token;
-use rspotify::senum::AdditionalType;
+use rspotify::senum::Country;
 
 fn main() {
     // Set client_id and client_secret in .env file or
@@ -18,9 +18,7 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-currently-playing")
-        .build();
+    let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
     match get_token(&mut oauth) {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -34,15 +32,9 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let additional_types = vec![AdditionalType::Episode];
-            let result = spotify.current_playing(None, Some(additional_types));
-            match result {
-                Ok(context) => match context {
-                    Some(current_playing) => println!("get current_playing {:?}", current_playing),
-                    None => println!("Nothing is playing"),
-                },
-                Err(err) => println!("get current_playing error {:?}", err),
-            }
+            let id = String::from("38bS44xjbVVZ3No3ByF1dJ");
+            let show = spotify.get_a_show(id, Some(Country::France));
+            println!("{:?}", show);
         }
         None => println!("auth failed"),
     };

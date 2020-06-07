@@ -1,10 +1,11 @@
 extern crate rspotify;
 
-use rspotify::blocking::client::Spotify;
-use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::blocking::senum::Country;
-use rspotify::blocking::util::get_token;
-fn main() {
+use rspotify::client::Spotify;
+use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::util::get_token;
+
+#[tokio::main]
+async fn main() {
     // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
@@ -17,8 +18,8 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
-    match get_token(&mut oauth) {
+    let mut oauth = SpotifyOAuth::default().scope("user-library-read").build();
+    match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
@@ -31,9 +32,8 @@ fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let query = "abba";
-            let result = spotify.search_track(query, 10, 0, Some(Country::UnitedStates));
-            println!("search result:{:?}", result);
+            let albums = spotify.get_saved_show(10, 0).await;
+            println!("{:?}", albums);
         }
         None => println!("auth failed"),
     };

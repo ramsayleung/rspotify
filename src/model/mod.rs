@@ -13,5 +13,13 @@ pub mod playing;
 pub mod playlist;
 pub mod recommend;
 pub mod search;
+pub mod show;
 pub mod track;
 pub mod user;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PlayingItem {
+    Track(track::FullTrack),
+    Episode(show::FullEpisode),
+}

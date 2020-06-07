@@ -3,8 +3,8 @@ extern crate serde_json;
 
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::blocking::senum::Country;
 use rspotify::blocking::util::get_token;
+use rspotify::senum::Country;
 use serde_json::map::Map;
 
 fn main() {

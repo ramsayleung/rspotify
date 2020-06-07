@@ -19,7 +19,7 @@ async fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build();
 
-    let mut oauth = SpotifyOAuth::default().scope("user-read-private").build();
+    let mut oauth = SpotifyOAuth::default().scope("user-library-modify").build();
     match get_token(&mut oauth).await {
         Some(token_info) => {
             let client_credential = SpotifyClientCredentials::default()
@@ -33,11 +33,18 @@ async fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let query = "tania bowra";
+            let ids = vec![
+                "5AvwZVawapvyhJUIx71pdJ".to_owned(),
+                "6ups0LMt1G8n81XLlkbsPo".to_owned(),
+                "5AvwZVawapvyhJUIx71pdJ".to_owned(),
+            ];
             let result = spotify
-                .search_artist(query, 10, 0, Some(Country::UnitedStates))
+                .remove_users_saved_shows(ids, Some(Country::France))
                 .await;
-            println!("search result:{:?}", result);
+            match result {
+                Ok(_) => println!("success to remove user's saved shows"),
+                Err(err) => println!("failed to remove user's saved shows, {:?}", err),
+            }
         }
         None => println!("auth failed"),
     };
