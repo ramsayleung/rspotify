@@ -12,7 +12,8 @@
   + add `get_several_episodes` endpoint.
   + add `check_users_saved_shows` endpoint.
   + add `remove_users_saved_shows` endpoint
-  *Breaking Change*
+
+  **Breaking Change**
   + update the `current_playing` endpoint, add a new parameter named `additional_types`, and add some new fields for return object, change the return object type from `SimplifiedPlayingContext` to `CurrentlyPlaybackContext.`
   + update the `current_playback` endpoint, add a new parameter named `current_playback`, and add some new fields for return object, change the return object type from `FullPlayingContext` to `CurrentlyPlaybackContext`.
   + update the `search` endpoint, which adds support of podcast shows and spisodes, add a new parameter named `include_external`, change `search` function from private to public.
