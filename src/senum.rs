@@ -1084,7 +1084,30 @@ fn test_convert_repeat_state_from_str() {
     let unknown_state = RepeatState::from_str("not exist enum");
     assert_eq!(unknown_state.is_err(), true);
 }
-/// Type for search: artist, album, track, playlist
+/// Type for include_external: audio
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum IncludeExternal {
+    Audio,
+}
+impl IncludeExternal {
+    pub fn as_str(&self) -> &str {
+        match *self {
+            IncludeExternal::Audio => "audio",
+        }
+    }
+}
+impl FromStr for IncludeExternal {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "audio" => Ok(IncludeExternal::Audio),
+            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+        }
+    }
+}
+
+/// Type for search: artist, album, track, playlist, show, episode
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum SearchType {
@@ -1092,6 +1115,8 @@ pub enum SearchType {
     Album,
     Track,
     Playlist,
+    Show,
+    Episode,
 }
 
 impl SearchType {
@@ -1101,6 +1126,8 @@ impl SearchType {
             SearchType::Artist => "artist",
             SearchType::Track => "track",
             SearchType::Playlist => "playlist",
+            SearchType::Show => "show",
+            SearchType::Episode => "episode",
         }
     }
 }
@@ -1112,6 +1139,8 @@ impl FromStr for SearchType {
             "album" => Ok(SearchType::Album),
             "track" => Ok(SearchType::Track),
             "playlist" => Ok(SearchType::Playlist),
+            "show" => Ok(SearchType::Show),
+            "episode" => Ok(SearchType::Episode),
             _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }

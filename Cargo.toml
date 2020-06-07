@@ -217,27 +217,9 @@ path = "examples/blocking/repeat.rs"
             
 
 [[example]]
-name = "search_album"
+name = "blocking_search"
 required-features = ["blocking"]
-path = "examples/blocking/search_album.rs"
-            
-
-[[example]]
-name = "search_artist"
-required-features = ["blocking"]
-path = "examples/blocking/search_artist.rs"
-            
-
-[[example]]
-name = "search_playlist"
-required-features = ["blocking"]
-path = "examples/blocking/search_playlist.rs"
-            
-
-[[example]]
-name = "search_track"
-required-features = ["blocking"]
-path = "examples/blocking/search_track.rs"
+path = "examples/blocking/search.rs"
             
 
 [[example]]

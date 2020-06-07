@@ -20,7 +20,8 @@ jobs:
       - name: Run cargo check
         uses: actions-rs/cargo@v1
         with:
-          command: check --all-targets
+          command: check
+          args: --all-targets
 
   cross-compile:
     name: Cross Compile
