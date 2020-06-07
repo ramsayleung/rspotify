@@ -803,7 +803,7 @@ impl Spotify {
     }
 
     ///[remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
-    ///Removes all occurrences of the given tracks from the given playlist
+    ///Removes specfic occurrences of the given tracks from the given playlist
     ///Parameters:
     ///- user_id - the id of the user
     ///- playlist_id - the id of the playlist
@@ -1051,7 +1051,6 @@ impl Spotify {
     ///- limit - the number of entities to return
     ///- offset - the index of the first entity to return
     ///- time_range - Over what time frame are the affinities computed
-
     pub async fn current_user_top_artists<
         L: Into<Option<u32>>,
         O: Into<Option<u32>>,
@@ -1759,7 +1758,7 @@ impl Spotify {
     }
 
     ///[Add an item to the end fo the user's current playback queue](https://developer.spotify.com/console/post-queue/)
-    /// Add and item to the end of the user's playback queue
+    /// Add an item to the end of the user's playback queue
     ///             Parameters:
     /// - uri - THe uri of the item to add, Track or Episode
     /// - device id - The id of the device targeting

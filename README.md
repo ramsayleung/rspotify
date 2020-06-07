@@ -110,6 +110,111 @@ fn main() {
 }
 ```
 
+## Examples
+
++ Albums:
+  - [Get an Album](./examples/album.rs)
+  - [Get An Album's Tracks](./examples/album_tracks.rs)
+  - [Get several Albums](./examples/albums.rs)
+  - [Get current user's saved albums](./examples/current_user_saved_albums.rs)
+  - [Add one or more albums to the current user](./examples/current_user_saved_albums_add.rs)
+  - [Remove one or more albums from the current user](./examples/current_user_saved_albums_delete.rs)
+  - [Check current user's saved album](./examples/current_user_saved_albums_contains.rs)
+
++ Artists:
+  - [Get an Artist](./examples/artist.rs)
+  - [Get an Artist's Albums](./examples/artists_albums.rs)
+  - [Get an Artist's Top Tracks](./examples/artist_top_tracks.rs)
+  - [Get an Artist's Related Artists](./examples/artist_related_artists.rs)
+  - [Get Several Artists](./examples/artists.rs)
+  - [Get current user's followed artists](./examples/current_user_followed_artists.rs)
+  - [Get current user's top artists](./examples/current_user_top_artists.rs)
+  - [Current user follow one or more artists](./examples/user_follow_artists.rs)
+  - [Current user unfollow one or more artists](./examples/user_unfollow_artists.rs)
+  - [Check current user follow artists](./examples/user_artist_check_follow.rs)
+
++ Browse:
+  - [Get a List of Categories](./examples/categories.rs)
+
++ Track:
+  - [Get a Track](./examples/track.rs)
+  - [Get several tracks](./examples/tracks.rs)
+  - [Get current user's currently playing track](./examples/current_user_playing_track.rs)
+  - [Get current user's saved tracks](./examples/current_user_saved_tracks.rs)
+  - [Remove current user's saved tracks](./examples/current_user_saved_tracks_delete.rs)
+  - [Check current user's saved tracks](./examples/current_user_saved_tracks_contains.rs)
+  - [Current user add tracks](./examples/current_user_saved_tracks_add.rs)
+  - [Get current user's top tracks](./examples/current_user_top_tracks.rs)
+  - [Get current user's recently played tracks](./examples/current_user_recently_played.rs)
+  - [Get audio features for a track](./examples/audio_features.rs)
+  - [Get audio features for several tracks](./examples/audios_features.rs)
+  - [Get audio analysis for a track](./examples/audio_analysis.rs)
+
++ Player
+  - [Get current user's available devices](./examples/device.rs)
+  - [Get information about current user's current playback](./examples/current_playback.rs)
+  - [Get current user's currently playing track](./examples/current_playing.rs)
+  - [Transfer current user's playback](./examples/transfer_playback.rs)
+  - [Start/Resume current user’s playback](./examples/start_playback.rs)
+  - [Pause current user's playback](./examples/pause_playback.rs)
+  - [Skip current user's playback to next track](./examples/next_track.rs)
+  - [Skip current user's playback to previous track](./examples/previous_track.rs)
+  - [Seek to position in currently playing track](./examples/seek_track.rs)
+  - [Set repeat mode on current user's playback](./examples/repeat.rs)
+  - [Set volume for current user's playback](./examples/volume.rs)
+  - [Toggle shuffle for current user's playback](./examples/shuffle.rs)
+  - [Add an item to the end of current user's playback queue](#)
+
++ Show:
+  - [Save shows for current user](./examples/save_shows.rs)
+  - [Get a list of saved shows](./examples/save_shows.rs)
+  - [Get a show](./examples/get_a_show.rs)
+  - [Get seversal shows](./examples/get_several_shows.rs)
+  - [Check current user's saved shows](./examples/check_users_saved_shows.rs)
+  - [Remove current user's saved shows](./examples/remove_users_saved_shows.rs)
+
++ Episodes
+  - [Get a show's episodes](./examples/get_shows_episodes.rs)
+  - [Get an Episode](./examples/get_an_episode.rs)
+  - [Get seversal episodes](./examples/get_several_episodes.rs)
+
++ Search:
+  - [Search Item](./examples/search.rs)
+  - [Search Artist](./examples/search.rs)
+  - [Search Album](./examples/search.rs)
+  - [Search Track](./examples/search.rs)
+  - [Search Playlist](./examples/search.rs)
+  - [Search Show](./examples/search.rs)
+  - [Search Episode](./examples/search.rs)
+
++ User:
+  - [Get user's profile](./examples/user.rs)
+  - [Get current user's profile](./examples/me.rs)
+  - [Current User follow users](./examples/user_follow_users.rs)
+  - [Current User unfollow users](./examples/user_unfollow_users.rs)
+  
+
++ Playlist:
+  - [Get a Playlist](./examples/playlist.rs)
+  - [Get a List of a User's Playlist](./examples/user_playlists.rs)
+  - [Get a Playlists's tracks](./examples/user_playlist_tracks.rs)
+  - [Creates a playlist for a user](./examples/user_playlist_create.rs)
+  - [Change playlist's details](./examples/user_playlist_change_detail.rs)
+  - [Unfollowsa playlist for a user](./examples/user_playlist_unfollow.rs)
+  - [Adds tracks to a playlist](./examples/user_playlist_add_tracks.rs)
+  - [Replace all tracks in a playlist](./examples/user_playlist_replace_tracks.rs)
+  - [Reorder tracks in a playlist](./examples/user_playlist_recorder_tracks.rs)
+  - [Remove tracks from a playlist](./examples/user_playlist_remove_all_occurrences_of_tracks.rs)
+  - [Remove specific tracks from a playlist](./examples/user_playlist_remove_specific_occurrenes_of_tracks)
+  - [User follow a playlist](./examples/user_playlist_follow_playlist.rs)
+  - [Check user following playlist](./examples/user_playlist_check_follow.rs)
+  - [Get a list of Spotify featured playlists](./examples/featured_playlists.rs)
+
++ Misc
+  - [Get list new releases](./examples/new_releases.rs)
+  - [Get list categories](./examples/categories.rs)
+  - [get recommendtions](./examples/recommendations.rs)
+
 ## API Documentation
 
 For more API information, you could check [rspotify Api documentation](https://docs.rs/crate/rspotify)
