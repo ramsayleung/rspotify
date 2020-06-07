@@ -42,7 +42,21 @@ pub struct SimplifiedPlayingContext {
 
 /// [Currently playing object](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CurrentlyPlaying {
+pub struct CurrentlyPlayingContext {
+    pub context: Option<Context>,
+    pub timestamp: u64,
+    pub progress_ms: Option<u32>,
+    pub is_playing: bool,
+    pub item: Option<PlayingItem>,
+    pub currently_playing_type: CurrentlyPlayingType,
+    pub actions: Actions,
+}
+/// [Currently Playback Context](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CurrentlyPlaybackContext {
+    pub device: Device,
+    pub repeat_state: RepeatState,
+    pub shuffle_state: bool,
     pub context: Option<Context>,
     pub timestamp: u64,
     pub progress_ms: Option<u32>,

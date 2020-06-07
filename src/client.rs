@@ -19,7 +19,7 @@ use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum,
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
 use super::model::category::PageCategory;
-use super::model::context::{CurrentlyPlaying, FullPlayingContext};
+use super::model::context::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
 use super::model::cud_result::CUDResult;
 use super::model::device::DevicePayload;
 use super::model::page::{CursorBasedPage, Page};
@@ -1570,23 +1570,35 @@ impl Spotify {
 
     ///[get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
     ///Get Information About The User’s Current Playback
-    ///        Parameters:
-    ///        - market - an ISO 3166-1 alpha-2 country code.
+    /// Parameters:
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
     pub async fn current_playback(
         &self,
         market: Option<Country>,
-    ) -> Result<Option<FullPlayingContext>, failure::Error> {
+        additional_types: Option<Vec<AdditionalType>>,
+    ) -> Result<Option<CurrentlyPlaybackContext>, failure::Error> {
         let url = String::from("me/player");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country".to_owned(), _market.as_str().to_owned());
+        }
+        if let Some(_additional_types) = additional_types {
+            params.insert(
+                "additional_types".to_owned(),
+                _additional_types
+                    .iter()
+                    .map(|&x| x.as_str().to_owned())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
         }
         match self.get(&url, &mut params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<FullPlayingContext>>(&result)
+                    self.convert_result::<Option<CurrentlyPlaybackContext>>(&result)
                 }
             }
             Err(e) => Err(e),
@@ -1602,7 +1614,7 @@ impl Spotify {
         &self,
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
-    ) -> Result<Option<CurrentlyPlaying>, failure::Error> {
+    ) -> Result<Option<CurrentlyPlayingContext>, failure::Error> {
         let url = String::from("me/player/currently-playing");
         let mut params = HashMap::new();
         if let Some(_market) = market {
@@ -1623,7 +1635,7 @@ impl Spotify {
                 if result.is_empty() {
                     Ok(None)
                 } else {
-                    self.convert_result::<Option<CurrentlyPlaying>>(&result)
+                    self.convert_result::<Option<CurrentlyPlayingContext>>(&result)
                 }
             }
             Err(e) => Err(e),

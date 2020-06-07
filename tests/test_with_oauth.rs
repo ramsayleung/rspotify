@@ -50,7 +50,7 @@ async fn test_current_playback() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playback(None).await;
+            let context = spotify.current_playback(None, None).await;
             assert!(context.is_ok());
         }
         None => assert!(false),
@@ -70,7 +70,7 @@ async fn test_current_playing() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            let context = spotify.current_playing(None).await;
+            let context = spotify.current_playing(None, None).await;
             assert!(context.is_ok());
         }
         None => assert!(false),
