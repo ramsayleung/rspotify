@@ -1,4 +1,4 @@
-## 0.10 (ongoing)
+## 0.10 (2020/07/01)
 
 - Add `get_access_token_without_cache` and `refresh_access_token_without_cache` to get and refresh access token without caching it.
 - Add `cross compile` support.
