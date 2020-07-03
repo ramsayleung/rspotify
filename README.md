@@ -21,10 +21,13 @@ users, artists and playlists, and saved tracks management).
 
 Nowaday, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` now supports system proxy by default. `Reqwest` System proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide http proxies for http connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections.(~~Notes that `reqwest` system proxy doesn't support socks proxy for now,~~ check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details)
 
-## Installation
+## Usage
 
-``` shell
-cargo install rspotify
+Add this to your `Cargo.toml`
+
+``` toml
+[dependencies]
+rspotify = "0.10.0"
 ```
 
 Or you could get it from [github](https://github.com/samrayleung/rspotify)
@@ -50,7 +53,7 @@ the example code:
 
 ``` toml
 [dependencies]
-rspotify = { version = "0.9"}
+rspotify = { version = "0.10.0"}
 tokio = { version = "0.2", features = ["full"] }
 ```
 
@@ -89,7 +92,7 @@ There is an optional "blocking" client API that can be enabled:
 
 ``` toml
 [dependencies]
-rspotify = { version = "0.9", features=["blocking"]}
+rspotify = { version = "0.10.0", features=["blocking"]}
 ```
 
 ``` rust
