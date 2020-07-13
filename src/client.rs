@@ -1328,7 +1328,7 @@ impl Spotify {
         &self,
         locale: Option<String>,
         country: Option<Country>,
-        limit: L,
+            limit: L,
         offset: O,
     ) -> Result<PageCategory, failure::Error> {
         let mut params = HashMap::new();

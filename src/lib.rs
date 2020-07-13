@@ -8,8 +8,8 @@
 //! users, artists and playlists, and saved tracks management).
 //! ## Features
 //! *rspotify* supports all the features of the Spotify Web API including access
-//! to all end points, and support for user authorization. Note that before
-//! accessing to any end points, you need to be authorized. For details on the
+//! to all endpoints, and support for user authorization. Note that before
+//! accessing to any endpoints, you need to be authorized. For details on the
 //! capabilities you are encouraged to review the [Spotify Web Endpoint
 //! Reference](https://developer.spotify.com/web-api/endpoint-reference/)
 //! documentation

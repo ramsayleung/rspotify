@@ -7,49 +7,44 @@
 
 ## Disclaimer
 
-This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy)- A spotify api wrapper implemented in Python
+This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy) - A Spotify API wrapper implemented in Python.
 
 ## Description
 
-Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/) It includes helper functions for
-**all Spotify's endpoints**, such as fetching metadata (search and look-up of albums, artists, tracks, playlists, new releases) and user's information (follow
-users, artists and playlists, and saved tracks management).
+Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/) It includes helper functions for **all Spotify's endpoints**, such as fetching metadata (search and look-up of albums, artists, tracks, playlists, new releases) and user's information (follow users, artists and playlists, and saved tracks management).
 
 ## Features
 
-*rspotify* supports all of the features of the Spotify Web API including access to all end points, and support for user authorization, notes that before accessing to any end points, you need to be authorized. For details on the capabilities you are encouraged to review the [Spotify Web Endpoint Reference](https://developer.spotify.com/web-api/endpoint-reference/) documentation.
+*Rspotify* supports all the features of the Spotify Web API, including access to all endpoints, and support for user authorization. Note that before accessing to any endpoints, you need to be authorized. For details on the capabilities you are encouraged to review the [Spotify Web Endpoint Reference](https://developer.spotify.com/web-api/endpoint-reference/) documentation.
 
-Nowaday, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` now supports system proxy by default. `Reqwest` System proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide http proxies for http connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections.(~~Notes that `reqwest` system proxy doesn't support socks proxy for now,~~ check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details)
+Nowadays, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` supports system proxy by default. `reqwest` system proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide HTTP proxies for HTTP connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections (~~note that `reqwest` system proxy doesn't support socks proxy for now,~~ check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details).
 
 ## Usage
 
-Add this to your `Cargo.toml`
+Add this to your `Cargo.toml`:
 
 ``` toml
 [dependencies]
 rspotify = "0.10.0"
 ```
 
-Or you could get it from [github](https://github.com/samrayleung/rspotify)
+Or you could get it from [GitHub](https://github.com/samrayleung/rspotify).
 
 ## Getting Started
 
 ### Authorization
 
-Since all methods require user authorization now, you will need to generate an authorization token that indicates that the user has granted permission for your application to perform the given task.  You will need to register your app to get the credentials necessary to make authorized calls.
+Since all methods require user authorization now, you will need to generate an authorization token that indicates that the user has granted permission for your application to perform the given task. You will need to register your app to get the credentials necessary to make authorized calls.
 
 Even if your script does not have an accessible URL you need to specify one when registering your application where the spotify authentication API will redirect to after successful login. The URL doesn't need to work or be accessible, you can specify "http://localhost/", after successful login you just need to copy the "http://localhost/?code=..." URL from your browser and paste it to the console where your application is running. For example:
+
 ![](./doc/images/rspotify.gif)
 
-In order to help other developers to get used to `rspotify`, I registerd a Spotify account with temporary email. Your guys could test `rspotify` with this account's `CLIENT_ID` and `CLIENT_SECRET`, check [.env file](./.env) for more details.
+In order to help other developers to get used to `rspotify`, I registered a Spotify account with temporary email. Your can test `rspotify` with this account's `CLIENT_ID` and `CLIENT_SECRET`, check the [`.env` file](./.env) for more details.
 
 ### Examples
 
-If you have a use case you are interested in, you could check the
-[examples](./examples), which has all kinds of detailed examples. For example,
-If you want to get recently played history, you could check
-[current_user_recently_played](./examples/current_user_recently_played.rs). This is
-the example code:
+If you have a use case you are interested in, you could check the [examples](./examples), which has all kinds of detailed examples. For example, If you want to get recently played history, you could check [current_user_recently_played](./examples/current_user_recently_played.rs). This is the example code:
 
 ``` toml
 [dependencies]
@@ -139,7 +134,7 @@ fn main() {
 + Browse:
   - [Get a List of Categories](./examples/categories.rs)
 
-+ Track:
++ Tracks:
   - [Get a Track](./examples/track.rs)
   - [Get several tracks](./examples/tracks.rs)
   - [Get current user's currently playing track](./examples/current_user_playing_track.rs)
@@ -153,7 +148,7 @@ fn main() {
   - [Get audio features for several tracks](./examples/audios_features.rs)
   - [Get audio analysis for a track](./examples/audio_analysis.rs)
 
-+ Player
++ Player:
   - [Get current user's available devices](./examples/device.rs)
   - [Get information about current user's current playback](./examples/current_playback.rs)
   - [Get current user's currently playing track](./examples/current_playing.rs)
@@ -168,7 +163,7 @@ fn main() {
   - [Toggle shuffle for current user's playback](./examples/shuffle.rs)
   - [Add an item to the end of current user's playback queue](#)
 
-+ Show:
++ Shows:
   - [Save shows for current user](./examples/save_shows.rs)
   - [Get a list of saved shows](./examples/save_shows.rs)
   - [Get a show](./examples/get_a_show.rs)
@@ -176,7 +171,7 @@ fn main() {
   - [Check current user's saved shows](./examples/check_users_saved_shows.rs)
   - [Remove current user's saved shows](./examples/remove_users_saved_shows.rs)
 
-+ Episodes
++ Episodes:
   - [Get a show's episodes](./examples/get_shows_episodes.rs)
   - [Get an Episode](./examples/get_an_episode.rs)
   - [Get seversal episodes](./examples/get_several_episodes.rs)
@@ -195,9 +190,8 @@ fn main() {
   - [Get current user's profile](./examples/me.rs)
   - [Current User follow users](./examples/user_follow_users.rs)
   - [Current User unfollow users](./examples/user_unfollow_users.rs)
-  
 
-+ Playlist:
++ Playlists:
   - [Get a Playlist](./examples/playlist.rs)
   - [Get a List of a User's Playlist](./examples/user_playlists.rs)
   - [Get a Playlists's tracks](./examples/user_playlist_tracks.rs)
@@ -213,23 +207,22 @@ fn main() {
   - [Check user following playlist](./examples/user_playlist_check_follow.rs)
   - [Get a list of Spotify featured playlists](./examples/featured_playlists.rs)
 
-+ Misc
++ Misc:
   - [Get list new releases](./examples/new_releases.rs)
   - [Get list categories](./examples/categories.rs)
-  - [get recommendtions](./examples/recommendations.rs)
+  - [Get recommendtions](./examples/recommendations.rs)
 
 ## API Documentation
 
-For more API information, you could check [rspotify Api documentation](https://docs.rs/crate/rspotify)
+For more API information, check the [Rspotify API documentation](https://docs.rs/crate/rspotify).
 
 ## CHANGELOG
 
-Please see the [CHANGELOG](./CHANGELOG.md) for a release history.
+Please see the [changelog](./CHANGELOG.md) for a release history.
 
 ## Contribution
 
-If you find any problem or have suggestions about this crate, please submit an
-issue. Moreover, any pull request ,code review and feedback are welcome.
+If you find any problems or have suggestions about this crate, please submit an issue. Moreover, any pull request, code review and feedback are welcome.
 
 ## License
 
