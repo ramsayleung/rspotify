@@ -112,7 +112,7 @@ pub struct SeveralEpisodes {
     pub episodes: Vec<FullEpisode>,
 }
 
-/// [](https://developer.spotify.com/documentation/web-api/reference/object-model/#resume-point-object)
+/// [Resume point object](https://developer.spotify.com/documentation/web-api/reference/object-model/#resume-point-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ResumePoint {
     pub fully_played: bool,

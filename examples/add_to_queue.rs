@@ -16,7 +16,7 @@ async fn main() {
             let client_credential = SpotifyClientCredentials::default()
                 .token_info(token_info)
                 .build();
-            // instantiate the Spotify client
+            // Instantiate the Spotify client
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();

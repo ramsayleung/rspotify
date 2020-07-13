@@ -7,7 +7,8 @@ use super::album::Restrictions;
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
 use crate::senum::Type;
-///[track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
+
+/// [Track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
@@ -37,9 +38,8 @@ pub struct FullTrack {
     pub uri: String,
 }
 
-/// [link to track link] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
+/// [Link to track link] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
 /// Track Link
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
@@ -54,7 +54,7 @@ pub struct TrackLink {
 pub struct FullTracks {
     pub tracks: Vec<FullTrack>,
 }
-///[track object simplified](https://developer.spotify.com/web-api/object-model/#track-object-simplified)
+/// [track object simplified](https://developer.spotify.com/web-api/object-model/#track-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
@@ -75,7 +75,7 @@ pub struct SimplifiedTrack {
     pub uri: String,
 }
 
-///[saved track object](https://developer.spotify.com/web-api/object-model/#saved-track-object)
+/// [Saved track object](https://developer.spotify.com/web-api/object-model/#saved-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,

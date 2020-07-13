@@ -1,4 +1,4 @@
-//! utils function
+//! Utils function
 use chrono::prelude::*;
 use rand::distributions::Alphanumeric;
 use rand::{self, Rng};
@@ -12,12 +12,12 @@ use std::string::ToString;
 
 use super::oauth2::{SpotifyOAuth, TokenInfo};
 
-/// convert datetime to unix timestampe
+/// Convert datetime to unix timestampe
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();
     utc.timestamp() + i64::from(elapsed)
 }
-/// generate `length` random chars
+/// Generate `length` random chars
 pub fn generate_random_string(length: usize) -> String {
     rand::thread_rng()
         .sample_iter(&Alphanumeric)
@@ -25,7 +25,7 @@ pub fn generate_random_string(length: usize) -> String {
         .collect()
 }
 
-/// convert map to `query_string`, for example:
+/// Convert map to `query_string`, for example:
 /// convert
 /// `{"redirect_uri":"my_uri",
 ///  "state":"my-state"
@@ -51,7 +51,7 @@ pub fn convert_map_to_string<
     string
 }
 
-/// convert query string to map, for example:
+/// Convert query string to map, for example:
 /// convert
 /// `redirect_uri=my_uri&state=my-state&scope=test-scope`
 /// to
@@ -97,7 +97,7 @@ pub fn process_token_without_cache(
     }
 }
 
-/// get tokenInfo by Authorization
+/// Get tokenInfo by Authorization
 pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     match spotify_oauth.get_cached_token() {
         Some(token_info) => Some(token_info),
@@ -113,7 +113,7 @@ pub fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     }
 }
 
-/// get tokenInfo by Authorization without cache.
+/// Get tokenInfo by Authorization without cache.
 pub fn get_token_without_cache(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
     request_token(spotify_oauth);
     println!("Enter the URL you were redirected to: ");
@@ -124,7 +124,7 @@ pub fn get_token_without_cache(spotify_oauth: &mut SpotifyOAuth) -> Option<Token
     }
 }
 
-/// get tokenInfo by authorization and code
+/// Get tokenInfo by authorization and code
 pub fn get_token_by_code(spotify_oauth: &mut SpotifyOAuth, code: &str) -> Option<TokenInfo> {
     spotify_oauth.get_access_token(&code)
 }
@@ -151,7 +151,7 @@ mod tests {
         map.insert("state", "my-state");
         map.insert("scope", "test-scope");
         let result = convert_map_to_string(&map);
-        // hashmap is not sorted, so the order of key-value-pairs will not
+        // Hashmap is not sorted, so the order of key-value-pairs will not
         // follow the insert order
         assert!(result.contains("redirect_uri=my_uri&"));
         assert!(result.contains("state=my-state&"));

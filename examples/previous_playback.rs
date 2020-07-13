@@ -34,7 +34,7 @@ async fn main() {
             let spotify = Spotify::default()
                 .client_credentials_manager(client_credential)
                 .build();
-            // this is the example device_id from spotify website,
+            // This is the example device_id from spotify website,
             // so it will raise a 403 error, just change this device_id to yours
             let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
             match spotify.previous_track(Some(device_id)).await {

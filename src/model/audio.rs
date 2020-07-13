@@ -1,6 +1,6 @@
 //! All objects related to artist defined by Spotify API
 
-///[audio feature object](https://developer.spotify.com/web-api/object-model/#audio-features-object)
+/// [audio feature object](https://developer.spotify.com/web-api/object-model/#audio-features-object)
 /// Audio Feature object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioFeatures {
@@ -32,7 +32,7 @@ pub struct AudioFeaturesPayload {
 }
 
 /// Audio Analysis Object
-///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioAnalysis {
     pub bars: Vec<AudioAnalysisMeasure>,
@@ -44,7 +44,7 @@ pub struct AudioAnalysis {
     pub track: AudioAnalysisTrack,
 }
 
-///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioAnalysisMeasure {
     pub start: f32,
@@ -52,7 +52,7 @@ pub struct AudioAnalysisMeasure {
     pub confidence: f32,
 }
 
-///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioAnalysisSection {
     pub start: f32,
@@ -69,7 +69,7 @@ pub struct AudioAnalysisSection {
     pub time_signature_confidence: f32,
 }
 
-///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioAnalysisMeta {
     pub analyzer_version: String,
@@ -94,7 +94,7 @@ pub struct AudioAnalysisSegment {
     pub timbre: Vec<f32>,
 }
 
-///[audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioAnalysisTrack {
     pub num_samples: u32,
