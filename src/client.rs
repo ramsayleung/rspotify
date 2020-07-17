@@ -1328,7 +1328,7 @@ impl Spotify {
         &self,
         locale: Option<String>,
         country: Option<Country>,
-            limit: L,
+        limit: L,
         offset: O,
     ) -> Result<PageCategory, failure::Error> {
         let mut params = HashMap::new();
@@ -1588,13 +1588,13 @@ impl Spotify {
     /// Start/Resume a User’s Playback
     /// Provide a `context_uri` to start playback or a album,
     /// artist, or playlist.
-    /// 
+    ///
     /// Provide a `uris` list to start playback of one or more
     /// tracks.
-    /// 
+    ///
     /// Provide `offset` as {"position": <int>} or {"uri": "<track uri>"}
     /// to start playback at a particular offset.
-    /// 
+    ///
     /// Parameters:
     /// - device_id - device target for playback
     /// - context_uri - spotify context uri to play

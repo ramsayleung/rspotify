@@ -912,11 +912,11 @@ impl Spotify {
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
-    pub  fn me(&self) -> Result<PrivateUser, failure::Error> {
-         let mut dumb: HashMap<String, String> = HashMap::new();
-         let url = String::from("me/");
-         let result = self.get(&url, &mut dumb)?;
-         self.convert_result::<PrivateUser>(&result)
+    pub fn me(&self) -> Result<PrivateUser, failure::Error> {
+        let mut dumb: HashMap<String, String> = HashMap::new();
+        let url = String::from("me/");
+        let result = self.get(&url, &mut dumb)?;
+        self.convert_result::<PrivateUser>(&result)
     }
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
@@ -1606,13 +1606,13 @@ impl Spotify {
     /// Start/Resume a User’s Playback
     /// Provide a `context_uri` to start playback or a album,
     /// artist, or playlist.
-    /// 
+    ///
     /// Provide a `uris` list to start playback of one or more
     /// tracks.
-    /// 
+    ///
     /// Provide `offset` as {"position": <int>} or {"uri": "<track uri>"}
     /// to start playback at a particular offset.
-    /// 
+    ///
     /// Parameters:
     /// - device_id - device target for playback
     /// - context_uri - spotify context uri to play
