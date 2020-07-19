@@ -6,7 +6,7 @@ use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use reqwest::blocking::Client;
 use serde_json;
 
-// use built-in library
+// Use built-in library
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::File;
@@ -15,7 +15,7 @@ use std::io::prelude::*;
 use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 
-// use customized library
+// Use customized library
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 
 /// Client credentials object for spotify
@@ -91,7 +91,7 @@ impl TokenInfo {
 }
 
 impl SpotifyClientCredentials {
-    /// build default SpotifyClientCredentials
+    /// Build default SpotifyClientCredentials
     pub fn default() -> SpotifyClientCredentials {
         dotenv().ok();
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
@@ -140,7 +140,7 @@ impl SpotifyClientCredentials {
         }
         self
     }
-    /// get access token from self.token_info, if self.token_info is none or is
+    /// Get access token from self.token_info, if self.token_info is none or is
     /// expired. fetch token info by HTTP request
     pub fn get_access_token(&self) -> String {
         let access_token = match self.token_info {
@@ -192,7 +192,7 @@ impl SpotifyClientCredentials {
 }
 
 impl SpotifyOAuth {
-    // spotify token example:
+    // Spotify token example:
     // {
     //    "access_token": "NgCXRK...MzYjw",
     //    "token_type": "Bearer",
@@ -302,7 +302,7 @@ impl SpotifyOAuth {
             }
         }
     }
-    /// gets the access_token for the app with given the code without caching token.
+    /// Gets the access_token for the app with given the code without caching token.
 
     pub fn get_access_token_without_cache(&self, code: &str) -> Option<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
@@ -313,7 +313,7 @@ impl SpotifyOAuth {
         payload.insert("state", &self.state);
         return self.fetch_access_token(&self.client_id, &self.client_secret, &payload);
     }
-    /// gets the access_token for the app with given the code
+    /// Gets the access_token for the app with given the code
     pub fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
         if let Some(token_info) = self.get_access_token_without_cache(code) {
             match serde_json::to_string(&token_info) {
@@ -333,7 +333,7 @@ impl SpotifyOAuth {
             None
         }
     }
-    /// fetch access_token
+    /// Fetch access_token
     fn fetch_access_token(
         &self,
         client_id: &str,
@@ -376,7 +376,7 @@ impl SpotifyOAuth {
         authorize_url
     }
 
-    /// refresh token without caching token.
+    /// Refresh token without caching token.
     pub fn refresh_access_token_without_cache(&self, refresh_token: &str) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
@@ -384,7 +384,7 @@ impl SpotifyOAuth {
         return self.fetch_access_token(&self.client_id, &self.client_secret, &payload);
     }
 
-    /// after refresh access_token, the response may be empty
+    /// After refresh access_token, the response may be empty
     /// when refresh_token again
     pub fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
         if let Some(token_info) = self.refresh_access_token_without_cache(refresh_token) {

@@ -1,11 +1,11 @@
 //! The module contains function about authorization and client-credential
-// use 3rd party library
+// Use 3rd party library
 use chrono::prelude::*;
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use reqwest::Client;
 
-// use built-in library
+// Use built-in library
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::File;
@@ -14,7 +14,7 @@ use std::io::prelude::*;
 use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 
-// use customized library
+// Use customized library
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 
 /// Client credentials object for spotify
@@ -90,7 +90,7 @@ impl TokenInfo {
 }
 
 impl SpotifyClientCredentials {
-    /// build default SpotifyClientCredentials
+    /// Build default SpotifyClientCredentials
     pub fn default() -> SpotifyClientCredentials {
         dotenv().ok();
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
@@ -139,7 +139,7 @@ impl SpotifyClientCredentials {
         }
         self
     }
-    /// get access token from self.token_info, if self.token_info is none or is
+    /// Get access token from self.token_info, if self.token_info is none or is
     /// expired. fetch token info by HTTP request
     pub async fn get_access_token(&self) -> String {
         let access_token = match self.token_info {
@@ -192,7 +192,7 @@ impl SpotifyClientCredentials {
 }
 
 impl SpotifyOAuth {
-    // spotify token example:
+    // Spotify token example:
     // {
     //    "access_token": "NgCXRK...MzYjw",
     //    "token_type": "Bearer",
@@ -302,7 +302,7 @@ impl SpotifyOAuth {
             }
         }
     }
-    /// gets the access_token for the app with the given code without caching(without saving token to `cache_path`)
+    /// Gets the access_token for the app with the given code without caching(without saving token to `cache_path`)
     pub async fn get_access_token_without_cache(&self, code: &str) -> Option<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("redirect_uri", &self.redirect_uri);
@@ -314,7 +314,7 @@ impl SpotifyOAuth {
             .await
     }
 
-    /// gets the access_token for the app with given the code
+    /// Gets the access_token for the app with given the code
     pub async fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
         if let Some(token_info) = self.get_access_token_without_cache(code).await {
             match serde_json::to_string(&token_info) {
@@ -334,7 +334,7 @@ impl SpotifyOAuth {
             None
         }
     }
-    /// fetch access_token
+    /// Fetch access_token
     async fn fetch_access_token(
         &self,
         client_id: &str,

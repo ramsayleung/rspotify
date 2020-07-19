@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use super::image::Image;
 use crate::senum::Type;
-///[public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
+/// [Public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PublicUser {
     pub display_name: Option<String>,
@@ -20,7 +20,7 @@ pub struct PublicUser {
     pub uri: String,
 }
 
-///[private user object](https://developer.spotify.com/web-api/object-model/#user-object-private)
+/// [Private user object](https://developer.spotify.com/web-api/object-model/#user-object-private)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PrivateUser {
     pub birthdate: Option<NaiveDate>,

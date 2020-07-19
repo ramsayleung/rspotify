@@ -6,7 +6,7 @@ use super::track::FullTrack;
 use super::PlayingItem;
 use crate::senum::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
 /// Context object
-///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+/// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Context {
     pub uri: String,
@@ -17,7 +17,7 @@ pub struct Context {
 }
 
 /// Full playing context
-///[get information about the users current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
+/// [get information about the users current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullPlayingContext {
     pub device: Device,
@@ -30,7 +30,7 @@ pub struct FullPlayingContext {
     pub item: Option<FullTrack>,
 }
 
-///[get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+/// [Get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlayingContext {
     pub context: Option<Context>,
@@ -66,7 +66,7 @@ pub struct CurrentlyPlaybackContext {
     pub actions: Actions,
 }
 
-/// [actions](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// [Actions](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Actions {
     pub disallows: HashMap<DisallowKey, bool>,
