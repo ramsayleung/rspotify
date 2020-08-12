@@ -101,8 +101,6 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 extern crate webbrowser;
-#[macro_use]
-extern crate failure;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
