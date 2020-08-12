@@ -95,7 +95,6 @@ extern crate reqwest_rustls_tls as reqwest;
 extern crate serde;
 #[macro_use]
 extern crate serde_json;
-extern crate chrono;
 #[macro_use]
 extern crate serde_derive;
 extern crate webbrowser;
