@@ -77,8 +77,6 @@
 //!
 //! ```
 
-extern crate env_logger;
-
 #[cfg(any(feature = "default-tls", feature = "blocking"))]
 extern crate reqwest_default_tls as reqwest;
 
@@ -108,8 +106,6 @@ extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 extern crate dotenv;
-// use serde_json::Error;
-extern crate base64;
 extern crate percent_encoding;
 extern crate rand;
 extern crate url;
