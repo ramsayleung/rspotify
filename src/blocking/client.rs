@@ -10,6 +10,7 @@ use serde_json::map::Map;
 use serde_json::Value;
 use log::{trace, error};
 use lazy_static::lazy_static;
+use itertools::iproduct;
 
 //  Built-in battery
 use std::borrow::Cow;
