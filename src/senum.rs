@@ -2,6 +2,8 @@
 use std::error;
 use std::fmt;
 use std::str::FromStr;
+use serde::{Serialize, Deserialize};
+
 #[derive(Clone, Debug)]
 pub struct Error {
     kind: ErrorKind,

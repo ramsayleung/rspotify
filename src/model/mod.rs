@@ -17,6 +17,8 @@ pub mod show;
 pub mod track;
 pub mod user;
 
+use serde::{Serialize, Deserialize};
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PlayingItem {

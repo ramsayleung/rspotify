@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
+use crate::senum::DeviceType;
+
 /// All objects related to device
 /// [get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
-use crate::senum::DeviceType;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,

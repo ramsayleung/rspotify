@@ -1,4 +1,5 @@
 //! All object related to category
+use serde::{Serialize, Deserialize};
 use super::image::Image;
 use super::page::Page;
 /// category object

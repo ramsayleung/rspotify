@@ -1,4 +1,5 @@
 //! All objects related to artist defined by Spotify API
+use serde::{Serialize, Deserialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;

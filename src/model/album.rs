@@ -1,5 +1,6 @@
 //! All objects related to album defined by Spotify API
 use chrono::prelude::*;
+use serde::{Serialize, Deserialize};
 
 use std::collections::HashMap;
 

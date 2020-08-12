@@ -95,12 +95,6 @@ extern crate reqwest_native_tls_vendored as reqwest;
 #[cfg(any(feature = "rustls-tls", feature = "rustls-tls-blocking"))]
 extern crate reqwest_rustls_tls as reqwest;
 
-extern crate serde;
-#[macro_use]
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-
 #[cfg(feature = "blocking")]
 pub mod blocking;
 
