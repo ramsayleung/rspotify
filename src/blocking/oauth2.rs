@@ -6,6 +6,7 @@ use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use reqwest::blocking::Client;
 use serde_json;
 use log::{trace, debug, error};
+use serde::{Serialize, Deserialize};
 
 // Use built-in library
 use std::collections::{HashMap, HashSet};

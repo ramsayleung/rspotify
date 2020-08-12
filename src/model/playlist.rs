@@ -1,5 +1,6 @@
 //! All kinds of playlists objects
 use chrono::prelude::*;
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use std::collections::HashMap;
 

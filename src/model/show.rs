@@ -1,6 +1,7 @@
 use super::image::Image;
 use super::page::Page;
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
 /// Show object(simplified)
 /// [Show object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-simplified)

@@ -5,13 +5,13 @@ use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
 use reqwest::Method;
 use reqwest::StatusCode;
-use serde::de::Deserialize;
 use serde_json::map::Map;
-use serde_json::Value;
+use serde_json::{Value, json};
 use log::{trace, error};
 use lazy_static::lazy_static;
 use itertools::iproduct;
 use failure::format_err;
+use serde::{Serialize, Deserialize};
 
 // Built-in battery
 use std::borrow::Cow;
