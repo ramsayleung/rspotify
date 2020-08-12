@@ -108,7 +108,6 @@ extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 extern crate dotenv;
-extern crate percent_encoding;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
