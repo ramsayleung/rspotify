@@ -107,7 +107,6 @@ extern crate failure;
 extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
-extern crate dotenv;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
