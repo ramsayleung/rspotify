@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use crate::senum::DeviceType;
+use serde::{Deserialize, Serialize};
 
 /// All objects related to device
 /// [get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)

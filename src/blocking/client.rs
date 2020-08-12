@@ -1,17 +1,17 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
 use chrono::prelude::*;
+use failure::format_err;
+use itertools::iproduct;
+use lazy_static::lazy_static;
+use log::{error, trace};
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Method;
 use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
-use serde_json::{Value, json};
-use log::{trace, error};
-use lazy_static::lazy_static;
-use itertools::iproduct;
-use failure::format_err;
-use serde::{Serialize, Deserialize};
+use serde_json::{json, Value};
 
 //  Built-in battery
 use std::borrow::Cow;

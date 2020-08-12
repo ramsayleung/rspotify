@@ -1,7 +1,7 @@
 //! All object related to category
-use serde::{Serialize, Deserialize};
 use super::image::Image;
 use super::page::Page;
+use serde::{Deserialize, Serialize};
 /// category object
 /// [category object](https://developer.spotify.com/web-api/get-list-categories/#categoryobject)
 #[derive(Clone, Debug, Serialize, Deserialize)]
