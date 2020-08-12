@@ -8,6 +8,7 @@ use reqwest::StatusCode;
 use serde::de::Deserialize;
 use serde_json::map::Map;
 use serde_json::Value;
+use log::{trace, error};
 
 // Built-in battery
 use std::borrow::Cow;

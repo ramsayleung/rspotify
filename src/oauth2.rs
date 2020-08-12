@@ -4,6 +4,7 @@ use chrono::prelude::*;
 use dotenv::dotenv;
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use reqwest::Client;
+use log::{trace, debug, error};
 
 // Use built-in library
 use std::collections::{HashMap, HashSet};
