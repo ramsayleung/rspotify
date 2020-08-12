@@ -2,7 +2,6 @@
 // 3rd-part library
 use chrono::prelude::*;
 use failure::format_err;
-use itertools::iproduct;
 use lazy_static::lazy_static;
 use log::{error, trace};
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
@@ -1396,7 +1395,7 @@ impl Spotify {
         if let Some(_country) = country {
             params.insert("market".to_owned(), _country.as_str().to_owned());
         }
-        let attributes = vec![
+        let attributes = [
             "acousticness",
             "danceability",
             "duration_ms",
@@ -1412,23 +1411,15 @@ impl Spotify {
             "time_signature",
             "valence",
         ];
-        let prefixes = vec!["min_", "max_", "target_"];
-        for (attribute, prefix) in iproduct!(attributes, prefixes) {
-            let param = prefix.to_owned() + attribute;
-            if let Some(value) = payload.get(&param) {
-                params.insert(param, value.to_string());
+        let prefixes = ["min", "max", "target"];
+        for attribute in attributes.iter() {
+            for prefix in prefixes.iter() {
+                let param = format!("{}_{}", prefix, attribute);
+                if let Some(value) = payload.get(&param) {
+                    params.insert(param, value.to_string());
+                }
             }
         }
-        // for attribute in attributes {
-        //     for prefix in prefixes {
-        //         let param = prefix.to_owned() + attribute;
-        //         if let Some(value) = payload.get(&param) {
-        //             if let Some(value_str) = value.as_str() {
-        //                 params.insert(&param, value_str.to_owned());
-        //             }
-        //         }
-        //     }
-        // }
         let url = String::from("recommendations");
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<Recommendations>(&result)
