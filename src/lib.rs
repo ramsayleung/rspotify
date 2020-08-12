@@ -100,8 +100,6 @@ extern crate serde_derive;
 extern crate webbrowser;
 #[macro_use]
 extern crate failure;
-#[macro_use]
-extern crate itertools;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
