@@ -107,7 +107,6 @@ extern crate lazy_static;
 extern crate dotenv;
 extern crate percent_encoding;
 extern crate rand;
-extern crate url;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
