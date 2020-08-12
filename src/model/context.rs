@@ -1,6 +1,6 @@
 //! All objects related to context
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 use super::device::Device;
 use super::track::FullTrack;

@@ -1,5 +1,5 @@
 //! Image object
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// [image object](https://developer.spotify.com/web-api/object-model/#image-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
