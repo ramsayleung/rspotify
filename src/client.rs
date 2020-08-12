@@ -11,6 +11,7 @@ use serde_json::Value;
 use log::{trace, error};
 use lazy_static::lazy_static;
 use itertools::iproduct;
+use failure::format_err;
 
 // Built-in battery
 use std::borrow::Cow;
