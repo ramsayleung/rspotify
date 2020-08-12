@@ -102,8 +102,6 @@ extern crate webbrowser;
 extern crate failure;
 #[macro_use]
 extern crate itertools;
-#[macro_use]
-extern crate lazy_static;
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
