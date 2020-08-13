@@ -1,7 +1,3 @@
-extern crate chrono;
-extern crate rspotify;
-extern crate serde_json;
-
 use chrono::prelude::*;
 use serde_json::map::Map;
 

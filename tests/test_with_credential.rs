@@ -1,19 +1,16 @@
-extern crate rspotify;
-#[macro_use]
-extern crate lazy_static;
-
 use rspotify::client::Spotify;
-
 use rspotify::oauth2::SpotifyClientCredentials;
 use rspotify::senum::{AlbumType, Country};
 
 use std::sync::Mutex;
 
+use lazy_static::lazy_static;
+
 lazy_static! {
-   // Set client_id and client_secret in .env file or
+    // Set client_id and client_secret in .env file or
     // export CLIENT_ID="your client_id"
     // export CLIENT_SECRET="secret"
-static ref CLIENT_CREDENTIAL: Mutex<SpotifyClientCredentials> = Mutex::new(SpotifyClientCredentials::default().build());
+    static ref CLIENT_CREDENTIAL: Mutex<SpotifyClientCredentials> = Mutex::new(SpotifyClientCredentials::default().build());
 }
 
 #[tokio::test]

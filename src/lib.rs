@@ -35,8 +35,6 @@
 //! [current_user_recently_played](https://github.com/samrayleung/rspotify/blob/master/examples/current_user_recently_played.rs). This is
 //! the example code:
 //! ``` rust
-//! extern crate rspotify;
-//!
 //! use rspotify::client::Spotify;
 //! use rspotify::util::get_token;
 //! use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
@@ -80,24 +78,8 @@
 //!
 //! ```
 
-#[cfg(any(feature = "default-tls", feature = "blocking"))]
-extern crate reqwest_default_tls as reqwest;
-
-#[cfg(any(feature = "native-tls-crate", feature = "native-tls-crate-blocking"))]
-extern crate reqwest_native_tls as reqwest;
-
-#[cfg(any(
-    feature = "native-tls-vendored",
-    feature = "native-tls-vendored-blocking"
-))]
-extern crate reqwest_native_tls_vendored as reqwest;
-
-#[cfg(any(feature = "rustls-tls", feature = "rustls-tls-blocking"))]
-extern crate reqwest_rustls_tls as reqwest;
-
 #[cfg(feature = "blocking")]
 pub mod blocking;
-
 pub mod client;
 pub mod model;
 pub mod oauth2;
