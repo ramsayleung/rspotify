@@ -1,6 +1,3 @@
-// #![feature(non_ascii_idents)]
-#![allow(clippy::needless_doctest_main)]
-#![allow(dead_code)]
 //! ## Description
 //! Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/) It includes helper functions for
 //! **all Spotify's endpoints**, such as fetching metadata (search and look-up of
