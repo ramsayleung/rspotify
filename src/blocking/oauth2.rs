@@ -3,7 +3,7 @@
 use chrono::prelude::*;
 use dotenv::dotenv;
 use log::{debug, error, trace};
-use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
+use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use serde_json;
@@ -19,6 +19,9 @@ use std::path::{Path, PathBuf};
 
 // Use customized library
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
+
+// The encoding ASCII set for `utf8_percent_encode`.
+const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
 
 /// Client credentials object for spotify
 #[derive(Debug, Clone, Serialize, Deserialize)]
