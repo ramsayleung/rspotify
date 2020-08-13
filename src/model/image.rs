@@ -1,4 +1,6 @@
 //! Image object
+use serde::{Deserialize, Serialize};
+
 /// [image object](https://developer.spotify.com/web-api/object-model/#image-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Image {

@@ -1,5 +1,6 @@
 //! All kinds of user object
 use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use std::collections::HashMap;

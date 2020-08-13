@@ -1,5 +1,6 @@
 use super::image::Image;
 use super::page::Page;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Show object(simplified)

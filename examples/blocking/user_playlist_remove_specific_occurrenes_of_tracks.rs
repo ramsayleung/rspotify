@@ -1,6 +1,3 @@
-extern crate rspotify;
-extern crate serde_json;
-
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token;

@@ -1,13 +1,16 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
 use chrono::prelude::*;
+use failure::format_err;
+use lazy_static::lazy_static;
+use log::{error, trace};
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Method;
 use reqwest::StatusCode;
-use serde::de::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 //  Built-in battery
 use std::borrow::Cow;
@@ -1410,7 +1413,7 @@ impl Spotify {
         if let Some(_country) = country {
             params.insert("market".to_owned(), _country.as_str().to_owned());
         }
-        let attributes = vec![
+        let attributes = [
             "acousticness",
             "danceability",
             "duration_ms",
@@ -1426,23 +1429,15 @@ impl Spotify {
             "time_signature",
             "valence",
         ];
-        let prefixes = vec!["min_", "max_", "target_"];
-        for (attribute, prefix) in iproduct!(attributes, prefixes) {
-            let param = prefix.to_owned() + attribute;
-            if let Some(value) = payload.get(&param) {
-                params.insert(param, value.to_string());
+        let prefixes = ["min", "max", "target"];
+        for attribute in attributes.iter() {
+            for prefix in prefixes.iter() {
+                let param = format!("{}_{}", prefix, attribute);
+                if let Some(value) = payload.get(&param) {
+                    params.insert(param, value.to_string());
+                }
             }
         }
-        // for attribute in attributes {
-        //     for prefix in prefixes {
-        //         let param = prefix.to_owned() + attribute;
-        //         if let Some(value) = payload.get(&param) {
-        //             if let Some(value_str) = value.as_str() {
-        //                 params.insert(&param, value_str.to_owned());
-        //             }
-        //         }
-        //     }
-        // }
         let url = String::from("recommendations");
         let result = self.get(&url, &mut params)?;
         self.convert_result::<Recommendations>(&result)

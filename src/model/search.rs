@@ -5,6 +5,7 @@ use super::page::Page;
 use super::playlist::SimplifiedPlaylist;
 use super::show::{SimplifiedEpisode, SimplifiedShow};
 use super::track::FullTrack;
+use serde::{Deserialize, Serialize};
 
 ///[Search item](https://developer.spotify.com/web-api/search-item/);
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -2,8 +2,10 @@
 // use 3rd party library
 use chrono::prelude::*;
 use dotenv::dotenv;
+use log::{debug, error, trace};
 use percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use reqwest::blocking::Client;
+use serde::{Deserialize, Serialize};
 use serde_json;
 
 // Use built-in library

@@ -1,4 +1,5 @@
 //! All objects related to artist defined by Spotify API
+use serde::{Deserialize, Serialize};
 
 /// [audio feature object](https://developer.spotify.com/web-api/object-model/#audio-features-object)
 /// Audio Feature object

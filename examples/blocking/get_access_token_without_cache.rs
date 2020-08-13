@@ -1,5 +1,3 @@
-extern crate rspotify;
-
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token_without_cache;

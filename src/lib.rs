@@ -32,8 +32,6 @@
 //! [current_user_recently_played](https://github.com/samrayleung/rspotify/blob/master/examples/current_user_recently_played.rs). This is
 //! the example code:
 //! ``` rust
-//! extern crate rspotify;
-//!
 //! use rspotify::client::Spotify;
 //! use rspotify::util::get_token;
 //! use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
@@ -77,48 +75,8 @@
 //!
 //! ```
 
-#[macro_use]
-extern crate log;
-extern crate env_logger;
-
-#[cfg(any(feature = "default-tls", feature = "blocking"))]
-extern crate reqwest_default_tls as reqwest;
-
-#[cfg(any(feature = "native-tls-crate", feature = "native-tls-crate-blocking"))]
-extern crate reqwest_native_tls as reqwest;
-
-#[cfg(any(
-    feature = "native-tls-vendored",
-    feature = "native-tls-vendored-blocking"
-))]
-extern crate reqwest_native_tls_vendored as reqwest;
-
-#[cfg(any(feature = "rustls-tls", feature = "rustls-tls-blocking"))]
-extern crate reqwest_rustls_tls as reqwest;
-
-extern crate serde;
-#[macro_use]
-extern crate serde_json;
-extern crate chrono;
-#[macro_use]
-extern crate serde_derive;
-extern crate webbrowser;
-#[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate itertools;
-#[macro_use]
-extern crate lazy_static;
-extern crate dotenv;
-// use serde_json::Error;
-extern crate base64;
-extern crate percent_encoding;
-extern crate rand;
-extern crate url;
-
 #[cfg(feature = "blocking")]
 pub mod blocking;
-
 pub mod client;
 pub mod model;
 pub mod oauth2;

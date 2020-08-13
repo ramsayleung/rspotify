@@ -1,7 +1,9 @@
 //! All enums for rspotify
+use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
 use std::str::FromStr;
+
 #[derive(Clone, Debug)]
 pub struct Error {
     kind: ErrorKind,

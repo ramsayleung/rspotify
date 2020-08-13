@@ -1,5 +1,7 @@
 //! All objects related to recommendation
 use super::track::SimplifiedTrack;
+use serde::{Deserialize, Serialize};
+
 /// [Recommendations object](https://developer.spotify.com/web-api/object-model/#recommendations-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Recommendations {
