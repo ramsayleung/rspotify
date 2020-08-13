@@ -53,8 +53,6 @@ tokio = { version = "0.2", features = ["full"] }
 ```
 
 ``` rust
-extern crate rspotify;
-
 use rspotify::client::Spotify;
 use rspotify::oauth2::SpotifyClientCredentials;
 use rspotify::senum::Country;
@@ -91,8 +89,6 @@ rspotify = { version = "0.10.0", features=["blocking"]}
 ```
 
 ``` rust
-extern crate rspotify;
-
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::SpotifyClientCredentials;
 use rspotify::senum::Country;

@@ -18,10 +18,7 @@ lazy_static = "1.0"
 log = "0.4"
 percent-encoding = "1.0.1"
 rand = "0.6.5"
-reqwest-default-tls ={ version = "0.10", features=["json","socks"], optional = true, package = "reqwest" }
-reqwest-native-tls ={ version = "0.10", features=["json","socks", "native-tls"], default-features = false, optional = true,  package = "reqwest"}
-reqwest-native-tls-vendored ={ version = "0.10", features=["json","socks", "native-tls-vendored"], default-features = false, optional = true, package = "reqwest" }
-reqwest-rustls-tls ={ version = "0.10", features=["json","socks", "rustls-tls"], default-features = false, optional = true, package = "reqwest" }
+reqwest = { version = "0.10", features = ["json", "socks"], default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 webbrowser = "0.5.0"
@@ -31,16 +28,15 @@ tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
 
 [features]
-blocking = ["reqwest-default-tls/blocking"]
-default = ["default-tls"]
-default-tls = ["reqwest-default-tls"]
-# Enables native-tls specific functionality not available by default.
-native-tls = ["reqwest-native-tls"]
-native-tls-blocking = ["reqwest-native-tls/blocking"]
-native-tls-vendored = ["reqwest-native-tls-vendored"]
-native-tls-vendored-blocking = ["reqwest-native-tls-vendored/blocking"]
-rustls-tls = ["reqwest-rustls-tls"]
-rustls-tls-blocking = ["reqwest-rustls-tls/blocking"]
+default = ["reqwest/default-tls"]
+blocking = ["reqwest/default-tls", "reqwest/blocking"]
+# Passing the TLS features to reqwest.
+native-tls = ["reqwest/native-tls"]
+native-tls-blocking = ["reqwest/native-tls", "reqwest/blocking"]
+native-tls-vendored = ["reqwest/native-tls-vendored"]
+native-tls-vendored-blocking = ["reqwest/native-tls-vendored", "reqwest/blocking"]
+rustls-tls = ["reqwest/rustls-tls"]
+rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
 
 [[example]]
 name = "device"
