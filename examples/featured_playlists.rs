@@ -1,5 +1,3 @@
-extern crate chrono;
-extern crate rspotify;
 
 use chrono::prelude::*;
 use rspotify::client::Spotify;

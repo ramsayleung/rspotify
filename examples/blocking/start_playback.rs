@@ -1,5 +1,3 @@
-extern crate rspotify;
-
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::model::offset::for_position;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
