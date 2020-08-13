@@ -1,5 +1,3 @@
-extern crate rspotify;
-
 use rspotify::client::Spotify;
 use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::senum::{Country, SearchType};

@@ -1,4 +1,3 @@
-extern crate rspotify;
 
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::SpotifyClientCredentials;

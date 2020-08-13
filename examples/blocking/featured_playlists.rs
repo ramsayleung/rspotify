@@ -1,6 +1,3 @@
-extern crate chrono;
-extern crate rspotify;
-
 use chrono::prelude::*;
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};

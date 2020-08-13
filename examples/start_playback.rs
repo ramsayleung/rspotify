@@ -1,4 +1,3 @@
-extern crate rspotify;
 
 use rspotify::client::Spotify;
 use rspotify::model::offset::for_position;

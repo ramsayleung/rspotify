@@ -1,5 +1,3 @@
-extern crate rspotify;
-extern crate serde_json;
 
 use rspotify::client::Spotify;
 use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
