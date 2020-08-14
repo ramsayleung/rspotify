@@ -16,7 +16,7 @@ env_logger = "0.6.0"
 itertools = "0.8.0"
 log = "0.4"
 percent-encoding = "1.0.1"
-rand = "0.6.5"
+getrandom ="0.1"
 reqwest-default-tls ={ version = "0.10", features=["json","socks"], optional = true, package = "reqwest" }
 reqwest-native-tls ={ version = "0.10", features=["json","socks", "native-tls"], default-features = false, optional = true,  package = "reqwest"}
 reqwest-native-tls-vendored ={ version = "0.10", features=["json","socks", "native-tls-vendored"], default-features = false, optional = true, package = "reqwest" }

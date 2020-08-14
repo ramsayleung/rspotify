@@ -1,8 +1,6 @@
 //! utils function
 use chrono::prelude::*;
-use rand::distributions::Alphanumeric;
-use rand::{self, Rng};
-
+use getrandom::getrandom;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -10,19 +8,25 @@ use std::io;
 use std::string::ToString;
 
 use super::oauth2::{SpotifyOAuth, TokenInfo};
+static ALPHANUM: &[u8] =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+
+/// generate `length` random chars
+pub fn generate_random_string(length: usize) -> String {
+    let mut buf = vec![0u8; length];
+    getrandom(&mut buf).unwrap();
+    let range = ALPHANUM.len();
+    return buf.iter().map(|byte| {
+        ALPHANUM[*byte as usize % range] as char
+    }).collect()
+}
 
 /// convert datetime to unix timestampe
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();
     utc.timestamp() + i64::from(elapsed)
 }
-/// generate `length` random chars
-pub fn generate_random_string(length: usize) -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(length)
-        .collect()
-}
+
 
 /// convert map to `query_string`, for example:
 /// convert
