@@ -17,7 +17,7 @@ failure = "0.1"
 lazy_static = "1.0"
 log = "0.4"
 percent-encoding = "1.0.1"
-rand = "0.6.5"
+getrandom = "0.1"
 reqwest = { version = "0.10", features = ["json", "socks"], default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
