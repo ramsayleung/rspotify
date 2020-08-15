@@ -4,7 +4,6 @@ use chrono::prelude::*;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::io;
 use std::string::ToString;
 
 use super::oauth2::{SpotifyOAuth, TokenInfo};
@@ -75,6 +74,7 @@ pub fn convert_str_to_map(query_str: &mut str) -> HashMap<&str, &str> {
     map
 }
 
+#[cfg(feature = "browser")]
 pub fn request_token(spotify_oauth: &mut SpotifyOAuth) {
     let state = generate_random_string(16);
     let auth_url = spotify_oauth.get_authorize_url(Some(&state), None);
@@ -105,7 +105,9 @@ pub async fn process_token_without_cache(
 }
 
 /// get tokenInfo by Authorization
+#[cfg(feature = "browser")]
 pub async fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+    use std::io;
     match spotify_oauth.get_cached_token().await {
         Some(token_info) => Some(token_info),
         None => {
@@ -121,7 +123,9 @@ pub async fn get_token(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
 }
 
 /// get tokenInfo by Authorization without cache
+#[cfg(feature = "browser")]
 pub async fn get_token_without_cache(spotify_oauth: &mut SpotifyOAuth) -> Option<TokenInfo> {
+    use std::io;
     request_token(spotify_oauth);
     println!("Enter the URL you were redirected to: ");
     let mut input = String::new();
