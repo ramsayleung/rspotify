@@ -1,3 +1,17 @@
+## 0.11 (????)
+
+- Add `add_item_to_queue` endpoint.
+- Fix typo in `transfer_playback`: `device_id` to `device_ids`.
+
+- Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url` <!-- TODO derive_builder might not be removed after all -->
+- Remove `itertools` dependency by using the standard library.
+- Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
+- `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to its frequent usage.
+- Updated dependencies to latest, integreated Dependabot to keep track of them.
+
+**Breaking changes:**
+- `dotenv` support is now optional with the `env-file` feature.
+
 ## 0.10 (2020/07/01)
 
 - Add `get_access_token_without_cache` and `refresh_access_token_without_cache` to get and refresh access token without caching it.
