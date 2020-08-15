@@ -12,8 +12,6 @@ use super::oauth2::{SpotifyOAuth, TokenInfo};
 
 use getrandom::getrandom;
 
-static ALPHANUM: &[u8] =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
 /// Convert datetime to unix timestampe
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();
@@ -21,6 +19,8 @@ pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
 }
 /// Generate `length` random chars
 pub fn generate_random_string(length: usize) -> String {
+    static ALPHANUM: &[u8] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
     let mut buf = vec![0u8; length];
     getrandom(&mut buf).unwrap();
     let range = ALPHANUM.len();

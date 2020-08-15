@@ -5,8 +5,8 @@ version = "0.10.0"
 license = "MIT"
 readme = "README.md"
 description="Spotify API wrapper"
-homepage="https://github.com/samrayleung/rspotify"
-repository="https://github.com/samrayleung/rspotify"
+homepage="https://github.com/ramsayleung/rspotify"
+repository="https://github.com/ramsayleung/rspotify"
 keywords=["spotify","api"]
 edition = "2018"
 
