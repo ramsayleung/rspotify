@@ -1,6 +1,9 @@
 //! These tests currently require user interaction to authenticate an account
-//! where the tests can be ran. The tests are written so that no account
+//! where the tests can be ran, so they are ran manually instead of with
+//! Continuous Integration for now. The tests are written so that no account
 //! data is modified.
+//!
+//! You can run them manually with `cargo test -- --ignored`.
 
 use async_once::AsyncOnce;
 use chrono::prelude::*;
@@ -18,9 +21,10 @@ lazy_static! {
     // With so many tests, it's a better idea to authenticate only once at the
     // beginning. The `Spotify` instance needed here is for async requests,
     // so this uses `AsyncOnce` to work with `lazy_static`.
-    static ref SPOTIFY: AsyncOnce<Spotify> = AsyncOnce::new(async {
+    static ref CLIENT_CREDENTIAL: AsyncOnce<SpotifyClientCredentials> = AsyncOnce::new(async {
         dotenv().ok();
 
+        // Using every possible scope
         let mut oauth = SpotifyOAuth::default()
             .scope(
                 "user-read-email user-read-private user-top-read
@@ -34,11 +38,8 @@ lazy_static! {
             .build();
 
         let token = get_token(&mut oauth).await.unwrap();
-        let client_credential = SpotifyClientCredentials::default()
+        SpotifyClientCredentials::default()
             .token_info(token)
-            .build();
-        Spotify::default()
-            .client_credentials_manager(client_credential)
             .build()
     });
 }
@@ -46,7 +47,10 @@ lazy_static! {
 // Even easier to use and change in the future by using a macro.
 macro_rules! async_client {
     () => {
-        async { SPOTIFY.get().await }
+        async {
+            let creds = CLIENT_CREDENTIAL.get().await;
+            Spotify::default().client_credentials_manager(creds).build()
+        }
     };
 }
 
