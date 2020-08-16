@@ -43,12 +43,19 @@ lazy_static! {
     });
 }
 
+// Even easier to use and change in the future by using a macro.
+macro_rules! async_client {
+    () => {
+        SPOTIFY
+            .get()
+            .await
+    }
+}
+
 #[tokio::test]
 #[ignore]
 async fn test_categories() {
-    let categories = SPOTIFY
-        .get()
-        .await
+    let categories = async_client!()
         .categories(None, Some(Country::UnitedStates), 10, 0)
         .await;
     assert!(categories.is_ok());
@@ -57,13 +64,13 @@ async fn test_categories() {
 #[tokio::test]
 #[ignore]
 async fn test_current_playback() {
-    let context = SPOTIFY.get().await.current_playback(None, None).await;
+    let context = async_client!().current_playback(None, None).await;
     assert!(context.is_ok());
 }
 #[tokio::test]
 #[ignore]
 async fn test_current_playing() {
-    let context = SPOTIFY.get().await.current_playing(None, None).await;
+    let context = async_client!().current_playing(None, None).await;
     assert!(context.is_ok());
 }
 
