@@ -183,7 +183,10 @@ impl Spotify {
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let response = {
-            let builder = self.client.request(method, &url.into_owned()).headers(headers);
+            let builder = self
+                .client
+                .request(method, &url.into_owned())
+                .headers(headers);
 
             // only add body if necessary
             // spotify rejects GET requests that have a body with a 400 response
