@@ -1,4 +1,11 @@
+//! These tests currently require user interaction to authenticate an account
+//! where the tests can be ran. The tests are written so that no account
+//! data is modified.
+
+use async_once::AsyncOnce;
 use chrono::prelude::*;
+use dotenv::dotenv;
+use lazy_static::lazy_static;
 use serde_json::map::Map;
 
 use rspotify::client::Spotify;
@@ -7,89 +14,68 @@ use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::senum::{Country, RepeatState, SearchType, TimeRange};
 use rspotify::util::get_token;
 
-// Because of all these tests need to poll up the browser, it is impossible to
-// run in a CI envirnment like travis, so I just ignore them all. You could
-// delete the #[ignore] tag, and run it on your local machine.
+lazy_static! {
+    // With so many tests, it's a better idea to authenticate only once at the
+    // beginning. The `Spotify` instance needed here is for async requests,
+    // so this uses `AsyncOnce` to work with `lazy_static`.
+    static ref SPOTIFY: AsyncOnce<Spotify> = AsyncOnce::new(async {
+        dotenv().ok();
+
+        let mut oauth = SpotifyOAuth::default()
+            .scope(
+                "user-read-email user-read-private user-top-read
+                 user-read-recently-played user-follow-read user-library-read
+                 user-read-currently-playing user-read-playback-state
+                 user-read-playback-position playlist-read-collaborative
+                 playlist-read-private user-follow-modify user-library-modify
+                 user-modify-playback-state playlist-modify-public
+                 playlist-modify-private ugc-image-upload"
+            )
+            .build();
+
+        let token = get_token(&mut oauth).await.unwrap();
+        let client_credential = SpotifyClientCredentials::default()
+            .token_info(token)
+            .build();
+        Spotify::default()
+            .client_credentials_manager(client_credential)
+            .build()
+    });
+}
 
 #[tokio::test]
 #[ignore]
 async fn test_categories() {
-    let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth).await {
-        Some(token_info) => {
-            let client_credential = SpotifyClientCredentials::default()
-                .token_info(token_info)
-                .build();
-            let spotify = Spotify::default()
-                .client_credentials_manager(client_credential)
-                .build();
-
-            let categories = spotify
-                .categories(None, Some(Country::UnitedStates), 10, 0)
-                .await;
-            assert!(categories.is_ok());
-        }
-        None => assert!(false),
-    };
+    let categories = SPOTIFY
+        .get()
+        .await
+        .categories(None, Some(Country::UnitedStates), 10, 0)
+        .await;
+    assert!(categories.is_ok());
 }
+
 #[tokio::test]
 #[ignore]
 async fn test_current_playback() {
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-playback-state")
-        .build();
-    match get_token(&mut oauth).await {
-        Some(token_info) => {
-            let client_credential = SpotifyClientCredentials::default()
-                .token_info(token_info)
-                .build();
-            let spotify = Spotify::default()
-                .client_credentials_manager(client_credential)
-                .build();
-            let context = spotify.current_playback(None, None).await;
-            assert!(context.is_ok());
-        }
-        None => assert!(false),
-    };
+    let context = SPOTIFY.get().await.current_playback(None, None).await;
+    assert!(context.is_ok());
 }
 #[tokio::test]
 #[ignore]
 async fn test_current_playing() {
-    let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-currently-playing")
-        .build();
-    match get_token(&mut oauth).await {
-        Some(token_info) => {
-            let client_credential = SpotifyClientCredentials::default()
-                .token_info(token_info)
-                .build();
-            let spotify = Spotify::default()
-                .client_credentials_manager(client_credential)
-                .build();
-            let context = spotify.current_playing(None, None).await;
-            assert!(context.is_ok());
-        }
-        None => assert!(false),
-    };
+    let context = SPOTIFY.get().await.current_playing(None, None).await;
+    assert!(context.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_current_user_followed_artists() {
-    let mut oauth = SpotifyOAuth::default().scope("user-follow-read").build();
-    match get_token(&mut oauth).await {
-        Some(token_info) => {
-            let client_credential = SpotifyClientCredentials::default()
-                .token_info(token_info)
-                .build();
-            let spotify = Spotify::default()
-                .client_credentials_manager(client_credential)
-                .build();
-            let artists = spotify.current_user_followed_artists(10, None).await;
-            assert!(artists.is_ok())
-        }
-        None => assert!(false),
-    };
+    let artists = SPOTIFY
+        .get()
+        .await
+        .current_user_followed_artists(10, None)
+        .await;
+    assert!(artists.is_ok())
 }
 
 #[tokio::test]
