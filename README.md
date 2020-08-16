@@ -104,10 +104,6 @@ fn main() {
 }
 ```
 
-## Examples
-
-Check [Examples](./examples) for more details.
-
 ## API Documentation
 
 For more API information, check the [Rspotify API documentation](https://docs.rs/crate/rspotify).

@@ -57,13 +57,3 @@ path = "examples/blocking/search.rs"
 name = "seek_track"
 required-features = ["blocking"]
 path = "examples/blocking/seek_track.rs"
-            
-[[example]]
-name = "shuffle"
-required-features = ["blocking"]
-path = "examples/blocking/shuffle.rs"
-            
-[[example]]
-name = "volume"
-required-features = ["blocking"]
-path = "examples/blocking/volume.rs"
