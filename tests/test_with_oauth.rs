@@ -45,19 +45,15 @@ lazy_static! {
 }
 
 // Even easier to use and change in the future by using a macro.
-macro_rules! async_client {
-    () => {
-        async {
-            let creds = CLIENT_CREDENTIAL.get().await;
-            Spotify::default().client_credentials_manager(creds).build()
-        }
-    };
+async fn async_client() -> Spotify {
+    let creds = CLIENT_CREDENTIAL.get().await;
+    Spotify::default().client_credentials_manager(creds).build()
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_categories() {
-    let categories = async_client!()
+    let categories = async_client()
         .await
         .categories(None, Some(Country::UnitedStates), 10, 0)
         .await;
@@ -67,21 +63,21 @@ async fn test_categories() {
 #[tokio::test]
 #[ignore]
 async fn test_current_playback() {
-    let context = async_client!().await.current_playback(None, None).await;
+    let context = async_client().await.current_playback(None, None).await;
     assert!(context.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_current_playing() {
-    let context = async_client!().await.current_playing(None, None).await;
+    let context = async_client().await.current_playing(None, None).await;
     assert!(context.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_current_user_followed_artists() {
-    let artists = async_client!()
+    let artists = async_client()
         .await
         .current_user_followed_artists(10, None)
         .await;
@@ -91,21 +87,21 @@ async fn test_current_user_followed_artists() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_playing_track() {
-    let playing = async_client!().await.current_user_playing_track().await;
+    let playing = async_client().await.current_user_playing_track().await;
     assert!(playing.is_ok())
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_current_user_playlists() {
-    let playlists = async_client!().await.current_user_playlists(10, None).await;
+    let playlists = async_client().await.current_user_playlists(10, None).await;
     assert!(playlists.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_current_user_recently_played() {
-    let history = async_client!().await.current_user_recently_played(10).await;
+    let history = async_client().await.current_user_recently_played(10).await;
     assert!(history.is_ok());
 }
 
@@ -117,7 +113,7 @@ async fn test_current_user_saved_albums_add() {
     let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
     album_ids.push(album_id2);
     album_ids.push(album_id1);
-    let result = async_client!()
+    let result = async_client()
         .await
         .current_user_saved_albums_add(&album_ids)
         .await;
@@ -132,7 +128,7 @@ async fn test_current_user_saved_albums_delete() {
     let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
     album_ids.push(album_id2);
     album_ids.push(album_id1);
-    let result = async_client!()
+    let result = async_client()
         .await
         .current_user_saved_albums_delete(&album_ids)
         .await;
@@ -142,7 +138,7 @@ async fn test_current_user_saved_albums_delete() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_albums() {
-    let albums = async_client!().await.current_user_saved_albums(10, 0).await;
+    let albums = async_client().await.current_user_saved_albums(10, 0).await;
     assert!(albums.is_ok());
 }
 
@@ -154,7 +150,7 @@ async fn test_current_user_saved_tracks_add() {
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
-    let result = async_client!()
+    let result = async_client()
         .await
         .current_user_saved_tracks_add(&tracks_ids)
         .await;
@@ -169,7 +165,7 @@ async fn test_current_user_saved_tracks_contains() {
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
-    let result = async_client!()
+    let result = async_client()
         .await
         .current_user_saved_tracks_contains(&tracks_ids)
         .await;
@@ -184,7 +180,7 @@ async fn test_current_user_saved_tracks_delete() {
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
-    let result = async_client!()
+    let result = async_client()
         .await
         .current_user_saved_tracks_delete(&tracks_ids)
         .await;
@@ -194,14 +190,14 @@ async fn test_current_user_saved_tracks_delete() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_tracks() {
-    let tracks = async_client!().await.current_user_saved_tracks(10, 0).await;
+    let tracks = async_client().await.current_user_saved_tracks(10, 0).await;
     assert!(tracks.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_current_user_top_artists() {
-    let artist = async_client!()
+    let artist = async_client()
         .await
         .current_user_top_artists(10, 0, TimeRange::ShortTerm)
         .await;
@@ -211,7 +207,7 @@ async fn test_current_user_top_artists() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_top_tracks() {
-    let tracks = async_client!()
+    let tracks = async_client()
         .await
         .current_user_top_tracks(10, 0, TimeRange::ShortTerm)
         .await;
@@ -221,7 +217,7 @@ async fn test_current_user_top_tracks() {
 #[tokio::test]
 #[ignore]
 async fn test_device() {
-    let devices = async_client!().await.device().await;
+    let devices = async_client().await.device().await;
     assert!(devices.is_ok());
 }
 
@@ -229,7 +225,7 @@ async fn test_device() {
 #[ignore]
 async fn test_featured_playlists() {
     let now: DateTime<Utc> = Utc::now();
-    let playlists = async_client!()
+    let playlists = async_client()
         .await
         .featured_playlists(None, None, Some(now), 10, 0)
         .await;
@@ -239,14 +235,14 @@ async fn test_featured_playlists() {
 #[tokio::test]
 #[ignore]
 async fn test_me() {
-    let user = async_client!().await.me().await;
+    let user = async_client().await.me().await;
     assert!(user.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_new_releases() {
-    let albums = async_client!()
+    let albums = async_client()
         .await
         .new_releases(Some(Country::Sweden), 10, 0)
         .await;
@@ -257,7 +253,7 @@ async fn test_new_releases() {
 #[ignore]
 async fn test_next_playback() {
     let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-    let result = async_client!().await.next_track(Some(device_id)).await;
+    let result = async_client().await.next_track(Some(device_id)).await;
     assert!(result.is_ok());
 }
 
@@ -265,7 +261,7 @@ async fn test_next_playback() {
 #[ignore]
 async fn test_pause_playback() {
     let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-    let result = async_client!().await.pause_playback(Some(device_id)).await;
+    let result = async_client().await.pause_playback(Some(device_id)).await;
     assert!(result.is_ok());
 }
 
@@ -273,7 +269,7 @@ async fn test_pause_playback() {
 #[ignore]
 async fn test_previous_playback() {
     let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-    let result = async_client!().await.previous_track(Some(device_id)).await;
+    let result = async_client().await.previous_track(Some(device_id)).await;
     assert!(result.is_ok());
 }
 
@@ -285,7 +281,7 @@ async fn test_recommendations() {
     let seed_tracks = vec!["0c6xIDDpzE81m2q797ordA".to_owned()];
     payload.insert("min_energy".to_owned(), 0.4.into());
     payload.insert("min_popularity".to_owned(), 50.into());
-    let result = async_client!()
+    let result = async_client()
         .await
         .recommendations(
             Some(seed_artists),
@@ -302,7 +298,7 @@ async fn test_recommendations() {
 #[tokio::test]
 #[ignore]
 async fn test_repeat() {
-    let result = async_client!()
+    let result = async_client()
         .await
         .repeat(RepeatState::Context, None)
         .await;
@@ -313,7 +309,7 @@ async fn test_repeat() {
 #[ignore]
 async fn test_search_album() {
     let query = "album:arrival artist:abba";
-    let result = async_client!()
+    let result = async_client()
         .await
         .search(query, SearchType::Album, 10, 0, None, None)
         .await;
@@ -324,7 +320,7 @@ async fn test_search_album() {
 #[ignore]
 async fn test_search_artist() {
     let query = "tania bowra";
-    let result = async_client!()
+    let result = async_client()
         .await
         .search(
             query,
@@ -342,7 +338,7 @@ async fn test_search_artist() {
 #[ignore]
 async fn test_search_playlist() {
     let query = "\"doom metal\"";
-    let result = async_client!()
+    let result = async_client()
         .await
         .search(
             query,
@@ -360,7 +356,7 @@ async fn test_search_playlist() {
 #[ignore]
 async fn test_search_track() {
     let query = "abba";
-    let result = async_client!()
+    let result = async_client()
         .await
         .search(
             query,
@@ -377,14 +373,14 @@ async fn test_search_track() {
 #[tokio::test]
 #[ignore]
 async fn test_seek_track() {
-    let result = async_client!().await.seek_track(25000, None).await;
+    let result = async_client().await.seek_track(25000, None).await;
     assert!(result.is_ok());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_shuffle() {
-    let result = async_client!().await.shuffle(true, None).await;
+    let result = async_client().await.shuffle(true, None).await;
     assert!(result.is_ok());
 }
 
@@ -393,7 +389,7 @@ async fn test_shuffle() {
 async fn test_start_playback() {
     let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
     let uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
-    let result = async_client!()
+    let result = async_client()
         .await
         .start_playback(Some(device_id), None, Some(uris), for_position(0), None)
         .await;
@@ -404,7 +400,7 @@ async fn test_start_playback() {
 #[ignore]
 async fn test_transfer_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
-    let result = async_client!()
+    let result = async_client()
         .await
         .transfer_playback(device_id, true)
         .await;
@@ -419,7 +415,7 @@ async fn test_user_follow_artist() {
     let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
     artists.push(artist_id2);
     artists.push(artist_id1);
-    let result = async_client!().await.user_follow_artists(&artists).await;
+    let result = async_client().await.user_follow_artists(&artists).await;
     assert!(result.is_ok());
 }
 
@@ -431,7 +427,7 @@ async fn test_user_unfollow_artist() {
     let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
     artists.push(artist_id2);
     artists.push(artist_id1);
-    let result = async_client!().await.user_unfollow_artists(&artists).await;
+    let result = async_client().await.user_unfollow_artists(&artists).await;
     assert!(result.is_ok());
 }
 
@@ -441,7 +437,7 @@ async fn test_user_follow_users() {
     let mut users = vec![];
     let user_id1 = String::from("exampleuser01");
     users.push(user_id1);
-    let result = async_client!().await.user_follow_users(&users).await;
+    let result = async_client().await.user_follow_users(&users).await;
     assert!(result.is_ok());
 }
 
@@ -451,7 +447,7 @@ async fn test_user_unfollow_users() {
     let mut users = vec![];
     let user_id1 = String::from("exampleuser01");
     users.push(user_id1);
-    let result = async_client!().await.user_unfollow_users(&users).await;
+    let result = async_client().await.user_unfollow_users(&users).await;
     assert!(result.is_ok());
 }
 
@@ -465,7 +461,7 @@ async fn test_user_playlist_add_tracks() {
     tracks_ids.push(track_id1);
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_add_tracks(user_id, playlist_id, &tracks_ids, None)
         .await;
@@ -478,7 +474,7 @@ async fn test_user_playlist_change_detail() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
     let playlist_name = "A New Playlist-update";
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_change_detail(
             user_id,
@@ -502,7 +498,7 @@ async fn test_user_playlist_check_follow() {
     user_ids.push(user_id1);
     let user_id2 = String::from("elogain");
     user_ids.push(user_id2);
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_check_follow(owner_id, playlist_id, &user_ids)
         .await;
@@ -514,7 +510,7 @@ async fn test_user_playlist_check_follow() {
 async fn test_user_playlist_create() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_name = "A New Playlist";
-    let playlists = async_client!()
+    let playlists = async_client()
         .await
         .user_playlist_create(user_id, playlist_name, false, None)
         .await;
@@ -526,7 +522,7 @@ async fn test_user_playlist_create() {
 async fn test_user_playlist_follow_playlist() {
     let owner_id = "jmperezperez";
     let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_follow_playlist(owner_id, playlist_id, true)
         .await;
@@ -541,7 +537,7 @@ async fn test_user_playlist_recorder_tracks() {
     let range_start = 0;
     let insert_before = 1;
     let range_length = 1;
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_recorder_tracks(
             user_id,
@@ -565,7 +561,7 @@ async fn test_user_playlist_remove_all_occurrences_of_tracks() {
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_remove_all_occurrences_of_tracks(user_id, playlist_id, &tracks_ids, None)
         .await;
@@ -597,7 +593,7 @@ async fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
     );
     map2.insert("position".to_string(), position2.into());
     tracks.push(map2);
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_remove_specific_occurrenes_of_tracks(user_id, &playlist_id, tracks, None)
         .await;
@@ -614,7 +610,7 @@ async fn test_user_playlist_replace_tracks() {
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
-    async_client!()
+    async_client()
         .await
         .user_playlist_replace_tracks(user_id, playlist_id, &tracks_ids)
         .await
@@ -627,7 +623,7 @@ async fn test_user_playlist_replace_tracks() {
 async fn test_user_playlist() {
     let user_id = "spotify";
     let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
-    let playlists = async_client!()
+    let playlists = async_client()
         .await
         .user_playlist(user_id, Some(&mut playlist_id), None, None)
         .await;
@@ -638,7 +634,7 @@ async fn test_user_playlist() {
 #[ignore]
 async fn test_user_playlists() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
-    let playlists = async_client!()
+    let playlists = async_client()
         .await
         .user_playlists(user_id, Some(10), None)
         .await;
@@ -650,7 +646,7 @@ async fn test_user_playlists() {
 async fn test_user_playlist_tracks() {
     let user_id = "spotify";
     let playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
-    let playlists = async_client!()
+    let playlists = async_client()
         .await
         .user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None)
         .await;
@@ -662,7 +658,7 @@ async fn test_user_playlist_tracks() {
 async fn test_user_playlist_unfollow() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = "65V6djkcVRyOStLd8nza8E";
-    let result = async_client!()
+    let result = async_client()
         .await
         .user_playlist_unfollow(user_id, playlist_id)
         .await;
@@ -672,6 +668,6 @@ async fn test_user_playlist_unfollow() {
 #[tokio::test]
 #[ignore]
 async fn test_volume() {
-    let result = async_client!().await.volume(78, None).await;
+    let result = async_client().await.volume(78, None).await;
     assert!(result.is_ok());
 }
