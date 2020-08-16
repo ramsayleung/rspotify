@@ -2,13 +2,12 @@
 // 3rd-part library
 use chrono::prelude::*;
 use failure::format_err;
-use lazy_static::lazy_static;
 use log::{error, trace};
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
 use reqwest::Method;
 use reqwest::StatusCode;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::map::Map;
 use serde_json::{json, Value};
 
@@ -40,10 +39,7 @@ use super::senum::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
 use super::util::convert_map_to_string;
-lazy_static! {
-    /// HTTP Client
-    pub static ref CLIENT: Client = Client::new();
-}
+
 /// Describes API errors
 #[derive(Debug, Deserialize)]
 pub enum ApiError {
@@ -113,8 +109,9 @@ impl ApiError {
     }
 }
 /// Spotify API object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Spotify {
+    client: Client,
     pub prefix: String,
     pub access_token: Option<String>,
     pub client_credentials_manager: Option<SpotifyClientCredentials>,
@@ -124,6 +121,7 @@ impl Spotify {
     //! [examples](https://github.com/samrayleung/rspotify/tree/master/examples) in github
     pub fn default() -> Spotify {
         Spotify {
+            client: Client::new(),
             prefix: "https://api.spotify.com/v1/".to_owned(),
             access_token: None,
             client_credentials_manager: None,
@@ -185,7 +183,7 @@ impl Spotify {
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let response = {
-            let builder = CLIENT.request(method, &url.into_owned()).headers(headers);
+            let builder = self.client.request(method, &url.into_owned()).headers(headers);
 
             // only add body if necessary
             // spotify rejects GET requests that have a body with a 400 response
