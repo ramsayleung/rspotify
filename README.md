@@ -11,13 +11,27 @@ This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy) 
 
 ## Description
 
-Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/) It includes helper functions for **all Spotify's endpoints**, such as fetching metadata (search and look-up of albums, artists, tracks, playlists, new releases) and user's information (follow users, artists and playlists, and saved tracks management).
+Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/). It includes helper functions for **all Spotify's endpoints**, such as fetching metadata (search and look-up of albums, artists, tracks, playlists, new releases) and user's information (follow users, artists and playlists, and saved tracks management).
 
 ## Features
 
 *Rspotify* supports all the features of the Spotify Web API, including access to all endpoints, and support for user authorization. Note that before accessing to any endpoints, you need to be authorized. For details on the capabilities you are encouraged to review the [Spotify Web Endpoint Reference](https://developer.spotify.com/web-api/endpoint-reference/) documentation.
 
 Nowadays, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` supports system proxy by default. `reqwest` system proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide HTTP proxies for HTTP connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections (~~note that `reqwest` system proxy doesn't support socks proxy for now,~~ check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details).
+
+Rspotify also supports the [`dotenv` crate](https://crates.io/crates/dotenv), which allows you to save credentials in a `.env` file by enabling the `env-file` feature:
+
+```
+[dependencies]
+rspotify = { version = "0.10.0", features = ["env-file"] }
+```
+
+By default, Rspotify includes support to obtain access tokens with the `util::get_token`, `util::get_token_without_cache` and `util::request_token` functions, which require opening a browser for user interaction with Spotify. This feature, named `browser` includes the `webbrowser` crate, but it can be disabled for those applications that don't need user interaction in the CLI:
+
+```
+[dependencies]
+rspotify = { version = "0.10.0", default-features = false, features = ["browser"] }
+```
 
 ## Usage
 
