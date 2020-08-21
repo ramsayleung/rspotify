@@ -1,5 +1,5 @@
-[![](https://github.com/ramsayleung/rspotify/workflows/Continuous%20Integration/badge.svg)](https://github.com/ramsayleung/rspotify/actions)
-[![](https://img.shields.io/github/license/ramsayleung/rspotify)](https://github.com/ramsayleung/rspotify/blob/master/LICENSE)
+[![Continuous Integration](https://github.com/ramsayleung/rspotify/workflows/Continuous%20Integration/badge.svg)](https://github.com/ramsayleung/rspotify/actions)
+[![License](https://img.shields.io/github/license/ramsayleung/rspotify)](https://github.com/ramsayleung/rspotify/blob/master/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/rspotify.svg)](https://crates.io/crates/rspotify)
 [![Docs](https://docs.rs/rspotify/badge.svg)](https://docs.rs/crate/rspotify/)
 
@@ -34,21 +34,21 @@ Or you could get it from [GitHub](https://github.com/samrayleung/rspotify).
 
 ### Authorization
 
-Since all methods require user authorization now, you will need to generate an authorization token that indicates that the user has granted permission for your application to perform the given task. You will need to register your app to get the credentials necessary to make authorized calls.
+Since all methods require user authorization now, you will need to generate an authorization token that indicates that the user has granted permission for your application to perform the given task. You will need to register your app to get the credentials necessary to make authorized calls. Read the [official guide for a detailed explanation](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
 
-Even if your script does not have an accessible URL you need to specify one when registering your application where the spotify authentication API will redirect to after successful login. The URL doesn't need to work or be accessible, you can specify "http://localhost/", after successful login you just need to copy the "http://localhost/?code=..." URL from your browser and paste it to the console where your application is running. For example:
+Even if your script does not have an accessible URL, you need to specify one when registering your application where the Spotify authentication API will redirect to after successful login. The URL doesn't need to work or be accessible, you can specify "http://localhost/", and after the user's successful login the access token will be given as the `code` HTTP parameter: "http://localhost/?code=...". For example:
 
-![](./doc/images/rspotify.gif)
+![demo](./doc/images/rspotify.gif)
 
-In order to help other developers to get used to `rspotify`, I registered a Spotify account with temporary email. Your can test `rspotify` with this account's `CLIENT_ID` and `CLIENT_SECRET`, check the [`.env` file](./.env) for more details.
+In order to help other developers to get used to `rspotify`, I registered a Spotify account with temporary email. You can test `rspotify` with this account's `CLIENT_ID` and `CLIENT_SECRET`, check the [`.env` file](./.env) for more details.
 
 ### Examples
 
-If you have a use case you are interested in, you could check the [examples](./examples), which has all kinds of detailed examples. For example, If you want to get recently played history, you could check [current_user_recently_played](./examples/current_user_recently_played.rs). This is the example code:
+There are some [available examples](./examples) which can serve as a learning tool. The following snippet will obtain the top tracks for an artist:
 
 ``` toml
 [dependencies]
-rspotify = { version = "0.10.0"}
+rspotify = { version = "0.10.0" }
 tokio = { version = "0.2", features = ["full"] }
 ```
 
@@ -81,11 +81,12 @@ async fn main() {
 ```
 
 ### Blocking API example
-There is an optional "blocking" client API that can be enabled:
+
+There is an optional client API that can be enabled for non-asynchronous requests:
 
 ``` toml
 [dependencies]
-rspotify = { version = "0.10.0", features=["blocking"]}
+rspotify = { version = "0.10.0", features = ["blocking"] }
 ```
 
 ``` rust
@@ -110,7 +111,7 @@ For more API information, check the [Rspotify API documentation](https://docs.rs
 
 ## CHANGELOG
 
-Please see the [changelog](./CHANGELOG.md) for a release history.
+Please see the [changelog](./CHANGELOG.md) for a release history and indications on how to upgrade from one version to another.
 
 ## Contribution
 
