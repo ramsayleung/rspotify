@@ -5,19 +5,7 @@
 
 # Rspotify - a Rust client for The Spotify Web API 
 
-## Disclaimer
-
-This crate is heavily inspired by [spotipy](https://github.com/plamere/spotipy) - A Spotify API wrapper implemented in Python.
-
-## Description
-
-Rspotify is a lightweight wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/) It includes helper functions for **all Spotify's endpoints**, such as fetching metadata (search and look-up of albums, artists, tracks, playlists, new releases) and user's information (follow users, artists and playlists, and saved tracks management).
-
-## Features
-
-*Rspotify* supports all the features of the Spotify Web API, including access to all endpoints, and support for user authorization. Note that before accessing to any endpoints, you need to be authorized. For details on the capabilities you are encouraged to review the [Spotify Web Endpoint Reference](https://developer.spotify.com/web-api/endpoint-reference/) documentation.
-
-Nowadays, thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), `rspotify` supports system proxy by default. `reqwest` system proxies look in environment variables to set HTTP or HTTPS proxies. `HTTP_PROXY` or `http_proxy` provide HTTP proxies for HTTP connections while `HTTPS_PROXY` or `https_proxy` provide HTTPS proxies for HTTPS connections (~~note that `reqwest` system proxy doesn't support socks proxy for now,~~ check [this issue](https://github.com/seanmonstar/reqwest/issues/790) for more details).
+Rspotify is a wrapper for the [Spotify Web API](https://developer.spotify.com/web-api/), inspired by [spotipy](https://github.com/plamere/spotipy). It includes support for all the [authorization flows](https://developer.spotify.com/documentation/general/guides/authorization-guide/), and helper functions for [all endpoints](https://developer.spotify.com/documentation/web-api/reference/).
 
 ## Usage
 
@@ -28,15 +16,15 @@ Add this to your `Cargo.toml`:
 rspotify = "0.10.0"
 ```
 
-Or you could get it from [GitHub](https://github.com/samrayleung/rspotify).
+Thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies), Rspotify supports system proxies by default. `reqwest` reads the environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental variables to set HTTP and HTTPS proxies, respectively.
 
 ## Getting Started
 
 ### Authorization
 
-Since all methods require user authorization now, you will need to generate an authorization token that indicates that the user has granted permission for your application to perform the given task. You will need to register your app to get the credentials necessary to make authorized calls. Read the [official guide for a detailed explanation](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
+Since all methods require user authorization, you will need to generate a token that indicates that the user has granted permission for your application to perform the given task. You will need to [register your app to get the credentials necessary to make authorized calls](https://developer.spotify.com/dashboard/applications). Read the [official guide for a detailed explanation of the different authorization flows available](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
 
-Even if your script does not have an accessible URL, you need to specify one when registering your application where the Spotify authentication API will redirect to after successful login. The URL doesn't need to work or be accessible, you can specify "http://localhost/", and after the user's successful login the access token will be given as the `code` HTTP parameter: "http://localhost/?code=...". For example:
+Even if your script does not have an accessible URL, you will have to specify a redirect URI when registering your application where Spotify will redirect to after a successful login. The URL doesn't need to work or be accessible, you can use "http://localhost/", and an [authorization code](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow) will be given as the `code` HTTP parameter: "http://localhost/?code=...", which can be used by Rspotify to obtain an access token for your requests. For example:
 
 ![demo](./doc/images/rspotify.gif)
 
