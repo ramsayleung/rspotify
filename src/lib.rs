@@ -19,6 +19,10 @@
 //! environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental
 //! variables to set HTTP and HTTPS proxies, respectively.
 //!
+//! By default, Rspotify uses the async `reqwest` client, but the `blocking`
+//! feature can be enabled to have access to the [blocking
+//! ](blocking/index.html) module.
+//!
 //! ## Getting Started
 //!
 //! ### Authorization
@@ -85,32 +89,6 @@
 //!     let tracks = spotify
 //!         .artist_top_tracks(birdy_uri, Country::UnitedStates)
 //!         .await;
-//!     println!("{:?}", tracks.unwrap());
-//! }
-//! ```
-//!
-//! ### Blocking API example
-//!
-//! There is an optional client API that can be enabled for non-asynchronous
-//! requests:
-//!
-//! ```toml
-//! [dependencies]
-//! rspotify = { version = "0.10.0", features = ["blocking"] }
-//! ```
-//!
-//! ```rust
-//! use rspotify::blocking::client::Spotify;
-//! use rspotify::blocking::oauth2::SpotifyClientCredentials;
-//! use rspotify::senum::Country;
-//!
-//! fn main() {
-//!     let client_credential = SpotifyClientCredentials::default().build();
-//!     let spotify = Spotify::default()
-//!         .client_credentials_manager(client_credential)
-//!         .build();
-//!     let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
-//!     let tracks = spotify.artist_top_tracks(birdy_uri, Country::UnitedStates);
 //!     println!("{:?}", tracks.unwrap());
 //! }
 //! ```
