@@ -2,19 +2,19 @@
 #[macro_use]
 extern crate rocket;
 
-use std::fs;
-use std::path::PathBuf;
-use std::path::Path;
-use rocket::response::{Redirect};
-use rocket::http::Cookies;
 use rocket::http::Cookie;
-use rocket_contrib::templates::Template;
-use rocket_contrib::json::{JsonValue};
+use rocket::http::Cookies;
+use rocket::response::Redirect;
 use rocket_contrib::json;
+use rocket_contrib::json::JsonValue;
+use rocket_contrib::templates::Template;
 use rspotify::blocking::client::Spotify;
+use std::fs;
+use std::path::Path;
+use std::path::PathBuf;
 
-use rspotify::blocking::oauth2::SpotifyOAuth;
 use rspotify::blocking::oauth2::SpotifyClientCredentials;
+use rspotify::blocking::oauth2::SpotifyOAuth;
 use rspotify::blocking::util;
 use std::env;
 
@@ -63,24 +63,37 @@ fn spotify(mut auth_manager: SpotifyOAuth) -> Spotify {
         .build()
 }
 
-#[get("/?<code>")]
-fn index(mut cookies: Cookies, code: Option<String>) -> AppResponse {
+fn auth_manager(cookies: Cookies) -> SpotifyOAuth {
+    // Please notice that protocol of redirect_uri, make sure it's http(or https). It will fail if you mix them up.
+    SpotifyOAuth::default()
+        .client_id("your-client-id")
+        .client_secret("your-client-secret")
+        .redirect_uri("http://localhost:8000/callback")
+        .cache_path(cache_path(cookies))
+        .scope("user-read-currently-playing playlist-modify-private")
+        .build()
+}
+
+#[get("/callback?<code>")]
+fn callback(cookies: Cookies, code: String) -> AppResponse {
+    let auth_manager = auth_manager(cookies);
+    return match auth_manager.get_access_token(code.as_str()) {
+        Some(_) => AppResponse::Redirect(Redirect::to("/")),
+        _ => {
+            let mut context = HashMap::new();
+            context.insert("err_msg", "Can not get code!");
+            AppResponse::Template(Template::render("error", context))
+        }
+    };
+}
+
+#[get("/")]
+fn index(mut cookies: Cookies) -> AppResponse {
     let cookie = cookies.get("uuid");
     if let None = cookie {
         cookies.add(Cookie::new("uuid", util::generate_random_string(64)));
     }
-    // Please notice that protocol of redirect_uri, make sure it's http(or https). It will fail if you mix them up.
-    let mut auth_manager = SpotifyOAuth::default()
-        .client_id("your-client-id")
-        .client_secret("your-client-secret")
-        .redirect_uri("https://localhost:8888/callback")
-        .cache_path(cache_path(cookies))
-        .scope("user-read-currently-playing playlist-modify-private")
-        .build();
-    if let Some(ref code) = code {
-        auth_manager.get_access_token(code);
-        return AppResponse::Redirect(Redirect::to("/"));
-    }
+    let mut auth_manager = auth_manager(cookies);
     let mut context = HashMap::new();
     match auth_manager.get_cached_token() {
         Some(token) => token,
@@ -100,7 +113,10 @@ fn index(mut cookies: Cookies, code: Option<String>) -> AppResponse {
         .build();
     let me = spotify.me();
     println!("me: {:?}", me);
-    context.insert("display_name", me.unwrap().display_name.unwrap_or(String::from("Dear")));
+    context.insert(
+        "display_name",
+        me.unwrap().display_name.unwrap_or(String::from("Dear")),
+    );
     AppResponse::Template(Template::render("index", context.clone()))
 }
 
@@ -112,7 +128,9 @@ fn sign_out(cookies: Cookies) -> AppResponse {
 
 #[get("/playlists")]
 fn playlist(cookies: Cookies) -> AppResponse {
-    let mut auth_manager = SpotifyOAuth::default().cache_path(cache_path(cookies)).build();
+    let mut auth_manager = SpotifyOAuth::default()
+        .cache_path(cache_path(cookies))
+        .build();
     if let None = auth_manager.get_cached_token() {
         return AppResponse::Redirect(Redirect::to("/"));
     }
@@ -123,7 +141,9 @@ fn playlist(cookies: Cookies) -> AppResponse {
 
 #[get("/me")]
 fn me(cookies: Cookies) -> AppResponse {
-    let mut auth_manager = SpotifyOAuth::default().cache_path(cache_path(cookies)).build();
+    let mut auth_manager = SpotifyOAuth::default()
+        .cache_path(cache_path(cookies))
+        .build();
     if let None = auth_manager.get_cached_token() {
         return AppResponse::Redirect(Redirect::to("/"));
     }
@@ -134,10 +154,7 @@ fn me(cookies: Cookies) -> AppResponse {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index
-        ,sign_out
-        ,me
-        ,playlist])
+        .mount("/", routes![index, callback, sign_out, me, playlist])
         .attach(Template::fairing())
         .launch();
 }
