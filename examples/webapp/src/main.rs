@@ -71,8 +71,8 @@ fn index(mut cookies: Cookies, code: Option<String>) -> AppResponse {
     }
     // Please notice that protocol of redirect_uri, make sure it's http(or https). It will fail if you mix them up.
     let mut auth_manager = SpotifyOAuth::default()
-        .client_id("e1dce60f1e274e20861ce5d96142a4d3")
-        .client_secret("23a3a18423b14bf383ce46c8ee271094")
+        .client_id("your-client-id")
+        .client_secret("your-client-secret")
         .redirect_uri("https://localhost:8888/callback")
         .cache_path(cache_path(cookies))
         .scope("user-read-currently-playing playlist-modify-private")
