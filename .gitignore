@@ -9,4 +9,3 @@ Cargo.lock
 .DS_Store
 .spotify_cache/
 **/target/
-**/.env
