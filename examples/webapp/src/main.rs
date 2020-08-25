@@ -19,6 +19,10 @@ use rspotify::blocking::util;
 use std::env;
 
 use std::collections::HashMap;
+/// In this example, the token is saved into a cache file. If you are building a real-world web
+/// app, it's easy to save token into database, by calling the function
+/// `util::get_token_without_cache()`, instead of `util::get_token()`, which saves token by
+/// default.
 
 #[derive(Debug, Responder)]
 pub enum AppResponse {
