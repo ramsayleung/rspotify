@@ -1,15 +1,15 @@
-## 0.11 (????)
+## 0.11 (unreleased)
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
-- Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your add your own example, please do!
+- Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do!
 - Add `add_item_to_queue` endpoint.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - Fix race condition when using a single client from multiple threads (see [#114](https://github.com/ramsayleung/rspotify/pull/114) for more information).
 - Rspotify should now be considerably lighter and less bloated:
-  + Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url` <!-- NOTE: derive_builder might not be removed after all -->
+  + Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url`. <!-- NOTE: derive_builder might not be removed after all -->
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
-  + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to its frequent usage.
+  + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to [its frequent usage](https://github.com/ramsayleung/rspotify/pull/110#issuecomment-674410604).
   + Reduced repetitive code and boilerplate internally in several places.
 - Updated dependencies to the latest versions, integrated Dependabot to keep track of them.
 
