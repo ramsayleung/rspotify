@@ -41,6 +41,10 @@ native-tls-vendored-blocking = ["reqwest/native-tls-vendored", "reqwest/blocking
 rustls-tls = ["reqwest/rustls-tls"]
 rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
 
+[package.metadata.docs.rs]
+# Also documenting the blocking module
+features = ["blocking"]
+
 [[example]]
 name = "device"
 required-features = ["blocking"]
