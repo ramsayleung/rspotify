@@ -1,16 +1,20 @@
 ## 0.11 (????)
 
+- Rewritten documentation in hopes that it's easier to get started with Rspotify.
+- Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your add your own example, please do!
 - Add `add_item_to_queue` endpoint.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
-
-- Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url` <!-- TODO derive_builder might not be removed after all -->
-- Remove `itertools` dependency by using the standard library.
-- Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
-- `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to its frequent usage.
-- Updated dependencies to latest, integreated Dependabot to keep track of them.
+- Fix race condition when using a single client from multiple threads (see [#114](https://github.com/ramsayleung/rspotify/pull/114) for more information).
+- Rspotify should now be considerably lighter and less bloated:
+  + Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url` <!-- NOTE: derive_builder might not be removed after all -->
+  + Remove `itertools` dependency by using the standard library.
+  + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
+  + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to its frequent usage.
+  + Reduced repetitive code and boilerplate internally in several places.
+- Updated dependencies to the latest versions, integrated Dependabot to keep track of them.
 
 **Breaking changes:**
-- `dotenv` support is now optional with the `env-file` feature.
+- `dotenv` support is now optional. You can enable it with the `dotenv-file` feature to have the same behavior as before.
 
 ## 0.10 (2020/07/01)
 
@@ -53,7 +57,7 @@
 - Code optimize, remove a unnecessary mut and add a missing reference
 - Fix reqwest breaking change
 - Add missing devices type
-- Add `position_ms` to `start_playback
+- Add `position_ms` to `start_playback`
 
 ## 0.6 (2019/07/22)
 
