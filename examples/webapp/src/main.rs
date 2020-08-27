@@ -1,28 +1,27 @@
+//! In this example, the token is saved into a cache file. If you are building a real-world web
+//! app, it's easy to save token into database, by calling the function
+//! `util::get_token_without_cache()`, instead of `util::get_token()`, which saves token by
+//! default.
+
 #![feature(proc_macro_hygiene, decl_macro)]
+
 #[macro_use]
 extern crate rocket;
 
-use rocket::http::Cookie;
-use rocket::http::Cookies;
+use rocket::http::{Cookie, Cookies};
 use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
 use rspotify::blocking::client::Spotify;
-use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
 
-use rspotify::blocking::oauth2::SpotifyClientCredentials;
-use rspotify::blocking::oauth2::SpotifyOAuth;
+use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util;
-use std::env;
 
+use std::env;
 use std::collections::HashMap;
-/// In this example, the token is saved into a cache file. If you are building a real-world web
-/// app, it's easy to save token into database, by calling the function
-/// `util::get_token_without_cache()`, instead of `util::get_token()`, which saves token by
-/// default.
+use std::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Responder)]
 pub enum AppResponse {
