@@ -4,10 +4,10 @@ name = "rspotify"
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
-description="Spotify API wrapper"
-homepage="https://github.com/ramsayleung/rspotify"
-repository="https://github.com/ramsayleung/rspotify"
-keywords=["spotify","api"]
+description = "Spotify API wrapper"
+homepage = "https://github.com/ramsayleung/rspotify"
+repository = "https://github.com/ramsayleung/rspotify"
+keywords = ["spotify","api"]
 edition = "2018"
 
 [dependencies]
@@ -29,7 +29,7 @@ tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-default = ["reqwest/default-tls"]
+default = ["reqwest/default-tls", "browser"]
 env-file = ["dotenv"]
 browser = ["webbrowser"]
 blocking = ["reqwest/default-tls", "reqwest/blocking"]
