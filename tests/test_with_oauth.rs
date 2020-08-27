@@ -105,7 +105,7 @@ async fn test_current_user_recently_played() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_albums_add() {
-    let mut album_ids = Vec::new();
+    let mut album_ids = vec![];
     let album_id1 = String::from("6akEvsycLGftJxYudPjmqK");
     let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
     album_ids.push(album_id2);
@@ -120,7 +120,7 @@ async fn test_current_user_saved_albums_add() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_albums_delete() {
-    let mut album_ids = Vec::new();
+    let mut album_ids = vec![];
     let album_id1 = String::from("6akEvsycLGftJxYudPjmqK");
     let album_id2 = String::from("628oezqK2qfmCjC6eXNors");
     album_ids.push(album_id2);
@@ -142,7 +142,7 @@ async fn test_current_user_saved_albums() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_tracks_add() {
-    let mut tracks_ids = Vec::new();
+    let mut tracks_ids = vec![];
     let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
@@ -157,7 +157,7 @@ async fn test_current_user_saved_tracks_add() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_tracks_contains() {
-    let mut tracks_ids = Vec::new();
+    let mut tracks_ids = vec![];
     let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
@@ -172,7 +172,7 @@ async fn test_current_user_saved_tracks_contains() {
 #[tokio::test]
 #[ignore]
 async fn test_current_user_saved_tracks_delete() {
-    let mut tracks_ids = Vec::new();
+    let mut tracks_ids = vec![];
     let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
@@ -407,7 +407,7 @@ async fn test_transfer_playback() {
 #[tokio::test]
 #[ignore]
 async fn test_user_follow_artist() {
-    let mut artists = Vec::new();
+    let mut artists = vec![];
     let artist_id1 = String::from("74ASZWbe4lXaubB36ztrGX");
     let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
     artists.push(artist_id2);
@@ -419,7 +419,7 @@ async fn test_user_follow_artist() {
 #[tokio::test]
 #[ignore]
 async fn test_user_unfollow_artist() {
-    let mut artists = Vec::new();
+    let mut artists = vec![];
     let artist_id1 = String::from("74ASZWbe4lXaubB36ztrGX");
     let artist_id2 = String::from("08td7MxkoHQkXnWAYD8d6Q");
     artists.push(artist_id2);
@@ -431,7 +431,7 @@ async fn test_user_unfollow_artist() {
 #[tokio::test]
 #[ignore]
 async fn test_user_follow_users() {
-    let mut users = Vec::new();
+    let mut users = vec![];
     let user_id1 = String::from("exampleuser01");
     users.push(user_id1);
     let result = async_client().await.user_follow_users(&users).await;
@@ -441,7 +441,7 @@ async fn test_user_follow_users() {
 #[tokio::test]
 #[ignore]
 async fn test_user_unfollow_users() {
-    let mut users = Vec::new();
+    let mut users = vec![];
     let user_id1 = String::from("exampleuser01");
     users.push(user_id1);
     let result = async_client().await.user_unfollow_users(&users).await;
@@ -453,7 +453,7 @@ async fn test_user_unfollow_users() {
 async fn test_user_playlist_add_tracks() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
-    let mut tracks_ids = Vec::new();
+    let mut tracks_ids = vec![];
     let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
     tracks_ids.push(track_id1);
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
@@ -490,7 +490,7 @@ async fn test_user_playlist_change_detail() {
 async fn test_user_playlist_check_follow() {
     let owner_id = "jmperezperez";
     let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
-    let mut user_ids: Vec<String> = Vec::new();
+    let mut user_ids: Vec<String> = vec![];
     let user_id1 = String::from("possan");
     user_ids.push(user_id1);
     let user_id2 = String::from("elogain");
@@ -553,7 +553,7 @@ async fn test_user_playlist_recorder_tracks() {
 async fn test_user_playlist_remove_all_occurrences_of_tracks() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
-    let mut tracks_ids = Vec::new();
+    let mut tracks_ids = vec![];
     let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
@@ -570,9 +570,9 @@ async fn test_user_playlist_remove_all_occurrences_of_tracks() {
 async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
-    let mut tracks = Vec::new();
+    let mut tracks = vec![];
     let mut map1 = Map::new();
-    let mut position1 = Vec::new();
+    let mut position1 = vec![];
     position1.push(0);
     position1.push(3);
     map1.insert(
@@ -582,7 +582,7 @@ async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
     map1.insert("position".to_string(), position1.into());
     tracks.push(map1);
     let mut map2 = Map::new();
-    let mut position2 = Vec::new();
+    let mut position2 = vec![];
     position2.push(7);
     map2.insert(
         "uri".to_string(),
@@ -602,7 +602,7 @@ async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
 async fn test_user_playlist_replace_tracks() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
-    let mut tracks_ids = Vec::new();
+    let mut tracks_ids = vec![];
     let track_id1 = String::from("spotify:track:4iV5W9uYEdYUVa79Axb7Rh");
     let track_id2 = String::from("spotify:track:1301WleyT98MSxVHPZCA6M");
     tracks_ids.push(track_id2);
