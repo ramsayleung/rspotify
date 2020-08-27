@@ -14,7 +14,7 @@
 - Updated dependencies to the latest versions, integrated Dependabot to keep track of them.
 
 **Breaking changes:**
-- `dotenv` support is now optional. You can enable it with the `dotenv-file` feature to have the same behavior as before.
+- `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before.
 
 ## 0.10 (2020/07/01)
 

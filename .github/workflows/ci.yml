@@ -24,7 +24,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all-targets
+          args: --all-targets --features env-file
 
   cross-compile:
     name: Cross Compile
@@ -74,6 +74,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --features env-file
 
   lints:
     name: Lints
