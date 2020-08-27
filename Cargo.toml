@@ -46,21 +46,46 @@ rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
 features = ["blocking"]
 
 [[example]]
+name = "album"
+required-features = ["env-file"]
+path = "examples/album.rs"
+
+[[example]]
+name = "current_user_recently_played"
+required-features = ["env-file"]
+path = "examples/current_user_recently_played.rs"
+
+[[example]]
+name = "track"
+required-features = ["env-file"]
+path = "examples/track.rs"
+
+[[example]]
+name = "tracks"
+required-features = ["env-file"]
+path = "examples/tracks.rs"
+
+[[example]]
+name = "with_refresh_token"
+required-features = ["env-file"]
+path = "examples/with_refresh_token.rs"
+
+[[example]]
 name = "device"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/device.rs"
 
 [[example]]
 name = "me"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/me.rs"
 
 [[example]]
 name = "blocking_search"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/search.rs"
             
 [[example]]
 name = "seek_track"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/seek_track.rs"
