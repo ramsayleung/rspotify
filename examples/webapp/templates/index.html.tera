@@ -1,0 +1,4 @@
+<h2>Hi {{display_name}},
+    <small><a href="/sign_out">sign out<a/></small></h2>
+<a href="/playlists">My playlists</a>
+<a href="/me">About Me</a>
