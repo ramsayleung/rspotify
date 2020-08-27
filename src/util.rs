@@ -21,10 +21,10 @@ pub fn generate_random_string(length: usize) -> String {
     let mut buf = vec![0u8; length];
     getrandom(&mut buf).unwrap();
     let range = alphanum.len();
-    return buf
-        .iter()
+
+    buf.iter()
         .map(|byte| alphanum[*byte as usize % range] as char)
-        .collect();
+        .collect()
 }
 
 /// convert map to `query_string`, for example:
