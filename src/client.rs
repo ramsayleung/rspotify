@@ -833,7 +833,7 @@ impl Spotify {
     /// }
     /// ```
     /// - snapshot_id: optional id of the playlist snapshot
-    pub async fn user_playlist_remove_specific_occurrenes_of_tracks(
+    pub async fn user_playlist_remove_specific_occurrences_of_tracks(
         &self,
         user_id: &str,
         playlist_id: &str,
