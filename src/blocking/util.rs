@@ -1,6 +1,6 @@
 //! Utils function
 use chrono::prelude::*;
-use webbrowser;
+use getrandom::getrandom;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -9,7 +9,6 @@ use std::string::ToString;
 
 use super::oauth2::{SpotifyOAuth, TokenInfo};
 
-use getrandom::getrandom;
 /// Convert datetime to unix timestampe
 pub fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();

@@ -7,3 +7,5 @@ cmake-build-debug
 */.test_token
 Cargo.lock
 .DS_Store
+.spotify_cache/
+**/target/
