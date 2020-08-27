@@ -15,6 +15,7 @@
 
 **Breaking changes:**
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before.
+- Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 
 ## 0.10 (2020/07/01)
 
