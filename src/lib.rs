@@ -9,7 +9,7 @@
 //!
 //! Add this to your `Cargo.toml`:
 //!
-//! ```
+//! ```toml
 //! [dependencies]
 //! rspotify = "0.10.0"
 //! ```
@@ -18,7 +18,7 @@
 //! `await`, but the `blocking` feature can be enabled to have access to the
 //! [blocking](blocking/index.html) module, with non-async methods.
 //!
-//! ```
+//! ```toml
 //! [dependencies]
 //! rspotify = { version = "0.10.0", features = ["blocking"] }
 //! ```
@@ -38,7 +38,7 @@
 //! user interaction, which might not be necessary for non-CLI applications,
 //! and can be disabled:
 //!
-//! ```
+//! ```toml
 //! [dependencies]
 //! rspotify = { version = "0.10.0", default-features = false, features = ["reqwest/default-tls", "browser"] }
 //! ```

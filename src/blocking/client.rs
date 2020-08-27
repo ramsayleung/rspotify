@@ -834,7 +834,7 @@ impl Spotify {
     /// - tracks: an array of map containing Spotify URIs of the tracks to remove
     /// with their current positions in the playlist. For example:
     ///
-    /// ```
+    /// ```json
     /// {
     ///    "tracks":[
     ///       {

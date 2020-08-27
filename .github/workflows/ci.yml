@@ -24,7 +24,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all-targets --features env-file
+          args: --all-targets
 
   cross-compile:
     name: Cross Compile
