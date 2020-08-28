@@ -1,20 +1,21 @@
 ## 0.11 (unreleased)
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
-- Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do!
+- Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
 - Add `add_item_to_queue` endpoint.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - Fix race condition when using a single client from multiple threads (see [#114](https://github.com/ramsayleung/rspotify/pull/114) for more information).
-- Rspotify should now be considerably lighter and less bloated:
+- Rspotify should now be considerably lighter and less bloated ([discussion in #108](https://github.com/ramsayleung/rspotify/issues/108)):
   + Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url`. <!-- NOTE: derive_builder might not be removed after all -->
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to [its frequent usage](https://github.com/ramsayleung/rspotify/pull/110#issuecomment-674410604).
-  + Reduced repetitive code and boilerplate internally in several places.
-- Updated dependencies to the latest versions, integrated Dependabot to keep track of them.
+  + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
+- Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 
 **Breaking changes:**
-- `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before.
+- `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
+- Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 
 ## 0.10 (2020/07/01)
