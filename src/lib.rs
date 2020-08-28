@@ -73,8 +73,8 @@
 //!
 //! In order to help other developers to get used to `rspotify`, I registered
 //! a Spotify account with temporary email. You can test `rspotify` with this
-//! account's `CLIENT_ID` and `CLIENT_SECRET`, check the [`.env`
-//! file](https://github.com/ramsayleung/rspotify/blob/master/.env)
+//! account's `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`, check the
+//! [`.env` file](https://github.com/ramsayleung/rspotify/blob/master/.env)
 //! for more details.
 //!
 //! ### Examples
@@ -98,8 +98,8 @@
 //! #[tokio::main]
 //! async fn main() {
 //!     // Set client_id and client_secret in .env file or
-//!     // export CLIENT_ID="your client_id"
-//!     // export CLIENT_SECRET="secret"
+//!     // export RSPOTIFY_CLIENT_ID="your client_id"
+//!     // export RSPOTIFY_CLIENT_SECRET="secret"
 //!     let client_credential = SpotifyClientCredentials::default().build();
 //!
 //!     // Or set client_id and client_secret explictly

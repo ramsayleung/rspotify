@@ -8,8 +8,8 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     // Set client_id and client_secret in .env file or
-    // export CLIENT_ID="your client_id"
-    // export CLIENT_SECRET="secret"
+    // export RSPOTIFY_CLIENT_ID="your client_id"
+    // export RSPOTIFY_CLIENT_SECRET="secret"
     static ref CLIENT_CREDENTIAL: Mutex<SpotifyClientCredentials>
         = Mutex::new(SpotifyClientCredentials::default().build());
 }

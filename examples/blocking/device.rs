@@ -4,9 +4,9 @@ use rspotify::blocking::util::get_token;
 
 fn main() {
     // Set client_id and client_secret in .env file or
-    // export CLIENT_ID="your client_id"
-    // export CLIENT_SECRET="secret"
-    // export REDIRECT_URI=your-direct-uri
+    // export RSPOTIFY_CLIENT_ID="your client_id"
+    // export RSPOTIFY_CLIENT_SECRET="secret"
+    // export RSPOTIFY_REDIRECT_URI=your-direct-uri
 
     // Or set client_id, client_secret,redirect_uri explictly
     // let oauth = SpotifyOAuth::default()

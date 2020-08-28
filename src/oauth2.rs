@@ -100,8 +100,8 @@ impl SpotifyClientCredentials {
         {
             dotenv::dotenv().ok();
         }
-        let client_id = env::var("CLIENT_ID").unwrap_or_default();
-        let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
+        let client_id = env::var("RSPOTIFY_CLIENT_ID").unwrap_or_default();
+        let client_secret = env::var("RSPOTIFY_CLIENT_SECRET").unwrap_or_default();
         trace!(
             "SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?}",
             client_id,
@@ -129,9 +129,9 @@ impl SpotifyClientCredentials {
         const ERROR_MESSAGE: &str = "
     You need to set your Spotify API credentials. You can do this by
     setting environment variables in `.env` file:
-    CLIENT_ID='your-spotify-client-id'
-    CLIENT_SECRET='your-spotify-client-secret'
-    REDIRECT_URI='your-app-redirect-url'
+    RSPOTIFY_CLIENT_ID='your-spotify-client-id'
+    RSPOTIFY_CLIENT_SECRET='your-spotify-client-secret'
+    RSPOTIFY_REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
         trace!("SpotifyClientCredentials.default(): client_id:{:?}, client_secret:{:?} empty_flag:{:?}",self.client_id, self.client_secret, !(self.client_id.is_empty()||self.client_secret.is_empty())&&self.token_info.is_none());
         let empty_flag = (self.client_id.is_empty() || self.client_secret.is_empty())
@@ -213,9 +213,9 @@ impl SpotifyOAuth {
         {
             dotenv::dotenv().ok();
         }
-        let client_id = env::var("CLIENT_ID").unwrap_or_default();
-        let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
-        let redirect_uri = env::var("REDIRECT_URI").unwrap_or_default();
+        let client_id = env::var("RSPOTIFY_CLIENT_ID").unwrap_or_default();
+        let client_secret = env::var("RSPOTIFY_CLIENT_SECRET").unwrap_or_default();
+        let redirect_uri = env::var("RSPOTIFY_REDIRECT_URI").unwrap_or_default();
         SpotifyOAuth {
             client_id,
             client_secret,
@@ -258,9 +258,9 @@ impl SpotifyOAuth {
         const ERROR_MESSAGE: &str = "
     You need to set your Spotify API credentials. You can do this by
     setting environment variables in `.env` file:
-    CLIENT_ID='your-spotify-client-id'
-    CLIENT_SECRET='your-spotify-client-secret'
-    REDIRECT_URI='your-app-redirect-url'
+    RSPOTIFY_CLIENT_ID='your-spotify-client-id'
+    RSPOTIFY_CLIENT_SECRET='your-spotify-client-secret'
+    RSPOTIFY_REDIRECT_URI='your-app-redirect-url'
     Get your credentials at `https://developer.spotify.com/my-applications`";
         let empty_flag = self.redirect_uri.is_empty()
             || self.client_id.is_empty()
