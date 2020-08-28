@@ -1,7 +1,6 @@
 //! The module contains function about authorization and client-credential
 // Use 3rd party library
 use chrono::prelude::*;
-use dotenv::dotenv;
 use log::{debug, error, trace};
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use reqwest::Client;
@@ -97,7 +96,10 @@ impl TokenInfo {
 impl SpotifyClientCredentials {
     /// Build default SpotifyClientCredentials
     pub fn default() -> SpotifyClientCredentials {
-        dotenv().ok();
+        #[cfg(feature = "env-file")]
+        {
+            dotenv::dotenv().ok();
+        }
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
         trace!(
@@ -207,7 +209,10 @@ impl SpotifyOAuth {
     // }
 
     pub fn default() -> SpotifyOAuth {
-        dotenv().ok();
+        #[cfg(feature = "env-file")]
+        {
+            dotenv::dotenv().ok();
+        }
         let client_id = env::var("CLIENT_ID").unwrap_or_default();
         let client_secret = env::var("CLIENT_SECRET").unwrap_or_default();
         let redirect_uri = env::var("REDIRECT_URI").unwrap_or_default();

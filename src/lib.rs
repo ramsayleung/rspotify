@@ -1,27 +1,52 @@
-//! Rspotify is a wrapper for the [Spotify Web
-//! API](https://developer.spotify.com/web-api/), inspired by [spotipy
+//! Rspotify is a wrapper for the [Spotify Web API
+//! ](https://developer.spotify.com/web-api/), inspired by [spotipy
 //! ](https://github.com/plamere/spotipy). It includes support for all the
 //! [authorization flows](https://developer.spotify.com/documentation/general/guides/authorization-guide/),
-//! and helper functions for [all endpoints
+//! and helper methods for [all available endpoints
 //! ](https://developer.spotify.com/documentation/web-api/reference/).
 //!
 //! ## Configuration
 //!
 //! Add this to your `Cargo.toml`:
 //!
-//! ``` toml
+//! ```toml
 //! [dependencies]
 //! rspotify = "0.10.0"
+//! ```
+//!
+//! By default, Rspotify uses asynchronous programming with `async` and
+//! `await`, but the `blocking` feature can be enabled to have access to the
+//! [blocking](blocking/index.html) module, with non-async methods.
+//!
+//! ```toml
+//! [dependencies]
+//! rspotify = { version = "0.10.0", features = ["blocking"] }
+//! ```
+//!
+//! Rspotify supports the [`dotenv` crate
+//! ](https://github.com/dotenv-rs/dotenv), which allows you to save
+//! credentials in a `.env` file by enabling the `env-file` feature. These
+//! credentials will then be available as environmental values that Rspotify
+//! will read when constructing types such as [`SpotifyClientCredentials`
+//! ](oauth2/struct.SpotifyClientCredentials.html).
+//!
+//! Rspotify includes support to obtain access tokens with the
+//! [`util::get_token`](util/fn.get_token.html), [`util::get_token_without_cache`
+//! ](util/fn.get_token_without_cache.html) and [`util::request_token`
+//! ](util/fn.request_token.html) functions. These require opening a browser
+//! with the [`webbrowser` crate](https://github.com/amodm/webbrowser-rs) and
+//! user interaction, which might not be necessary for non-CLI applications,
+//! and can be disabled:
+//!
+//! ```toml
+//! [dependencies]
+//! rspotify = { version = "0.10.0", default-features = false, features = ["reqwest/default-tls", "browser"] }
 //! ```
 //!
 //! Thanks to [`reqwest`](https://docs.rs/reqwest/0.10.1/reqwest/#proxies),
 //! Rspotify supports system proxies by default. `reqwest` reads the
 //! environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental
 //! variables to set HTTP and HTTPS proxies, respectively.
-//!
-//! By default, Rspotify uses the async `reqwest` client, but the `blocking`
-//! feature can be enabled to have access to the [blocking
-//! ](blocking/index.html) module.
 //!
 //! ## Getting Started
 //!
@@ -38,11 +63,11 @@
 //! Even if your script does not have an accessible URL, you will have to
 //! specify a redirect URI when registering your application where Spotify
 //! will redirect to after a successful login. The URL doesn't need to work
-//! or be accessible, you can use "http://localhost/", and an [authorization
+//! or be accessible, you can use `http://localhost/`, and an [authorization
 //! code](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
-//! will be given as the `code` HTTP parameter: "http://localhost/?code=...",
-//! which can be used by Rspotify to obtain an access token for your requests.
-//! For example:
+//! will be returned as the `code` HTTP parameter:
+//! `http://localhost/?code=...`, which can be used by Rspotify to obtain an
+//! access token for your requests. For example:
 //!
 //! ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
 //!
@@ -54,8 +79,8 @@
 //!
 //! ### Examples
 //!
-//! There are some [available
-//! examples](https://github.com/ramsayleung/rspotify/tree/master/examples)
+//! There are some [available examples
+//! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool. The following snippet will obtain the
 //! top tracks for an artist:
 //!

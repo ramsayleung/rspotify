@@ -7,7 +7,6 @@
 
 use async_once::AsyncOnce;
 use chrono::prelude::*;
-use dotenv::dotenv;
 use lazy_static::lazy_static;
 use serde_json::map::Map;
 
@@ -22,8 +21,6 @@ lazy_static! {
     // beginning. The `Spotify` instance needed here is for async requests,
     // so this uses `AsyncOnce` to work with `lazy_static`.
     static ref CLIENT_CREDENTIAL: AsyncOnce<SpotifyClientCredentials> = AsyncOnce::new(async {
-        dotenv().ok();
-
         // Using every possible scope
         let mut oauth = SpotifyOAuth::default()
             .scope(
@@ -570,7 +567,7 @@ async fn test_user_playlist_remove_all_occurrences_of_tracks() {
 
 #[tokio::test]
 #[ignore]
-async fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
+async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
     let user_id = "2257tjys2e2u2ygfke42niy2q";
     let playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
     let mut tracks = vec![];
@@ -595,7 +592,7 @@ async fn test_user_playlist_remove_specific_occurrenes_of_tracks() {
     tracks.push(map2);
     let result = async_client()
         .await
-        .user_playlist_remove_specific_occurrenes_of_tracks(user_id, &playlist_id, tracks, None)
+        .user_playlist_remove_specific_occurrences_of_tracks(user_id, &playlist_id, tracks, None)
         .await;
     assert!(result.is_ok());
 }

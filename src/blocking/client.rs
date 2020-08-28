@@ -823,16 +823,37 @@ impl Spotify {
         self.convert_result::<CUDResult>(&result)
     }
 
-    /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
-    /// Removes all occurrences of the given tracks from the given playlist
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - tracks - an array of map containing Spotify URIs of the tracks
-    ///  to remove with their current positions in the playlist.  For example:
-    /// { "tracks": [{ "uri": "spotify:track:4iV5W9uYEdYUVa79Axb7Rh", "positions": [0,3] },{
-    /// "uri": "spotify:track:1301WleyT98MSxVHPZCA6M", "positions": [7] }] }
-    /// - snapshot_id - optional id of the playlist snapshot
+    /// [remove tracks playlist
+    /// ](https://developer.spotify.com/web-api/remove-tracks-playlist/).
+    ///
+    /// Removes specfic occurrences of the given tracks from the given
+    /// playlist. Parameters:
+    ///
+    /// - user_id: the id of the user
+    /// - playlist_id: the id of the playlist
+    /// - tracks: an array of map containing Spotify URIs of the tracks to remove
+    /// with their current positions in the playlist. For example:
+    ///
+    /// ```json
+    /// {
+    ///    "tracks":[
+    ///       {
+    ///          "uri":"spotify:track:4iV5W9uYEdYUVa79Axb7Rh",
+    ///          "positions":[
+    ///             0,
+    ///             3
+    ///          ]
+    ///       },
+    ///       {
+    ///          "uri":"spotify:track:1301WleyT98MSxVHPZCA6M",
+    ///          "positions":[
+    ///             7
+    ///          ]
+    ///       }
+    ///    ]
+    /// }
+    /// ```
+    /// - snapshot_id: optional id of the playlist snapshot
     pub fn user_playlist_remove_specific_occurrenes_of_tracks(
         &self,
         user_id: &str,

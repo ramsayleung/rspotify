@@ -4,24 +4,24 @@ name = "rspotify"
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
-description="Spotify API wrapper"
-homepage="https://github.com/samrayleung/rspotify"
-repository="https://github.com/samrayleung/rspotify"
-keywords=["spotify","api"]
+description = "Spotify API wrapper"
+homepage = "https://github.com/ramsayleung/rspotify"
+repository = "https://github.com/ramsayleung/rspotify"
+keywords = ["spotify","api"]
 edition = "2018"
 
 [dependencies]
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-dotenv = "0.15.0"
+dotenv = { version = "0.15.0", optional = true }
 failure = "0.1.8"
 lazy_static = "1.4.0"
 log = "0.4.11"
 percent-encoding = "2.1.0"
-rand = "0.7.3"
+getrandom = "0.1.14"
 reqwest = { version = "0.10.7", features = ["json", "socks"], default-features = false }
 serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
-webbrowser = "0.5.5"
+webbrowser = { version = "0.5.5", optional = true }
 
 [dev-dependencies]
 async_once = { version = "0.1.0", features = ["tokio"] }
@@ -29,7 +29,9 @@ tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-default = ["reqwest/default-tls"]
+default = ["reqwest/default-tls", "browser"]
+env-file = ["dotenv"]
+browser = ["webbrowser"]
 blocking = ["reqwest/default-tls", "reqwest/blocking"]
 # Passing the TLS features to reqwest.
 native-tls = ["reqwest/native-tls"]
@@ -39,22 +41,51 @@ native-tls-vendored-blocking = ["reqwest/native-tls-vendored", "reqwest/blocking
 rustls-tls = ["reqwest/rustls-tls"]
 rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
 
+[package.metadata.docs.rs]
+# Also documenting the blocking module
+features = ["blocking"]
+
+[[example]]
+name = "album"
+required-features = ["env-file"]
+path = "examples/album.rs"
+
+[[example]]
+name = "current_user_recently_played"
+required-features = ["env-file"]
+path = "examples/current_user_recently_played.rs"
+
+[[example]]
+name = "track"
+required-features = ["env-file"]
+path = "examples/track.rs"
+
+[[example]]
+name = "tracks"
+required-features = ["env-file"]
+path = "examples/tracks.rs"
+
+[[example]]
+name = "with_refresh_token"
+required-features = ["env-file"]
+path = "examples/with_refresh_token.rs"
+
 [[example]]
 name = "device"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/device.rs"
 
 [[example]]
 name = "me"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/me.rs"
 
 [[example]]
 name = "blocking_search"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/search.rs"
             
 [[example]]
 name = "seek_track"
-required-features = ["blocking"]
+required-features = ["env-file", "blocking"]
 path = "examples/blocking/seek_track.rs"

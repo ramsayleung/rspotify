@@ -15,8 +15,6 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86),
 //! so in the case of Spotify it doesn't seem to revoke them at all.
 
-use dotenv::dotenv;
-
 use rspotify::client::Spotify;
 use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::util::get_token_without_cache;
@@ -81,7 +79,6 @@ async fn do_things(spotify: Spotify) {
 #[tokio::main]
 async fn main() {
     // The default credentials from the `.env` file will be used by default.
-    dotenv().ok();
     let mut oauth = SpotifyOAuth::default()
         .scope("user-follow-read user-follow-modify")
         .build();
