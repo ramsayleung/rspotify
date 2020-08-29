@@ -429,14 +429,13 @@ endpoint_impl! {
            - artist_id - the artist ID, URI or URL
            - country - limit the response to one particular country.
     "###]
-    pub async fn artist_top_tracks<T: Into<Option<Country>>>(
+    pub async fn artist_top_tracks(
         &self,
         artist_id: &str,
-        country: T,
+        country: Option<Country>,
     ) -> Result<FullTracks, failure::Error> {
         let mut params: HashMap<String, String> = HashMap::new();
         let country = country
-            .into()
             .unwrap_or(Country::UnitedStates)
             .as_str()
             .to_string();
@@ -509,18 +508,18 @@ endpoint_impl! {
     - market - An ISO 3166-1 alpha-2 country code or the string from_token.
     - include_external: Optional.Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally.  
     "###]
-    pub async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn search(
         &self,
         q: &str,
         _type: SearchType,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
         market: Option<Country>,
         include_external: Option<IncludeExternal>,
     ) -> Result<SearchResult, failure::Error> {
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(10);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(10);
+        let offset = offset.unwrap_or(0);
         if let Some(_market) = market {
             params.insert("market".to_owned(), _market.as_str().to_owned());
         }
@@ -547,17 +546,17 @@ endpoint_impl! {
     - limit  - the number of items to return
     - offset - the index of the first item to return
     "###]
-    pub async fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn album_track(
         &self,
         album_id: &str,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<Page<SimplifiedTrack>, failure::Error> {
         let mut params = HashMap::new();
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}/tracks", trid);
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.unwrap_or(0).to_string());
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<Page<SimplifiedTrack>>(&result)
     }
@@ -608,14 +607,14 @@ endpoint_impl! {
     - limit  - the number of items to return
     - offset - the index of the first item to return
     "###]
-    pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_playlists(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<Page<SimplifiedPlaylist>, failure::Error> {
         let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.unwrap_or(0).to_string());
 
         let url = String::from("me/playlists");
         let result = self.get(&url, &mut params).await?;
@@ -630,15 +629,15 @@ endpoint_impl! {
     - limit  - the number of items to return
     - offset - the index of the first item to return
     "###]
-    pub async fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn user_playlists(
         &self,
         user_id: &str,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<Page<SimplifiedPlaylist>, failure::Error> {
         let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.unwrap_or(0).to_string());
         let url = format!("users/{}/playlists", user_id);
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<Page<SimplifiedPlaylist>>(&result)
@@ -692,18 +691,18 @@ endpoint_impl! {
     - offset - the index of the first track to return
     - market - an ISO 3166-1 alpha-2 country code.
     "###]
-    pub async fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn user_playlist_tracks(
         &self,
         user_id: &str,
         playlist_id: &str,
         fields: Option<&str>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
         market: Option<Country>,
     ) -> Result<Page<PlaylistTrack>, failure::Error> {
         let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert("limit".to_owned(), limit.unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.unwrap_or(0).to_string());
         if let Some(_market) = market {
             params.insert("market".to_owned(), _market.as_str().to_owned());
         }
@@ -725,15 +724,15 @@ endpoint_impl! {
     - public - is the created playlist public
     - description - the description of the playlist
     "###]
-    pub async fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
+    pub async fn user_playlist_create(
         &self,
         user_id: &str,
         name: &str,
-        public: P,
-        description: D,
+        public: Option<bool>,
+        description: Option<String>,
     ) -> Result<FullPlaylist, failure::Error> {
-        let public = public.into().unwrap_or(true);
-        let description = description.into().unwrap_or_else(|| "".to_owned());
+        let public = public.unwrap_or(true);
+        let description = description.unwrap_or_else(|| "".to_owned());
         let params = json!({
             "name": name,
             "public": public,
@@ -848,7 +847,7 @@ endpoint_impl! {
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         // let mut params = Map::new();
-        // params.insert("uris".to_owned(), uris.into());
+        // params.insert("uris".to_owned(), uris);
         let params = json!({ "uris": uris });
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         match self.put(&url, &params).await {
@@ -868,17 +867,17 @@ endpoint_impl! {
     - insert_before - the position where the tracks should be inserted
     - snapshot_id - optional playlist's snapshot ID
     "###]
-    pub async fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
+    pub async fn user_playlist_recorder_tracks(
         &self,
         user_id: &str,
         playlist_id: &str,
         range_start: i32,
-        range_length: R,
+        range_length: Option<u32>,
         insert_before: i32,
         snapshot_id: Option<String>,
     ) -> Result<CUDResult, failure::Error> {
         let plid = self.get_id(Type::Playlist, playlist_id);
-        let range_length = range_length.into().unwrap_or(1);
+        let range_length = range_length.unwrap_or(1);
         let mut params = Map::new();
         if let Some(_snapshot_id) = snapshot_id {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
@@ -995,14 +994,14 @@ endpoint_impl! {
     - playlist_owner_id - the user id of the playlist owner
     - playlist_id - the id of the playlist
     "###]
-    pub async fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
+    pub async fn user_playlist_follow_playlist(
         &self,
         playlist_owner_id: &str,
         playlist_id: &str,
-        public: P,
+        public: Option<bool>,
     ) -> Result<(), failure::Error> {
         let mut map = Map::new();
-        let public = public.into().unwrap_or(true);
+        let public = public.unwrap_or(true);
         map.insert("public".to_owned(), public.into());
         let url = format!(
             "users/{}/playlists/{}/followers",
@@ -1091,13 +1090,13 @@ endpoint_impl! {
     - offset - the index of the first album to return
     - market - Provide this parameter if you want to apply Track Relinking.
     "###]
-    pub async fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_saved_albums(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<Page<SavedAlbum>, failure::Error> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
@@ -1113,13 +1112,13 @@ endpoint_impl! {
     - offset - the index of the first track to return
     - market - Provide this parameter if you want to apply Track Relinking.
     "###]
-    pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_saved_tracks(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<Page<SavedTrack>, failure::Error> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
@@ -1135,12 +1134,12 @@ endpoint_impl! {
     - limit - the number of tracks to return
     - after - ghe last artist ID retrieved from the previous request
     "###]
-    pub async fn current_user_followed_artists<L: Into<Option<u32>>>(
+    pub async fn current_user_followed_artists(
         &self,
-        limit: L,
+        limit: Option<u32>,
         after: Option<String>,
     ) -> Result<CursorPageFullArtists, failure::Error> {
-        let limit = limit.into().unwrap_or(20);
+        let limit = limit.unwrap_or(20);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         if let Some(_after) = after {
@@ -1225,19 +1224,15 @@ endpoint_impl! {
     - offset - the index of the first entity to return
     - time_range - Over what time frame are the affinities computed
     "###]
-    pub async fn current_user_top_artists<
-        L: Into<Option<u32>>,
-        O: Into<Option<u32>>,
-        T: Into<Option<TimeRange>>,
-    >(
+    pub async fn current_user_top_artists(
         &self,
-        limit: L,
-        offset: O,
-        time_range: T,
+        limit: Option<u32>,
+        offset: Option<u32>,
+        time_range: Option<TimeRange>,
     ) -> Result<Page<FullArtist>, failure::Error> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
+        let time_range = time_range.unwrap_or(TimeRange::MediumTerm);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
@@ -1255,19 +1250,15 @@ endpoint_impl! {
     - offset - the index of the first entity to return
     - time_range - Over what time frame are the affinities computed
     "###]
-    pub async fn current_user_top_tracks<
-        L: Into<Option<u32>>,
-        O: Into<Option<u32>>,
-        T: Into<Option<TimeRange>>,
-    >(
+    pub async fn current_user_top_tracks(
         &self,
-        limit: L,
-        offset: O,
-        time_range: T,
+        limit: Option<u32>,
+        offset: Option<u32>,
+        time_range: Option<TimeRange>,
     ) -> Result<Page<FullTrack>, failure::Error> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
+        let time_range = time_range.unwrap_or(TimeRange::MediumTerm);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
@@ -1283,11 +1274,11 @@ endpoint_impl! {
     Parameters:
     - limit - the number of entities to return
     "###]
-    pub async fn current_user_recently_played<L: Into<Option<u32>>>(
+    pub async fn current_user_recently_played(
         &self,
-        limit: L,
+        limit: Option<u32>,
     ) -> Result<CursorBasedPage<PlayHistory>, failure::Error> {
-        let limit = limit.into().unwrap_or(50);
+        let limit = limit.unwrap_or(50);
         let mut params = HashMap::new();
         params.insert("limit".to_owned(), limit.to_string());
         let url = String::from("me/player/recently-played");
@@ -1454,17 +1445,17 @@ endpoint_impl! {
     (the first object). Use with limit to get the next set of
     items.
     "###]
-    pub async fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn featured_playlists(
         &self,
         locale: Option<String>,
         country: Option<Country>,
         timestamp: Option<DateTime<Utc>>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<FeaturedPlaylists, failure::Error> {
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         if let Some(_locale) = locale {
             params.insert("locale".to_owned(), _locale);
         }
@@ -1492,15 +1483,15 @@ endpoint_impl! {
     (the first object). Use with limit to get the next set of
     items.
     "###]
-    pub async fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn new_releases(
         &self,
         country: Option<Country>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<PageSimpliedAlbums, failure::Error> {
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         if let Some(_country) = country {
             params.insert("country".to_owned(), _country.as_str().to_owned());
         }
@@ -1525,16 +1516,16 @@ endpoint_impl! {
     (the first object). Use with limit to get the next set of
     items.
     "###]
-    pub async fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn categories(
         &self,
         locale: Option<String>,
         country: Option<Country>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<PageCategory, failure::Error> {
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         if let Some(_locale) = locale {
             params.insert("locale".to_owned(), _locale);
         }
@@ -1563,17 +1554,17 @@ endpoint_impl! {
       in the documentation, these values provide filters and targeting on
       results.
     "###]
-    pub async fn recommendations<L: Into<Option<u32>>>(
+    pub async fn recommendations(
         &self,
         seed_artists: Option<Vec<String>>,
         seed_genres: Option<Vec<String>>,
         seed_tracks: Option<Vec<String>>,
-        limit: L,
+        limit: Option<u32>,
         country: Option<Country>,
         payload: &Map<String, Value>,
     ) -> Result<Recommendations, failure::Error> {
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
+        let limit = limit.unwrap_or(20);
         params.insert("limit".to_owned(), limit.to_string());
         if let Some(_seed_artists) = seed_artists {
             let seed_artists_ids: Vec<String> = _seed_artists
@@ -1778,13 +1769,13 @@ endpoint_impl! {
     - force_play - true: after transfer, play. false:
     keep current state.
     "###]
-    pub async fn transfer_playback<T: Into<Option<bool>>>(
+    pub async fn transfer_playback(
         &self,
         device_id: &str,
-        force_play: T,
+        force_play: Option<bool>,
     ) -> Result<(), failure::Error> {
         let device_ids = vec![device_id.to_owned()];
-        let force_play = force_play.into().unwrap_or(true);
+        let force_play = force_play.unwrap_or(true);
         let mut payload = Map::new();
         payload.insert("device_ids".to_owned(), device_ids.into());
         payload.insert("play".to_owned(), force_play.into());
@@ -2024,14 +2015,14 @@ endpoint_impl! {
     - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
     - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
     "###]
-    pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn get_saved_show(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> Result<Page<Show>, failure::Error> {
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         let url = "me/shows";
@@ -2094,17 +2085,17 @@ endpoint_impl! {
     - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
     - market: Optional. An ISO 3166-1 alpha-2 country code.
     "###]
-    pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn get_shows_episodes(
         &self,
         id: String,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
         market: Option<Country>,
     ) -> Result<Page<SimplifiedEpisode>, failure::Error> {
         let url = format!("shows/{}/episodes", id);
         let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
+        let limit = limit.unwrap_or(20);
+        let offset = offset.unwrap_or(0);
         params.insert("limit".to_owned(), limit.to_string());
         params.insert("offset".to_owned(), offset.to_string());
         if let Some(_market) = market {

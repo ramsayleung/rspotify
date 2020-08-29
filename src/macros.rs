@@ -39,7 +39,7 @@ macro_rules! endpoint_impl {
         impl $crate::client::Spotify {
             $(
                 $(#[$attr])*
-                pub async fn $name $(< $( $lt ),+ >)? (&$self, $($param : $paramty),*) -> $ret $code
+                pub async fn $name $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? (&$self, $($param : $paramty),*) -> $ret $code
             )*
         }
 
@@ -47,7 +47,7 @@ macro_rules! endpoint_impl {
         impl $crate::blocking::client::Spotify {
             $(
                 $(#[$attr])*
-                pub fn $name $(< $( $lt ),+ >)? (&$self, $($param : $paramty),*) -> $ret {
+                pub fn $name $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? (&$self, $($param : $paramty),*) -> $ret {
                     $crate::run_blocking! {
                         $crate::client::Spotify::$name($self.0, $($param),*)
                     }
