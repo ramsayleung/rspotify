@@ -16,7 +16,7 @@ fn main() {
     //     .build();
 
     let mut oauth = SpotifyOAuth::default()
-        .scope("user-read-birthdate user-read-private user-read-email")
+        .scope("user-read-currently-playing playlist-modify-private")
         .build();
     match get_token(&mut oauth) {
         Some(token_info) => {
