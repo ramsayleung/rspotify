@@ -119,7 +119,7 @@ pub struct Spotify {
 impl Spotify {
     //! If you want to check examples of all API endpoint, you could check the
     //! [examples](https://github.com/samrayleung/rspotify/tree/master/examples) in github
-    pub fn default() -> Spotify {
+    pub fn default() -> Self {
         Spotify {
             client: Client::new(),
             prefix: "https://api.spotify.com/v1/".to_owned(),
@@ -128,13 +128,13 @@ impl Spotify {
         }
     }
 
-    // pub fn prefix(mut self, prefix: &str) -> Spotify {
-    pub fn prefix(mut self, prefix: &str) -> Spotify {
+    // pub fn prefix(mut self, prefix: &str) -> Self {
+    pub fn prefix(mut self, prefix: &str) -> Self {
         self.prefix = prefix.to_owned();
         self
     }
 
-    pub fn access_token(mut self, access_token: &str) -> Spotify {
+    pub fn access_token(mut self, access_token: &str) -> Self {
         self.access_token = Some(access_token.to_owned());
         self
     }
@@ -142,12 +142,12 @@ impl Spotify {
     pub fn client_credentials_manager(
         mut self,
         client_credential_manager: SpotifyClientCredentials,
-    ) -> Spotify {
+    ) -> Self {
         self.client_credentials_manager = Some(client_credential_manager);
         self
     }
 
-    pub fn build(self) -> Spotify {
+    pub fn build(self) -> Self {
         if self.access_token.is_none() && self.client_credentials_manager.is_none() {
             panic!("access_token and client_credentials_manager are none!!!");
         }

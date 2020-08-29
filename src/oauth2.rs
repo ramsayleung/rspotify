@@ -95,7 +95,7 @@ impl TokenInfo {
 
 impl SpotifyClientCredentials {
     /// Build default SpotifyClientCredentials
-    pub fn default() -> SpotifyClientCredentials {
+    pub fn default() -> Self {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
@@ -113,19 +113,19 @@ impl SpotifyClientCredentials {
             token_info: None,
         }
     }
-    pub fn client_id(mut self, client_id: &str) -> SpotifyClientCredentials {
+    pub fn client_id(mut self, client_id: &str) -> Self {
         self.client_id = client_id.to_owned();
         self
     }
-    pub fn client_secret(mut self, client_secret: &str) -> SpotifyClientCredentials {
+    pub fn client_secret(mut self, client_secret: &str) -> Self {
         self.client_secret = client_secret.to_owned();
         self
     }
-    pub fn token_info(mut self, token_info: TokenInfo) -> SpotifyClientCredentials {
+    pub fn token_info(mut self, token_info: TokenInfo) -> Self {
         self.token_info = Some(token_info);
         self
     }
-    pub fn build(self) -> SpotifyClientCredentials {
+    pub fn build(self) -> Self {
         const ERROR_MESSAGE: &str = "
     You need to set your Spotify API credentials. You can do this by
     setting environment variables in `.env` file:
@@ -208,7 +208,7 @@ impl SpotifyOAuth {
     //    "refresh_token": "NgAagA...Um_SHo"
     // }
 
-    pub fn default() -> SpotifyOAuth {
+    pub fn default() -> Self {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
@@ -226,35 +226,35 @@ impl SpotifyOAuth {
             proxies: None,
         }
     }
-    pub fn client_id(mut self, client_id: &str) -> SpotifyOAuth {
+    pub fn client_id(mut self, client_id: &str) -> Self {
         self.client_id = client_id.to_owned();
         self
     }
-    pub fn client_secret(mut self, client_secret: &str) -> SpotifyOAuth {
+    pub fn client_secret(mut self, client_secret: &str) -> Self {
         self.client_secret = client_secret.to_owned();
         self
     }
-    pub fn redirect_uri(mut self, redirect_uri: &str) -> SpotifyOAuth {
+    pub fn redirect_uri(mut self, redirect_uri: &str) -> Self {
         self.redirect_uri = redirect_uri.to_owned();
         self
     }
-    pub fn scope(mut self, scope: &str) -> SpotifyOAuth {
+    pub fn scope(mut self, scope: &str) -> Self {
         self.scope = scope.to_owned();
         self
     }
-    pub fn state(mut self, state: &str) -> SpotifyOAuth {
+    pub fn state(mut self, state: &str) -> Self {
         self.state = state.to_owned();
         self
     }
-    pub fn cache_path(mut self, cache_path: PathBuf) -> SpotifyOAuth {
+    pub fn cache_path(mut self, cache_path: PathBuf) -> Self {
         self.cache_path = cache_path;
         self
     }
-    pub fn proxies(mut self, proxies: &str) -> SpotifyOAuth {
+    pub fn proxies(mut self, proxies: &str) -> Self {
         self.proxies = Some(proxies.to_owned());
         self
     }
-    pub fn build(self) -> SpotifyOAuth {
+    pub fn build(self) -> Self {
         const ERROR_MESSAGE: &str = "
     You need to set your Spotify API credentials. You can do this by
     setting environment variables in `.env` file:

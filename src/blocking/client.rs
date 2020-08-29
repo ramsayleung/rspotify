@@ -1,7 +1,9 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
 use chrono::prelude::*;
+use derive_deref::Deref;
 use failure::format_err;
+use lazy_static::lazy_static;
 use log::{error, trace};
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
@@ -10,6 +12,7 @@ use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::map::Map;
 use serde_json::{json, Value};
+use tokio::runtime::Runtime;
 
 //  Built-in battery
 use std::borrow::Cow;
@@ -20,6 +23,8 @@ use std::string::String;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
 use crate::blocking::util::convert_map_to_string;
+use crate::blocking::RT;
+use crate::client::Spotify as AsyncSpotify;
 use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
@@ -41,908 +46,724 @@ use crate::senum::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
 
-/// Describes API errors
-#[derive(Debug, Deserialize)]
-pub enum ApiError {
-    Unauthorized,
-    RateLimited(Option<usize>),
-    #[serde(alias = "error")]
-    RegularError {
-        status: u16,
-        message: String,
-    },
-    #[serde(alias = "error")]
-    PlayerError {
-        status: u16,
-        message: String,
-        reason: String,
-    },
-    Other(u16),
-}
-impl failure::Fail for ApiError {}
-impl fmt::Display for ApiError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ApiError::Unauthorized => write!(f, "Unauthorized request to API"),
-            ApiError::RateLimited(e) => {
-                if let Some(d) = e {
-                    write!(f, "Exceeded API request limit - please wait {} seconds", d)
-                } else {
-                    write!(f, "Exceeded API request limit")
-                }
-            }
-            ApiError::RegularError { status, message } => {
-                write!(f, "Spotify API error code {}: {}", status, message)
-            }
-            ApiError::PlayerError {
-                status,
-                message,
-                reason,
-            } => write!(
-                f,
-                "Spotify API error code {} {}: {}",
-                status, reason, message
-            ),
-            ApiError::Other(s) => write!(f, "Spotify API reported error code {}", s),
-        }
-    }
-}
-impl From<reqwest::blocking::Response> for ApiError {
-    fn from(response: reqwest::blocking::Response) -> Self {
-        match response.status() {
-            StatusCode::UNAUTHORIZED => ApiError::Unauthorized,
-            StatusCode::TOO_MANY_REQUESTS => {
-                if let Ok(duration) = response.headers()[reqwest::header::RETRY_AFTER].to_str() {
-                    ApiError::RateLimited(duration.parse::<usize>().ok())
-                } else {
-                    ApiError::RateLimited(None)
-                }
-            }
-            status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => {
-                if let Ok(reason) = response.json::<ApiError>() {
-                    reason
-                } else {
-                    ApiError::Other(status.as_u16())
-                }
-            }
-            status => ApiError::Other(status.as_u16()),
-        }
-    }
-}
 /// Spotify API object
-#[derive(Debug, Clone)]
-pub struct Spotify {
-    client: Client,
-    pub prefix: String,
-    pub access_token: Option<String>,
-    pub client_credentials_manager: Option<SpotifyClientCredentials>,
-}
+#[derive(Debug, Clone, Deref)]
+pub struct Spotify(AsyncSpotify);
+
 impl Spotify {
-    //! If you want to check examples of all API endpoint, you could check the
-    //! [examples](https://github.com/samrayleung/rspotify/tree/master/examples) in github
-    pub fn default() -> Spotify {
-        Spotify {
-            client: Client::new(),
-            prefix: "https://api.spotify.com/v1/".to_owned(),
-            access_token: None,
-            client_credentials_manager: None,
-        }
+    pub fn default() -> Self {
+        Spotify(AsyncSpotify::default())
     }
 
-    // pub fn prefix(mut self, prefix: &str) -> Spotify {
-    pub fn prefix(mut self, prefix: &str) -> Spotify {
-        self.prefix = prefix.to_owned();
+    pub fn prefix(mut self, prefix: &str) -> Self {
+        self.0 = self.0.prefix(prefix);
         self
     }
 
-    pub fn access_token(mut self, access_token: &str) -> Spotify {
-        self.access_token = Some(access_token.to_owned());
+    pub fn access_token(mut self, access_token: &str) -> Self {
+        self.0 = self.0.access_token(access_token);
         self
     }
 
     pub fn client_credentials_manager(
         mut self,
         client_credential_manager: SpotifyClientCredentials,
-    ) -> Spotify {
-        self.client_credentials_manager = Some(client_credential_manager);
+    ) -> Self {
+        self.0 = self.0.client_credentials_manager(client_credential_manager.0);
         self
     }
 
-    pub fn build(self) -> Spotify {
-        if self.access_token.is_none() && self.client_credentials_manager.is_none() {
-            panic!("access_token and client_credentials_manager are none!!!");
+    pub fn build(self) -> Self {
+        Spotify(self.0.build())
+    }
+
+    /*
+        /// [get-track](https://developer.spotify.com/web-api/get-track/)
+        /// returns a single track given the track's ID, URI or URL
+        /// Parameters:
+        /// - track_id - a spotify URI, URL or ID
+        pub fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
+            let trid = self.get_id(Type::Track, track_id);
+            let url = format!("tracks/{}", trid);
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<FullTrack>(&result)
         }
-        self
-    }
 
-    fn auth_headers(&self) -> String {
-        let token = match self.access_token {
-            Some(ref token) => token.to_owned(),
-            None => match self.client_credentials_manager {
-                Some(ref client_credentials_manager) => {
-                    client_credentials_manager.get_access_token()
+        /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
+        /// returns a list of tracks given a list of track IDs, URIs, or URLs
+        /// Parameters:
+        /// - track_ids - a list of spotify URIs, URLs or IDs
+        /// - market - an ISO 3166-1 alpha-2 country code.
+        pub fn tracks(
+            &self,
+            track_ids: Vec<&str>,
+            market: Option<Country>,
+        ) -> Result<FullTracks, failure::Error> {
+            let mut ids: Vec<String> = vec![];
+            for track_id in track_ids {
+                ids.push(self.get_id(Type::Track, track_id));
+            }
+            let url = format!("tracks/?ids={}", ids.join(","));
+            // url.push_str(&ids.join(","));
+            let mut params: HashMap<String, String> = HashMap::new();
+            if let Some(_market) = market {
+                params.insert("market".to_owned(), _market.as_str().to_owned());
+            }
+            trace!("{:?}", &url);
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<FullTracks>(&result)
+        }
+
+        /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
+        /// returns a single artist given the artist's ID, URI or URL
+        /// Parameters:
+        /// - artist_id - an artist ID, URI or URL
+        pub fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
+            let trid = self.get_id(Type::Artist, artist_id);
+            let url = format!("artists/{}", trid);
+            // url.push_str(&trid);
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<FullArtist>(&result)
+        }
+
+        /// [get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
+        /// returns a list of artists given the artist IDs, URIs, or URLs
+        /// Parameters:
+        /// - artist_ids - a list of  artist IDs, URIs or URLs
+        pub fn artists(&self, artist_ids: Vec<String>) -> Result<FullArtists, failure::Error> {
+            let mut ids: Vec<String> = vec![];
+            for artist_id in artist_ids {
+                ids.push(self.get_id(Type::Artist, &artist_id));
+            }
+            let url = format!("artists/?ids={}", ids.join(","));
+            // url.push_str(&ids.join(","));
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<FullArtists>(&result)
+        }
+
+        /// [get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
+        /// Get Spotify catalog information about an artist's albums
+        /// - artist_id - the artist ID, URI or URL
+        /// - album_type - 'album', 'single', 'appears_on', 'compilation'
+        /// - country - limit the response to one particular country.
+        /// - limit  - the number of albums to return
+        /// - offset - the index of the first album to return
+        pub fn artist_albums(
+            &self,
+            artist_id: &str,
+            album_type: Option<AlbumType>,
+            country: Option<Country>,
+            limit: Option<u32>,
+            offset: Option<u32>,
+        ) -> Result<Page<SimplifiedAlbum>, failure::Error> {
+            let mut params: HashMap<String, String> = HashMap::new();
+            if let Some(_limit) = limit {
+                params.insert("limit".to_owned(), _limit.to_string());
+            }
+            if let Some(_album_type) = album_type {
+                params.insert("album_type".to_owned(), _album_type.as_str().to_owned());
+            }
+            if let Some(_offset) = offset {
+                params.insert("offset".to_owned(), _offset.to_string());
+            }
+            if let Some(_country) = country {
+                params.insert("country".to_owned(), _country.as_str().to_owned());
+            }
+            let trid = self.get_id(Type::Artist, artist_id);
+            let url = format!("artists/{}/albums", trid);
+            // url.push_str(&trid);
+            // url.push_str("/albums");
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<Page<SimplifiedAlbum>>(&result)
+        }
+
+        /// [get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
+        /// Get Spotify catalog information about an artist's top 10 tracks by country.
+        /// Parameters:
+        /// - artist_id - the artist ID, URI or URL
+        /// - country - limit the response to one particular country.
+        pub fn artist_top_tracks<T: Into<Option<Country>>>(
+            &self,
+            artist_id: &str,
+            country: T,
+        ) -> Result<FullTracks, failure::Error> {
+            let mut params: HashMap<String, String> = HashMap::new();
+            let country = country
+                .into()
+                .unwrap_or(Country::UnitedStates)
+                .as_str()
+                .to_string();
+            params.insert("country".to_owned(), country);
+            let trid = self.get_id(Type::Artist, artist_id);
+            let url = format!("artists/{}/top-tracks", trid);
+
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<FullTracks>(&result)
+            // match self.get(&mut url, &mut params) {
+            //     Ok(result) => {
+            //         // let mut albums: Albums = ;
+            //         match serde_json::from_str::<FullTracks>(&result) {
+            //             Ok(_tracks) => Some(_tracks),
+            //             Err(why) => {
+            //                 eprintln!("convert albums from String to Albums failed {:?}", why);
+            //                 None
+            //             }
+            //         }
+            //     }
+            //     Err(_) => None,
+            // }
+        }
+
+        /// [get related artists](https://developer.spotify.com/web-api/get-related-artists/)
+        /// Get Spotify catalog information about artists similar to an
+        /// identified artist. Similarity is based on analysis of the
+        /// Spotify community's listening history.
+        /// Parameters:
+        /// - artist_id - the artist ID, URI or URL
+        pub fn artist_related_artists(&self, artist_id: &str) -> Result<FullArtists, failure::Error> {
+            let trid = self.get_id(Type::Artist, artist_id);
+            let url = format!("artists/{}/related-artists", trid);
+            // url.push_str(&trid);
+            // url.push_str("/related-artists");
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<FullArtists>(&result)
+        }
+
+        /// [get album](https://developer.spotify.com/web-api/get-album/)
+        /// returns a single album given the album's ID, URIs or URL
+        /// Parameters:
+        /// - album_id - the album ID, URI or URL
+        pub fn album(&self, album_id: &str) -> Result<FullAlbum, failure::Error> {
+            let trid = self.get_id(Type::Album, album_id);
+            let url = format!("albums/{}", trid);
+            // url.push_str(&trid);
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<FullAlbum>(&result)
+        }
+
+        /// [get several albums](https://developer.spotify.com/web-api/get-several-albums/)
+        /// returns a list of albums given the album IDs, URIs, or URLs
+        /// Parameters:
+        /// - albums_ids - a list of  album IDs, URIs or URLs
+        pub fn albums(&self, album_ids: Vec<String>) -> Result<FullAlbums, failure::Error> {
+            let mut ids: Vec<String> = vec![];
+            for album_id in album_ids {
+                ids.push(self.get_id(Type::Album, &album_id));
+            }
+            let url = format!("albums/?ids={}", ids.join(","));
+            // url.push_str(&ids.join(","));
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<FullAlbums>(&result)
+        }
+        */
+
+        /// [search for items](https://developer.spotify.com/web-api/search-item/)
+        /// Search for an Item
+        /// Get Spotify catalog information about artists, albums, tracks or
+        ///  playlists that match a keyword string.
+        ///             Parameters:
+        /// - q - the search query
+        /// - limit  - the number of items to return
+        /// - offset - the index of the first item to return
+        /// - type - the type of item to return. One of 'artist', 'album',
+        /// 'track' or 'playlist'
+        /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
+        pub fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+            &self,
+            q: &str,
+            _type: SearchType,
+            limit: L,
+            offset: O,
+            market: Option<Country>,
+            include_external: Option<IncludeExternal>,
+        ) -> Result<SearchResult, failure::Error> {
+            RT.handle().block_on(async move { self.0.search(q, _type, limit, offset, market, include_external).await })
+        }
+
+        /*
+        /// [get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
+        /// Get Spotify catalog information about an album's tracks
+        /// Parameters:
+        /// - album_id - the album ID, URI or URL
+        /// - limit  - the number of items to return
+        /// - offset - the index of the first item to return
+        pub fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+            &self,
+            album_id: &str,
+            limit: L,
+            offset: O,
+        ) -> Result<Page<SimplifiedTrack>, failure::Error> {
+            let mut params = HashMap::new();
+            let trid = self.get_id(Type::Album, album_id);
+            let url = format!("albums/{}/tracks", trid);
+            // url.push_str(&trid);
+            // url.push_str("/tracks");
+            params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+            params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<Page<SimplifiedTrack>>(&result)
+        }
+
+        /// [get users profile](https://developer.spotify.com/web-api/get-users-profile/)
+        /// Gets basic profile information about a Spotify User
+        /// Parameters:
+        /// - user - the id of the usr
+        pub fn user(&self, user_id: &str) -> Result<PublicUser, failure::Error> {
+            let url = format!("users/{}", user_id);
+            let result = self.get(&url, &mut HashMap::new())?;
+            self.convert_result::<PublicUser>(&result)
+        }
+
+        /// [get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
+        /// Get full details about Spotify playlist
+        /// Parameters:
+        /// - playlist_id - the id of the playlist
+        /// - market - an ISO 3166-1 alpha-2 country code.
+        pub fn playlist(
+            &self,
+            playlist_id: &str,
+            fields: Option<&str>,
+            market: Option<Country>,
+        ) -> Result<FullPlaylist, failure::Error> {
+            let mut params = HashMap::new();
+            if let Some(_fields) = fields {
+                params.insert("fields".to_owned(), _fields.to_string());
+            }
+            if let Some(_market) = market {
+                params.insert("market".to_owned(), _market.as_str().to_owned());
+            }
+
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let url = format!("playlists/{}", plid);
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<FullPlaylist>(&result)
+        }
+
+        /// [get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
+        /// Get current user playlists without required getting his profile
+        /// Parameters:
+        /// - limit  - the number of items to return
+        /// - offset - the index of the first item to return
+        pub fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+            &self,
+            limit: L,
+            offset: O,
+        ) -> Result<Page<SimplifiedPlaylist>, failure::Error> {
+            let mut params = HashMap::new();
+            params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+            params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+
+            let url = String::from("me/playlists");
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<Page<SimplifiedPlaylist>>(&result)
+        }
+
+        /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
+        /// Gets playlists of a user
+        /// Parameters:
+        /// - user_id - the id of the usr
+        /// - limit  - the number of items to return
+        /// - offset - the index of the first item to return
+        pub fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+            &self,
+            user_id: &str,
+            limit: L,
+            offset: O,
+        ) -> Result<Page<SimplifiedPlaylist>, failure::Error> {
+            let mut params = HashMap::new();
+            params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+            params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+            let url = format!("users/{}/playlists", user_id);
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<Page<SimplifiedPlaylist>>(&result)
+        }
+
+        /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
+        /// Gets playlist of a user
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - fields - which fields to return
+        pub fn user_playlist(
+            &self,
+            user_id: &str,
+            playlist_id: Option<&mut str>,
+            fields: Option<&str>,
+            market: Option<Country>,
+        ) -> Result<FullPlaylist, failure::Error> {
+            let mut params = HashMap::new();
+            if let Some(_fields) = fields {
+                params.insert("fields".to_owned(), _fields.to_string());
+            }
+            if let Some(_market) = market {
+                params.insert("market".to_owned(), _market.as_str().to_owned());
+            }
+            match playlist_id {
+                Some(_playlist_id) => {
+                    let plid = self.get_id(Type::Playlist, _playlist_id);
+                    let url = format!("users/{}/playlists/{}", user_id, plid);
+                    let result = self.get(&url, &mut params)?;
+                    self.convert_result::<FullPlaylist>(&result)
                 }
-                None => panic!("client credentials manager is none"),
-            },
-        };
-        "Bearer ".to_owned() + &token
-    }
-
-    fn internal_call(
-        &self,
-        method: Method,
-        url: &str,
-        payload: Option<&Value>,
-    ) -> Result<String, failure::Error> {
-        let mut url: Cow<str> = url.into();
-        if !url.starts_with("http") {
-            url = ["https://api.spotify.com/v1/", &url].concat().into();
-        }
-
-        let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, self.auth_headers().parse().unwrap());
-        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
-
-        let mut response = {
-            let builder = self
-                .client
-                .request(method, &url.into_owned())
-                .headers(headers);
-
-            // Only add body if necessary
-            // spotify rejects GET requests that have a body with a 400 response
-            let builder = if let Some(json) = payload {
-                builder.json(json)
-            } else {
-                builder
-            };
-
-            builder.send().unwrap()
-        };
-
-        let mut buf = String::new();
-        response
-            .read_to_string(&mut buf)
-            .expect("failed to read response");
-        if response.status().is_success() {
-            Ok(buf)
-        } else {
-            Err(failure::Error::from(ApiError::from(response)))
-        }
-    }
-    ///send get request
-    fn get(
-        &self,
-        url: &str,
-        params: &mut HashMap<String, String>,
-    ) -> Result<String, failure::Error> {
-        if !params.is_empty() {
-            let param: String = convert_map_to_string(params);
-            let mut url_with_params = url.to_owned();
-            url_with_params.push('?');
-            url_with_params.push_str(&param);
-            self.internal_call(Method::GET, &url_with_params, None)
-        } else {
-            self.internal_call(Method::GET, url, None)
-        }
-    }
-
-    /// Send post request
-    fn post(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Method::POST, url, Some(payload))
-    }
-    /// Send put request
-    fn put(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Method::PUT, url, Some(payload))
-    }
-
-    /// Send delete request
-    fn delete(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
-        self.internal_call(Method::DELETE, url, Some(payload))
-    }
-
-    /// [get-track](https://developer.spotify.com/web-api/get-track/)
-    /// returns a single track given the track's ID, URI or URL
-    /// Parameters:
-    /// - track_id - a spotify URI, URL or ID
-    pub fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
-        let trid = self.get_id(Type::Track, track_id);
-        let url = format!("tracks/{}", trid);
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<FullTrack>(&result)
-    }
-
-    /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
-    /// returns a list of tracks given a list of track IDs, URIs, or URLs
-    /// Parameters:
-    /// - track_ids - a list of spotify URIs, URLs or IDs
-    /// - market - an ISO 3166-1 alpha-2 country code.
-    pub fn tracks(
-        &self,
-        track_ids: Vec<&str>,
-        market: Option<Country>,
-    ) -> Result<FullTracks, failure::Error> {
-        let mut ids: Vec<String> = vec![];
-        for track_id in track_ids {
-            ids.push(self.get_id(Type::Track, track_id));
-        }
-        let url = format!("tracks/?ids={}", ids.join(","));
-        // url.push_str(&ids.join(","));
-        let mut params: HashMap<String, String> = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
-        }
-        trace!("{:?}", &url);
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<FullTracks>(&result)
-    }
-
-    /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
-    /// returns a single artist given the artist's ID, URI or URL
-    /// Parameters:
-    /// - artist_id - an artist ID, URI or URL
-    pub fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}", trid);
-        // url.push_str(&trid);
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<FullArtist>(&result)
-    }
-
-    /// [get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
-    /// returns a list of artists given the artist IDs, URIs, or URLs
-    /// Parameters:
-    /// - artist_ids - a list of  artist IDs, URIs or URLs
-    pub fn artists(&self, artist_ids: Vec<String>) -> Result<FullArtists, failure::Error> {
-        let mut ids: Vec<String> = vec![];
-        for artist_id in artist_ids {
-            ids.push(self.get_id(Type::Artist, &artist_id));
-        }
-        let url = format!("artists/?ids={}", ids.join(","));
-        // url.push_str(&ids.join(","));
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<FullArtists>(&result)
-    }
-
-    /// [get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
-    /// Get Spotify catalog information about an artist's albums
-    /// - artist_id - the artist ID, URI or URL
-    /// - album_type - 'album', 'single', 'appears_on', 'compilation'
-    /// - country - limit the response to one particular country.
-    /// - limit  - the number of albums to return
-    /// - offset - the index of the first album to return
-    pub fn artist_albums(
-        &self,
-        artist_id: &str,
-        album_type: Option<AlbumType>,
-        country: Option<Country>,
-        limit: Option<u32>,
-        offset: Option<u32>,
-    ) -> Result<Page<SimplifiedAlbum>, failure::Error> {
-        let mut params: HashMap<String, String> = HashMap::new();
-        if let Some(_limit) = limit {
-            params.insert("limit".to_owned(), _limit.to_string());
-        }
-        if let Some(_album_type) = album_type {
-            params.insert("album_type".to_owned(), _album_type.as_str().to_owned());
-        }
-        if let Some(_offset) = offset {
-            params.insert("offset".to_owned(), _offset.to_string());
-        }
-        if let Some(_country) = country {
-            params.insert("country".to_owned(), _country.as_str().to_owned());
-        }
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/albums", trid);
-        // url.push_str(&trid);
-        // url.push_str("/albums");
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<Page<SimplifiedAlbum>>(&result)
-    }
-
-    /// [get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
-    /// Get Spotify catalog information about an artist's top 10 tracks by country.
-    /// Parameters:
-    /// - artist_id - the artist ID, URI or URL
-    /// - country - limit the response to one particular country.
-    pub fn artist_top_tracks<T: Into<Option<Country>>>(
-        &self,
-        artist_id: &str,
-        country: T,
-    ) -> Result<FullTracks, failure::Error> {
-        let mut params: HashMap<String, String> = HashMap::new();
-        let country = country
-            .into()
-            .unwrap_or(Country::UnitedStates)
-            .as_str()
-            .to_string();
-        params.insert("country".to_owned(), country);
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/top-tracks", trid);
-
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<FullTracks>(&result)
-        // match self.get(&mut url, &mut params) {
-        //     Ok(result) => {
-        //         // let mut albums: Albums = ;
-        //         match serde_json::from_str::<FullTracks>(&result) {
-        //             Ok(_tracks) => Some(_tracks),
-        //             Err(why) => {
-        //                 eprintln!("convert albums from String to Albums failed {:?}", why);
-        //                 None
-        //             }
-        //         }
-        //     }
-        //     Err(_) => None,
-        // }
-    }
-
-    /// [get related artists](https://developer.spotify.com/web-api/get-related-artists/)
-    /// Get Spotify catalog information about artists similar to an
-    /// identified artist. Similarity is based on analysis of the
-    /// Spotify community's listening history.
-    /// Parameters:
-    /// - artist_id - the artist ID, URI or URL
-    pub fn artist_related_artists(&self, artist_id: &str) -> Result<FullArtists, failure::Error> {
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/related-artists", trid);
-        // url.push_str(&trid);
-        // url.push_str("/related-artists");
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<FullArtists>(&result)
-    }
-
-    /// [get album](https://developer.spotify.com/web-api/get-album/)
-    /// returns a single album given the album's ID, URIs or URL
-    /// Parameters:
-    /// - album_id - the album ID, URI or URL
-    pub fn album(&self, album_id: &str) -> Result<FullAlbum, failure::Error> {
-        let trid = self.get_id(Type::Album, album_id);
-        let url = format!("albums/{}", trid);
-        // url.push_str(&trid);
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<FullAlbum>(&result)
-    }
-
-    /// [get several albums](https://developer.spotify.com/web-api/get-several-albums/)
-    /// returns a list of albums given the album IDs, URIs, or URLs
-    /// Parameters:
-    /// - albums_ids - a list of  album IDs, URIs or URLs
-    pub fn albums(&self, album_ids: Vec<String>) -> Result<FullAlbums, failure::Error> {
-        let mut ids: Vec<String> = vec![];
-        for album_id in album_ids {
-            ids.push(self.get_id(Type::Album, &album_id));
-        }
-        let url = format!("albums/?ids={}", ids.join(","));
-        // url.push_str(&ids.join(","));
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<FullAlbums>(&result)
-    }
-
-    /// [search for items](https://developer.spotify.com/web-api/search-item/)
-    /// Search for an Item
-    /// Get Spotify catalog information about artists, albums, tracks or
-    ///  playlists that match a keyword string.
-    ///             Parameters:
-    /// - q - the search query
-    /// - limit  - the number of items to return
-    /// - offset - the index of the first item to return
-    /// - type - the type of item to return. One of 'artist', 'album',
-    /// 'track' or 'playlist'
-    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    pub fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        q: &str,
-        _type: SearchType,
-        limit: L,
-        offset: O,
-        market: Option<Country>,
-        include_external: Option<IncludeExternal>,
-    ) -> Result<SearchResult, failure::Error> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(10);
-        let offset = offset.into().unwrap_or(0);
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
-        }
-        if let Some(_include_external) = include_external {
-            params.insert(
-                "include_external".to_owned(),
-                _include_external.as_str().to_owned(),
-            );
-        }
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        params.insert("q".to_owned(), q.to_owned());
-        params.insert("type".to_owned(), _type.as_str().to_owned());
-        let url = String::from("search");
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<SearchResult>(&result)
-    }
-
-    /// [get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
-    /// Get Spotify catalog information about an album's tracks
-    /// Parameters:
-    /// - album_id - the album ID, URI or URL
-    /// - limit  - the number of items to return
-    /// - offset - the index of the first item to return
-    pub fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        album_id: &str,
-        limit: L,
-        offset: O,
-    ) -> Result<Page<SimplifiedTrack>, failure::Error> {
-        let mut params = HashMap::new();
-        let trid = self.get_id(Type::Album, album_id);
-        let url = format!("albums/{}/tracks", trid);
-        // url.push_str(&trid);
-        // url.push_str("/tracks");
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<Page<SimplifiedTrack>>(&result)
-    }
-
-    /// [get users profile](https://developer.spotify.com/web-api/get-users-profile/)
-    /// Gets basic profile information about a Spotify User
-    /// Parameters:
-    /// - user - the id of the usr
-    pub fn user(&self, user_id: &str) -> Result<PublicUser, failure::Error> {
-        let url = format!("users/{}", user_id);
-        let result = self.get(&url, &mut HashMap::new())?;
-        self.convert_result::<PublicUser>(&result)
-    }
-
-    /// [get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
-    /// Get full details about Spotify playlist
-    /// Parameters:
-    /// - playlist_id - the id of the playlist
-    /// - market - an ISO 3166-1 alpha-2 country code.
-    pub fn playlist(
-        &self,
-        playlist_id: &str,
-        fields: Option<&str>,
-        market: Option<Country>,
-    ) -> Result<FullPlaylist, failure::Error> {
-        let mut params = HashMap::new();
-        if let Some(_fields) = fields {
-            params.insert("fields".to_owned(), _fields.to_string());
-        }
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
-        }
-
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("playlists/{}", plid);
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<FullPlaylist>(&result)
-    }
-
-    /// [get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
-    /// Get current user playlists without required getting his profile
-    /// Parameters:
-    /// - limit  - the number of items to return
-    /// - offset - the index of the first item to return
-    pub fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        limit: L,
-        offset: O,
-    ) -> Result<Page<SimplifiedPlaylist>, failure::Error> {
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-
-        let url = String::from("me/playlists");
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<Page<SimplifiedPlaylist>>(&result)
-    }
-
-    /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
-    /// Gets playlists of a user
-    /// Parameters:
-    /// - user_id - the id of the usr
-    /// - limit  - the number of items to return
-    /// - offset - the index of the first item to return
-    pub fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        user_id: &str,
-        limit: L,
-        offset: O,
-    ) -> Result<Page<SimplifiedPlaylist>, failure::Error> {
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let url = format!("users/{}/playlists", user_id);
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<Page<SimplifiedPlaylist>>(&result)
-    }
-
-    /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
-    /// Gets playlist of a user
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - fields - which fields to return
-    pub fn user_playlist(
-        &self,
-        user_id: &str,
-        playlist_id: Option<&mut str>,
-        fields: Option<&str>,
-        market: Option<Country>,
-    ) -> Result<FullPlaylist, failure::Error> {
-        let mut params = HashMap::new();
-        if let Some(_fields) = fields {
-            params.insert("fields".to_owned(), _fields.to_string());
-        }
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
-        }
-        match playlist_id {
-            Some(_playlist_id) => {
-                let plid = self.get_id(Type::Playlist, _playlist_id);
-                let url = format!("users/{}/playlists/{}", user_id, plid);
-                let result = self.get(&url, &mut params)?;
-                self.convert_result::<FullPlaylist>(&result)
-            }
-            None => {
-                let url = format!("users/{}/starred", user_id);
-                let result = self.get(&url, &mut params)?;
-                self.convert_result::<FullPlaylist>(&result)
+                None => {
+                    let url = format!("users/{}/starred", user_id);
+                    let result = self.get(&url, &mut params)?;
+                    self.convert_result::<FullPlaylist>(&result)
+                }
             }
         }
-    }
 
-    /// [get playlists tracks](https://developer.spotify.com/web-api/get-playlists-tracks/)
-    /// Get full details of the tracks of a playlist owned by a user
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - fields - which fields to return
-    /// - limit - the maximum number of tracks to return
-    /// - offset - the index of the first track to return
-    /// - market - an ISO 3166-1 alpha-2 country code.
-    pub fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        fields: Option<&str>,
-        limit: L,
-        offset: O,
-        market: Option<Country>,
-    ) -> Result<Page<PlaylistTrack>, failure::Error> {
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
+        /// [get playlists tracks](https://developer.spotify.com/web-api/get-playlists-tracks/)
+        /// Get full details of the tracks of a playlist owned by a user
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - fields - which fields to return
+        /// - limit - the maximum number of tracks to return
+        /// - offset - the index of the first track to return
+        /// - market - an ISO 3166-1 alpha-2 country code.
+        pub fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            fields: Option<&str>,
+            limit: L,
+            offset: O,
+            market: Option<Country>,
+        ) -> Result<Page<PlaylistTrack>, failure::Error> {
+            let mut params = HashMap::new();
+            params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+            params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+            if let Some(_market) = market {
+                params.insert("market".to_owned(), _market.as_str().to_owned());
+            }
+            if let Some(_fields) = fields {
+                params.insert("fields".to_owned(), _fields.to_string());
+            }
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+            let result = self.get(&url, &mut params)?;
+            self.convert_result::<Page<PlaylistTrack>>(&result)
         }
-        if let Some(_fields) = fields {
-            params.insert("fields".to_owned(), _fields.to_string());
-        }
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.get(&url, &mut params)?;
-        self.convert_result::<Page<PlaylistTrack>>(&result)
-    }
 
-    /// [create playlist](https://developer.spotify.com/web-api/create-playlist/)
-    /// Creates a playlist for a user
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - name - the name of the playlist
-    /// - public - is the created playlist public
-    /// - description - the description of the playlist
-    pub fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
-        &self,
-        user_id: &str,
-        name: &str,
-        public: P,
-        description: D,
-    ) -> Result<FullPlaylist, failure::Error> {
-        let public = public.into().unwrap_or(true);
-        let description = description.into().unwrap_or_else(|| "".to_owned());
-        let params = json!({
-            "name": name,
-            "public": public,
-            "description": description
-        });
-        let url = format!("users/{}/playlists", user_id);
-        let result = self.post(&url, &params)?;
-        self.convert_result::<FullPlaylist>(&result)
-    }
+        /// [create playlist](https://developer.spotify.com/web-api/create-playlist/)
+        /// Creates a playlist for a user
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - name - the name of the playlist
+        /// - public - is the created playlist public
+        /// - description - the description of the playlist
+        pub fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
+            &self,
+            user_id: &str,
+            name: &str,
+            public: P,
+            description: D,
+        ) -> Result<FullPlaylist, failure::Error> {
+            let public = public.into().unwrap_or(true);
+            let description = description.into().unwrap_or_else(|| "".to_owned());
+            let params = json!({
+                "name": name,
+                "public": public,
+                "description": description
+            });
+            let url = format!("users/{}/playlists", user_id);
+            let result = self.post(&url, &params)?;
+            self.convert_result::<FullPlaylist>(&result)
+        }
 
-    /// [change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
-    /// Changes a playlist's name and/or public/private state
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - name - optional name of the playlist
-    /// - public - optional is the playlist public
-    /// - collaborative - optional is the playlist collaborative
-    /// - description - optional description of the playlist
-    pub fn user_playlist_change_detail(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        name: Option<&str>,
-        public: Option<bool>,
-        description: Option<String>,
-        collaborative: Option<bool>,
-    ) -> Result<String, failure::Error> {
-        let mut params = Map::new();
-        if let Some(_name) = name {
-            params.insert("name".to_owned(), _name.into());
+        /// [change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
+        /// Changes a playlist's name and/or public/private state
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - name - optional name of the playlist
+        /// - public - optional is the playlist public
+        /// - collaborative - optional is the playlist collaborative
+        /// - description - optional description of the playlist
+        pub fn user_playlist_change_detail(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            name: Option<&str>,
+            public: Option<bool>,
+            description: Option<String>,
+            collaborative: Option<bool>,
+        ) -> Result<String, failure::Error> {
+            let mut params = Map::new();
+            if let Some(_name) = name {
+                params.insert("name".to_owned(), _name.into());
+            }
+            if let Some(_public) = public {
+                params.insert("public".to_owned(), _public.into());
+            }
+            if let Some(_collaborative) = collaborative {
+                params.insert("collaborative".to_owned(), _collaborative.into());
+            }
+            if let Some(_description) = description {
+                params.insert("description".to_owned(), _description.into());
+            }
+            let url = format!("users/{}/playlists/{}", user_id, playlist_id);
+            self.put(&url, &Value::Object(params))
         }
-        if let Some(_public) = public {
-            params.insert("public".to_owned(), _public.into());
-        }
-        if let Some(_collaborative) = collaborative {
-            params.insert("collaborative".to_owned(), _collaborative.into());
-        }
-        if let Some(_description) = description {
-            params.insert("description".to_owned(), _description.into());
-        }
-        let url = format!("users/{}/playlists/{}", user_id, playlist_id);
-        self.put(&url, &Value::Object(params))
-    }
 
-    /// [unfollow playlist](https://developer.spotify.com/web-api/unfollow-playlist/)
-    /// Unfollows (deletes) a playlist for a user
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    pub fn user_playlist_unfollow(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-    ) -> Result<String, failure::Error> {
-        let url = format!("users/{}/playlists/{}/followers", user_id, playlist_id);
-        self.delete(&url, &json!({}))
-    }
-
-    /// [add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
-    /// Adds tracks to a playlist
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - track_ids - a list of track URIs, URLs or IDs
-    /// - position - the position to add the tracks
-    pub fn user_playlist_add_tracks(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        track_ids: &[String],
-        position: Option<i32>,
-    ) -> Result<CUDResult, failure::Error> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
-            .iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
-        let mut params = Map::new();
-        if let Some(_position) = position {
-            params.insert("position".to_owned(), _position.into());
+        /// [unfollow playlist](https://developer.spotify.com/web-api/unfollow-playlist/)
+        /// Unfollows (deletes) a playlist for a user
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        pub fn user_playlist_unfollow(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+        ) -> Result<String, failure::Error> {
+            let url = format!("users/{}/playlists/{}/followers", user_id, playlist_id);
+            self.delete(&url, &json!({}))
         }
-        params.insert("uris".to_owned(), uris.into());
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.post(&url, &Value::Object(params))?;
-        self.convert_result::<CUDResult>(&result)
-    }
 
-    /// [replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
-    /// Replace all tracks in a playlist
-    /// Parameters:
-    /// - user - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - tracks - the list of track ids to add to the playlist
-    pub fn user_playlist_replace_tracks(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        track_ids: &[String],
-    ) -> Result<(), failure::Error> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
-            .iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
-        // let mut params = Map::new();
-        // params.insert("uris".to_owned(), uris.into());
-        let params = json!({ "uris": uris });
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        match self.put(&url, &params) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
+        /// [add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
+        /// Adds tracks to a playlist
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - track_ids - a list of track URIs, URLs or IDs
+        /// - position - the position to add the tracks
+        pub fn user_playlist_add_tracks(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            track_ids: &[String],
+            position: Option<i32>,
+        ) -> Result<CUDResult, failure::Error> {
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let uris: Vec<String> = track_ids
+                .iter()
+                .map(|id| self.get_uri(Type::Track, id))
+                .collect();
+            let mut params = Map::new();
+            if let Some(_position) = position {
+                params.insert("position".to_owned(), _position.into());
+            }
+            params.insert("uris".to_owned(), uris.into());
+            let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+            let result = self.post(&url, &Value::Object(params))?;
+            self.convert_result::<CUDResult>(&result)
         }
-    }
 
-    /// [reorder playlists tracks](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
-    /// Reorder tracks in a playlist
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - range_start - the position of the first track to be reordered
-    /// - range_length - optional the number of tracks to be reordered (default: 1)
-    /// - insert_before - the position where the tracks should be inserted
-    /// - snapshot_id - optional playlist's snapshot ID
-    pub fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        range_start: i32,
-        range_length: R,
-        insert_before: i32,
-        snapshot_id: Option<String>,
-    ) -> Result<CUDResult, failure::Error> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let range_length = range_length.into().unwrap_or(1);
-        let mut params = Map::new();
-        if let Some(_snapshot_id) = snapshot_id {
-            params.insert("snapshot_id".to_owned(), _snapshot_id.into());
+        /// [replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
+        /// Replace all tracks in a playlist
+        /// Parameters:
+        /// - user - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - tracks - the list of track ids to add to the playlist
+        pub fn user_playlist_replace_tracks(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            track_ids: &[String],
+        ) -> Result<(), failure::Error> {
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let uris: Vec<String> = track_ids
+                .iter()
+                .map(|id| self.get_uri(Type::Track, id))
+                .collect();
+            // let mut params = Map::new();
+            // params.insert("uris".to_owned(), uris.into());
+            let params = json!({ "uris": uris });
+            let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+            match self.put(&url, &params) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
         }
-        params.insert("range_start".to_owned(), range_start.into());
-        params.insert("range_length".to_owned(), range_length.into());
-        params.insert("insert_before".to_owned(), insert_before.into());
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.put(&url, &Value::Object(params))?;
-        self.convert_result::<CUDResult>(&result)
-    }
 
-    /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
-    /// Removes all occurrences of the given tracks from the given playlist
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - track_ids - the list of track ids to add to the playlist
-    /// - snapshot_id - optional id of the playlist snapshot
-    pub fn user_playlist_remove_all_occurrences_of_tracks(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        track_ids: &[String],
-        snapshot_id: Option<String>,
-    ) -> Result<CUDResult, failure::Error> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
-            .iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
-        let mut params = Map::new();
-        let mut tracks: Vec<Map<String, Value>> = vec![];
-        for uri in uris {
-            let mut map = Map::new();
-            map.insert("uri".to_owned(), uri.into());
-            tracks.push(map);
+        /// [reorder playlists tracks](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
+        /// Reorder tracks in a playlist
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - range_start - the position of the first track to be reordered
+        /// - range_length - optional the number of tracks to be reordered (default: 1)
+        /// - insert_before - the position where the tracks should be inserted
+        /// - snapshot_id - optional playlist's snapshot ID
+        pub fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            range_start: i32,
+            range_length: R,
+            insert_before: i32,
+            snapshot_id: Option<String>,
+        ) -> Result<CUDResult, failure::Error> {
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let range_length = range_length.into().unwrap_or(1);
+            let mut params = Map::new();
+            if let Some(_snapshot_id) = snapshot_id {
+                params.insert("snapshot_id".to_owned(), _snapshot_id.into());
+            }
+            params.insert("range_start".to_owned(), range_start.into());
+            params.insert("range_length".to_owned(), range_length.into());
+            params.insert("insert_before".to_owned(), insert_before.into());
+            let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+            let result = self.put(&url, &Value::Object(params))?;
+            self.convert_result::<CUDResult>(&result)
         }
-        params.insert("tracks".to_owned(), tracks.into());
-        if let Some(_snapshot_id) = snapshot_id {
-            params.insert("snapshot_id".to_owned(), _snapshot_id.into());
-        }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.delete(&url, &Value::Object(params))?;
-        self.convert_result::<CUDResult>(&result)
-    }
 
-    /// [remove tracks playlist
-    /// ](https://developer.spotify.com/web-api/remove-tracks-playlist/).
-    ///
-    /// Removes specfic occurrences of the given tracks from the given
-    /// playlist. Parameters:
-    ///
-    /// - user_id: the id of the user
-    /// - playlist_id: the id of the playlist
-    /// - tracks: an array of map containing Spotify URIs of the tracks to remove
-    /// with their current positions in the playlist. For example:
-    ///
-    /// ```json
-    /// {
-    ///    "tracks":[
-    ///       {
-    ///          "uri":"spotify:track:4iV5W9uYEdYUVa79Axb7Rh",
-    ///          "positions":[
-    ///             0,
-    ///             3
-    ///          ]
-    ///       },
-    ///       {
-    ///          "uri":"spotify:track:1301WleyT98MSxVHPZCA6M",
-    ///          "positions":[
-    ///             7
-    ///          ]
-    ///       }
-    ///    ]
-    /// }
-    /// ```
-    /// - snapshot_id: optional id of the playlist snapshot
-    pub fn user_playlist_remove_specific_occurrenes_of_tracks(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-        tracks: Vec<Map<String, Value>>,
-        snapshot_id: Option<String>,
-    ) -> Result<CUDResult, failure::Error> {
-        let mut params = Map::new();
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let mut ftracks: Vec<Map<String, Value>> = vec![];
-        for track in tracks {
-            let mut map = Map::new();
-            if let Some(_uri) = track.get("uri") {
-                let uri = self.get_uri(Type::Track, &_uri.as_str().unwrap().to_owned());
+        /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
+        /// Removes all occurrences of the given tracks from the given playlist
+        /// Parameters:
+        /// - user_id - the id of the user
+        /// - playlist_id - the id of the playlist
+        /// - track_ids - the list of track ids to add to the playlist
+        /// - snapshot_id - optional id of the playlist snapshot
+        pub fn user_playlist_remove_all_occurrences_of_tracks(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            track_ids: &[String],
+            snapshot_id: Option<String>,
+        ) -> Result<CUDResult, failure::Error> {
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let uris: Vec<String> = track_ids
+                .iter()
+                .map(|id| self.get_uri(Type::Track, id))
+                .collect();
+            let mut params = Map::new();
+            let mut tracks: Vec<Map<String, Value>> = vec![];
+            for uri in uris {
+                let mut map = Map::new();
                 map.insert("uri".to_owned(), uri.into());
+                tracks.push(map);
             }
-            if let Some(_position) = track.get("position") {
-                map.insert("position".to_owned(), _position.to_owned());
+            params.insert("tracks".to_owned(), tracks.into());
+            if let Some(_snapshot_id) = snapshot_id {
+                params.insert("snapshot_id".to_owned(), _snapshot_id.into());
             }
-            ftracks.push(map);
+            let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+            let result = self.delete(&url, &Value::Object(params))?;
+            self.convert_result::<CUDResult>(&result)
         }
-        params.insert("tracks".to_owned(), ftracks.into());
-        if let Some(_snapshot_id) = snapshot_id {
-            params.insert("snapshot_id".to_owned(), _snapshot_id.into());
-        }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.delete(&url, &Value::Object(params))?;
-        self.convert_result::<CUDResult>(&result)
-    }
 
-    /// [follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
-    /// Add the current authenticated user as a follower of a playlist.
-    /// Parameters:
-    /// - playlist_owner_id - the user id of the playlist owner
-    /// - playlist_id - the id of the playlist
-    pub fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
-        &self,
-        playlist_owner_id: &str,
-        playlist_id: &str,
-        public: P,
-    ) -> Result<(), failure::Error> {
-        let mut map = Map::new();
-        let public = public.into().unwrap_or(true);
-        map.insert("public".to_owned(), public.into());
-        let url = format!(
-            "users/{}/playlists/{}/followers",
-            playlist_owner_id, playlist_id
-        );
-        match self.put(&url, &Value::Object(map)) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
+        /// [remove tracks playlist
+        /// ](https://developer.spotify.com/web-api/remove-tracks-playlist/).
+        ///
+        /// Removes specfic occurrences of the given tracks from the given
+        /// playlist. Parameters:
+        ///
+        /// - user_id: the id of the user
+        /// - playlist_id: the id of the playlist
+        /// - tracks: an array of map containing Spotify URIs of the tracks to remove
+        /// with their current positions in the playlist. For example:
+        ///
+        /// ```json
+        /// {
+        ///    "tracks":[
+        ///       {
+        ///          "uri":"spotify:track:4iV5W9uYEdYUVa79Axb7Rh",
+        ///          "positions":[
+        ///             0,
+        ///             3
+        ///          ]
+        ///       },
+        ///       {
+        ///          "uri":"spotify:track:1301WleyT98MSxVHPZCA6M",
+        ///          "positions":[
+        ///             7
+        ///          ]
+        ///       }
+        ///    ]
+        /// }
+        /// ```
+        /// - snapshot_id: optional id of the playlist snapshot
+        pub fn user_playlist_remove_specific_occurrenes_of_tracks(
+            &self,
+            user_id: &str,
+            playlist_id: &str,
+            tracks: Vec<Map<String, Value>>,
+            snapshot_id: Option<String>,
+        ) -> Result<CUDResult, failure::Error> {
+            let mut params = Map::new();
+            let plid = self.get_id(Type::Playlist, playlist_id);
+            let mut ftracks: Vec<Map<String, Value>> = vec![];
+            for track in tracks {
+                let mut map = Map::new();
+                if let Some(_uri) = track.get("uri") {
+                    let uri = self.get_uri(Type::Track, &_uri.as_str().unwrap().to_owned());
+                    map.insert("uri".to_owned(), uri.into());
+                }
+                if let Some(_position) = track.get("position") {
+                    map.insert("position".to_owned(), _position.to_owned());
+                }
+                ftracks.push(map);
+            }
+            params.insert("tracks".to_owned(), ftracks.into());
+            if let Some(_snapshot_id) = snapshot_id {
+                params.insert("snapshot_id".to_owned(), _snapshot_id.into());
+            }
+            let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+            let result = self.delete(&url, &Value::Object(params))?;
+            self.convert_result::<CUDResult>(&result)
         }
-    }
 
-    /// [check user following playlist](https://developer.spotify.com/web-api/check-user-following-playlist/)
-    /// Check to see if the given users are following the given playlist
-    /// Parameters:
-    /// - playlist_owner_id - the user id of the playlist owner
-    /// - playlist_id - the id of the playlist
-    /// - user_ids - the ids of the users that you want to
-    /// check to see if they follow the playlist. Maximum: 5 ids.
-    pub fn user_playlist_check_follow(
-        &self,
-        playlist_owner_id: &str,
-        playlist_id: &str,
-        user_ids: &[String],
-    ) -> Result<Vec<bool>, failure::Error> {
-        if user_ids.len() > 5 {
-            error!("The maximum length of user ids is limited to 5 :-)");
+        /// [follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
+        /// Add the current authenticated user as a follower of a playlist.
+        /// Parameters:
+        /// - playlist_owner_id - the user id of the playlist owner
+        /// - playlist_id - the id of the playlist
+        pub fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
+            &self,
+            playlist_owner_id: &str,
+            playlist_id: &str,
+            public: P,
+        ) -> Result<(), failure::Error> {
+            let mut map = Map::new();
+            let public = public.into().unwrap_or(true);
+            map.insert("public".to_owned(), public.into());
+            let url = format!(
+                "users/{}/playlists/{}/followers",
+                playlist_owner_id, playlist_id
+            );
+            match self.put(&url, &Value::Object(map)) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
         }
-        let url = format!(
-            "users/{}/playlists/{}/followers/contains?ids={}",
-            playlist_owner_id,
-            playlist_id,
-            user_ids.join(",")
-        );
-        let mut dumb: HashMap<String, String> = HashMap::new();
-        let result = self.get(&url, &mut dumb)?;
-        self.convert_result::<Vec<bool>>(&result)
-    }
+
+        /// [check user following playlist](https://developer.spotify.com/web-api/check-user-following-playlist/)
+        /// Check to see if the given users are following the given playlist
+        /// Parameters:
+        /// - playlist_owner_id - the user id of the playlist owner
+        /// - playlist_id - the id of the playlist
+        /// - user_ids - the ids of the users that you want to
+        /// check to see if they follow the playlist. Maximum: 5 ids.
+        pub fn user_playlist_check_follow(
+            &self,
+            playlist_owner_id: &str,
+            playlist_id: &str,
+            user_ids: &[String],
+        ) -> Result<Vec<bool>, failure::Error> {
+            if user_ids.len() > 5 {
+                error!("The maximum length of user ids is limited to 5 :-)");
+            }
+            let url = format!(
+                "users/{}/playlists/{}/followers/contains?ids={}",
+                playlist_owner_id,
+                playlist_id,
+                user_ids.join(",")
+            );
+            let mut dumb: HashMap<String, String> = HashMap::new();
+            let result = self.get(&url, &mut dumb)?;
+            self.convert_result::<Vec<bool>>(&result)
+        }
+    */
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
     pub fn me(&self) -> Result<PrivateUser, failure::Error> {
-        let mut dumb: HashMap<String, String> = HashMap::new();
-        let url = String::from("me/");
-        let result = self.get(&url, &mut dumb)?;
-        self.convert_result::<PrivateUser>(&result)
+        RT.handle().block_on(async move { self.0.me().await })
     }
+    /*
+
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
     pub fn current_user(&self) -> Result<PrivateUser, failure::Error> {
@@ -2052,6 +1873,7 @@ impl Spotify {
         }
         _id.to_owned()
     }
+    */
 }
 
 #[cfg(test)]
