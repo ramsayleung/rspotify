@@ -317,6 +317,16 @@ impl Spotify {
     }
 }
 
+// All endpoints should be implemented within this macro to automatically
+// declare the blocking and async functions. The async function has to be
+// written by default, and it will "converted" into a blocking one.
+//
+// Implementations performed inside this macro may be limited in some
+// specific ways, specially related to generic parameters. Read the
+// docs about the macro in `macros.rs` for more details.
+//
+// In order to have the documentation shared for both implementations, the
+// docs also require the `#[doc]` macro.
 endpoint_impl! {
     #[doc = r###"
     [get-track](https://developer.spotify.com/web-api/get-track/)

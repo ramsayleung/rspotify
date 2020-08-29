@@ -23,7 +23,7 @@ macro_rules! endpoint_impl {
                 #[$attr:meta]
             )*
             pub async fn $name:ident
-            // Taking into account generic parameters
+            // Taking into account basic generic parameters
             $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)?
             (
                 // With this, it's possible to use `self` in the functions
