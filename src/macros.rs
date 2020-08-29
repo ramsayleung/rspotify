@@ -13,18 +13,22 @@ macro_rules! run_blocking {
 /// and blocking.
 #[macro_export]
 macro_rules! endpoint_impl {
-  (pub async fn $name:ident (&$self:ident, $($param:ident : $paramty:ty),*) -> $ret:ty $code:block) => {
-    impl $crate::client::Spotify {
-      pub async fn $name (&$self, $($param : $paramty),*) -> $ret $code
-    }
+  ($(#[doc = $doc:expr] pub async fn $name:ident (&$self:ident, $($param:ident : $paramty:ty),*) -> $ret:ty $code:block)*) => {
+        $(
+            impl $crate::client::Spotify {
+                #[doc = $doc]
+                pub async fn $name (&$self, $($param : $paramty),*) -> $ret $code
+            }
 
-    #[cfg(feature = "blocking")]
-    impl $crate::blocking::client::Spotify {
-      pub fn $name (&$self, $($param : $paramty),*) -> $ret {
-        run_blocking! {
-          $crate::client::Spotify::$name($self.0, $($param),*)
-        }
-      }
-    }
-  }
+            #[cfg(feature = "blocking")]
+            impl $crate::blocking::client::Spotify {
+                #[doc = $doc]
+                pub fn $name (&$self, $($param : $paramty),*) -> $ret {
+                    $crate::run_blocking! {
+                        $crate::client::Spotify::$name($self.0, $($param),*)
+                    }
+                }
+            }
+        )*
+    };
 }

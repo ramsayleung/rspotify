@@ -246,29 +246,31 @@ impl Spotify {
     }
 }
 
-// [get-track](https://developer.spotify.com/web-api/get-track/)
-// returns a single track given the track's ID, URI or URL
-// Parameters:
-// - track_id - a spotify URI, URL or ID
 endpoint_impl! {
+    #[doc = "
+    [get-track](https://developer.spotify.com/web-api/get-track/)
+    returns a single track given the track's ID, URI or URL
+    Parameters:
+    - track_id - a spotify URI, URL or ID
+    "]
     pub async fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
         let result = self.get(&url, &mut HashMap::new()).await?;
         self.convert_result::<FullTrack>(&result)
     }
-}
 
-impl Spotify {
-    /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
-    /// returns a list of tracks given a list of track IDs, URIs, or URLs
-    /// Parameters:
-    /// - track_ids - a list of spotify URIs, URLs or IDs
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    #[doc = "
+    [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
+    returns a list of tracks given a list of track IDs, URIs, or URLs
+    Parameters:
+    - track_ids - a list of spotify URIs, URLs or IDs
+    - market - an ISO 3166-1 alpha-2 country code.
+    "]
     pub async fn tracks(
         &self,
         track_ids: Vec<&str>,
-        market: Option<Country>,
+        market: Option<Country>
     ) -> Result<FullTracks, failure::Error> {
         let mut ids: Vec<String> = vec![];
         for track_id in track_ids {
@@ -283,7 +285,9 @@ impl Spotify {
         let result = self.get(&url, &mut params).await?;
         self.convert_result::<FullTracks>(&result)
     }
+}
 
+impl Spotify {
     /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
     /// returns a single artist given the artist's ID, URI or URL
     /// Parameters:
