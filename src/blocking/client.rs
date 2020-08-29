@@ -23,7 +23,6 @@ use std::string::String;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
 use crate::blocking::util::convert_map_to_string;
-use crate::blocking::RT;
 use crate::client::Spotify as AsyncSpotify;
 use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
@@ -42,6 +41,7 @@ use crate::model::show::{
 };
 use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use crate::model::user::{PrivateUser, PublicUser};
+use crate::run_blocking;
 use crate::senum::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
@@ -279,11 +279,10 @@ impl Spotify {
         market: Option<Country>,
         include_external: Option<IncludeExternal>,
     ) -> Result<SearchResult, failure::Error> {
-        RT.handle().block_on(async move {
+        run_blocking! {
             self.0
                 .search(q, _type, limit, offset, market, include_external)
-                .await
-        })
+        }
     }
 
     /*
@@ -766,7 +765,7 @@ impl Spotify {
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
     pub fn me(&self) -> Result<PrivateUser, failure::Error> {
-        RT.handle().block_on(async move { self.0.me().await })
+        run_blocking! { self.0.me() }
     }
     /*
 

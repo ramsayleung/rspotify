@@ -19,9 +19,9 @@ use std::ops::Deref;
 use std::path::{Path, PathBuf};
 
 // Use customized library
-use crate::blocking::RT;
 use crate::oauth2::SpotifyClientCredentials as AsyncSpotifyClientCredentials;
 use crate::oauth2::SpotifyOAuth as AsyncSpotifyOAuth;
+use crate::run_blocking;
 use crate::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 
 pub use crate::oauth2::TokenInfo;
@@ -64,8 +64,7 @@ impl SpotifyClientCredentials {
     /// Get access token from self.token_info, if self.token_info is none or is
     /// expired. fetch token info by HTTP request
     pub fn get_access_token(&self) -> String {
-        RT.handle()
-            .block_on(async move { self.0.get_access_token().await })
+        run_blocking! { self.0.get_access_token() }
     }
 }
 
@@ -114,39 +113,32 @@ impl SpotifyOAuth {
     }
 
     pub fn get_cached_token(&mut self) -> Option<TokenInfo> {
-        RT.handle()
-            .block_on(async move { self.0.get_cached_token().await })
+        run_blocking! { self.0.get_cached_token() }
     }
 
     /// Gets the access_token for the app with given the code without caching token.
     pub fn get_access_token_without_cache(&self, code: &str) -> Option<TokenInfo> {
-        RT.handle()
-            .block_on(async move { self.0.get_access_token_without_cache(code).await })
+        run_blocking! { self.0.get_access_token_without_cache(code) }
     }
 
     /// Gets the access_token for the app with given the code
     pub fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
-        RT.handle()
-            .block_on(async move { self.0.get_access_token(code).await })
+        run_blocking! { self.0.get_access_token(code) }
     }
 
     /// Refresh token without caching token.
     pub fn refresh_access_token_without_cache(&self, refresh_token: &str) -> Option<TokenInfo> {
-        RT.handle().block_on(async move {
-            self.0
-                .refresh_access_token_without_cache(refresh_token)
-                .await
-        })
+        run_blocking! {
+            self.0.refresh_access_token_without_cache(refresh_token)
+        }
     }
 
     /// After refresh access_token, the response may be empty
     /// when refresh_token again
     pub fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
-        RT.handle().block_on(async move {
-            self.0
-                .refresh_access_token_without_cache(refresh_token)
-                .await
-        })
+        run_blocking! {
+            self.0.refresh_access_token_without_cache(refresh_token)
+        }
     }
 }
 

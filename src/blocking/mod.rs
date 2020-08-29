@@ -33,7 +33,7 @@ pub mod util;
 use lazy_static::lazy_static;
 use tokio::runtime::Runtime;
 
-// The global runtime for blocking requests
 lazy_static! {
+    /// The global runtime for blocking requests
     pub(in crate) static ref RT: Runtime = Runtime::new().unwrap();
 }

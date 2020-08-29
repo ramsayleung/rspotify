@@ -126,3 +126,5 @@ pub mod model;
 pub mod oauth2;
 pub mod senum;
 pub mod util;
+#[macro_use]
+mod macros;
