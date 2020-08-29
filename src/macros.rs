@@ -19,12 +19,17 @@ macro_rules! run_blocking {
 macro_rules! endpoint_impl {
     (
         $(
-            #[doc = $doc:expr]
-            pub async fn $name:ident (
+            $(
+                #[$attr:meta]
+            )*
+            pub async fn $name:ident
+            // Taking into account generic parameters
+            $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)?
+            (
                 // With this, it's possible to use `self` in the functions
                 // declared inside this macro, but it's limited to an
                 // immutable reference for now.
-                &$self:ident,
+                &$self:ident $(,)?
                 // The function may take a variable number of arguments, which
                 // may have a trailing comma.
                 $($param:ident : $paramty:ty),* $(,)?
@@ -33,16 +38,16 @@ macro_rules! endpoint_impl {
     ) => {
         impl $crate::client::Spotify {
             $(
-                #[doc = $doc]
-                pub async fn $name (&$self, $($param : $paramty),*) -> $ret $code
+                $(#[$attr])*
+                pub async fn $name $(< $( $lt ),+ >)? (&$self, $($param : $paramty),*) -> $ret $code
             )*
         }
 
         #[cfg(feature = "blocking")]
         impl $crate::blocking::client::Spotify {
             $(
-                #[doc = $doc]
-                pub fn $name (&$self, $($param : $paramty),*) -> $ret {
+                $(#[$attr])*
+                pub fn $name $(< $( $lt ),+ >)? (&$self, $($param : $paramty),*) -> $ret {
                     $crate::run_blocking! {
                         $crate::client::Spotify::$name($self.0, $($param),*)
                     }

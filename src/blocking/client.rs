@@ -1,50 +1,22 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
-use chrono::prelude::*;
 use derive_deref::Deref;
-use failure::format_err;
 use lazy_static::lazy_static;
-use log::{error, trace};
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
-use reqwest::Method;
-use reqwest::StatusCode;
+use reqwest::{Method, StatusCode};
 use serde::Deserialize;
-use serde_json::map::Map;
-use serde_json::{json, Value};
+use serde_json::Value;
 use tokio::runtime::Runtime;
 
 //  Built-in battery
-use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
-use std::string::String;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
 use crate::blocking::util::convert_map_to_string;
 use crate::client::Spotify as AsyncSpotify;
-use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
-use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
-use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
-use crate::model::category::PageCategory;
-use crate::model::context::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
-use crate::model::cud_result::CUDResult;
-use crate::model::device::DevicePayload;
-use crate::model::page::{CursorBasedPage, Page};
-use crate::model::playing::{PlayHistory, Playing};
-use crate::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use crate::model::recommend::Recommendations;
-use crate::model::search::SearchResult;
-use crate::model::show::{
-    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
-};
-use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
-use crate::model::user::{PrivateUser, PublicUser};
-use crate::run_blocking;
-use crate::senum::{
-    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
-};
 
 pub use crate::client::ApiError;
 

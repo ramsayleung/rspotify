@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 //! Rspotify is a wrapper for the [Spotify Web API
 //! ](https://developer.spotify.com/web-api/), inspired by [spotipy
 //! ](https://github.com/plamere/spotipy). It includes support for all the
