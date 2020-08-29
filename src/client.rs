@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::string::String;
 
+use super::endpoint_impl;
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
@@ -243,18 +244,22 @@ impl Spotify {
     async fn delete(&self, url: &str, payload: &Value) -> Result<String, failure::Error> {
         self.internal_call(Method::DELETE, url, Some(payload)).await
     }
+}
 
-    /// [get-track](https://developer.spotify.com/web-api/get-track/)
-    /// returns a single track given the track's ID, URI or URL
-    /// Parameters:
-    /// - track_id - a spotify URI, URL or ID
+// [get-track](https://developer.spotify.com/web-api/get-track/)
+// returns a single track given the track's ID, URI or URL
+// Parameters:
+// - track_id - a spotify URI, URL or ID
+endpoint_impl! {
     pub async fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
         let result = self.get(&url, &mut HashMap::new()).await?;
         self.convert_result::<FullTrack>(&result)
     }
+}
 
+impl Spotify {
     /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
     /// returns a list of tracks given a list of track IDs, URIs, or URLs
     /// Parameters:
