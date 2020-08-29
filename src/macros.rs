@@ -25,8 +25,9 @@ macro_rules! endpoint_impl {
                 // declared inside this macro, but it's limited to an
                 // immutable reference for now.
                 &$self:ident,
-                // The function may take a variable number of arguments.
-                $($param:ident : $paramty:ty),*
+                // The function may take a variable number of arguments, which
+                // may have a trailing comma.
+                $($param:ident : $paramty:ty),* $(,)?
             ) -> $ret:ty $code:block
         )*
     ) => {
