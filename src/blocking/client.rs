@@ -69,7 +69,9 @@ impl Spotify {
         mut self,
         client_credential_manager: SpotifyClientCredentials,
     ) -> Self {
-        self.0 = self.0.client_credentials_manager(client_credential_manager.0);
+        self.0 = self
+            .0
+            .client_credentials_manager(client_credential_manager.0);
         self
     }
 
@@ -78,209 +80,213 @@ impl Spotify {
     }
 
     /*
-        /// [get-track](https://developer.spotify.com/web-api/get-track/)
-        /// returns a single track given the track's ID, URI or URL
-        /// Parameters:
-        /// - track_id - a spotify URI, URL or ID
-        pub fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
-            let trid = self.get_id(Type::Track, track_id);
-            let url = format!("tracks/{}", trid);
-            let result = self.get(&url, &mut HashMap::new())?;
-            self.convert_result::<FullTrack>(&result)
+    /// [get-track](https://developer.spotify.com/web-api/get-track/)
+    /// returns a single track given the track's ID, URI or URL
+    /// Parameters:
+    /// - track_id - a spotify URI, URL or ID
+    pub fn track(&self, track_id: &str) -> Result<FullTrack, failure::Error> {
+        let trid = self.get_id(Type::Track, track_id);
+        let url = format!("tracks/{}", trid);
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullTrack>(&result)
+    }
+
+    /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
+    /// returns a list of tracks given a list of track IDs, URIs, or URLs
+    /// Parameters:
+    /// - track_ids - a list of spotify URIs, URLs or IDs
+    /// - market - an ISO 3166-1 alpha-2 country code.
+    pub fn tracks(
+        &self,
+        track_ids: Vec<&str>,
+        market: Option<Country>,
+    ) -> Result<FullTracks, failure::Error> {
+        let mut ids: Vec<String> = vec![];
+        for track_id in track_ids {
+            ids.push(self.get_id(Type::Track, track_id));
         }
-
-        /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
-        /// returns a list of tracks given a list of track IDs, URIs, or URLs
-        /// Parameters:
-        /// - track_ids - a list of spotify URIs, URLs or IDs
-        /// - market - an ISO 3166-1 alpha-2 country code.
-        pub fn tracks(
-            &self,
-            track_ids: Vec<&str>,
-            market: Option<Country>,
-        ) -> Result<FullTracks, failure::Error> {
-            let mut ids: Vec<String> = vec![];
-            for track_id in track_ids {
-                ids.push(self.get_id(Type::Track, track_id));
-            }
-            let url = format!("tracks/?ids={}", ids.join(","));
-            // url.push_str(&ids.join(","));
-            let mut params: HashMap<String, String> = HashMap::new();
-            if let Some(_market) = market {
-                params.insert("market".to_owned(), _market.as_str().to_owned());
-            }
-            trace!("{:?}", &url);
-            let result = self.get(&url, &mut params)?;
-            self.convert_result::<FullTracks>(&result)
+        let url = format!("tracks/?ids={}", ids.join(","));
+        // url.push_str(&ids.join(","));
+        let mut params: HashMap<String, String> = HashMap::new();
+        if let Some(_market) = market {
+            params.insert("market".to_owned(), _market.as_str().to_owned());
         }
+        trace!("{:?}", &url);
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullTracks>(&result)
+    }
 
-        /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
-        /// returns a single artist given the artist's ID, URI or URL
-        /// Parameters:
-        /// - artist_id - an artist ID, URI or URL
-        pub fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
-            let trid = self.get_id(Type::Artist, artist_id);
-            let url = format!("artists/{}", trid);
-            // url.push_str(&trid);
-            let result = self.get(&url, &mut HashMap::new())?;
-            self.convert_result::<FullArtist>(&result)
+    /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
+    /// returns a single artist given the artist's ID, URI or URL
+    /// Parameters:
+    /// - artist_id - an artist ID, URI or URL
+    pub fn artist(&self, artist_id: &str) -> Result<FullArtist, failure::Error> {
+        let trid = self.get_id(Type::Artist, artist_id);
+        let url = format!("artists/{}", trid);
+        // url.push_str(&trid);
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullArtist>(&result)
+    }
+
+    /// [get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
+    /// returns a list of artists given the artist IDs, URIs, or URLs
+    /// Parameters:
+    /// - artist_ids - a list of  artist IDs, URIs or URLs
+    pub fn artists(&self, artist_ids: Vec<String>) -> Result<FullArtists, failure::Error> {
+        let mut ids: Vec<String> = vec![];
+        for artist_id in artist_ids {
+            ids.push(self.get_id(Type::Artist, &artist_id));
         }
+        let url = format!("artists/?ids={}", ids.join(","));
+        // url.push_str(&ids.join(","));
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullArtists>(&result)
+    }
 
-        /// [get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
-        /// returns a list of artists given the artist IDs, URIs, or URLs
-        /// Parameters:
-        /// - artist_ids - a list of  artist IDs, URIs or URLs
-        pub fn artists(&self, artist_ids: Vec<String>) -> Result<FullArtists, failure::Error> {
-            let mut ids: Vec<String> = vec![];
-            for artist_id in artist_ids {
-                ids.push(self.get_id(Type::Artist, &artist_id));
-            }
-            let url = format!("artists/?ids={}", ids.join(","));
-            // url.push_str(&ids.join(","));
-            let result = self.get(&url, &mut HashMap::new())?;
-            self.convert_result::<FullArtists>(&result)
+    /// [get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
+    /// Get Spotify catalog information about an artist's albums
+    /// - artist_id - the artist ID, URI or URL
+    /// - album_type - 'album', 'single', 'appears_on', 'compilation'
+    /// - country - limit the response to one particular country.
+    /// - limit  - the number of albums to return
+    /// - offset - the index of the first album to return
+    pub fn artist_albums(
+        &self,
+        artist_id: &str,
+        album_type: Option<AlbumType>,
+        country: Option<Country>,
+        limit: Option<u32>,
+        offset: Option<u32>,
+    ) -> Result<Page<SimplifiedAlbum>, failure::Error> {
+        let mut params: HashMap<String, String> = HashMap::new();
+        if let Some(_limit) = limit {
+            params.insert("limit".to_owned(), _limit.to_string());
         }
-
-        /// [get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
-        /// Get Spotify catalog information about an artist's albums
-        /// - artist_id - the artist ID, URI or URL
-        /// - album_type - 'album', 'single', 'appears_on', 'compilation'
-        /// - country - limit the response to one particular country.
-        /// - limit  - the number of albums to return
-        /// - offset - the index of the first album to return
-        pub fn artist_albums(
-            &self,
-            artist_id: &str,
-            album_type: Option<AlbumType>,
-            country: Option<Country>,
-            limit: Option<u32>,
-            offset: Option<u32>,
-        ) -> Result<Page<SimplifiedAlbum>, failure::Error> {
-            let mut params: HashMap<String, String> = HashMap::new();
-            if let Some(_limit) = limit {
-                params.insert("limit".to_owned(), _limit.to_string());
-            }
-            if let Some(_album_type) = album_type {
-                params.insert("album_type".to_owned(), _album_type.as_str().to_owned());
-            }
-            if let Some(_offset) = offset {
-                params.insert("offset".to_owned(), _offset.to_string());
-            }
-            if let Some(_country) = country {
-                params.insert("country".to_owned(), _country.as_str().to_owned());
-            }
-            let trid = self.get_id(Type::Artist, artist_id);
-            let url = format!("artists/{}/albums", trid);
-            // url.push_str(&trid);
-            // url.push_str("/albums");
-            let result = self.get(&url, &mut params)?;
-            self.convert_result::<Page<SimplifiedAlbum>>(&result)
+        if let Some(_album_type) = album_type {
+            params.insert("album_type".to_owned(), _album_type.as_str().to_owned());
         }
-
-        /// [get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
-        /// Get Spotify catalog information about an artist's top 10 tracks by country.
-        /// Parameters:
-        /// - artist_id - the artist ID, URI or URL
-        /// - country - limit the response to one particular country.
-        pub fn artist_top_tracks<T: Into<Option<Country>>>(
-            &self,
-            artist_id: &str,
-            country: T,
-        ) -> Result<FullTracks, failure::Error> {
-            let mut params: HashMap<String, String> = HashMap::new();
-            let country = country
-                .into()
-                .unwrap_or(Country::UnitedStates)
-                .as_str()
-                .to_string();
-            params.insert("country".to_owned(), country);
-            let trid = self.get_id(Type::Artist, artist_id);
-            let url = format!("artists/{}/top-tracks", trid);
-
-            let result = self.get(&url, &mut params)?;
-            self.convert_result::<FullTracks>(&result)
-            // match self.get(&mut url, &mut params) {
-            //     Ok(result) => {
-            //         // let mut albums: Albums = ;
-            //         match serde_json::from_str::<FullTracks>(&result) {
-            //             Ok(_tracks) => Some(_tracks),
-            //             Err(why) => {
-            //                 eprintln!("convert albums from String to Albums failed {:?}", why);
-            //                 None
-            //             }
-            //         }
-            //     }
-            //     Err(_) => None,
-            // }
+        if let Some(_offset) = offset {
+            params.insert("offset".to_owned(), _offset.to_string());
         }
-
-        /// [get related artists](https://developer.spotify.com/web-api/get-related-artists/)
-        /// Get Spotify catalog information about artists similar to an
-        /// identified artist. Similarity is based on analysis of the
-        /// Spotify community's listening history.
-        /// Parameters:
-        /// - artist_id - the artist ID, URI or URL
-        pub fn artist_related_artists(&self, artist_id: &str) -> Result<FullArtists, failure::Error> {
-            let trid = self.get_id(Type::Artist, artist_id);
-            let url = format!("artists/{}/related-artists", trid);
-            // url.push_str(&trid);
-            // url.push_str("/related-artists");
-            let result = self.get(&url, &mut HashMap::new())?;
-            self.convert_result::<FullArtists>(&result)
+        if let Some(_country) = country {
+            params.insert("country".to_owned(), _country.as_str().to_owned());
         }
+        let trid = self.get_id(Type::Artist, artist_id);
+        let url = format!("artists/{}/albums", trid);
+        // url.push_str(&trid);
+        // url.push_str("/albums");
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<Page<SimplifiedAlbum>>(&result)
+    }
 
-        /// [get album](https://developer.spotify.com/web-api/get-album/)
-        /// returns a single album given the album's ID, URIs or URL
-        /// Parameters:
-        /// - album_id - the album ID, URI or URL
-        pub fn album(&self, album_id: &str) -> Result<FullAlbum, failure::Error> {
-            let trid = self.get_id(Type::Album, album_id);
-            let url = format!("albums/{}", trid);
-            // url.push_str(&trid);
-            let result = self.get(&url, &mut HashMap::new())?;
-            self.convert_result::<FullAlbum>(&result)
+    /// [get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
+    /// Get Spotify catalog information about an artist's top 10 tracks by country.
+    /// Parameters:
+    /// - artist_id - the artist ID, URI or URL
+    /// - country - limit the response to one particular country.
+    pub fn artist_top_tracks<T: Into<Option<Country>>>(
+        &self,
+        artist_id: &str,
+        country: T,
+    ) -> Result<FullTracks, failure::Error> {
+        let mut params: HashMap<String, String> = HashMap::new();
+        let country = country
+            .into()
+            .unwrap_or(Country::UnitedStates)
+            .as_str()
+            .to_string();
+        params.insert("country".to_owned(), country);
+        let trid = self.get_id(Type::Artist, artist_id);
+        let url = format!("artists/{}/top-tracks", trid);
+
+        let result = self.get(&url, &mut params)?;
+        self.convert_result::<FullTracks>(&result)
+        // match self.get(&mut url, &mut params) {
+        //     Ok(result) => {
+        //         // let mut albums: Albums = ;
+        //         match serde_json::from_str::<FullTracks>(&result) {
+        //             Ok(_tracks) => Some(_tracks),
+        //             Err(why) => {
+        //                 eprintln!("convert albums from String to Albums failed {:?}", why);
+        //                 None
+        //             }
+        //         }
+        //     }
+        //     Err(_) => None,
+        // }
+    }
+
+    /// [get related artists](https://developer.spotify.com/web-api/get-related-artists/)
+    /// Get Spotify catalog information about artists similar to an
+    /// identified artist. Similarity is based on analysis of the
+    /// Spotify community's listening history.
+    /// Parameters:
+    /// - artist_id - the artist ID, URI or URL
+    pub fn artist_related_artists(&self, artist_id: &str) -> Result<FullArtists, failure::Error> {
+        let trid = self.get_id(Type::Artist, artist_id);
+        let url = format!("artists/{}/related-artists", trid);
+        // url.push_str(&trid);
+        // url.push_str("/related-artists");
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullArtists>(&result)
+    }
+
+    /// [get album](https://developer.spotify.com/web-api/get-album/)
+    /// returns a single album given the album's ID, URIs or URL
+    /// Parameters:
+    /// - album_id - the album ID, URI or URL
+    pub fn album(&self, album_id: &str) -> Result<FullAlbum, failure::Error> {
+        let trid = self.get_id(Type::Album, album_id);
+        let url = format!("albums/{}", trid);
+        // url.push_str(&trid);
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullAlbum>(&result)
+    }
+
+    /// [get several albums](https://developer.spotify.com/web-api/get-several-albums/)
+    /// returns a list of albums given the album IDs, URIs, or URLs
+    /// Parameters:
+    /// - albums_ids - a list of  album IDs, URIs or URLs
+    pub fn albums(&self, album_ids: Vec<String>) -> Result<FullAlbums, failure::Error> {
+        let mut ids: Vec<String> = vec![];
+        for album_id in album_ids {
+            ids.push(self.get_id(Type::Album, &album_id));
         }
+        let url = format!("albums/?ids={}", ids.join(","));
+        // url.push_str(&ids.join(","));
+        let result = self.get(&url, &mut HashMap::new())?;
+        self.convert_result::<FullAlbums>(&result)
+    }
+    */
 
-        /// [get several albums](https://developer.spotify.com/web-api/get-several-albums/)
-        /// returns a list of albums given the album IDs, URIs, or URLs
-        /// Parameters:
-        /// - albums_ids - a list of  album IDs, URIs or URLs
-        pub fn albums(&self, album_ids: Vec<String>) -> Result<FullAlbums, failure::Error> {
-            let mut ids: Vec<String> = vec![];
-            for album_id in album_ids {
-                ids.push(self.get_id(Type::Album, &album_id));
-            }
-            let url = format!("albums/?ids={}", ids.join(","));
-            // url.push_str(&ids.join(","));
-            let result = self.get(&url, &mut HashMap::new())?;
-            self.convert_result::<FullAlbums>(&result)
-        }
-        */
+    /// [search for items](https://developer.spotify.com/web-api/search-item/)
+    /// Search for an Item
+    /// Get Spotify catalog information about artists, albums, tracks or
+    ///  playlists that match a keyword string.
+    ///             Parameters:
+    /// - q - the search query
+    /// - limit  - the number of items to return
+    /// - offset - the index of the first item to return
+    /// - type - the type of item to return. One of 'artist', 'album',
+    /// 'track' or 'playlist'
+    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    pub fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        q: &str,
+        _type: SearchType,
+        limit: L,
+        offset: O,
+        market: Option<Country>,
+        include_external: Option<IncludeExternal>,
+    ) -> Result<SearchResult, failure::Error> {
+        RT.handle().block_on(async move {
+            self.0
+                .search(q, _type, limit, offset, market, include_external)
+                .await
+        })
+    }
 
-        /// [search for items](https://developer.spotify.com/web-api/search-item/)
-        /// Search for an Item
-        /// Get Spotify catalog information about artists, albums, tracks or
-        ///  playlists that match a keyword string.
-        ///             Parameters:
-        /// - q - the search query
-        /// - limit  - the number of items to return
-        /// - offset - the index of the first item to return
-        /// - type - the type of item to return. One of 'artist', 'album',
-        /// 'track' or 'playlist'
-        /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
-        pub fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-            &self,
-            q: &str,
-            _type: SearchType,
-            limit: L,
-            offset: O,
-            market: Option<Country>,
-            include_external: Option<IncludeExternal>,
-        ) -> Result<SearchResult, failure::Error> {
-            RT.handle().block_on(async move { self.0.search(q, _type, limit, offset, market, include_external).await })
-        }
-
-        /*
+    /*
         /// [get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
         /// Get Spotify catalog information about an album's tracks
         /// Parameters:
