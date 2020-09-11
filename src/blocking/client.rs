@@ -7,18 +7,18 @@ use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Method, StatusCode};
 use serde::Deserialize;
 use serde_json::Value;
+use thiserror::Error;
 use tokio::runtime::Runtime;
 
 //  Built-in battery
 use std::collections::HashMap;
-use std::fmt;
 use std::io::Read;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
 use crate::blocking::util::convert_map_to_string;
 use crate::client::Spotify as AsyncSpotify;
 
-pub use crate::client::ApiError;
+pub use crate::client::ClientError;
 
 /// Spotify API object
 #[derive(Debug, Clone, Deref)]
