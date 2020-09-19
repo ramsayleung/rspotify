@@ -266,7 +266,7 @@ impl Spotify {
     /// - artist_ids - a list of  artist IDs, URIs or URLs
     pub async fn artists(
         &self,
-        artist_ids: impl IntoIterator<Item = &String>,
+        artist_ids: impl IntoIterator<Item = String>,
     ) -> ClientResult<FullArtists> {
         let mut ids: Vec<String> = vec![];
         for artist_id in artist_ids {
@@ -363,7 +363,10 @@ impl Spotify {
     /// returns a list of albums given the album IDs, URIs, or URLs
     /// Parameters:
     /// - albums_ids - a list of  album IDs, URIs or URLs
-    pub async fn albums(&self, album_ids: Vec<String>) -> ClientResult<FullAlbums> {
+    pub async fn albums(
+        &self,
+        album_ids: impl IntoIterator<Item = &String>,
+    ) -> ClientResult<FullAlbums> {
         let mut ids: Vec<String> = vec![];
         for album_id in album_ids {
             ids.push(self.get_id(Type::Album, &album_id));

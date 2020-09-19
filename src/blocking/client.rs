@@ -273,7 +273,10 @@ impl Spotify {
     /// returns a list of artists given the artist IDs, URIs, or URLs
     /// Parameters:
     /// - artist_ids - a list of  artist IDs, URIs or URLs
-    pub fn artists(&self, artist_ids: Vec<String>) -> ClientResult<FullArtists> {
+    pub fn artists(
+        &self,
+        artist_ids: impl IntoIterator<Item = String>,
+    ) -> ClientResult<FullArtists> {
         let mut ids: Vec<String> = vec![];
         for artist_id in artist_ids {
             ids.push(self.get_id(Type::Artist, &artist_id));
@@ -388,7 +391,7 @@ impl Spotify {
     /// returns a list of albums given the album IDs, URIs, or URLs
     /// Parameters:
     /// - albums_ids - a list of  album IDs, URIs or URLs
-    pub fn albums(&self, album_ids: Vec<String>) -> ClientResult<FullAlbums> {
+    pub fn albums(&self, album_ids: impl IntoIterator<Item = String>) -> ClientResult<FullAlbums> {
         let mut ids: Vec<String> = vec![];
         for album_id in album_ids {
             ids.push(self.get_id(Type::Album, &album_id));
@@ -683,16 +686,16 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
     /// - position - the position to add the tracks
-    pub fn user_playlist_add_tracks(
+    pub fn user_playlist_add_tracks<'a>(
         &self,
         user_id: &str,
         playlist_id: &str,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a String>,
         position: Option<i32>,
     ) -> ClientResult<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         let mut params = Map::new();
@@ -711,15 +714,15 @@ impl Spotify {
     /// - user - the id of the user
     /// - playlist_id - the id of the playlist
     /// - tracks - the list of track ids to add to the playlist
-    pub fn user_playlist_replace_tracks(
+    pub fn user_playlist_replace_tracks<'a>(
         &self,
         user_id: &str,
         playlist_id: &str,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a String>,
     ) -> ClientResult<()> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         // let mut params = Map::new();
@@ -771,16 +774,16 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - track_ids - the list of track ids to add to the playlist
     /// - snapshot_id - optional id of the playlist snapshot
-    pub fn user_playlist_remove_all_occurrences_of_tracks(
+    pub fn user_playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
         user_id: &str,
         playlist_id: &str,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a String>,
         snapshot_id: Option<String>,
     ) -> ClientResult<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         let mut params = Map::new();
@@ -891,20 +894,24 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - user_ids - the ids of the users that you want to
     /// check to see if they follow the playlist. Maximum: 5 ids.
-    pub fn user_playlist_check_follow(
+    pub fn user_playlist_check_follow<'a>(
         &self,
         playlist_owner_id: &str,
         playlist_id: &str,
-        user_ids: &[String],
+        user_ids: impl IntoIterator<Item = &'a String>,
     ) -> ClientResult<Vec<bool>> {
-        if user_ids.len() > 5 {
+        let user_ids_vec = user_ids
+            .into_iter()
+            .map(|s| s.as_ref())
+            .collect::<Vec<&str>>();
+        if user_ids_vec.len() > 5 {
             error!("The maximum length of user ids is limited to 5 :-)");
         }
         let url = format!(
             "users/{}/playlists/{}/followers/contains?ids={}",
             playlist_owner_id,
             playlist_id,
-            user_ids.join(",")
+            user_ids_vec.join(",")
         );
         let mut dumb: HashMap<String, String> = HashMap::new();
         let result = self.get(&url, &mut dumb)?;
@@ -1009,9 +1016,12 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_delete(&self, track_ids: &[String]) -> ClientResult<()> {
+    pub fn current_user_saved_tracks_delete<'a>(
+        &self,
+        track_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
@@ -1026,12 +1036,12 @@ impl Spotify {
     /// the current Spotify user’s “Your Music” library.
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_contains(
+    pub fn current_user_saved_tracks_contains<'a>(
         &self,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a String>,
     ) -> ClientResult<Vec<bool>> {
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
@@ -1045,9 +1055,12 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
-    pub fn current_user_saved_tracks_add(&self, track_ids: &[String]) -> ClientResult<()> {
+    pub fn current_user_saved_tracks_add<'a>(
+        &self,
+        track_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
@@ -1134,9 +1147,12 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
-    pub fn current_user_saved_albums_add(&self, album_ids: &[String]) -> ClientResult<()> {
+    pub fn current_user_saved_albums_add<'a>(
+        &self,
+        album_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
@@ -1151,9 +1167,12 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
-    pub fn current_user_saved_albums_delete(&self, album_ids: &[String]) -> ClientResult<()> {
+    pub fn current_user_saved_albums_delete<'a>(
+        &self,
+        album_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
@@ -1168,12 +1187,12 @@ impl Spotify {
     /// the current Spotify user’s “Your Music” library.
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
-    pub fn current_user_saved_albums_contains(
+    pub fn current_user_saved_albums_contains<'a>(
         &self,
-        album_ids: &[String],
+        album_ids: impl IntoIterator<Item = &'a String>,
     ) -> ClientResult<Vec<bool>> {
         let uris: Vec<String> = album_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
@@ -1186,8 +1205,18 @@ impl Spotify {
     /// Follow one or more artists
     /// Parameters:
     /// - artist_ids - a list of artist IDs
-    pub fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
+    pub fn user_follow_artists<'a>(
+        &self,
+        artist_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=artist&ids={}",
+            artist_ids
+                .into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<&str>>()
+                .join(",")
+        );
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1198,8 +1227,18 @@ impl Spotify {
     /// Unfollow one or more artists
     /// Parameters:
     /// - artist_ids - a list of artist IDs
-    pub fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
+    pub fn user_unfollow_artists<'a>(
+        &self,
+        artist_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=artist&ids={}",
+            artist_ids
+                .into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<&str>>()
+                .join(",")
+        );
         match self.delete(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1211,10 +1250,17 @@ impl Spotify {
     /// Check to see if the given users are following the given artists
     /// Parameters:
     /// - artist_ids - the ids of the users that you want to
-    pub fn user_artist_check_follow(&self, artsit_ids: &[String]) -> ClientResult<Vec<bool>> {
+    pub fn user_artist_check_follow<'a>(
+        &self,
+        artsit_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<Vec<bool>> {
         let url = format!(
             "me/following/contains?type=artist&ids={}",
-            artsit_ids.join(",")
+            artsit_ids
+                .into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<&str>>()
+                .join(",")
         );
         let mut dumb = HashMap::new();
         let result = self.get(&url, &mut dumb)?;
@@ -1225,8 +1271,18 @@ impl Spotify {
     /// Follow one or more users
     /// Parameters:
     /// - user_ids - a list of artist IDs
-    pub fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=user&ids={}", user_ids.join(","));
+    pub fn user_follow_users<'a>(
+        &self,
+        user_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=user&ids={}",
+            user_ids
+                .into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<&str>>()
+                .join(",")
+        );
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1237,8 +1293,18 @@ impl Spotify {
     /// Unfollow one or more users
     /// Parameters:
     /// - user_ids - a list of artist IDs
-    pub fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=user&ids={}", user_ids.join(","));
+    pub fn user_unfollow_users<'a>(
+        &self,
+        user_ids: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=user&ids={}",
+            user_ids
+                .into_iter()
+                .map(|s| s.as_ref())
+                .collect::<Vec<&str>>()
+                .join(",")
+        );
         match self.delete(&url, &json!({})) {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
@@ -1439,9 +1505,12 @@ impl Spotify {
     /// [get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
     /// Get Audio Features for Several Tracks
     ///  -tracks a list of track URIs, URLs or IDs
-    pub fn audios_features(&self, tracks: &[String]) -> ClientResult<Option<AudioFeaturesPayload>> {
+    pub fn audios_features<'a>(
+        &self,
+        tracks: impl IntoIterator<Item = &'a String>,
+    ) -> ClientResult<Option<AudioFeaturesPayload>> {
         let ids: Vec<String> = tracks
-            .iter()
+            .into_iter()
             .map(|track| self.get_id(Type::Track, track))
             .collect();
         let url = format!("audio-features/?ids={}", ids.join(","));
@@ -1750,8 +1819,8 @@ impl Spotify {
     /// Add a show or a list of shows to a user’s library
     /// Parameters:
     /// ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
-    pub fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
-        let joined_ids = ids.join(",");
+    pub fn save_shows(&self, ids: impl IntoIterator<Item = String>) -> ClientResult<()> {
+        let joined_ids = ids.into_iter().collect::<Vec<String>>().join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
         match self.put(&url, &json!({})) {
             Ok(_) => Ok(()),
@@ -1801,10 +1870,10 @@ impl Spotify {
     /// - market(Optional) An ISO 3166-1 alpha-2 country code.
     pub fn get_several_shows(
         &self,
-        ids: Vec<String>,
+        ids: impl IntoIterator<Item = String>,
         market: Option<Country>,
     ) -> ClientResult<SeversalSimplifiedShows> {
-        let joined_ids = ids.join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<String>>().join(",");
         let url = "shows";
         let mut params = HashMap::new();
         if let Some(_market) = market {
@@ -1870,11 +1939,11 @@ impl Spotify {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
     pub fn get_several_episodes(
         &self,
-        ids: Vec<String>,
+        ids: impl IntoIterator<Item = String>,
         market: Option<Country>,
     ) -> ClientResult<SeveralEpisodes> {
         let url = "episodes";
-        let joined_ids = ids.join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<String>>().join(",");
         let mut params = HashMap::new();
         if let Some(_market) = market {
             params.insert("country".to_owned(), _market.as_str().to_owned());
@@ -1888,9 +1957,12 @@ impl Spotify {
     /// [Check users saved shows](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
-    pub fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
+    pub fn check_users_saved_shows(
+        &self,
+        ids: impl IntoIterator<Item = String>,
+    ) -> ClientResult<Vec<bool>> {
         let url = "me/shows/contains";
-        let joined_ids = ids.join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<String>>().join(",");
         let mut params = HashMap::new();
         params.insert("ids".to_owned(), joined_ids);
         let result = self.get(url, &mut params)?;
@@ -1905,10 +1977,10 @@ impl Spotify {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
     pub fn remove_users_saved_shows(
         &self,
-        ids: Vec<String>,
+        ids: impl IntoIterator<Item = String>,
         market: Option<Country>,
     ) -> ClientResult<()> {
-        let joined_ids = ids.join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<String>>().join(",");
         let url = format!("me/shows?ids={}", joined_ids);
         let mut payload = Map::new();
         if let Some(_market) = market {
