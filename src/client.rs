@@ -365,7 +365,7 @@ impl Spotify {
     /// - albums_ids - a list of  album IDs, URIs or URLs
     pub async fn albums(
         &self,
-        album_ids: impl IntoIterator<Item = &String>,
+        album_ids: impl IntoIterator<Item = String>,
     ) -> ClientResult<FullAlbums> {
         let mut ids: Vec<String> = vec![];
         for album_id in album_ids {
