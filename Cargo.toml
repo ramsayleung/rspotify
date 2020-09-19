@@ -15,7 +15,6 @@ chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
 dotenv = { version = "0.15.0", optional = true }
 lazy_static = "1.4.0"
 log = "0.4.11"
-percent-encoding = "2.1.0"
 getrandom = "0.2.0"
 reqwest = { version = "0.10.7", features = ["json", "socks"], default-features = false }
 serde = { version = "1.0.115", features = ["derive"] }

@@ -2,8 +2,7 @@
 // Use 3rd party library
 use chrono::prelude::*;
 use log::{debug, error, trace};
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 
 // Use built-in library
@@ -16,10 +15,10 @@ use std::iter::FromIterator;
 use std::path::{Path, PathBuf};
 
 // Use customized library
-use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
+use super::util::{datetime_to_timestamp, generate_random_string};
 
-// The encoding ASCII set for `utf8_percent_encode`.
-const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
+/// The Authorize URL of Spotify.
+const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
 
 /// Client credentials object for spotify
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -379,13 +378,14 @@ impl SpotifyOAuth {
                 payload.insert("show_dialog", "true");
             }
         }
-
-        let query_str = convert_map_to_string(&payload);
-        let mut authorize_url = String::from("https://accounts.spotify.com/authorize?");
-        authorize_url
-            .push_str(&utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET).to_string());
-        trace!("{:?}", &authorize_url);
-        authorize_url
+        Url::parse_with_params(AUTHORIZE_URL, payload.clone())
+            .unwrap_or_else(|_| {
+                panic!(
+                    "Fail to generate authorize_url, url: {}, payload: {:?}",
+                    AUTHORIZE_URL, payload
+                )
+            })
+            .into_string()
     }
 
     /// refreshes token without saving token as cache.
