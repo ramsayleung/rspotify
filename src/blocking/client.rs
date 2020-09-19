@@ -5,7 +5,7 @@ use log::{error, trace};
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Method, StatusCode};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
 use serde_json::{json, Value};
 use thiserror::Error;
@@ -17,7 +17,6 @@ use std::io::Read;
 use std::string::String;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
-use crate::blocking::util::convert_map_to_string;
 use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
@@ -162,11 +161,11 @@ impl Spotify {
         "Bearer ".to_owned() + &token
     }
 
-    fn internal_call(
+    fn internal_call<T: Serialize + ?Sized>(
         &self,
         method: Method,
         url: &str,
-        payload: Option<&Value>,
+        payload: &T,
     ) -> ClientResult<String> {
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
@@ -180,15 +179,14 @@ impl Spotify {
         let mut response = {
             let builder = self
                 .client
-                .request(method, &url.into_owned())
+                .request(method.clone(), &url.into_owned())
                 .headers(headers);
 
-            // Only add body if necessary
-            // spotify rejects GET requests that have a body with a 400 response
-            let builder = if let Some(json) = payload {
-                builder.json(json)
-            } else {
-                builder
+            let builder = match method {
+                Method::GET => builder.query(payload),
+                Method::POST | Method::PUT | Method::DELETE => builder.json(payload),
+                // Method: Options, Head, Trace haven't implemented in `rspotify` yet, just leave it alone.
+                _ => builder,
             };
 
             builder.send().unwrap()
@@ -206,29 +204,21 @@ impl Spotify {
     }
     ///send get request
     fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String> {
-        if !params.is_empty() {
-            let param: String = convert_map_to_string(params);
-            let mut url_with_params = url.to_owned();
-            url_with_params.push('?');
-            url_with_params.push_str(&param);
-            self.internal_call(Method::GET, &url_with_params, None)
-        } else {
-            self.internal_call(Method::GET, url, None)
-        }
+        self.internal_call(Method::GET, url, params)
     }
 
     /// Send post request
     fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.internal_call(Method::POST, url, Some(payload))
+        self.internal_call(Method::POST, url, payload)
     }
     /// Send put request
     fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.internal_call(Method::PUT, url, Some(payload))
+        self.internal_call(Method::PUT, url, payload)
     }
 
     /// Send delete request
     fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.internal_call(Method::DELETE, url, Some(payload))
+        self.internal_call(Method::DELETE, url, payload)
     }
 
     /// [get-track](https://developer.spotify.com/web-api/get-track/)

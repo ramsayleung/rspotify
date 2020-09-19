@@ -197,11 +197,7 @@ impl Spotify {
         }
     }
     /// Send get request
-    async fn get(
-        &self,
-        url: &str,
-        params: &mut HashMap<String, String>,
-    ) -> ClientResult<String> {
+    async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String> {
         self.internal_call(Method::GET, url, params).await
     }
 
