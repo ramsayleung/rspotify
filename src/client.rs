@@ -93,6 +93,7 @@ pub struct Spotify {
     pub prefix: String,
     pub creds: ClientCredentials,
     pub access_token: Option<String>,
+    pub cache_path: Path,
 }
 
 /// Inner HTTP client implementation for the reqwest library.
@@ -102,6 +103,7 @@ impl Default for Spotify {
             #[cfg(feature = "client-reqwest")]
             client: reqwest::Client::new(),
             prefix: "https://api.spotify.com/v1/".to_owned(),
+            cache_path: Path::from(".spotify_token_cache.json"),
             ..Default::default()
         }
     }
@@ -191,11 +193,11 @@ impl Spotify {
         }
     }
 
-    fn save_token_info(&self, token_info: &str, path: &Path) -> ClientResult<()> {
+    fn save_token_info(&self, token_info: &str) -> ClientResult<()> {
         let mut file = fs::OpenOptions::new()
             .write(true)
             .create(true)
-            .open(path)
+            .open(self.cache_path)
             .map_err(|| ClientError::CacheFile("unable to open"))?;
 
         file.set_len(0).map_err(|| ClientError::CacheFile("unable to empty"))?;
@@ -224,6 +226,7 @@ impl Spotify {
 
     /// Gets the access_token for the app with the given code without saving
     /// it into the cache file.
+    #[maybe_async]
     pub async fn get_access_token_without_cache(&self, code: &str) -> Option<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("redirect_uri", &self.redirect_uri);
@@ -237,6 +240,7 @@ impl Spotify {
 
     /// The same as `get_access_token_without_cache`, but saves the token into
     /// the cache file if possible.
+    #[maybe_async]
     pub async fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
         self.get_access_token_without_cache(code).await.and_then(|token_info| {
             serde_json::to_string(&token_info).and_then(|s| {
@@ -245,6 +249,7 @@ impl Spotify {
         })
     }
 
+    #[maybe_async]
     pub async fn get_cached_token(&mut self) -> Option<TokenInfo> {
         let display = self.cache_path.display();
         let mut file = match fs::File::open(&self.cache_path) {
@@ -282,6 +287,7 @@ impl Spotify {
 
     /// Get access token from self.token_info, if self.token_info is none or is
     /// expired. fetch token info by HTTP request
+    #[maybe_async]
     pub async fn get_access_token(&self) -> String {
         let access_token = match self.token_info {
             Some(ref token_info) => {
@@ -306,6 +312,7 @@ impl Spotify {
         }
     }
 
+    #[maybe_async]
     async fn request_access_token(&self) -> Option<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("grant_type", "client_credentials");
@@ -321,6 +328,7 @@ impl Spotify {
         }
     }
 
+    #[maybe_async]
     async fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> ClientResult<TokenInfo> {
         let url = "https://accounts.spotify.com/api/token";
         let response = self
@@ -360,10 +368,11 @@ impl Spotify {
     }
 
     /// refreshes token without saving token as cache.
+    #[maybe_async]
     pub async fn refresh_access_token_without_cache(
         &self,
         refresh_token: &str,
-    ) -> Option<TokenInfo> {
+    ) -> ClientResult<TokenInfo> {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
@@ -372,23 +381,12 @@ impl Spotify {
 
     /// after refresh access_token, the response may be empty
     /// when refresh_token again
-    pub async fn refresh_access_token(&self, refresh_token: &str) -> Option<TokenInfo> {
-        if let Some(token_info) = self.refresh_access_token_without_cache(refresh_token).await {
-            match serde_json::to_string(&token_info) {
-                Ok(token_info_string) => {
-                    self.save_token_info(&token_info_string);
-                    Some(token_info)
-                }
-                Err(why) => {
-                    panic!(
-                        "couldn't convert token_info to string: {} ",
-                        why.to_string()
-                    );
-                }
-            }
-        } else {
-            None
-        }
+    #[maybe_async]
+    pub async fn refresh_access_token(&self, refresh_token: &str) -> ClientResult<TokenInfo> {
+        let tok = self.refresh_access_token_without_cache(refresh_token).await?;
+        let s = serde_json::to_string(&tok)?;
+        self.save_token_info(&s);
+        Some(tok)
     }
 }
 
@@ -2113,6 +2111,7 @@ mod tests {
     use super::*;
     use serde_json;
     use std::path::PathBuf;
+
     #[test]
     fn test_is_scope_subset() {
         let mut needle_scope = String::from("1 2 3");
