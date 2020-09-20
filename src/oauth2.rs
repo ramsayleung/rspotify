@@ -3,7 +3,6 @@
 use chrono::prelude::*;
 use log::{debug, error, trace};
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 // Use built-in library
