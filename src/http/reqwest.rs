@@ -1,3 +1,6 @@
+//! The client implementation for the reqwest HTTP client, which is async by
+//! default.
+
 use super::{BaseClient, HTTPMethod};
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
 use crate::util::convert_map_to_string;

@@ -1,3 +1,7 @@
+//! The HTTP client may vary depending on which one the user configures. This
+//! module contains the required logic to use different clients
+//! interchangeably.
+
 #[cfg(feature = "client-reqwest")]
 mod reqwest;
 
