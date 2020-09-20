@@ -11,7 +11,10 @@
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to [its frequent usage](https://github.com/ramsayleung/rspotify/pull/110#issuecomment-674410604).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
-- Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
+  + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
+  + Endpoints take `Vec<String>/[String]` as parameter have changed to `impl IntoIterator<Item = &str>`, which is backward compatibility.
+  + Remove `convert_map_to_str` and `convert_str_to_map` from both `util.rs` and `blocking/util.rs`, replacing them with `reqwest`'s `query` and `Url::Parse`.
+  + Remove `generate_ramdom_string` and `datetime_to_timestamp` from `blocking/util.rs`, using `generate_random_string` and `datetime_to_timestamp` from `util.rs` instead.
 
 **Breaking changes:**
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
