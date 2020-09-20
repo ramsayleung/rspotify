@@ -30,17 +30,17 @@ pub trait BaseClient {
     async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String>;
 
     #[inline]
-    async fn post(&self, url: &str, payload: Option<&Value>) -> ClientResult<String> {
-        self.request(HTTPMethod::POST, url, payload).await
+    async fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(HTTPMethod::POST, url, Some(payload)).await
     }
 
     #[inline]
-    async fn put(&self, url: &str, payload: Option<&Value>) -> ClientResult<String> {
-        self.request(HTTPMethod::PUT, url, payload).await
+    async fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(HTTPMethod::PUT, url, Some(payload)).await
     }
 
     #[inline]
-    async fn delete(&self, url: &str, payload: Option<&Value>) -> ClientResult<String> {
-        self.request(HTTPMethod::DELETE, url, payload).await
+    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(HTTPMethod::DELETE, url, Some(payload)).await
     }
 }

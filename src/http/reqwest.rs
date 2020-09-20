@@ -93,7 +93,7 @@ impl BaseClient for Spotify {
     /// Send get request
     async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String> {
         if !params.is_empty() {
-            let param: String = convert_map_to_string(params);
+            let param = convert_map_to_string(params);
             let mut url_with_params = url.to_owned();
             url_with_params.push('?');
             url_with_params.push_str(&param);
@@ -101,20 +101,5 @@ impl BaseClient for Spotify {
         } else {
             self.request(HTTPMethod::GET, url, None).await
         }
-    }
-
-    /// Send post request
-    async fn post(&self, url: &str, payload: Option<&Value>) -> ClientResult<String> {
-        self.request(HTTPMethod::POST, url, Some(payload)).await
-    }
-
-    /// Send put request
-    async fn put(&self, url: &str, payload: Option<&Value>) -> ClientResult<String> {
-        self.request(HTTPMethod::PUT, url, Some(payload)).await
-    }
-
-    /// send delete request
-    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::DELETE, url, Some(payload)).await
     }
 }
