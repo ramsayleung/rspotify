@@ -19,6 +19,7 @@
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - All fallible calls in the client return a `ClientError` rather than using `failure`.
+- `Into<Option<T>>` is no longer used in the library to simplify the function signatures and reduce compilation times by removing unnecessary generic parameters. You might need to add `Some` for some calls if you weren't using that already.
 
 ## 0.10 (2020/07/01)
 
