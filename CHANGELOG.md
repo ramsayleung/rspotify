@@ -1,4 +1,7 @@
 ## 0.11 (unreleased)
+This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and no more versions like this should happen again. Lots of internal and external code was rewritten and improved. Sorry for the inconvenience!
+
+If we missed any change or there's something you'd like to discuss about this version, please open a new issue and let us know.
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
 - Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
@@ -15,11 +18,13 @@
 - Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 
 **Breaking changes:**
-- `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
+- `SpotifyClientCredentials` has been renamed to `ClientCredentials`, and its members `client_id` and `client_secret` to `id` and `secret`, respectively. It will only read from the environment variables when `from_env` is used, instead of inside `default`. `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
+- A real builder pattern is used now. For example, `TokenInfo` is constructed now with `TokenInfo::default()` and `TokenInfo::build()`. The same is applied for the `ClientCredentials` object and `Spotify`.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - All fallible calls in the client return a `ClientError` rather than using `failure`.
 - `Into<Option<T>>` is no longer used in the library to simplify the function signatures and reduce compilation times by removing unnecessary generic parameters. You might need to add `Some` for some calls if you weren't using that already.
+- Reduced considerably the number of `unwrap`s internally. More functions return `Result` now.
 
 ## 0.10 (2020/07/01)
 
