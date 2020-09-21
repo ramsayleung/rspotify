@@ -18,8 +18,8 @@ If we missed any change or there's something you'd like to discuss about this ve
 - Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 
 **Breaking changes:**
-- `SpotifyClientCredentials` has been renamed to `ClientCredentials`, and its members `client_id` and `client_secret` to `id` and `secret`, respectively. It will only read from the environment variables when `from_env` is used, instead of inside `default`. `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
-- A real builder pattern is used now. For example, `TokenInfo` is constructed now with `TokenInfo::default()` and `TokenInfo::build()`. The same is applied for the `ClientCredentials` object and `Spotify`.
+- `SpotifyClientCredentials` has been renamed to `Credentials`, and its members `client_id` and `client_secret` to `id` and `secret`, respectively. It will only read from the environment variables when `from_env` is used, instead of inside `default`. `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
+- A real builder pattern is used now. For example, `TokenInfo` is constructed now with `TokenInfo::default()` and `TokenInfo::build()`. The same is applied for the `Credentials` object and `Spotify`.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - All fallible calls in the client return a `ClientError` rather than using `failure`.

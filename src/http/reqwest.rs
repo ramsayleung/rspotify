@@ -60,8 +60,7 @@ impl From<reqwest::StatusCode> for ClientError {
     }
 }
 
-#[async_impl]
-impl BaseClient for Spotify {
+impl Spotify {
     async fn request(
         &self,
         method: HTTPMethod,
@@ -106,7 +105,10 @@ impl BaseClient for Spotify {
             Err(ClientError::from_response(response).await)
         }
     }
+}
 
+#[async_impl]
+impl BaseClient for Spotify {
     /// Send get request
     async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String> {
         if !params.is_empty() {
@@ -118,5 +120,20 @@ impl BaseClient for Spotify {
         } else {
             self.request(HTTPMethod::GET, url, None).await
         }
+    }
+
+    #[inline]
+    async fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(HTTPMethod::POST, url, Some(payload)).await
+    }
+
+    #[inline]
+    async fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(HTTPMethod::PUT, url, Some(payload)).await
+    }
+
+    #[inline]
+    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(HTTPMethod::DELETE, url, Some(payload)).await
     }
 }

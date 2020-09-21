@@ -1,22 +1,34 @@
 use rspotify::client::SpotifyBuilder;
-use rspotify::oauth2::ClientCredentialsBuilder;
+use rspotify::oauth2::CredentialsBuilder;
 
 #[tokio::main]
 async fn main() {
-    // Set client_id and client_secret in .env file or
+    // Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and
+    // RSPOTIFY_REDIRECT_URI in an .env file or export them manually:
+    //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     // export RSPOTIFY_CLIENT_SECRET="secret"
-    let creds = ClientCredentialsBuilder::from_env().build().unwrap();
+    //
+    // These will then be read with `from_env`.
 
-    // Or set client_id and client_secret explictly
-    // let client_credential = SpotifyClientCredentials::default()
+    // Or set client_id and client_secret explictly:
+    //
+    // let creds = CredentialsBuilder::default()
     //     .client_id("this-is-my-client-id")
     //     .client_secret("this-is-my-client-secret")
-    //     .build();
+    //     .build()
+    //     .unwrap();
+    let creds = CredentialsBuilder::from_env().build().unwrap();
+
     let spotify = SpotifyBuilder::default()
         .credentials(creds)
         .build()
         .unwrap();
+
+    // Obtaining the access token
+    spotify.prompt_for_user_token().await.unwrap();
+
+    // Running the requests
     let birdy_uri = "spotify:album:0sNOF9WDwhWunNAHPD3Baj";
     let albums = spotify.album(birdy_uri).await;
 

@@ -1,40 +1,49 @@
-use rspotify::client::Spotify;
-use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::client::SpotifyBuilder;
+use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::util::get_token;
 
 #[tokio::main]
 async fn main() {
-    // Set client_id and client_secret in .env file or
+    // Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and
+    // RSPOTIFY_REDIRECT_URI in an .env file or export them manually:
+    //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     // export RSPOTIFY_CLIENT_SECRET="secret"
     // export RSPOTIFY_REDIRECT_URI=your-direct-uri
+    //
+    // These will then be read with `from_env`.
 
-    // Or set client_id, client_secret,redirect_uri explictly
-    // let oauth = SpotifyOAuth::default()
+    // Or set client_id and client_secret explictly:
+    //
+    // let creds = CredentialsBuilder::default()
     //     .client_id("this-is-my-client-id")
     //     .client_secret("this-is-my-client-secret")
-    //     .redirect_uri("http://localhost:8888/callback")
-    //     .build();
+    //     .build()
+    //     .unwrap();
+    let creds = CredentialsBuilder::from_env().build().unwrap();
 
-    let mut oauth = SpotifyOAuth::default()
+    // Or set the redirect_uri explictly:
+    //
+    // let oauth = OAuthBuilder::default()
+    //     .redirect_uri("http://localhost:8888/callback")
+    //     .build()
+    //     .unwrap();
+    let oauth = OAuthBuilder::from_env()
         .scope("user-read-recently-played")
-        .build();
-    match get_token(&mut oauth).await {
-        Some(token_info) => {
-            let client_credential = SpotifyClientCredentials::default()
-                .token_info(token_info)
-                .build();
-            // Or set client_id and client_secret explictly
-            // let client_credential = SpotifyClientCredentials::default()
-            //     .client_id("this-is-my-client-id")
-            //     .client_secret("this-is-my-client-secret")
-            //     .build();
-            let spotify = Spotify::default()
-                .client_credentials_manager(client_credential)
-                .build();
-            let history = spotify.current_user_recently_played(10).await;
-            println!("{:?}", history);
-        }
-        None => println!("auth failed"),
-    };
+        .build()
+        .unwrap();
+
+    let spotify = SpotifyBuilder::default()
+        .credentials(creds)
+        .oauth(oauth)
+        .build()
+        .unwrap();
+
+    // Obtaining the access token
+    spotify.prompt_for_user_token().await.unwrap();
+
+    // Running the requests
+    let history = spotify.current_user_recently_played(10).await;
+
+    println!("Response: {:?}", history);
 }

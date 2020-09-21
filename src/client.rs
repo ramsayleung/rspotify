@@ -35,12 +35,11 @@ use super::model::show::{
 };
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
-use super::oauth2::ClientCredentials;
-use super::oauth2::TokenInfo;
+use super::oauth2::{Credentials, OAuth, TokenInfo};
 use super::senum::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
-use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
+use super::util::{convert_map_to_string, datetime_to_timestamp};
 
 const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
 const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
@@ -53,21 +52,34 @@ pub enum ClientError {
     // the error better in that case.
     #[error("no access token configured")]
     NoAccessToken,
+
+    // TODO: unauthorized could also be replaced with `StatusCode`
     #[error("request unauthorized")]
     Unauthorized,
+
     #[error("exceeded request limit")]
     RateLimited(Option<usize>),
+
     #[error("spotify error: {0}")]
     Api(#[from] ApiError),
+
     #[error("json parse error: {0}")]
     ParseJSON(#[from] serde_json::Error),
+
     // TODO: maybe `Request` and `StatusCode` could be merged?
     #[error("request error: {0}")]
     Request(String),
+
     #[error("status code {0}: {1}")]
     StatusCode(u16, String),
+
     #[error("input/output error: {0}")]
     IO(#[from] std::io::Error),
+
+    #[cfg(feature = "cli")]
+    #[error("cli error: {0}")]
+    CLI(String),
+
     #[error("cache file error: {0}")]
     CacheFile(String),
 }
@@ -100,28 +112,31 @@ pub struct Spotify {
     #[builder(setter(skip))]
     // TODO: Maybe pub(in crate) can be avoided?
     pub(in crate) client: reqwest::Client,
-    pub prefix: String,
-    pub credentials: ClientCredentials,
-    pub access_token: Option<String>,
-    pub cache_path: PathBuf,
-    // Should be `Option`
-    pub redirect_uri: String,
-    pub state: Option<String>,
-    pub scope: String,
-    pub proxies: Option<String>,
-}
 
-/// Inner HTTP client implementation for the reqwest library.
-impl Default for Spotify {
-    fn default() -> Self {
-        Spotify {
-            #[cfg(feature = "client-reqwest")]
-            client: reqwest::Client::new(),
-            prefix: "https://api.spotify.com/v1/".to_owned(),
-            cache_path: PathBuf::from(".spotify_token_cache.json"),
-            ..Default::default()
-        }
-    }
+    /// The minimal access token required for requests to the Spotify API.
+    #[builder(setter(into, strip_option), default)]
+    pub access_token: Option<TokenInfo>,
+
+    /// The credentials needed for obtaining a new access token, for requests
+    /// without OAuth authentication.
+    pub credentials: Credentials,
+
+    /// The OAuth information required for obtaining a new access token, for
+    /// requests with OAuth authentication. `credentials` also needs to be
+    /// set up.
+    pub oauth: OAuth,
+
+    /// The Spotify API prefix, `https://api.spotify.com/v1/` by default.
+    #[builder(
+        setter(into),
+        default = "String::from(\"https://api.spotify.com/v1/\")"
+    )]
+    pub prefix: String,
+
+    /// The cache file path, in case it's used. By default it's
+    /// `.spotify_token_cache.json`.
+    #[builder(default = "PathBuf::from(\".spotify_token_cache.json\")")]
+    pub cache_path: PathBuf,
 }
 
 /// Client-related methods
@@ -131,7 +146,7 @@ impl Spotify {
     pub(in crate) fn auth_headers(&self) -> Option<String> {
         self.access_token
             .as_ref()
-            .and_then(|tok| Some(format!("Bearer {}", tok)))
+            .and_then(|tok| Some(format!("Bearer {}", tok.access_token)))
     }
 
     /// Converts a JSON response from Spotify into its model.
@@ -192,15 +207,16 @@ impl Spotify {
     /// Parse the response code in the given response url
     /// TODO: this might be better off with an implementation from a separate
     /// library.
-    pub fn parse_response_code(&self, url: &mut str) -> Option<String> {
+    pub fn parse_response_code(&self, url: &str) -> Option<String> {
         url.split("?code=")
             .nth(1)
-            .and_then(|strs| strs.split('&').next())
-            .map(|s| s.to_owned())
+            .and_then(|s| s.split('&').next())
+            .and_then(|s| Some(s.to_string()))
     }
 
     /// TODO: we should use `Instant` for expiration dates, which requires this
     /// to be modified.
+    /// TODO: this should be moved into `TokenInfo`
     fn is_token_expired(&self, token_info: &TokenInfo) -> bool {
         let now: DateTime<Utc> = Utc::now();
 
@@ -224,6 +240,46 @@ impl Spotify {
         Ok(())
     }
 
+    /// Gets the required URL to authorize the current client.
+    /// TODO: should this be moved into `OAuth` somehow?
+    pub fn get_authorize_request_url(&self, show_dialog: bool) -> String {
+        let mut payload: HashMap<&str, &str> = HashMap::new();
+        payload.insert("client_id", &self.credentials.id);
+        payload.insert("response_type", "code");
+        // TODO: Maybe these OAuth options should go in a struct, or
+        // `Credentials` could be expanded with these.
+        payload.insert("redirect_uri", &self.oauth.redirect_uri);
+        payload.insert("scope", &self.oauth.scope);
+        payload.insert("state", &self.oauth.state);
+        if show_dialog {
+            payload.insert("show_dialog", "true");
+        }
+
+        let query_str = convert_map_to_string(&payload);
+        let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
+        format!("{}?{}", AUTHORIZE_URL, encoded)
+    }
+
+    /// Tries to read the cache file's token, which may not exist.
+    #[maybe_async]
+    pub async fn get_cached_token(&mut self) -> ClientResult<Option<TokenInfo>> {
+        let mut file = fs::File::open(&self.cache_path)?;
+        let mut tok_str = String::new();
+        file.read_to_string(&mut tok_str)?;
+
+        let mut tok: TokenInfo = serde_json::from_str(&tok_str)?;
+
+        if !Self::is_scope_subset(&mut self.oauth.scope, &mut tok.scope)
+            || self.is_token_expired(&tok)
+        {
+            // Invalid token, since it doesn't have at least the currently
+            // required scopes or it's expired.
+            Ok(None)
+        } else {
+            Ok(Some(tok))
+        }
+    }
+
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
     async fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> ClientResult<TokenInfo> {
@@ -242,74 +298,6 @@ impl Spotify {
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
 
         Ok(tok)
-    }
-
-    /// Gets the URL to use to authorize this app.
-    pub fn get_authorize_request_url(&self, show_dialog: bool) -> String {
-        let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert("client_id", &self.credentials.id);
-        payload.insert("response_type", "code");
-        // TODO: Maybe these OAuth options should go in a struct, or
-        // `ClientCredentials` could be expanded with these.
-        payload.insert("redirect_uri", &self.redirect_uri);
-        payload.insert("scope", &self.scope);
-        // The state is generated by default, as suggested by the OAuth2 spec:
-        // https://tools.ietf.org/html/rfc6749#section-10.12
-        // TODO: generate_random_string should be called only when it's needed.
-        // client is created.
-        let rand = generate_random_string(16);
-        payload.insert("state", self.state.as_ref().unwrap_or(&rand));
-        if show_dialog {
-            payload.insert("show_dialog", "true");
-        }
-
-        let query_str = convert_map_to_string(&payload);
-        let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
-        format!("{}?{}", AUTHORIZE_URL, encoded)
-    }
-
-    /// Gets the access_token for the app with the given code without saving
-    /// it into the cache file.
-    #[maybe_async]
-    pub async fn request_access_token_without_cache(&self, code: &str) -> ClientResult<TokenInfo> {
-        let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert("redirect_uri", &self.redirect_uri);
-        payload.insert("code", code);
-        payload.insert("grant_type", "authorization_code");
-        payload.insert("scope", &self.scope);
-        // TODO: generate_random_string should be called only when it's needed.
-        // client is created.
-        let rand = generate_random_string(16);
-        payload.insert("state", self.state.as_ref().unwrap_or(&rand));
-
-        self.fetch_access_token(&payload).await
-    }
-
-    /// The same as `get_access_token_without_cache`, but saves the token into
-    /// the cache file if possible.
-    #[maybe_async]
-    pub async fn request_access_token(&self, code: &str) -> ClientResult<TokenInfo> {
-        let tok = self.request_access_token_without_cache(code).await?;
-        self.save_token_info(&serde_json::to_string(&tok)?)?;
-
-        Ok(tok)
-    }
-
-    #[maybe_async]
-    pub async fn get_cached_token(&mut self) -> ClientResult<Option<TokenInfo>> {
-        let mut file = fs::File::open(&self.cache_path)?;
-        let mut tok_str = String::new();
-        file.read_to_string(&mut tok_str)?;
-
-        let mut tok: TokenInfo = serde_json::from_str(&tok_str)?;
-
-        if !Self::is_scope_subset(&mut self.scope, &mut tok.scope) || self.is_token_expired(&tok) {
-            // Invalid token, since it doesn't have at least the currently
-            // required scopes or it's expired.
-            Ok(None)
-        } else {
-            Ok(Some(tok))
-        }
     }
 
     /// Refreshes the access token from a refresh token without saving it into
@@ -338,48 +326,84 @@ impl Spotify {
         Ok(tok)
     }
 
+    /// Gets the access token for the app with the given code without saving
+    /// it into the cache file.
+    #[maybe_async]
+    pub async fn request_access_token_without_cache(&self, code: &str) -> ClientResult<TokenInfo> {
+        let mut payload: HashMap<&str, &str> = HashMap::new();
+        payload.insert("redirect_uri", &self.oauth.redirect_uri);
+        payload.insert("code", code);
+        payload.insert("grant_type", "authorization_code");
+        payload.insert("scope", &self.oauth.scope);
+        payload.insert("state", &self.oauth.state);
+
+        self.fetch_access_token(&payload).await
+    }
+
+    /// The same as `get_access_token_without_cache`, but saves the token into
+    /// the cache file if possible.
+    #[maybe_async]
+    pub async fn request_access_token(&self, code: &str) -> ClientResult<TokenInfo> {
+        let tok = self.request_access_token_without_cache(code).await?;
+        self.save_token_info(&serde_json::to_string(&tok)?)?;
+
+        Ok(tok)
+    }
+
     /// Opens up the authorization URL in the user's browser so that it can
     /// authenticate. It also reads from the standard input the redirect URI
     /// in order to obtain the access token information. The resulting access
     /// token will be saved internally once the operation is successful.
     #[cfg(feature = "cli")]
-    pub fn prompt_for_user_token_without_cache(&self) -> ClientResult<()> {
-        let code = self.get_code_from_user(url)?;
-        self.access_token = self.get_access_token_without_cache(&code).await?;
+    #[maybe_async]
+    pub async fn prompt_for_user_token_without_cache(&mut self) -> ClientResult<()> {
+        let code = self.get_code_from_user()?;
+        self.access_token = Some(self.request_access_token_without_cache(&code).await?);
+
+        Ok(())
     }
 
     /// The same as the `prompt_for_user_token_without_cache` method, but it
     /// will try to use the user token into the cache file, and save it in
     /// case it didn't exist/was invalid.
     #[cfg(feature = "cli")]
-    pub fn prompt_for_user_token(&self) -> ClientResult<()> {
+    #[maybe_async]
+    pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
         // TODO: not sure where the cached token should be read. Should it
         // be more explicit? Also outside of this function?
-        self.access_token = match self.get_cached_token()? {
-            Some(tok) => tok,
-            None => {
-                let code = self.get_code_from_user(url)?;
-                // Will write to the cache file if successful
-                self.get_access_token(&code).await?
-            }
+        // TODO: shouldn't this also refresh the obtained token?
+        self.access_token = self.get_cached_token().await?;
+
+        // Otherwise following the usual procedure to get the token.
+        if self.access_token.is_none() {
+            let code = self.get_code_from_user()?;
+            // Will write to the cache file if successful
+            self.access_token = Some(self.request_access_token(&code).await?);
         }
+
+        Ok(())
     }
 
     /// Tries to open the authorization URL in the user's browser, and returns
     /// the obtained code.
     #[cfg(feature = "cli")]
     fn get_code_from_user(&self) -> ClientResult<String> {
-        let url = self.get_authorize_request_url(None, false);
+        let url = self.get_authorize_request_url(false);
 
         match webbrowser::open(&url) {
             Ok(_) => println!("Opened {} in your browser", url),
-            Err(why) => eprintln!("Error when trying to open an URL in your browser: {:?}. Please navigate here manually: {}", why, url),
+            Err(why) => eprintln!("Error when trying to open an URL in your browser: {:?}. \
+                                  Please navigate here manually: {}", why, url),
         }
 
         println!("Please enter the URL you were redirected to: ");
         let mut input = String::new();
         std::io::stdin().read_line(&mut input)?;
-        self.parse_response_code(input)
+        let code = self
+            .parse_response_code(&input)
+            .ok_or_else(|| ClientError::CLI("unable to parse the response code".to_string()))?;
+
+        Ok(code)
     }
 }
 

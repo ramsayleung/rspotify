@@ -60,22 +60,48 @@
 //! [official guide for a detailed explanation of the different authorization
 //! flows available](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
 //!
-//! Even if your script does not have an accessible URL, you will have to
-//! specify a redirect URI when registering your application where Spotify
-//! will redirect to after a successful login. The URL doesn't need to work
-//! or be accessible, you can use `http://localhost/`, and an [authorization
-//! code](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
-//! will be returned as the `code` HTTP parameter:
-//! `http://localhost/?code=...`, which can be used by Rspotify to obtain an
-//! access token for your requests. For example:
+//! In a nutshell, these are the steps you need to make authenticated requests:
+//! 1. Generate a request URL with `Spotify::get_authorize_request_url`
+//! 2. The user logs in with the request URL, which redirects to the redirect
+//!    URI and provides a code in the parameters.
+//! 3. The code may be parsed with `Spotify::parse_response_code`.
+//! 3. The code is sent to Spotify in order to obtain an access token with
+//!    `Spotify::request_access_token` or
+//!    `Spotify::request_access_token_without_cache`
+//! 4. Finally, this access token can be used internally for the requests.
+//!    This access token may expire relatively soon, so it can be refreshed
+//!    with the refresh token (obtained in the third step as well) using
+//!    `Spotify::refresh_access_token` or
+//!    `Spotify::refresh_access_token_without_cache`. Otherwise, a new access
+//!    token may be generated from scratch by repeating these steps, but the
+//!    advantage of refreshing it is that this doesn't require the user to log
+//!    in, and that it's a simpler procedure.
+//!
+//! See the `webapp` example for more details on how you can implement it for
+//! something like a web server.
+//!
+//! If you're developing a CLI application, you might be interested in the
+//! `cli` feature, which brings the `Spotify::prompt_for_user_token` and
+//! `Spotify::prompt_for_user_token_without_cache` methods. These will
+//! run all the authentication steps. The user wil log in by opening the
+//! request URL in its default browser, and the requests will be performed
+//! automatically.
+//!
+//! An example of the CLI authentication:
 //!
 //! ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
 //!
-//! In order to help other developers to get used to `rspotify`, I registered
-//! a Spotify account with temporary email. You can test `rspotify` with this
-//! account's `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`, check the
-//! [`.env` file](https://github.com/ramsayleung/rspotify/blob/master/.env)
-//! for more details.
+//! Note: even if your script does not have an accessible URL, you will have to
+//! specify a redirect URI. It doesn't need to work or be accessible, you can
+//! use `http://localhost:8888/callback` for example, which will also have the
+//! code appended like so: `http://localhost/?code=...`.
+//!
+//! In order to help other developers to get used to `rspotify`, there are
+//! public credentials available for a dummy account. You can test `rspotify`
+//! with this account's `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`
+//! inside the [`.env` file
+//! ](https://github.com/ramsayleung/rspotify/blob/master/.env) for more
+//! details.
 //!
 //! ### Examples
 //!

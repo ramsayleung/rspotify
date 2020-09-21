@@ -4,6 +4,8 @@
 
 #[cfg(feature = "client-reqwest")]
 mod reqwest;
+#[cfg(feature = "client-ureq")]
+mod ureq;
 
 use crate::client::ClientResult;
 
@@ -21,27 +23,8 @@ pub enum HTTPMethod {
 
 #[maybe_async]
 pub trait BaseClient {
-    async fn request(
-        &self,
-        method: HTTPMethod,
-        url: &str,
-        payload: Option<&Value>,
-    ) -> ClientResult<String>;
-
     async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String>;
-
-    #[inline]
-    async fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::POST, url, Some(payload)).await
-    }
-
-    #[inline]
-    async fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::PUT, url, Some(payload)).await
-    }
-
-    #[inline]
-    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::DELETE, url, Some(payload)).await
-    }
+    async fn post(&self, url: &str, payload: &Value) -> ClientResult<String>;
+    async fn put(&self, url: &str, payload: &Value) -> ClientResult<String>;
+    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String>;
 }
