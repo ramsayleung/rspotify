@@ -67,7 +67,14 @@ impl BaseClient for Spotify {
         }
 
         let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, self.auth_headers().await.parse().unwrap());
+        // TODO: these `unwrap` should be removed
+        headers.insert(
+            AUTHORIZATION,
+            self.auth_headers()
+                .ok_or(ClientError::NoAccessToken)?
+                .parse()
+                .unwrap(),
+        );
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let response = {
@@ -76,9 +83,10 @@ impl BaseClient for Spotify {
                 .request(method.into(), &url.into_owned())
                 .headers(headers);
 
-            if let Some(json) = payload {
-                builder = builder.json(json)
-            }
+            let builder = match payload {
+                Some(json) => builder.json(json),
+                None => builder,
+            };
 
             builder.send().await.map_err(ClientError::from)?
         };

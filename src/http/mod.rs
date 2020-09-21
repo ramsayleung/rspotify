@@ -11,7 +11,8 @@ use maybe_async::maybe_async;
 use serde_json::Value;
 use std::collections::HashMap;
 
-enum HTTPMethod {
+/// TODO: this should not be public
+pub enum HTTPMethod {
     GET,
     POST,
     PUT,

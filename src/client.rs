@@ -1,22 +1,22 @@
 //! Client to Spotify API endpoint
 // 3rd-part library
 use chrono::prelude::*;
-use log::{error, trace, debug};
+use derive_builder::Builder;
+use log::{error, trace};
 use maybe_async::maybe_async;
+use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::Deserialize;
 use serde_json::map::Map;
 use serde_json::{json, Value};
 use thiserror::Error;
-use derive_builder::Builder;
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 
 // Built-in battery
-use std::fs;
-use std::path::Path;
 use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::io::{Read, Write};
+use std::iter::FromIterator;
+use std::path::PathBuf;
 
-use super::util::convert_map_to_string;
-use super::oauth2::TokenInfo;
 use super::http::BaseClient;
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
@@ -36,16 +36,23 @@ use super::model::show::{
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::ClientCredentials;
+use super::oauth2::TokenInfo;
 use super::senum::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
+use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 
 const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
 const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize?";
+const ACCESS_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
 pub enum ClientError {
+    // TODO: this is a subset of `Unauthorized`, but I think it points out
+    // the error better in that case.
+    #[error("no access token configured")]
+    NoAccessToken,
     #[error("request unauthorized")]
     Unauthorized,
     #[error("exceeded request limit")]
@@ -56,11 +63,12 @@ pub enum ClientError {
     ParseJSON(#[from] serde_json::Error),
     #[error("request error: {0}")]
     Request(#[from] reqwest::Error),
+    #[error("Input/Output error: {0}")]
+    IO(#[from] std::io::Error),
     #[error("cache file error: {0}")]
     CacheFile(String),
-
-    #[error("status code: {0}")]
     #[cfg(feature = "client-reqwest")]
+    #[error("status code: {0}")]
     StatusCode(reqwest::StatusCode),
 }
 
@@ -89,11 +97,18 @@ pub enum ApiError {
 #[derive(Builder, Debug, Clone)]
 pub struct Spotify {
     #[cfg(feature = "client-reqwest")]
-    client: reqwest::Client,
+    #[builder(setter(skip))]
+    // TODO: Maybe pub(in crate) can be avoided?
+    pub(in crate) client: reqwest::Client,
     pub prefix: String,
-    pub creds: ClientCredentials,
+    pub credentials: ClientCredentials,
     pub access_token: Option<String>,
-    pub cache_path: Path,
+    pub cache_path: PathBuf,
+    // Should be `Option`
+    pub redirect_uri: String,
+    pub state: Option<String>,
+    pub scope: String,
+    pub proxies: Option<String>,
 }
 
 /// Inner HTTP client implementation for the reqwest library.
@@ -103,7 +118,7 @@ impl Default for Spotify {
             #[cfg(feature = "client-reqwest")]
             client: reqwest::Client::new(),
             prefix: "https://api.spotify.com/v1/".to_owned(),
-            cache_path: Path::from(".spotify_token_cache.json"),
+            cache_path: PathBuf::from(".spotify_token_cache.json"),
             ..Default::default()
         }
     }
@@ -112,8 +127,11 @@ impl Default for Spotify {
 /// Client-related methods
 impl Spotify {
     /// Returns the authorization headers, or None if there is no access token.
-    fn auth_headers(&self) -> Option<String> {
-        self.access_token.and_then(|tok| format!("Bearer {}", tok))
+    /// TODO: Maybe pub(in crate) can be avoided?
+    pub(in crate) fn auth_headers(&self) -> Option<String> {
+        self.access_token
+            .as_ref()
+            .and_then(|tok| Some(format!("Bearer {}", tok)))
     }
 
     /// Converts a JSON response from Spotify into its model.
@@ -193,30 +211,56 @@ impl Spotify {
         }
     }
 
+    /// Saves the access token information into its file.
     fn save_token_info(&self, token_info: &str) -> ClientResult<()> {
         let mut file = fs::OpenOptions::new()
             .write(true)
             .create(true)
-            .open(self.cache_path)
-            .map_err(|| ClientError::CacheFile("unable to open"))?;
+            .open(self.cache_path.as_path())?;
 
-        file.set_len(0).map_err(|| ClientError::CacheFile("unable to empty"))?;
-        file.write_all(token_info.as_bytes())
-            .map_err(|| ClientError::CacheFile("unable to write"))?;
+        file.set_len(0)?;
+        file.write_all(token_info.as_bytes())?;
+
+        Ok(())
+    }
+
+    /// Sends a request to Spotify for an access token.
+    #[maybe_async]
+    async fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> ClientResult<TokenInfo> {
+        let response = self
+            .client
+            .post(ACCESS_TOKEN_URL)
+            .basic_auth(
+                self.credentials.id.clone(),
+                Some(self.credentials.secret.clone()),
+            )
+            .form(&payload)
+            .send()
+            .await?;
+
+        let mut tok: TokenInfo = response.json().await?;
+        tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
+
+        Ok(tok)
     }
 
     /// Gets the URL to use to authorize this app.
-    pub fn get_authorize_url(&self, state: Option<&str>, show_dialog: Option<bool>) -> String {
+    pub fn get_authorize_request_url(&self, show_dialog: bool) -> String {
         let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert("client_id", &self.client_id);
+        payload.insert("client_id", &self.credentials.id);
         payload.insert("response_type", "code");
+        // TODO: Maybe these OAuth options should go in a struct, or
+        // `ClientCredentials` could be expanded with these.
         payload.insert("redirect_uri", &self.redirect_uri);
         payload.insert("scope", &self.scope);
-        payload.insert("state", state.unwrap_or(&self.state));
-        if let Some(show_dialog) = show_dialog {
-            if show_dialog {
-                payload.insert("show_dialog", "true");
-            }
+        // The state is generated by default, as suggested by the OAuth2 spec:
+        // https://tools.ietf.org/html/rfc6749#section-10.12
+        // TODO: generate_random_string should be called only when it's needed.
+        // client is created.
+        let rand = generate_random_string(16);
+        payload.insert("state", self.state.as_ref().unwrap_or(&rand));
+        if show_dialog {
+            payload.insert("show_dialog", "true");
         }
 
         let query_str = convert_map_to_string(&payload);
@@ -227,13 +271,16 @@ impl Spotify {
     /// Gets the access_token for the app with the given code without saving
     /// it into the cache file.
     #[maybe_async]
-    pub async fn get_access_token_without_cache(&self, code: &str) -> Option<TokenInfo> {
+    pub async fn request_access_token_without_cache(&self, code: &str) -> ClientResult<TokenInfo> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("redirect_uri", &self.redirect_uri);
         payload.insert("code", code);
         payload.insert("grant_type", "authorization_code");
         payload.insert("scope", &self.scope);
-        payload.insert("state", &self.state);
+        // TODO: generate_random_string should be called only when it's needed.
+        // client is created.
+        let rand = generate_random_string(16);
+        payload.insert("state", self.state.as_ref().unwrap_or(&rand));
 
         self.fetch_access_token(&payload).await
     }
@@ -241,133 +288,32 @@ impl Spotify {
     /// The same as `get_access_token_without_cache`, but saves the token into
     /// the cache file if possible.
     #[maybe_async]
-    pub async fn get_access_token(&self, code: &str) -> Option<TokenInfo> {
-        self.get_access_token_without_cache(code).await.and_then(|token_info| {
-            serde_json::to_string(&token_info).and_then(|s| {
-                self.save_token_info(&s)
-            })
-        })
+    pub async fn request_access_token(&self, code: &str) -> ClientResult<TokenInfo> {
+        let tok = self.request_access_token_without_cache(code).await?;
+        self.save_token_info(&serde_json::to_string(&tok)?)?;
+
+        Ok(tok)
     }
 
     #[maybe_async]
-    pub async fn get_cached_token(&mut self) -> Option<TokenInfo> {
-        let display = self.cache_path.display();
-        let mut file = match fs::File::open(&self.cache_path) {
-            Ok(file) => file,
-            Err(why) => {
-                error!("couldn't open {}: {:?}", display, why.to_string());
-                return None;
-            }
-        };
-        let mut token_info_string = String::new();
-        match file.read_to_string(&mut token_info_string) {
-            Err(why) => {
-                error!("couldn't read {}: {}", display, why.to_string());
-                None
-            }
-            Ok(_) => {
-                let mut token_info: TokenInfo = serde_json::from_str(&token_info_string)
-                    .unwrap_or_else(|_| {
-                        panic!("convert [{:?}] to json failed", self.cache_path.display())
-                    });
-                if !SpotifyOAuth::is_scope_subset(&mut self.scope, &mut token_info.scope) {
-                    None
-                } else if self.is_token_expired(&token_info) {
-                    if let Some(refresh_token) = token_info.refresh_token {
-                        self.refresh_access_token(&refresh_token).await
-                    } else {
-                        None
-                    }
-                } else {
-                    Some(token_info)
-                }
-            }
-        }
-    }
+    pub async fn get_cached_token(&mut self) -> ClientResult<Option<TokenInfo>> {
+        let mut file = fs::File::open(&self.cache_path)?;
+        let mut tok_str = String::new();
+        file.read_to_string(&mut tok_str)?;
 
-    /// Get access token from self.token_info, if self.token_info is none or is
-    /// expired. fetch token info by HTTP request
-    #[maybe_async]
-    pub async fn get_access_token(&self) -> String {
-        let access_token = match self.token_info {
-            Some(ref token_info) => {
-                if !self.is_token_expired(token_info) {
-                    debug!("token info: {:?}", &token_info);
-                    Some(&token_info.access_token)
-                } else {
-                    None
-                }
-            }
-            None => None,
-        };
-        match access_token {
-            Some(access_token) => access_token.to_owned(),
-            None => match self.request_access_token().await {
-                Some(new_token_info) => {
-                    debug!("token info: {:?}", &new_token_info);
-                    new_token_info.access_token
-                }
-                None => String::new(),
-            },
-        }
-    }
+        let mut tok: TokenInfo = serde_json::from_str(&tok_str)?;
 
-    #[maybe_async]
-    async fn request_access_token(&self) -> Option<TokenInfo> {
-        let mut payload = HashMap::new();
-        payload.insert("grant_type", "client_credentials");
-        if let Some(mut token_info) = self
-            .fetch_access_token(&self.client_id, &self.client_secret, &payload)
-            .await
-        {
-            let expires_in = token_info.expires_in;
-            token_info.set_expires_at(datetime_to_timestamp(expires_in));
-            Some(token_info)
+        if !Self::is_scope_subset(&mut self.scope, &mut tok.scope) || self.is_token_expired(&tok) {
+            // Invalid token, since it doesn't have at least the currently
+            // required scopes or it's expired.
+            Ok(None)
         } else {
-            None
+            Ok(Some(tok))
         }
     }
 
-    #[maybe_async]
-    async fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> ClientResult<TokenInfo> {
-        let url = "https://accounts.spotify.com/api/token";
-        let response = self
-            .client
-            .post(url)
-            .basic_auth(self.client_id, Some(self.client_secret))
-            .form(&payload)
-            .send()
-            .await
-            .expect("send request failed");
-
-        if response.status().is_success() {
-            debug!("response content: {:?}", response);
-            let mut token_info: TokenInfo = response
-                .json()
-                .await
-                .expect("Error parsing token_info response");
-            let expires_in = token_info.expires_in;
-            token_info.set_expires_at(datetime_to_timestamp(expires_in));
-            if token_info.refresh_token.is_none() {
-                match payload.get("refresh_token") {
-                    Some(payload_refresh_token) => {
-                        token_info.set_refresh_token(payload_refresh_token);
-                        return Some(token_info);
-                    }
-                    None => {
-                        debug!("could not find refresh_token");
-                    }
-                }
-            }
-            Some(token_info)
-        } else {
-            error!("fetch access token request failed, payload:{:?}", &payload);
-            error!("{:?}", response);
-            None
-        }
-    }
-
-    /// refreshes token without saving token as cache.
+    /// Refreshes the access token from a refresh token without saving it into
+    /// the cache file.
     #[maybe_async]
     pub async fn refresh_access_token_without_cache(
         &self,
@@ -376,17 +322,64 @@ impl Spotify {
         let mut payload = HashMap::new();
         payload.insert("refresh_token", refresh_token);
         payload.insert("grant_type", "refresh_token");
+
         self.fetch_access_token(&payload).await
     }
 
-    /// after refresh access_token, the response may be empty
-    /// when refresh_token again
+    /// The same as `refresh_access_token_without_cache`, but saves the token
+    /// into the cache file if possible.
     #[maybe_async]
     pub async fn refresh_access_token(&self, refresh_token: &str) -> ClientResult<TokenInfo> {
-        let tok = self.refresh_access_token_without_cache(refresh_token).await?;
-        let s = serde_json::to_string(&tok)?;
-        self.save_token_info(&s);
-        Some(tok)
+        let tok = self
+            .refresh_access_token_without_cache(refresh_token)
+            .await?;
+        self.save_token_info(&serde_json::to_string(&tok)?)?;
+
+        Ok(tok)
+    }
+
+    /// Opens up the authorization URL in the user's browser so that it can
+    /// authenticate. It also reads from the standard input the redirect URI
+    /// in order to obtain the access token information. The resulting access
+    /// token will be saved internally once the operation is successful.
+    #[cfg(feature = "cli")]
+    pub fn prompt_for_user_token_without_cache(&self) -> ClientResult<()> {
+        let code = self.get_code_from_user(url)?;
+        self.access_token = self.get_access_token_without_cache(&code).await?;
+    }
+
+    /// The same as the `prompt_for_user_token_without_cache` method, but it
+    /// will try to use the user token into the cache file, and save it in
+    /// case it didn't exist/was invalid.
+    #[cfg(feature = "cli")]
+    pub fn prompt_for_user_token(&self) -> ClientResult<()> {
+        // TODO: not sure where the cached token should be read. Should it
+        // be more explicit? Also outside of this function?
+        self.access_token = match self.get_cached_token()? {
+            Some(tok) => tok,
+            None => {
+                let code = self.get_code_from_user(url)?;
+                // Will write to the cache file if successful
+                self.get_access_token(&code).await?
+            }
+        }
+    }
+
+    /// Tries to open the authorization URL in the user's browser, and returns
+    /// the obtained code.
+    #[cfg(feature = "cli")]
+    fn get_code_from_user(&self) -> ClientResult<String> {
+        let url = self.get_authorize_request_url(None, false);
+
+        match webbrowser::open(&url) {
+            Ok(_) => println!("Opened {} in your browser", url),
+            Err(why) => eprintln!("Error when trying to open an URL in your browser: {:?}. Please navigate here manually: {}", why, url),
+        }
+
+        println!("Please enter the URL you were redirected to: ");
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        self.parse_response_code(input)
     }
 }
 
@@ -2129,54 +2122,41 @@ mod tests {
 
     #[test]
     fn test_save_token_info() {
-        let spotify_oauth = Spotify::default()
+        let spotify = Spotify::default()
             .state(&generate_random_string(16))
             .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
             .cache_path(PathBuf::from(".spotify_token_cache.json"))
             .build();
-        let token_info = TokenInfo::default()
+
+        let tok = TokenInfo::default()
             .access_token("test-access_token")
             .token_type("code")
             .expires_in(3600)
             .expires_at(1515841743)
             .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
             .refresh_token("fghjklrftyhujkuiovbnm");
-        match serde_json::to_string(&token_info) {
-            Ok(token_info_string) => {
-                spotify_oauth.save_token_info(&token_info_string);
-                let display = spotify_oauth.cache_path.display();
-                let mut file = match fs::File::open(&spotify_oauth.cache_path) {
-                    Err(why) => panic!("couldn't open {}: {}", display, why.to_string()),
-                    Ok(file) => file,
-                };
-                let mut token_info_string_from_file = String::new();
-                match file.read_to_string(&mut token_info_string_from_file) {
-                    Err(why) => panic!("couldn't read {}: {}", display, why.to_string()),
-                    Ok(_) => {
-                        assert_eq!(token_info_string, token_info_string_from_file);
-                    }
-                }
-            }
-            Err(why) => panic!(
-                "couldn't convert token_info to string: {} ",
-                why.to_string()
-            ),
-        }
+
+        let tok_str = serde_json::to_string(&tok).unwrap();
+
+        spotify.save_token_info(&tok_str);
+
+        let mut file = fs::File::open(&spotify.cache_path).unwrap();
+        let mut tok_str_file = String::new();
+        file.read_to_string(&mut tok_str_file).unwrap();
+
+        assert_eq!(tok_str, tok_str_file);
     }
 
     #[test]
     fn test_parse_response_code() {
-        use crate::util::generate_random_string;
         let mut url = String::from("http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_");
-        let spotify_oauth = Spotify::default()
+        let spotify = Spotify::default()
             .state(&generate_random_string(16))
             .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
             .cache_path(PathBuf::from(".spotify_token_cache.json"))
             .build();
-        match spotify_oauth.parse_response_code(&mut url) {
-            Some(code) => assert_eq!(code, "AQD0yXvFEOvw"),
-            None => println!("failed"),
-        }
+        let code = spotify.parse_response_code(&mut url).unwrap();
+        assert_eq!(code, "AQD0yXvFEOvw");
     }
 
     #[test]

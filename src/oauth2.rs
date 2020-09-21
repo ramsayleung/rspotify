@@ -1,7 +1,7 @@
 //! The module contains function about authorization and client-credential
 // Use 3rd party library
-use serde::{Deserialize, Serialize};
 use derive_builder::Builder;
+use serde::{Deserialize, Serialize};
 
 // Use built-in library
 use std::env;
@@ -29,12 +29,17 @@ impl ClientCredentialsBuilder {
     /// `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`. You can optionally
     /// activate the `env-file` feature in order to read these variables from
     /// a `.env` file.
-    pub fn from_env(&mut self) -> Self {
+    pub fn from_env() -> Self {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
         }
-        let client_id = env::var("RSPOTIFY_CLIENT_ID");
-        let client_secret = env::var("RSPOTIFY_CLIENT_SECRET");
+        let id = env::var("RSPOTIFY_CLIENT_ID").ok();
+        let secret = env::var("RSPOTIFY_CLIENT_SECRET").ok();
+        ClientCredentialsBuilder {
+            id,
+            secret,
+            ..Default::default()
+        }
     }
 }
