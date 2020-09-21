@@ -45,9 +45,18 @@ impl ClientError {
     }
 }
 
+impl From<reqwest::Error> for ClientError {
+    fn from(err: reqwest::Error) -> Self {
+        Self::Request(err.to_string())
+    }
+}
+
 impl From<reqwest::StatusCode> for ClientError {
     fn from(code: reqwest::StatusCode) -> Self {
-        Self::StatusCode(code)
+        Self::StatusCode(
+            code.as_u16(),
+            code.canonical_reason().unwrap_or("unknown").to_string(),
+        )
     }
 }
 

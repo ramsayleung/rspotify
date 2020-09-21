@@ -43,7 +43,7 @@ use super::senum::{
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
 
 const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
-const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize?";
+const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
 const ACCESS_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
 
 /// Possible errors returned from the `rspotify` client.
@@ -61,15 +61,15 @@ pub enum ClientError {
     Api(#[from] ApiError),
     #[error("json parse error: {0}")]
     ParseJSON(#[from] serde_json::Error),
+    // TODO: maybe `Request` and `StatusCode` could be merged?
     #[error("request error: {0}")]
-    Request(#[from] reqwest::Error),
-    #[error("Input/Output error: {0}")]
+    Request(String),
+    #[error("status code {0}: {1}")]
+    StatusCode(u16, String),
+    #[error("input/output error: {0}")]
     IO(#[from] std::io::Error),
     #[error("cache file error: {0}")]
     CacheFile(String),
-    #[cfg(feature = "client-reqwest")]
-    #[error("status code: {0}")]
-    StatusCode(reqwest::StatusCode),
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
@@ -265,7 +265,7 @@ impl Spotify {
 
         let query_str = convert_map_to_string(&payload);
         let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
-        format!("{}{}", AUTHORIZE_URL, encoded)
+        format!("{}?{}", AUTHORIZE_URL, encoded)
     }
 
     /// Gets the access_token for the app with the given code without saving
