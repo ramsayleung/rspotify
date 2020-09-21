@@ -12,7 +12,7 @@
 //! ```rust
 //! use rspotify::blocking::client::Spotify;
 //! use rspotify::blocking::oauth2::SpotifyClientCredentials;
-//! use rspotify::senum::Country;
+//! use rspotify::enums::Country;
 //!
 //! fn main() {
 //!     let client_credential = SpotifyClientCredentials::default().build();

@@ -1,7 +1,7 @@
 use rspotify::blocking::client::Spotify;
 use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
 use rspotify::blocking::util::get_token;
-use rspotify::senum::{Country, SearchType};
+use rspotify::enums::{Country, SearchType};
 
 fn main() {
     // Set client_id and client_secret in .env file or

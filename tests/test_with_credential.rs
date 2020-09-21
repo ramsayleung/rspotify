@@ -1,6 +1,6 @@
 use rspotify::client::Spotify;
 use rspotify::oauth2::SpotifyClientCredentials;
-use rspotify::senum::{AlbumType, Country};
+use rspotify::enums::{AlbumType, Country};
 
 use std::sync::Mutex;
 

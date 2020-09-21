@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;
-use crate::senum::Type;
+use crate::enums::Type;
 use serde_json::Value;
 use std::collections::HashMap;
 /// [artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)

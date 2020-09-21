@@ -13,7 +13,7 @@ use serde_json::map::Map;
 use rspotify::client::Spotify;
 use rspotify::model::offset::for_position;
 use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::senum::{Country, RepeatState, SearchType, TimeRange};
+use rspotify::enums::{Country, RepeatState, SearchType, TimeRange};
 use rspotify::util::get_token;
 
 lazy_static! {

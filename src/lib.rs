@@ -93,7 +93,7 @@
 //! ```rust
 //! use rspotify::client::Spotify;
 //! use rspotify::oauth2::SpotifyClientCredentials;
-//! use rspotify::senum::Country;
+//! use rspotify::enums::Country;
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -123,5 +123,5 @@ pub mod blocking;
 pub mod client;
 pub mod model;
 pub mod oauth2;
-pub mod senum;
+pub mod enums;
 pub mod util;
