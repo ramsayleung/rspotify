@@ -20,12 +20,13 @@ async fn main() {
     //     .unwrap();
     let creds = CredentialsBuilder::from_env().build().unwrap();
 
-    let spotify = SpotifyBuilder::default()
+    let mut spotify = SpotifyBuilder::default()
         .credentials(creds)
         .build()
         .unwrap();
 
-    // Obtaining the access token
+    // Obtaining the access token. Requires to be mutable because the internal
+    // token will be modified.
     spotify.prompt_for_user_token().await.unwrap();
 
     // Running the requests

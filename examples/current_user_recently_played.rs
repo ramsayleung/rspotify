@@ -1,6 +1,5 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::util::get_token;
 
 #[tokio::main]
 async fn main() {
@@ -33,7 +32,7 @@ async fn main() {
         .build()
         .unwrap();
 
-    let spotify = SpotifyBuilder::default()
+    let mut spotify = SpotifyBuilder::default()
         .credentials(creds)
         .oauth(oauth)
         .build()

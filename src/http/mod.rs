@@ -11,7 +11,6 @@ use crate::client::ClientResult;
 
 use maybe_async::maybe_async;
 use serde_json::Value;
-use std::collections::HashMap;
 
 /// TODO: this should not be public
 pub enum HTTPMethod {
@@ -23,7 +22,7 @@ pub enum HTTPMethod {
 
 #[maybe_async]
 pub trait BaseClient {
-    async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String>;
+    async fn get(&self, url: &str, params: &Value) -> ClientResult<String>;
     async fn post(&self, url: &str, payload: &Value) -> ClientResult<String>;
     async fn put(&self, url: &str, payload: &Value) -> ClientResult<String>;
     async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String>;

@@ -1,28 +1,15 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::{BaseClient, HTTPMethod};
+use super::BaseClient;
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
-use crate::util::convert_map_to_string;
 
 use std::borrow::Cow;
-use std::collections::HashMap;
 
 use maybe_async::async_impl;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Method, StatusCode};
 use serde_json::Value;
-
-impl From<HTTPMethod> for Method {
-    fn from(method: HTTPMethod) -> Method {
-        match method {
-            HTTPMethod::GET => Method::GET,
-            HTTPMethod::POST => Method::POST,
-            HTTPMethod::PUT => Method::PUT,
-            HTTPMethod::DELETE => Method::DELETE,
-        }
-    }
-}
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -63,12 +50,12 @@ impl From<reqwest::StatusCode> for ClientError {
 impl Spotify {
     async fn request(
         &self,
-        method: HTTPMethod,
+        method: Method,
         url: &str,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
-        // This should be improved: Cow<str> may not be necessary, and checking
-        // if it starts with http shouldn't happen.
+        // TODO: Cow<str> may not be necessary, and checking if it starts with
+        // http shouldn't happen.
         let mut url: Cow<str> = url.into();
         if !url.starts_with("http") {
             url = ["https://api.spotify.com/v1/", &url].concat().into();
@@ -78,26 +65,20 @@ impl Spotify {
         // TODO: these `unwrap` should be removed
         headers.insert(
             AUTHORIZATION,
-            self.auth_headers()
-                .ok_or(ClientError::NoAccessToken)?
+            self.auth_headers()?
                 .parse()
                 .unwrap(),
         );
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
-        let response = {
-            let builder = self
-                .client
-                .request(method.into(), &url.into_owned())
-                .headers(headers);
-
-            let builder = match payload {
-                Some(json) => builder.json(json),
-                None => builder,
-            };
-
-            builder.send().await.map_err(ClientError::from)?
-        };
+        let response = self
+            .client
+            .request(method, &url.into_owned())
+            .headers(headers)
+            .json(payload)
+            .send()
+            .await
+            .map_err(ClientError::from)?;
 
         if response.status().is_success() {
             response.text().await.map_err(Into::into)
@@ -109,31 +90,23 @@ impl Spotify {
 
 #[async_impl]
 impl BaseClient for Spotify {
-    /// Send get request
-    async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String> {
-        if !params.is_empty() {
-            let param = convert_map_to_string(params);
-            let mut url_with_params = url.to_owned();
-            url_with_params.push('?');
-            url_with_params.push_str(&param);
-            self.request(HTTPMethod::GET, &url_with_params, None).await
-        } else {
-            self.request(HTTPMethod::GET, url, None).await
-        }
+    #[inline]
+    async fn get(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        self.request(Method::GET, url, payload).await
     }
 
     #[inline]
     async fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::POST, url, Some(payload)).await
+        self.request(Method::POST, url, payload).await
     }
 
     #[inline]
     async fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::PUT, url, Some(payload)).await
+        self.request(Method::PUT, url, payload).await
     }
 
     #[inline]
     async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(HTTPMethod::DELETE, url, Some(payload)).await
+        self.request(Method::DELETE, url, payload).await
     }
 }

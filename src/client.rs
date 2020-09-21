@@ -2,7 +2,7 @@
 // 3rd-part library
 use chrono::prelude::*;
 use derive_builder::Builder;
-use log::{error, trace};
+use log::error;
 use maybe_async::maybe_async;
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::Deserialize;
@@ -11,12 +11,13 @@ use serde_json::{json, Value};
 use thiserror::Error;
 
 // Built-in battery
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fs;
 use std::io::{Read, Write};
 use std::iter::FromIterator;
 use std::path::PathBuf;
 
+use crate::json_insert;
 use super::http::BaseClient;
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
@@ -43,15 +44,14 @@ use super::util::{convert_map_to_string, datetime_to_timestamp};
 
 const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
 const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
-const ACCESS_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
+const TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
 pub enum ClientError {
-    // TODO: this is a subset of `Unauthorized`, but I think it points out
-    // the error better in that case.
-    #[error("no access token configured")]
-    NoAccessToken,
+    /// Raised when the authentication isn't configured properly.
+    #[error("invalid client authentication: {0}")]
+    InvalidAuth(String),
 
     // TODO: unauthorized could also be replaced with `StatusCode`
     #[error("request unauthorized")]
@@ -124,7 +124,8 @@ pub struct Spotify {
     /// The OAuth information required for obtaining a new access token, for
     /// requests with OAuth authentication. `credentials` also needs to be
     /// set up.
-    pub oauth: OAuth,
+    #[builder(setter(into, strip_option), default)]
+    pub oauth: Option<OAuth>,
 
     /// The Spotify API prefix, `https://api.spotify.com/v1/` by default.
     #[builder(
@@ -143,10 +144,25 @@ pub struct Spotify {
 impl Spotify {
     /// Returns the authorization headers, or None if there is no access token.
     /// TODO: Maybe pub(in crate) can be avoided?
-    pub(in crate) fn auth_headers(&self) -> Option<String> {
-        self.access_token
+    pub(in crate) fn auth_headers(&self) -> ClientResult<String> {
+        let tok = self.access_token
             .as_ref()
-            .and_then(|tok| Some(format!("Bearer {}", tok.access_token)))
+            .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))?;
+        let headers = format!("Bearer {}", tok.access_token);
+
+        Ok(headers)
+    }
+
+    fn get_oauth(&self) -> ClientResult<&OAuth> {
+        self.oauth
+            .as_ref()
+            .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
+    }
+
+    fn get_oauth_mut(&mut self) -> ClientResult<&mut OAuth> {
+        self.oauth
+            .as_mut()
+            .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
     }
 
     /// Converts a JSON response from Spotify into its model.
@@ -242,22 +258,27 @@ impl Spotify {
 
     /// Gets the required URL to authorize the current client.
     /// TODO: should this be moved into `OAuth` somehow?
-    pub fn get_authorize_request_url(&self, show_dialog: bool) -> String {
-        let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert("client_id", &self.credentials.id);
-        payload.insert("response_type", "code");
-        // TODO: Maybe these OAuth options should go in a struct, or
-        // `Credentials` could be expanded with these.
-        payload.insert("redirect_uri", &self.oauth.redirect_uri);
-        payload.insert("scope", &self.oauth.scope);
-        payload.insert("state", &self.oauth.state);
+    pub fn get_authorize_request_url(&self, show_dialog: bool) -> ClientResult<String> {
+        let oauth = self.get_oauth()?;
+        let mut payload = json! ({
+            "client_id": &self.credentials.id,
+            "response_type": "code",
+            // TODO: Maybe these OAuth options should go in a struct, or
+            // `Credentials` could be expanded with these.
+            "redirect_uri": &oauth.redirect_uri,
+            "scope": &oauth.scope,
+            "state": &oauth.state
+        });
+
         if show_dialog {
-            payload.insert("show_dialog", "true");
+            json_insert!(payload, "show_dialog", "true");
         }
 
         let query_str = convert_map_to_string(&payload);
         let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
-        format!("{}?{}", AUTHORIZE_URL, encoded)
+        let url = format!("{}?{}", AUTHORIZE_URL, encoded);
+
+        Ok(url)
     }
 
     /// Tries to read the cache file's token, which may not exist.
@@ -269,7 +290,7 @@ impl Spotify {
 
         let mut tok: TokenInfo = serde_json::from_str(&tok_str)?;
 
-        if !Self::is_scope_subset(&mut self.oauth.scope, &mut tok.scope)
+        if !Self::is_scope_subset(&mut self.get_oauth_mut()?.scope, &mut tok.scope)
             || self.is_token_expired(&tok)
         {
             // Invalid token, since it doesn't have at least the currently
@@ -282,19 +303,9 @@ impl Spotify {
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
-    async fn fetch_access_token(&self, payload: &HashMap<&str, &str>) -> ClientResult<TokenInfo> {
-        let response = self
-            .client
-            .post(ACCESS_TOKEN_URL)
-            .basic_auth(
-                self.credentials.id.clone(),
-                Some(self.credentials.secret.clone()),
-            )
-            .form(&payload)
-            .send()
-            .await?;
-
-        let mut tok: TokenInfo = response.json().await?;
+    async fn fetch_access_token(&self, payload: &Value) -> ClientResult<TokenInfo> {
+        let response = self.post(TOKEN_URL, &payload);
+        let mut tok = response.json::<TokenInfo>().await?;
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
 
         Ok(tok)
@@ -307,11 +318,10 @@ impl Spotify {
         &self,
         refresh_token: &str,
     ) -> ClientResult<TokenInfo> {
-        let mut payload = HashMap::new();
-        payload.insert("refresh_token", refresh_token);
-        payload.insert("grant_type", "refresh_token");
-
-        self.fetch_access_token(&payload).await
+        self.fetch_access_token(&json! ({
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token"
+        })).await
     }
 
     /// The same as `refresh_access_token_without_cache`, but saves the token
@@ -330,14 +340,14 @@ impl Spotify {
     /// it into the cache file.
     #[maybe_async]
     pub async fn request_access_token_without_cache(&self, code: &str) -> ClientResult<TokenInfo> {
-        let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert("redirect_uri", &self.oauth.redirect_uri);
-        payload.insert("code", code);
-        payload.insert("grant_type", "authorization_code");
-        payload.insert("scope", &self.oauth.scope);
-        payload.insert("state", &self.oauth.state);
-
-        self.fetch_access_token(&payload).await
+        let oauth = self.get_oauth()?;
+        self.fetch_access_token(&json! ({
+            "redirect_uri": &oauth.redirect_uri,
+            "code": code,
+            "grant_type": "authorization_code",
+            "scope": &oauth.scope,
+            "state": &oauth.state,
+        })).await
     }
 
     /// The same as `get_access_token_without_cache`, but saves the token into
@@ -388,12 +398,15 @@ impl Spotify {
     /// the obtained code.
     #[cfg(feature = "cli")]
     fn get_code_from_user(&self) -> ClientResult<String> {
-        let url = self.get_authorize_request_url(false);
+        let url = self.get_authorize_request_url(false)?;
 
         match webbrowser::open(&url) {
-            Ok(_) => println!("Opened {} in your browser", url),
-            Err(why) => eprintln!("Error when trying to open an URL in your browser: {:?}. \
-                                  Please navigate here manually: {}", why, url),
+            Ok(_) => println!("Opened {} in your browser.", url),
+            Err(why) => eprintln!(
+                "Error when trying to open an URL in your browser: {:?}. \
+                 Please navigate here manually: {}",
+                why, url
+            ),
         }
 
         println!("Please enter the URL you were redirected to: ");
@@ -430,7 +443,7 @@ impl Spotify {
     pub async fn track(&self, track_id: &str) -> ClientResult<FullTrack> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<FullTrack>(&result)
     }
 
@@ -450,12 +463,11 @@ impl Spotify {
             ids.push(self.get_id(Type::Track, track_id));
         }
         let url = format!("tracks/?ids={}", ids.join(","));
-        let mut params: HashMap<String, String> = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({});
+        if let Some(market) = market {
+            json_insert!(params, "market", market);
         }
-        trace!("{:?}", &url);
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<FullTracks>(&result)
     }
 
@@ -467,7 +479,7 @@ impl Spotify {
     pub async fn artist(&self, artist_id: &str) -> ClientResult<FullArtist> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}", trid);
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<FullArtist>(&result)
     }
 
@@ -482,7 +494,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Artist, &artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<FullArtists>(&result)
     }
 
@@ -502,22 +514,22 @@ impl Spotify {
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let mut params: HashMap<String, String> = HashMap::new();
-        if let Some(_limit) = limit {
-            params.insert("limit".to_owned(), _limit.to_string());
+        let mut params = json!({});
+        if let Some(limit) = limit {
+            json_insert!(params, "limit", limit);
         }
-        if let Some(_album_type) = album_type {
-            params.insert("album_type".to_owned(), _album_type.as_str().to_owned());
+        if let Some(album_type) = album_type {
+            json_insert!(params, "album_type", album_type.as_str());
         }
-        if let Some(_offset) = offset {
-            params.insert("offset".to_owned(), _offset.to_string());
+        if let Some(offset) = offset {
+            json_insert!(params, "offset", offset);
         }
-        if let Some(_country) = country {
-            params.insert("country".to_owned(), _country.as_str().to_owned());
+        if let Some(country) = country {
+            json_insert!(params, "country", country.as_str());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<Page<SimplifiedAlbum>>(&result)
     }
 
@@ -532,17 +544,17 @@ impl Spotify {
         artist_id: &str,
         country: T,
     ) -> ClientResult<FullTracks> {
-        let mut params: HashMap<String, String> = HashMap::new();
-        let country = country
-            .into()
-            .unwrap_or(Country::UnitedStates)
-            .as_str()
-            .to_string();
-        params.insert("country".to_owned(), country);
+        let params = json!({
+            "country": country
+                .into()
+                .unwrap_or(Country::UnitedStates)
+                .as_str()
+        });
+
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
 
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<FullTracks>(&result)
     }
 
@@ -556,7 +568,7 @@ impl Spotify {
     pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<FullArtists>(&result)
     }
 
@@ -568,7 +580,7 @@ impl Spotify {
     pub async fn album(&self, album_id: &str) -> ClientResult<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}", trid);
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<FullAlbum>(&result)
     }
 
@@ -583,7 +595,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Album, &album_id));
         }
         let url = format!("albums/?ids={}", ids.join(","));
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<FullAlbums>(&result)
     }
 
@@ -609,24 +621,20 @@ impl Spotify {
         market: Option<Country>,
         include_external: Option<IncludeExternal>,
     ) -> ClientResult<SearchResult> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(10);
-        let offset = offset.into().unwrap_or(0);
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
+        let mut params = json! ({
+            "limit": limit.into().unwrap_or(10),
+            "offset": offset.into().unwrap_or(0),
+            "q": q,
+            "type": _type,
+        });
+        if let Some(market) = market {
+            json_insert!(params, "market", market);
         }
-        if let Some(_include_external) = include_external {
-            params.insert(
-                "include_external".to_owned(),
-                _include_external.as_str().to_owned(),
-            );
+        if let Some(include_external) = include_external {
+            json_insert!(params, "include_external", include_external);
         }
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        params.insert("q".to_owned(), q.to_owned());
-        params.insert("type".to_owned(), _type.as_str().to_owned());
-        let url = String::from("search");
-        let result = self.get(&url, &mut params).await?;
+
+        let result = self.get("search", &params).await?;
         self.convert_result::<SearchResult>(&result)
     }
 
@@ -642,12 +650,13 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedTrack>> {
-        let mut params = HashMap::new();
+        let params = json!({
+            "limit": limit.into().unwrap_or(50).to_string(),
+            "offset": offset.into().unwrap_or(0).to_string(),
+        });
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}/tracks", trid);
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<Page<SimplifiedTrack>>(&result)
     }
 
@@ -657,7 +666,7 @@ impl Spotify {
     ///- user - the id of the usr
     pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id);
-        let result = self.get(&url, &mut HashMap::new()).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<PublicUser>(&result)
     }
 
@@ -672,12 +681,12 @@ impl Spotify {
         fields: Option<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
-        let mut params = HashMap::new();
-        if let Some(_fields) = fields {
-            params.insert("fields".to_owned(), _fields.to_string());
+        let mut params = json!({});
+        if let Some(fields) = fields {
+            json_insert!(params, "fields", fields);
         }
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
+        if let Some(market) = market {
+            json_insert!(params, "market", market.as_str());
         }
 
         let plid = self.get_id(Type::Playlist, playlist_id);
@@ -696,12 +705,12 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        let params = json!({
+            "limit": limit.into().unwrap_or(50).to_string(),
+            "offset": offset.into().unwrap_or(0).to_string(),
+        });
 
-        let url = String::from("me/playlists");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("me/playlists", &params).await?;
         self.convert_result::<Page<SimplifiedPlaylist>>(&result)
     }
 
@@ -717,11 +726,12 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        let params = json!({
+            "limit": limit.into().unwrap_or(50).to_string(),
+            "offset": offset.into().unwrap_or(0).to_string(),
+        });
         let url = format!("users/{}/playlists", user_id);
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<Page<SimplifiedPlaylist>>(&result)
     }
 
@@ -738,23 +748,23 @@ impl Spotify {
         fields: Option<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
-        let mut params = HashMap::new();
-        if let Some(_fields) = fields {
-            params.insert("fields".to_owned(), _fields.to_string());
+        let mut params = json!({});
+        if let Some(fields) = fields {
+            json_insert!(params, "fields", fields);
         }
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
+        if let Some(market) = market {
+            json_insert!(params, "market", market.as_str());
         }
         match playlist_id {
             Some(_playlist_id) => {
                 let plid = self.get_id(Type::Playlist, _playlist_id);
                 let url = format!("users/{}/playlists/{}", user_id, plid);
-                let result = self.get(&url, &mut params).await?;
+                let result = self.get(&url, &params).await?;
                 self.convert_result::<FullPlaylist>(&result)
             }
             None => {
                 let url = format!("users/{}/starred", user_id);
-                let result = self.get(&url, &mut params).await?;
+                let result = self.get(&url, &params).await?;
                 self.convert_result::<FullPlaylist>(&result)
             }
         }
@@ -778,18 +788,19 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> ClientResult<Page<PlaylistTrack>> {
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        if let Some(_market) = market {
-            params.insert("market".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({
+            "limit": limit.into().unwrap_or(50).to_string(),
+            "offset": offset.into().unwrap_or(0).to_string(),
+        });
+        if let Some(market) = market {
+            json_insert!(params, "market", market.as_str());
         }
-        if let Some(_fields) = fields {
-            params.insert("fields".to_owned(), _fields.to_string());
+        if let Some(fields) = fields {
+            json_insert!(params, "fields", fields);
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<Page<PlaylistTrack>>(&result)
     }
 
@@ -865,7 +876,7 @@ impl Spotify {
         playlist_id: &str,
     ) -> ClientResult<String> {
         let url = format!("users/{}/playlists/{}/followers", user_id, playlist_id);
-        self.delete(&url, &json!({})).await
+        self.delete(&url, &Value::Null).await
     }
 
     /// [add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
@@ -1094,17 +1105,15 @@ impl Spotify {
             playlist_id,
             user_ids.join(",")
         );
-        let mut dumb: HashMap<String, String> = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
     pub async fn me(&self) -> ClientResult<PrivateUser> {
-        let mut dumb: HashMap<String, String> = HashMap::new();
         let url = String::from("me/");
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<PrivateUser>(&result)
     }
     /// Get detailed profile information about the current user.
@@ -1116,9 +1125,8 @@ impl Spotify {
     ///  [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     ///  Get information about the current users currently playing track.
     pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
-        let mut dumb = HashMap::new();
         let url = String::from("me/player/currently-playing");
-        match self.get(&url, &mut dumb).await {
+        match self.get(&url, &Value::Null).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1142,13 +1150,10 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedAlbum>> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        let url = String::from("me/albums");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("me/albums", &json!({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+        })).await?;
         self.convert_result::<Page<SavedAlbum>>(&result)
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
@@ -1161,13 +1166,10 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedTrack>> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        let url = String::from("me/tracks");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("me/tracks", &json!({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+        })).await?;
         self.convert_result::<Page<SavedTrack>>(&result)
     }
     ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
@@ -1180,15 +1182,15 @@ impl Spotify {
         limit: L,
         after: Option<String>,
     ) -> ClientResult<CursorPageFullArtists> {
-        let limit = limit.into().unwrap_or(20);
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.to_string());
-        if let Some(_after) = after {
-            params.insert("after".to_owned(), _after);
+        let mut params = json!({
+            "limit": limit.into().unwrap_or(20),
+            "type": Type::Artist.as_str()
+        });
+        if let Some(after) = after {
+            json_insert!(params, "after", after);
         }
-        params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
-        let url = String::from("me/following");
-        let result = self.get(&url, &mut params).await?;
+
+        let result = self.get("me/following", &params).await?;
         self.convert_result::<CursorPageFullArtists>(&result)
     }
 
@@ -1203,7 +1205,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        match self.delete(&url, &json!({})).await {
+        match self.delete(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1223,8 +1225,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
-        let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -1239,7 +1240,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1261,15 +1262,11 @@ impl Spotify {
         offset: O,
         time_range: T,
     ) -> ClientResult<Page<FullArtist>> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        params.insert("time_range".to_owned(), time_range.as_str().to_owned());
-        let url = String::from("me/top/artists");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&"me/top/artists", &json! ({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+            "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
+        })).await?;
         self.convert_result::<Page<FullArtist>>(&result)
     }
 
@@ -1289,15 +1286,11 @@ impl Spotify {
         offset: O,
         time_range: T,
     ) -> ClientResult<Page<FullTrack>> {
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        params.insert("time_range".to_owned(), time_range.as_str().to_owned());
-        let url = String::from("me/top/tracks");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("me/top/tracks", &json!({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+            "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
+        })).await?;
         self.convert_result::<Page<FullTrack>>(&result)
     }
 
@@ -1309,11 +1302,9 @@ impl Spotify {
         &self,
         limit: L,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
-        let limit = limit.into().unwrap_or(50);
-        let mut params = HashMap::new();
-        params.insert("limit".to_owned(), limit.to_string());
-        let url = String::from("me/player/recently-played");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("me/player/recently-played", &json!({
+            "limit": limit.into().unwrap_or(50)
+        })).await?;
         self.convert_result::<CursorBasedPage<PlayHistory>>(&result)
     }
 
@@ -1328,7 +1319,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1345,7 +1336,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        match self.delete(&url, &json!({})).await {
+        match self.delete(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1365,8 +1356,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
-        let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -1376,7 +1366,7 @@ impl Spotify {
     /// - artist_ids - a list of artist IDs
     pub async fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1388,7 +1378,7 @@ impl Spotify {
     /// - artist_ids - a list of artist IDs
     pub async fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        match self.delete(&url, &json!({})).await {
+        match self.delete(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1404,8 +1394,7 @@ impl Spotify {
             "me/following/contains?type=artist&ids={}",
             artsit_ids.join(",")
         );
-        let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -1415,7 +1404,7 @@ impl Spotify {
     /// - user_ids - a list of artist IDs
     pub async fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1427,7 +1416,7 @@ impl Spotify {
     /// - user_ids - a list of artist IDs
     pub async fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        match self.delete(&url, &json!({})).await {
+        match self.delete(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1457,22 +1446,20 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<FeaturedPlaylists> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        if let Some(_locale) = locale {
-            params.insert("locale".to_owned(), _locale);
+        let mut params = json!({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+        });
+        if let Some(locale) = locale {
+            json_insert!(params, "locale", locale);
         }
-        if let Some(_country) = country {
-            params.insert("country".to_owned(), _country.as_str().to_owned());
+        if let Some(country) = country {
+            json_insert!(params, "country", country.as_str());
         }
-        if let Some(_timestamp) = timestamp {
-            params.insert("timestamp".to_owned(), _timestamp.to_rfc3339());
+        if let Some(timestamp) = timestamp {
+            json_insert!(params, "timestamp", timestamp.to_rfc3339());
         }
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        let url = String::from("browse/featured-playlists");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("browse/featured-playlists", &params).await?;
         self.convert_result::<FeaturedPlaylists>(&result)
     }
 
@@ -1491,16 +1478,15 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<PageSimpliedAlbums> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        if let Some(_country) = country {
-            params.insert("country".to_owned(), _country.as_str().to_owned());
+        let mut params = json! ({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+        });
+        if let Some(country) = country {
+            json_insert!(params, "country", country);
         }
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        let url = String::from("browse/new-releases");
-        let result = self.get(&url, &mut params).await?;
+
+        let result = self.get("browse/new-releases", &params).await?;
         self.convert_result::<PageSimpliedAlbums>(&result)
     }
 
@@ -1523,19 +1509,17 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<PageCategory> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        if let Some(_locale) = locale {
-            params.insert("locale".to_owned(), _locale);
+        let mut params = json!({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+        });
+        if let Some(locale) = locale {
+            json_insert!(params, "locale", locale);
         }
-        if let Some(_country) = country {
-            params.insert("country".to_owned(), _country.as_str().to_owned());
+        if let Some(country) = country {
+            json_insert!(params, "country", country);
         }
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        let url = String::from("browse/categories");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("browse/categories", &params).await?;
         self.convert_result::<PageCategory>(&result)
     }
 
@@ -1561,28 +1545,28 @@ impl Spotify {
         country: Option<Country>,
         payload: &Map<String, Value>,
     ) -> ClientResult<Recommendations> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        params.insert("limit".to_owned(), limit.to_string());
-        if let Some(_seed_artists) = seed_artists {
-            let seed_artists_ids: Vec<String> = _seed_artists
+        let mut params = json! ({
+            "limit": limit.into().unwrap_or(20),
+        });
+        if let Some(seed_artists) = seed_artists {
+            let seed_artists_ids = seed_artists
                 .iter()
                 .map(|id| self.get_id(Type::Artist, id))
-                .collect();
-            params.insert("seed_artists".to_owned(), seed_artists_ids.join(","));
+                .collect::<Vec<_>>();
+            json_insert!(params, "seed_artists", seed_artists_ids.join(","));
         }
-        if let Some(_seed_genres) = seed_genres {
-            params.insert("seed_genres".to_owned(), _seed_genres.join(","));
+        if let Some(seed_genres) = seed_genres {
+            json_insert!(params, "seed_genres", seed_genres.join(","));
         }
-        if let Some(_seed_tracks) = seed_tracks {
-            let seed_tracks_ids: Vec<String> = _seed_tracks
+        if let Some(seed_tracks) = seed_tracks {
+            let seed_tracks_ids = seed_tracks
                 .iter()
                 .map(|id| self.get_id(Type::Track, id))
-                .collect();
-            params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
+                .collect::<Vec<_>>();
+            json_insert!(params, "seed_tracks", seed_tracks_ids.join(","));
         }
-        if let Some(_country) = country {
-            params.insert("market".to_owned(), _country.as_str().to_owned());
+        if let Some(country) = country {
+            json_insert!(params, "market", country.as_str());
         }
         let attributes = [
             "acousticness",
@@ -1605,22 +1589,21 @@ impl Spotify {
             for prefix in prefixes.iter() {
                 let param = format!("{}_{}", prefix, attribute);
                 if let Some(value) = payload.get(&param) {
-                    params.insert(param, value.to_string());
+                    json_insert!(params, param, value);
                 }
             }
         }
-        let url = String::from("recommendations");
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("recommendations", &params).await?;
         self.convert_result::<Recommendations>(&result)
     }
+
     /// [get audio features](https://developer.spotify.com/web-api/get-audio-features/)
     /// Get audio features for a track
     /// - track - track URI, URL or ID
     pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
-        let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<AudioFeatures>(&result)
     }
 
@@ -1636,8 +1619,7 @@ impl Spotify {
             .map(|track| self.get_id(Type::Track, track))
             .collect();
         let url = format!("audio-features/?ids={}", ids.join(","));
-        let mut dumb = HashMap::new();
-        match self.get(&url, &mut dumb).await {
+        match self.get(&url, &Value::Null).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1656,8 +1638,7 @@ impl Spotify {
     pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
-        let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<AudioAnalysis>(&result)
     }
 
@@ -1665,8 +1646,7 @@ impl Spotify {
     /// Get a User’s Available Devices
     pub async fn device(&self) -> ClientResult<DevicePayload> {
         let url = String::from("me/player/devices");
-        let mut dumb = HashMap::new();
-        let result = self.get(&url, &mut dumb).await?;
+        let result = self.get(&url, &Value::Null).await?;
         self.convert_result::<DevicePayload>(&result)
     }
 
@@ -1681,21 +1661,21 @@ impl Spotify {
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlaybackContext>> {
         let url = String::from("me/player");
-        let mut params = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({});
+        if let Some(market) = market {
+            json_insert!(params, "country", market);
         }
-        if let Some(_additional_types) = additional_types {
-            params.insert(
-                "additional_types".to_owned(),
-                _additional_types
+        if let Some(additional_types) = additional_types {
+            json_insert!(params,
+                "additional_types",
+                additional_types
                     .iter()
                     .map(|&x| x.as_str().to_owned())
                     .collect::<Vec<_>>()
-                    .join(","),
+                    .join(",")
             );
         }
-        match self.get(&url, &mut params).await {
+        match self.get(&url, &params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1718,21 +1698,18 @@ impl Spotify {
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let url = String::from("me/player/currently-playing");
-        let mut params = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({});
+        if let Some(market) = market {
+            json_insert!(params, "country", market);
         }
-        if let Some(_additional_types) = additional_types {
-            params.insert(
-                "additional_types".to_owned(),
-                _additional_types
+        if let Some(additional_types) = additional_types {
+            json_insert!(params, "additional_types", additional_types
                     .iter()
                     .map(|&x| x.as_str().to_owned())
                     .collect::<Vec<_>>()
-                    .join(","),
-            );
+                    .join(","));
         }
-        match self.get(&url, &mut params).await {
+        match self.get(&url, &params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1830,7 +1807,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1842,7 +1819,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
-        match self.post(&url, &json!({})).await {
+        match self.post(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1854,7 +1831,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
-        match self.post(&url, &json!({})).await {
+        match self.post(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1874,7 +1851,7 @@ impl Spotify {
             &format!("me/player/seek?position_ms={}", position_ms),
             device_id,
         );
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1890,7 +1867,7 @@ impl Spotify {
             &format!("me/player/repeat?state={}", state.as_str()),
             device_id,
         );
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1909,7 +1886,7 @@ impl Spotify {
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,
         );
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1922,7 +1899,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1940,7 +1917,7 @@ impl Spotify {
         device_id: Option<String>,
     ) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
-        match self.post(&url, &json!({})).await {
+        match self.post(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1953,7 +1930,7 @@ impl Spotify {
     pub async fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
         let joined_ids = ids.join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
-        match self.put(&url, &json!({})).await {
+        match self.put(&url, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1968,13 +1945,10 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<Show>> {
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        let url = "me/shows";
-        let result = self.get(url, &mut params).await?;
+        let result = self.get("me/shows", &json! ({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0)
+        })).await?;
         self.convert_result::<Page<Show>>(&result)
     }
 
@@ -1986,11 +1960,11 @@ impl Spotify {
     /// - market(Optional): An ISO 3166-1 alpha-2 country code.
     pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
         let url = format!("shows/{}", id);
-        let mut params = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({});
+        if let Some(market) = market {
+            json_insert!(params, "country", market);
         }
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<FullShow>(&result)
     }
 
@@ -2004,14 +1978,13 @@ impl Spotify {
         ids: Vec<String>,
         market: Option<Country>,
     ) -> ClientResult<SeversalSimplifiedShows> {
-        let joined_ids = ids.join(",");
-        let url = "shows";
-        let mut params = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json! ({
+            "ids": ids.join(","),
+        });
+        if let Some(market) = market {
+            json_insert!(params, "country", market);
         }
-        params.insert("ids".to_owned(), joined_ids);
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get("shows", &params).await?;
         self.convert_result::<SeversalSimplifiedShows>(&result)
     }
     /// Get Spotify catalog information about an show’s episodes. Optional parameters can be used to limit the number of episodes returned.
@@ -2030,15 +2003,14 @@ impl Spotify {
         market: Option<Country>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let url = format!("shows/{}/episodes", id);
-        let mut params = HashMap::new();
-        let limit = limit.into().unwrap_or(20);
-        let offset = offset.into().unwrap_or(0);
-        params.insert("limit".to_owned(), limit.to_string());
-        params.insert("offset".to_owned(), offset.to_string());
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json! ({
+            "limit": limit.into().unwrap_or(20),
+            "offset": offset.into().unwrap_or(0),
+        });
+        if let Some(market) = market {
+            json_insert!(params, "country", market);
         }
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<Page<SimplifiedEpisode>>(&result)
     }
 
@@ -2054,11 +2026,11 @@ impl Spotify {
         market: Option<Country>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id);
-        let mut params = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({});
+        if let Some(market) = market {
+            json_insert!(params, "country", market);
         }
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, &params).await?;
         self.convert_result::<FullEpisode>(&result)
     }
 
@@ -2072,14 +2044,13 @@ impl Spotify {
         ids: Vec<String>,
         market: Option<Country>,
     ) -> ClientResult<SeveralEpisodes> {
-        let url = "episodes";
-        let joined_ids = ids.join(",");
-        let mut params = HashMap::new();
-        if let Some(_market) = market {
-            params.insert("country".to_owned(), _market.as_str().to_owned());
+        let mut params = json!({
+            "ids": ids.join(","),
+        });
+        if let Some(market) = market {
+            json_insert!(params, "country", market.as_str());
         }
-        params.insert("ids".to_owned(), joined_ids);
-        let result = self.get(url, &mut params).await?;
+        let result = self.get("episodes", &mut params).await?;
         self.convert_result::<SeveralEpisodes>(&result)
     }
 
@@ -2088,11 +2059,9 @@ impl Spotify {
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     pub async fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
-        let url = "me/shows/contains";
-        let joined_ids = ids.join(",");
-        let mut params = HashMap::new();
-        params.insert("ids".to_owned(), joined_ids);
-        let result = self.get(url, &mut params).await?;
+        let result = self.get("me/shows/contains", &json! ({
+            "ids": ids.join(","),
+        })).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
