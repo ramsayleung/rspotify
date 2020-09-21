@@ -380,7 +380,7 @@ impl SpotifyOAuth {
         Url::parse_with_params(AUTHORIZE_URL, payload.clone())
             .unwrap_or_else(|_| {
                 panic!(
-                    "Fail to generate authorize_url, url: {}, payload: {:?}",
+                    "Failed to generate authorize_url, url: {}, payload: {:?}",
                     AUTHORIZE_URL, payload
                 )
             })
