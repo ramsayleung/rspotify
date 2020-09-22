@@ -11,8 +11,6 @@ use std::env;
 pub struct Token {
     #[builder(setter(into))]
     pub access_token: String,
-    #[builder(setter(into))]
-    pub token_type: String,
     pub expires_in: u32,
     pub expires_at: Option<i64>,
     #[builder(setter(into, strip_option), default)]
