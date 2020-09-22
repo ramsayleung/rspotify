@@ -37,8 +37,8 @@ tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-# default = ["client-reqwest", "reqwest/default-tls"]
-default = ["client-ureq"]
+default = ["client-reqwest", "reqwest/default-tls"]
+# default = ["client-ureq"]
 cli = ["webbrowser"]
 env-file = ["dotenv"]
 

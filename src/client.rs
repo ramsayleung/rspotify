@@ -360,7 +360,9 @@ impl Spotify {
         data.insert("refresh_token".to_owned(), refresh_token.to_owned());
         data.insert("grant_type".to_owned(), "refresh_token".to_owned());
 
-        self.token = Some(self.fetch_access_token(&data).await?);
+        let mut tok = self.fetch_access_token(&data).await?;
+        tok.refresh_token = Some(refresh_token.to_string());
+        self.token = Some(tok);
 
         Ok(())
     }

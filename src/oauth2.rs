@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::env;
 
 /// Spotify access token information.
+///
+/// TODO: does this need the builder pattern?
 #[derive(Builder, Clone, Debug, Serialize, Deserialize)]
 pub struct Token {
     #[builder(setter(into))]
