@@ -1,5 +1,5 @@
 ## 0.11 (unreleased)
-This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and no more versions like this should happen again. Lots of internal and external code was rewritten and improved. Sorry for the inconvenience!
+This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and no more versions like this should happen again. Lots of internal code was rewritten to make Rspotify more flexible, performant and easier to use. Sorry for the inconvenience!
 
 If we missed any change or there's something you'd like to discuss about this version, please open a new issue and let us know.
 
@@ -12,20 +12,21 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url`. <!-- NOTE: derive_builder might not be removed after all -->
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
-  + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) is now optional under the `cli` feature.
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
-  + Lots of improvements to the internal code in the `blocking` module. It now re-uses the async implementation and avoids lots of duplicate code ([#112](https://github.com/ramsayleung/rspotify/issues/112).
 - Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 
 **Breaking changes:**
-- `SpotifyClientCredentials` has been renamed to `Credentials`, and its members `client_id` and `client_secret` to `id` and `secret`, respectively. It will only read from the environment variables when `from_env` is used, instead of inside `default`. `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
-- `TokenInfo` has been renamed to `Token`.
-- A real builder pattern is used now. For example, `TokenInfo` is constructed now with `TokenInfo::default()` and `TokenInfo::build()`. The same is applied for the `Credentials` object and `Spotify`.
+- `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively. It will only read from the environment variables when `from_env` is used, instead of inside `default`. `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
+- `TokenInfo` has been renamed to `Token` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- `SpotifyOAuth` has been renamed to `OAuth` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- A real builder pattern is used now. For example, `TokenInfo` can be constructed now with `TokenInfoBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - All fallible calls in the client return a `ClientError` rather than using `failure`.
-- `Into<Option<T>>` is no longer used in the library to simplify the function signatures and reduce compilation times by removing unnecessary generic parameters. You might need to add `Some` for some calls if you weren't using that already.
-- Reduced considerably the number of `unwrap`s internally. More functions return `Result` now.
+- `Into<Option<T>>` is no longer used in the library to simplify the function signatures and reduce compilation times by removing unnecessary generic parameters. You might need to add `Some` for some calls if you weren't using that already ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- `webbrowser` and access to functions that use it to interact with users are now optional under the `cli` feature.
 
 ## 0.10 (2020/07/01)
 
