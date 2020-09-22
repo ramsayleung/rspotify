@@ -54,7 +54,10 @@ lazy_static! {
 
 // Even easier to use and change in the future by using a macro.
 async fn async_client() -> Spotify {
-    SpotifyBuilder::default().token(AUTH_TOKEN.get().await).build().unwrap()
+    SpotifyBuilder::default()
+        .token(AUTH_TOKEN.get().await)
+        .build()
+        .unwrap()
 }
 
 #[tokio::test]

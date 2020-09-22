@@ -52,7 +52,7 @@ impl Spotify {
         method: Method,
         url: &str,
         headers: Option<&Headers>,
-        payload: Content<'a>,
+        payload: Option<Content<'a>>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
 
@@ -74,13 +74,16 @@ impl Spotify {
         // The content-type header will be set automatically.
         let headers = headers.try_into().unwrap();
 
-        let request = self.client.request(method, &url).headers(headers);
-        let request = match payload {
-            Content::Json(value) => request.json(value),
-            Content::Form(value) => request.form(value),
-        };
+        let mut request = self.client.request(method, &url).headers(headers);
 
         log::info!("Making request {:?} with payload {:?}", request, payload);
+
+        if let Some(payload) = payload {
+            request = match payload {
+                Content::Json(value) => request.json(value),
+                Content::Form(value) => request.form(value),
+            };
+        }
 
         let response = request.send().await.map_err(ClientError::from)?;
 
@@ -99,10 +102,15 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(Method::GET, url, headers, Content::Json(payload))
-            .await
+        self.request(
+            Method::GET,
+            url,
+            headers,
+            payload.and_then(|x| Some(Content::Json(x))),
+        )
+        .await
     }
 
     #[inline]
@@ -110,10 +118,15 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(Method::POST, url, headers, Content::Json(payload))
-            .await
+        self.request(
+            Method::POST,
+            url,
+            headers,
+            payload.and_then(|x| Some(Content::Json(x))),
+        )
+        .await
     }
 
     #[inline]
@@ -121,10 +134,15 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &FormData,
+        payload: Option<&FormData>,
     ) -> ClientResult<String> {
-        self.request(Method::POST, url, headers, Content::Form(payload))
-            .await
+        self.request(
+            Method::POST,
+            url,
+            headers,
+            payload.and_then(|x| Some(Content::Form(x))),
+        )
+        .await
     }
 
     #[inline]
@@ -132,10 +150,15 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(Method::PUT, url, headers, Content::Json(payload))
-            .await
+        self.request(
+            Method::PUT,
+            url,
+            headers,
+            payload.and_then(|x| Some(Content::Json(x))),
+        )
+        .await
     }
 
     #[inline]
@@ -143,9 +166,14 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(Method::DELETE, url, headers, Content::Json(payload))
-            .await
+        self.request(
+            Method::DELETE,
+            url,
+            headers,
+            payload.and_then(|x| Some(Content::Json(x))),
+        )
+        .await
     }
 }

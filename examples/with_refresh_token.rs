@@ -52,9 +52,7 @@ async fn do_things(spotify: Spotify) {
 #[tokio::main]
 async fn main() {
     // The default credentials from the `.env` file will be used by default.
-    let creds = CredentialsBuilder::from_env()
-        .build()
-        .unwrap();
+    let creds = CredentialsBuilder::from_env().build().unwrap();
     let oauth = OAuthBuilder::from_env()
         .scope("user-follow-read user-follow-modify")
         .build()
@@ -68,10 +66,18 @@ async fn main() {
     // In the first session of the application we authenticate and obtain the
     // refresh token. We can also do some requests here.
     println!(">>> Session one, obtaining refresh token and running some requests:");
-    spotify.prompt_for_user_token_without_cache()
+    spotify
+        .prompt_for_user_token_without_cache()
         .await
         .expect("couldn't authenticate successfully");
-    let refresh_token = spotify.token.as_ref().unwrap().refresh_token.as_ref().unwrap().clone();
+    let refresh_token = spotify
+        .token
+        .as_ref()
+        .unwrap()
+        .refresh_token
+        .as_ref()
+        .unwrap()
+        .clone();
     do_things(spotify).await;
 
     // At a different time, the refresh token can be used to refresh an access

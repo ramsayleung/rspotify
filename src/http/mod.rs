@@ -52,34 +52,34 @@ pub trait BaseClient {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        params: &Value,
+        params: Option<&Value>,
     ) -> ClientResult<String>;
 
     async fn post(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String>;
 
     async fn post_form(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &FormData,
+        payload: Option<&FormData>,
     ) -> ClientResult<String>;
 
     async fn put(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String>;
 
     async fn delete(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Option<&Value>,
     ) -> ClientResult<String>;
 }
