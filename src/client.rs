@@ -11,14 +11,14 @@ use serde_json::{json, Value};
 use thiserror::Error;
 
 // Built-in battery
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::{Read, Write};
 use std::iter::FromIterator;
 use std::path::PathBuf;
 
-use crate::json_insert;
-use super::http::BaseClient;
+use super::http::{headers, BaseClient, Headers};
+use super::json_insert;
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
@@ -53,25 +53,26 @@ pub enum ClientError {
     #[error("invalid client authentication: {0}")]
     InvalidAuth(String),
 
-    // TODO: unauthorized could also be replaced with `StatusCode`
+    // TODO: this could be replaced with `StatusCode`
     #[error("request unauthorized")]
     Unauthorized,
 
+    // TODO: this could be replaced with `StatusCode`
     #[error("exceeded request limit")]
     RateLimited(Option<usize>),
+
+    // TODO: this could be replaced with `StatusCode`
+    #[error("request error: {0}")]
+    Request(String),
+
+    #[error("status code {0}: {1}")]
+    StatusCode(u16, String),
 
     #[error("spotify error: {0}")]
     Api(#[from] ApiError),
 
     #[error("json parse error: {0}")]
     ParseJSON(#[from] serde_json::Error),
-
-    // TODO: maybe `Request` and `StatusCode` could be merged?
-    #[error("request error: {0}")]
-    Request(String),
-
-    #[error("status code {0}: {1}")]
-    StatusCode(u16, String),
 
     #[error("input/output error: {0}")]
     IO(#[from] std::io::Error),
@@ -142,15 +143,18 @@ pub struct Spotify {
 
 /// Client-related methods
 impl Spotify {
-    /// Returns the authorization headers, or None if there is no access token.
-    /// TODO: Maybe pub(in crate) can be avoided?
+    /// Returns the authorization headers, or an error if there is no access
+    /// token.
+    ///
+    // TODO: Maybe pub(in crate) can be avoided?
     pub(in crate) fn auth_headers(&self) -> ClientResult<String> {
-        let tok = self.access_token
+        let tok = self
+            .access_token
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))?;
-        let headers = format!("Bearer {}", tok.access_token);
+        let auth = headers::bearer_auth(&tok.access_token);
 
-        Ok(headers)
+        Ok(auth)
     }
 
     fn get_oauth(&self) -> ClientResult<&OAuth> {
@@ -274,7 +278,17 @@ impl Spotify {
             json_insert!(payload, "show_dialog", "true");
         }
 
-        let query_str = convert_map_to_string(&payload);
+        // TODO this should be improved
+        // FIXME for some reason to_string for Value::String::to_string adds
+        // quotes if as_str isn't used. This is horrendous and temporary.
+        let query_str = convert_map_to_string(
+            payload
+                .as_object()
+                .unwrap()
+                .into_iter()
+                .map(|(key, val)| (key.to_owned(), val.as_str().unwrap().to_owned()))
+                .collect::<HashMap<String, String>>(),
+        );
         let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
         let url = format!("{}?{}", AUTHORIZE_URL, encoded);
 
@@ -283,29 +297,40 @@ impl Spotify {
 
     /// Tries to read the cache file's token, which may not exist.
     #[maybe_async]
-    pub async fn get_cached_token(&mut self) -> ClientResult<Option<TokenInfo>> {
-        let mut file = fs::File::open(&self.cache_path)?;
+    pub async fn get_cached_token(&mut self) -> Option<TokenInfo> {
+        let mut file = fs::File::open(&self.cache_path).ok()?;
         let mut tok_str = String::new();
-        file.read_to_string(&mut tok_str)?;
+        file.read_to_string(&mut tok_str).ok()?;
 
-        let mut tok: TokenInfo = serde_json::from_str(&tok_str)?;
+        let mut tok: TokenInfo = serde_json::from_str(&tok_str).ok()?;
 
-        if !Self::is_scope_subset(&mut self.get_oauth_mut()?.scope, &mut tok.scope)
+        if !Self::is_scope_subset(&mut self.get_oauth_mut().ok()?.scope, &mut tok.scope)
             || self.is_token_expired(&tok)
         {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
-            Ok(None)
+            None
         } else {
-            Ok(Some(tok))
+            Some(tok)
         }
     }
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
     async fn fetch_access_token(&self, payload: &Value) -> ClientResult<TokenInfo> {
-        let response = self.post(TOKEN_URL, &payload);
-        let mut tok = response.json::<TokenInfo>().await?;
+        // This request uses a specific content type, and the client ID/secret
+        // as the authentication, since the access token isn't available yet.
+        let mut head = Headers::new();
+        head.insert(
+            headers::CONTENT_TYPE.to_owned(),
+            "application/x-www-form-urlencoded".to_owned(),
+        );
+        head.insert(
+            headers::AUTHORIZATION.to_owned(),
+            headers::basic_auth(&self.credentials.id, &self.credentials.secret),
+        );
+        let response = self.post(TOKEN_URL, Some(&head), &payload).await?;
+        let mut tok = serde_json::from_str::<TokenInfo>(&response)?;
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
 
         Ok(tok)
@@ -321,7 +346,8 @@ impl Spotify {
         self.fetch_access_token(&json! ({
             "refresh_token": refresh_token,
             "grant_type": "refresh_token"
-        })).await
+        }))
+        .await
     }
 
     /// The same as `refresh_access_token_without_cache`, but saves the token
@@ -347,7 +373,8 @@ impl Spotify {
             "grant_type": "authorization_code",
             "scope": &oauth.scope,
             "state": &oauth.state,
-        })).await
+        }))
+        .await
     }
 
     /// The same as `get_access_token_without_cache`, but saves the token into
@@ -382,7 +409,7 @@ impl Spotify {
         // TODO: not sure where the cached token should be read. Should it
         // be more explicit? Also outside of this function?
         // TODO: shouldn't this also refresh the obtained token?
-        self.access_token = self.get_cached_token().await?;
+        self.access_token = self.get_cached_token().await;
 
         // Otherwise following the usual procedure to get the token.
         if self.access_token.is_none() {
@@ -443,7 +470,7 @@ impl Spotify {
     pub async fn track(&self, track_id: &str) -> ClientResult<FullTrack> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullTrack>(&result)
     }
 
@@ -467,7 +494,7 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "market", market);
         }
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<FullTracks>(&result)
     }
 
@@ -479,7 +506,7 @@ impl Spotify {
     pub async fn artist(&self, artist_id: &str) -> ClientResult<FullArtist> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}", trid);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullArtist>(&result)
     }
 
@@ -494,7 +521,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Artist, &artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullArtists>(&result)
     }
 
@@ -529,7 +556,7 @@ impl Spotify {
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<Page<SimplifiedAlbum>>(&result)
     }
 
@@ -554,7 +581,7 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
 
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<FullTracks>(&result)
     }
 
@@ -568,7 +595,7 @@ impl Spotify {
     pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullArtists>(&result)
     }
 
@@ -580,7 +607,7 @@ impl Spotify {
     pub async fn album(&self, album_id: &str) -> ClientResult<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}", trid);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullAlbum>(&result)
     }
 
@@ -595,7 +622,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Album, &album_id));
         }
         let url = format!("albums/?ids={}", ids.join(","));
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullAlbums>(&result)
     }
 
@@ -634,7 +661,7 @@ impl Spotify {
             json_insert!(params, "include_external", include_external);
         }
 
-        let result = self.get("search", &params).await?;
+        let result = self.get("search", None, &params).await?;
         self.convert_result::<SearchResult>(&result)
     }
 
@@ -656,7 +683,7 @@ impl Spotify {
         });
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}/tracks", trid);
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<Page<SimplifiedTrack>>(&result)
     }
 
@@ -666,7 +693,7 @@ impl Spotify {
     ///- user - the id of the usr
     pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<PublicUser>(&result)
     }
 
@@ -691,7 +718,7 @@ impl Spotify {
 
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("playlists/{}", plid);
-        let result = self.get(&url, &mut params).await?;
+        let result = self.get(&url, None, &mut params).await?;
         self.convert_result::<FullPlaylist>(&result)
     }
 
@@ -710,7 +737,7 @@ impl Spotify {
             "offset": offset.into().unwrap_or(0).to_string(),
         });
 
-        let result = self.get("me/playlists", &params).await?;
+        let result = self.get("me/playlists", None, &params).await?;
         self.convert_result::<Page<SimplifiedPlaylist>>(&result)
     }
 
@@ -731,7 +758,7 @@ impl Spotify {
             "offset": offset.into().unwrap_or(0).to_string(),
         });
         let url = format!("users/{}/playlists", user_id);
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<Page<SimplifiedPlaylist>>(&result)
     }
 
@@ -759,12 +786,12 @@ impl Spotify {
             Some(_playlist_id) => {
                 let plid = self.get_id(Type::Playlist, _playlist_id);
                 let url = format!("users/{}/playlists/{}", user_id, plid);
-                let result = self.get(&url, &params).await?;
+                let result = self.get(&url, None, &params).await?;
                 self.convert_result::<FullPlaylist>(&result)
             }
             None => {
                 let url = format!("users/{}/starred", user_id);
-                let result = self.get(&url, &params).await?;
+                let result = self.get(&url, None, &params).await?;
                 self.convert_result::<FullPlaylist>(&result)
             }
         }
@@ -800,7 +827,7 @@ impl Spotify {
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<Page<PlaylistTrack>>(&result)
     }
 
@@ -826,7 +853,7 @@ impl Spotify {
             "description": description
         });
         let url = format!("users/{}/playlists", user_id);
-        let result = self.post(&url, &params).await?;
+        let result = self.post(&url, None, &params).await?;
         self.convert_result::<FullPlaylist>(&result)
     }
 
@@ -862,7 +889,7 @@ impl Spotify {
             params.insert("description".to_owned(), _description.into());
         }
         let url = format!("users/{}/playlists/{}", user_id, playlist_id);
-        self.put(&url, &Value::Object(params)).await
+        self.put(&url, None, &Value::Object(params)).await
     }
 
     /// [unfollow playlist](https://developer.spotify.com/web-api/unfollow-playlist/)
@@ -876,7 +903,7 @@ impl Spotify {
         playlist_id: &str,
     ) -> ClientResult<String> {
         let url = format!("users/{}/playlists/{}/followers", user_id, playlist_id);
-        self.delete(&url, &Value::Null).await
+        self.delete(&url, None, &Value::Null).await
     }
 
     /// [add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
@@ -904,7 +931,7 @@ impl Spotify {
         }
         params.insert("uris".to_owned(), uris.into());
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.post(&url, &Value::Object(params)).await?;
+        let result = self.post(&url, None, &Value::Object(params)).await?;
         self.convert_result::<CUDResult>(&result)
     }
     ///[replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
@@ -928,7 +955,7 @@ impl Spotify {
         // params.insert("uris".to_owned(), uris.into());
         let params = json!({ "uris": uris });
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        match self.put(&url, &params).await {
+        match self.put(&url, None, &params).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -962,7 +989,7 @@ impl Spotify {
         params.insert("range_length".to_owned(), range_length.into());
         params.insert("insert_before".to_owned(), insert_before.into());
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.put(&url, &Value::Object(params)).await?;
+        let result = self.put(&url, None, &Value::Object(params)).await?;
         self.convert_result::<CUDResult>(&result)
     }
 
@@ -997,7 +1024,7 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.delete(&url, &Value::Object(params)).await?;
+        let result = self.delete(&url, None, &Value::Object(params)).await?;
         self.convert_result::<CUDResult>(&result)
     }
 
@@ -1055,7 +1082,7 @@ impl Spotify {
             params.insert("snapshot_id".to_owned(), _snapshot_id.into());
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        let result = self.delete(&url, &Value::Object(params)).await?;
+        let result = self.delete(&url, None, &Value::Object(params)).await?;
         self.convert_result::<CUDResult>(&result)
     }
 
@@ -1077,7 +1104,7 @@ impl Spotify {
             "users/{}/playlists/{}/followers",
             playlist_owner_id, playlist_id
         );
-        match self.put(&url, &Value::Object(map)).await {
+        match self.put(&url, None, &Value::Object(map)).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1105,7 +1132,7 @@ impl Spotify {
             playlist_id,
             user_ids.join(",")
         );
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
@@ -1113,7 +1140,7 @@ impl Spotify {
     /// An alias for the 'current_user' method.
     pub async fn me(&self) -> ClientResult<PrivateUser> {
         let url = String::from("me/");
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<PrivateUser>(&result)
     }
     /// Get detailed profile information about the current user.
@@ -1126,7 +1153,7 @@ impl Spotify {
     ///  Get information about the current users currently playing track.
     pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
         let url = String::from("me/player/currently-playing");
-        match self.get(&url, &Value::Null).await {
+        match self.get(&url, None, &Value::Null).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1150,10 +1177,16 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedAlbum>> {
-        let result = self.get("me/albums", &json!({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-        })).await?;
+        let result = self
+            .get(
+                "me/albums",
+                None,
+                &json!({
+                    "limit": limit.into().unwrap_or(20),
+                    "offset": offset.into().unwrap_or(0),
+                }),
+            )
+            .await?;
         self.convert_result::<Page<SavedAlbum>>(&result)
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
@@ -1166,10 +1199,16 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedTrack>> {
-        let result = self.get("me/tracks", &json!({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-        })).await?;
+        let result = self
+            .get(
+                "me/tracks",
+                None,
+                &json!({
+                    "limit": limit.into().unwrap_or(20),
+                    "offset": offset.into().unwrap_or(0),
+                }),
+            )
+            .await?;
         self.convert_result::<Page<SavedTrack>>(&result)
     }
     ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
@@ -1190,7 +1229,7 @@ impl Spotify {
             json_insert!(params, "after", after);
         }
 
-        let result = self.get("me/following", &params).await?;
+        let result = self.get("me/following", None, &params).await?;
         self.convert_result::<CursorPageFullArtists>(&result)
     }
 
@@ -1205,7 +1244,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        match self.delete(&url, &Value::Null).await {
+        match self.delete(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1225,7 +1264,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -1240,7 +1279,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1262,11 +1301,17 @@ impl Spotify {
         offset: O,
         time_range: T,
     ) -> ClientResult<Page<FullArtist>> {
-        let result = self.get(&"me/top/artists", &json! ({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-            "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
-        })).await?;
+        let result = self
+            .get(
+                &"me/top/artists",
+                None,
+                &json! ({
+                    "limit": limit.into().unwrap_or(20),
+                    "offset": offset.into().unwrap_or(0),
+                    "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
+                }),
+            )
+            .await?;
         self.convert_result::<Page<FullArtist>>(&result)
     }
 
@@ -1286,11 +1331,17 @@ impl Spotify {
         offset: O,
         time_range: T,
     ) -> ClientResult<Page<FullTrack>> {
-        let result = self.get("me/top/tracks", &json!({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-            "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
-        })).await?;
+        let result = self
+            .get(
+                "me/top/tracks",
+                None,
+                &json!({
+                    "limit": limit.into().unwrap_or(20),
+                    "offset": offset.into().unwrap_or(0),
+                    "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
+                }),
+            )
+            .await?;
         self.convert_result::<Page<FullTrack>>(&result)
     }
 
@@ -1302,9 +1353,15 @@ impl Spotify {
         &self,
         limit: L,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
-        let result = self.get("me/player/recently-played", &json!({
-            "limit": limit.into().unwrap_or(50)
-        })).await?;
+        let result = self
+            .get(
+                "me/player/recently-played",
+                None,
+                &json!({
+                    "limit": limit.into().unwrap_or(50)
+                }),
+            )
+            .await?;
         self.convert_result::<CursorBasedPage<PlayHistory>>(&result)
     }
 
@@ -1319,7 +1376,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1336,7 +1393,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        match self.delete(&url, &Value::Null).await {
+        match self.delete(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1356,7 +1413,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -1366,7 +1423,7 @@ impl Spotify {
     /// - artist_ids - a list of artist IDs
     pub async fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1378,7 +1435,7 @@ impl Spotify {
     /// - artist_ids - a list of artist IDs
     pub async fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        match self.delete(&url, &Value::Null).await {
+        match self.delete(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1394,7 +1451,7 @@ impl Spotify {
             "me/following/contains?type=artist&ids={}",
             artsit_ids.join(",")
         );
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -1404,7 +1461,7 @@ impl Spotify {
     /// - user_ids - a list of artist IDs
     pub async fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1416,7 +1473,7 @@ impl Spotify {
     /// - user_ids - a list of artist IDs
     pub async fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        match self.delete(&url, &Value::Null).await {
+        match self.delete(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1459,7 +1516,7 @@ impl Spotify {
         if let Some(timestamp) = timestamp {
             json_insert!(params, "timestamp", timestamp.to_rfc3339());
         }
-        let result = self.get("browse/featured-playlists", &params).await?;
+        let result = self.get("browse/featured-playlists", None, &params).await?;
         self.convert_result::<FeaturedPlaylists>(&result)
     }
 
@@ -1486,7 +1543,7 @@ impl Spotify {
             json_insert!(params, "country", country);
         }
 
-        let result = self.get("browse/new-releases", &params).await?;
+        let result = self.get("browse/new-releases", None, &params).await?;
         self.convert_result::<PageSimpliedAlbums>(&result)
     }
 
@@ -1519,7 +1576,7 @@ impl Spotify {
         if let Some(country) = country {
             json_insert!(params, "country", country);
         }
-        let result = self.get("browse/categories", &params).await?;
+        let result = self.get("browse/categories", None, &params).await?;
         self.convert_result::<PageCategory>(&result)
     }
 
@@ -1593,7 +1650,7 @@ impl Spotify {
                 }
             }
         }
-        let result = self.get("recommendations", &params).await?;
+        let result = self.get("recommendations", None, &params).await?;
         self.convert_result::<Recommendations>(&result)
     }
 
@@ -1603,7 +1660,7 @@ impl Spotify {
     pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<AudioFeatures>(&result)
     }
 
@@ -1619,7 +1676,7 @@ impl Spotify {
             .map(|track| self.get_id(Type::Track, track))
             .collect();
         let url = format!("audio-features/?ids={}", ids.join(","));
-        match self.get(&url, &Value::Null).await {
+        match self.get(&url, None, &Value::Null).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1638,7 +1695,7 @@ impl Spotify {
     pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<AudioAnalysis>(&result)
     }
 
@@ -1646,7 +1703,7 @@ impl Spotify {
     /// Get a User’s Available Devices
     pub async fn device(&self) -> ClientResult<DevicePayload> {
         let url = String::from("me/player/devices");
-        let result = self.get(&url, &Value::Null).await?;
+        let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<DevicePayload>(&result)
     }
 
@@ -1666,7 +1723,8 @@ impl Spotify {
             json_insert!(params, "country", market);
         }
         if let Some(additional_types) = additional_types {
-            json_insert!(params,
+            json_insert!(
+                params,
                 "additional_types",
                 additional_types
                     .iter()
@@ -1675,7 +1733,7 @@ impl Spotify {
                     .join(",")
             );
         }
-        match self.get(&url, &params).await {
+        match self.get(&url, None, &params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1703,13 +1761,17 @@ impl Spotify {
             json_insert!(params, "country", market);
         }
         if let Some(additional_types) = additional_types {
-            json_insert!(params, "additional_types", additional_types
+            json_insert!(
+                params,
+                "additional_types",
+                additional_types
                     .iter()
                     .map(|&x| x.as_str().to_owned())
                     .collect::<Vec<_>>()
-                    .join(","));
+                    .join(",")
+            );
         }
-        match self.get(&url, &params).await {
+        match self.get(&url, None, &params).await {
             Ok(result) => {
                 if result.is_empty() {
                     Ok(None)
@@ -1739,7 +1801,7 @@ impl Spotify {
         payload.insert("device_ids".to_owned(), device_ids.into());
         payload.insert("play".to_owned(), force_play.into());
         let url = String::from("me/player");
-        match self.put(&url, &Value::Object(payload)).await {
+        match self.put(&url, None, &Value::Object(payload)).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1795,7 +1857,7 @@ impl Spotify {
             params.insert("position_ms".to_owned(), _position_ms.into());
         };
         let url = self.append_device_id("me/player/play", device_id);
-        match self.put(&url, &Value::Object(params)).await {
+        match self.put(&url, None, &Value::Object(params)).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1807,7 +1869,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1819,7 +1881,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
-        match self.post(&url, &Value::Null).await {
+        match self.post(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1831,7 +1893,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
-        match self.post(&url, &Value::Null).await {
+        match self.post(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1851,7 +1913,7 @@ impl Spotify {
             &format!("me/player/seek?position_ms={}", position_ms),
             device_id,
         );
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1867,7 +1929,7 @@ impl Spotify {
             &format!("me/player/repeat?state={}", state.as_str()),
             device_id,
         );
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1886,7 +1948,7 @@ impl Spotify {
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,
         );
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1899,7 +1961,7 @@ impl Spotify {
     /// - device_id - device target for playback
     pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1917,7 +1979,7 @@ impl Spotify {
         device_id: Option<String>,
     ) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
-        match self.post(&url, &Value::Null).await {
+        match self.post(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1930,7 +1992,7 @@ impl Spotify {
     pub async fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
         let joined_ids = ids.join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
-        match self.put(&url, &Value::Null).await {
+        match self.put(&url, None, &Value::Null).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
@@ -1945,10 +2007,16 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<Show>> {
-        let result = self.get("me/shows", &json! ({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0)
-        })).await?;
+        let result = self
+            .get(
+                "me/shows",
+                None,
+                &json! ({
+                    "limit": limit.into().unwrap_or(20),
+                    "offset": offset.into().unwrap_or(0)
+                }),
+            )
+            .await?;
         self.convert_result::<Page<Show>>(&result)
     }
 
@@ -1964,7 +2032,7 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "country", market);
         }
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<FullShow>(&result)
     }
 
@@ -1984,7 +2052,7 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "country", market);
         }
-        let result = self.get("shows", &params).await?;
+        let result = self.get("shows", None, &params).await?;
         self.convert_result::<SeversalSimplifiedShows>(&result)
     }
     /// Get Spotify catalog information about an show’s episodes. Optional parameters can be used to limit the number of episodes returned.
@@ -2010,7 +2078,7 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "country", market);
         }
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<Page<SimplifiedEpisode>>(&result)
     }
 
@@ -2030,7 +2098,7 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "country", market);
         }
-        let result = self.get(&url, &params).await?;
+        let result = self.get(&url, None, &params).await?;
         self.convert_result::<FullEpisode>(&result)
     }
 
@@ -2050,7 +2118,7 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "country", market.as_str());
         }
-        let result = self.get("episodes", &mut params).await?;
+        let result = self.get("episodes", None, &mut params).await?;
         self.convert_result::<SeveralEpisodes>(&result)
     }
 
@@ -2059,9 +2127,15 @@ impl Spotify {
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     pub async fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
-        let result = self.get("me/shows/contains", &json! ({
-            "ids": ids.join(","),
-        })).await?;
+        let result = self
+            .get(
+                "me/shows/contains",
+                None,
+                &json! ({
+                    "ids": ids.join(","),
+                }),
+            )
+            .await?;
         self.convert_result::<Vec<bool>>(&result)
     }
 
@@ -2085,7 +2159,7 @@ impl Spotify {
                 serde_json::Value::String(_market.as_str().to_owned()),
             );
         }
-        match self.delete(&url, &Value::Object(payload)).await {
+        match self.delete(&url, None, &Value::Object(payload)).await {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }

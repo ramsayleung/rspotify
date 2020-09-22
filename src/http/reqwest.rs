@@ -1,15 +1,15 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::BaseClient;
-use crate::client::{ApiError, ClientError, ClientResult, Spotify};
-
-use std::borrow::Cow;
-
 use maybe_async::async_impl;
-use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::header::{self, HeaderMap};
 use reqwest::{Method, StatusCode};
 use serde_json::Value;
+
+use std::convert::TryInto;
+
+use super::{BaseClient, Headers};
+use crate::client::{ApiError, ClientError, ClientResult, Spotify};
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -52,28 +52,38 @@ impl Spotify {
         &self,
         method: Method,
         url: &str,
+        headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        // TODO: Cow<str> may not be necessary, and checking if it starts with
-        // http shouldn't happen.
-        let mut url: Cow<str> = url.into();
-        if !url.starts_with("http") {
-            url = ["https://api.spotify.com/v1/", &url].concat().into();
-        }
+        // Using the client's prefix in case it's a relative route.
+        let url = if !url.starts_with("http") {
+            self.prefix.clone() + &url
+        } else {
+            url.to_string()
+        };
 
-        let mut headers = HeaderMap::new();
-        // TODO: these `unwrap` should be removed
-        headers.insert(
-            AUTHORIZATION,
-            self.auth_headers()?
-                .parse()
-                .unwrap(),
+        // The default headers may be overriden for any value that isn't None.
+        //
+        // The values parsed for the headers values are of type `HeaderValue`,
+        // which won't fail as long as its contents are ASCII.
+        let headers = match headers {
+            Some(headers) => headers.try_into().unwrap(),
+            None => {
+                let mut headers = HeaderMap::new();
+                headers.insert(header::AUTHORIZATION, self.auth_headers()?.parse().unwrap());
+                headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
+                headers
+            }
+        };
+
+        log::debug!(
+            "Sending {:?} request to `{}` with headers `{:?}` and payload `{:?}`",
+            method, url, headers, payload
         );
-        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let response = self
             .client
-            .request(method, &url.into_owned())
+            .request(method, &url)
             .headers(headers)
             .json(payload)
             .send()
@@ -91,22 +101,42 @@ impl Spotify {
 #[async_impl]
 impl BaseClient for Spotify {
     #[inline]
-    async fn get(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(Method::GET, url, payload).await
+    async fn get(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(Method::GET, url, headers, payload).await
     }
 
     #[inline]
-    async fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(Method::POST, url, payload).await
+    async fn post(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(Method::POST, url, headers, payload).await
     }
 
     #[inline]
-    async fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(Method::PUT, url, payload).await
+    async fn put(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(Method::PUT, url, headers, payload).await
     }
 
     #[inline]
-    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        self.request(Method::DELETE, url, payload).await
+    async fn delete(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(Method::DELETE, url, headers, payload).await
     }
 }

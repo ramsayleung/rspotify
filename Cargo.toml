@@ -35,12 +35,15 @@ tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-default = ["client-reqwest"]
+default = ["client-reqwest", "reqwest/default-tls"]
 cli = ["webbrowser"]
 env-file = ["dotenv"]
+
+# Available clients
 client-ureq = ["ureq", "maybe-async/is_sync"]
-# Passing the TLS features to reqwest.
 client-reqwest = ["reqwest"]
+
+# Passing the TLS features to reqwest.
 reqwest-native-tls = ["reqwest/native-tls"]
 reqwest-native-tls-blocking = ["reqwest/native-tls", "reqwest/blocking"]
 reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]

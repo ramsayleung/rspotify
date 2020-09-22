@@ -157,6 +157,9 @@ pub mod util;
 macro_rules! json_insert {
     ($json:expr, $p1:expr, $p2:expr) => {
         // TODO: maybe into instead
-        $json.as_object_mut().unwrap().insert($p1.to_string(), json!($p2))
-    }
+        $json
+            .as_object_mut()
+            .unwrap()
+            .insert($p1.to_string(), json!($p2))
+    };
 }
