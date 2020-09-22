@@ -39,6 +39,8 @@ impl Spotify {
             }
         }
 
+        log::info!("Making request {:?} with payload {:?}", req, payload);
+
         // TODO: maybe it'd be better to take ownership of the content to
         // avoid this clone.
         let response = match payload {
@@ -63,7 +65,7 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(&mut ureq::get(url), headers, Content::Json(payload))
+        self.request(&mut ureq::get(&self.endpoint_url(url)), headers, Content::Json(payload))
     }
 
     #[inline]
@@ -73,7 +75,7 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(&mut ureq::post(url), headers, Content::Json(payload))
+        self.request(&mut ureq::post(&self.endpoint_url(url)), headers, Content::Json(payload))
     }
 
     #[inline]
@@ -83,7 +85,7 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &FormData,
     ) -> ClientResult<String> {
-        self.request(&mut ureq::post(url), headers, Content::Form(payload))
+        self.request(&mut ureq::post(&self.endpoint_url(url)), headers, Content::Form(payload))
     }
 
     #[inline]
@@ -93,7 +95,7 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(&mut ureq::put(url), headers, Content::Json(payload))
+        self.request(&mut ureq::put(&self.endpoint_url(url)), headers, Content::Json(payload))
     }
 
     #[inline]
@@ -103,6 +105,6 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(&mut ureq::delete(url), headers, Content::Json(payload))
+        self.request(&mut ureq::delete(&self.endpoint_url(url)), headers, Content::Json(payload))
     }
 }

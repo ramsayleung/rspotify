@@ -54,12 +54,7 @@ impl Spotify {
         headers: Option<&Headers>,
         payload: Content<'a>,
     ) -> ClientResult<String> {
-        // Using the client's prefix in case it's a relative route.
-        let url = if !url.starts_with("http") {
-            self.prefix.clone() + &url
-        } else {
-            url.to_string()
-        };
+        let url = self.endpoint_url(url);
 
         // The default auth headers are used if none were specified.
         let mut auth;
@@ -85,7 +80,7 @@ impl Spotify {
             Content::Form(value) => request.form(value),
         };
 
-        log::debug!("Making request {:?} with payload {:?}", request, payload);
+        log::info!("Making request {:?} with payload {:?}", request, payload);
 
         let response = request.send().await.map_err(ClientError::from)?;
 

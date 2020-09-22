@@ -143,15 +143,27 @@ pub struct Spotify {
 
 /// Client-related methods
 impl Spotify {
+    /// If it's a relative URL (`"me"`), the prefix is appended to it
+    /// (`"https://api.spotify.com/v1/me"`). Otherwise, the same URL is
+    /// returned.
+    pub(in crate) fn endpoint_url(&self, url: &str) -> String {
+        // Using the client's prefix in case it's a relative route.
+        if !url.starts_with("http") {
+            self.prefix.clone() + &url
+        } else {
+            url.to_string()
+        }
+    }
+
     /// Returns the access token, or an error in case it's not configured.
-    pub fn get_token(&self) -> ClientResult<&Token> {
+    pub(in crate) fn get_token(&self) -> ClientResult<&Token> {
         self.token
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))
     }
 
     /// Returns the oauth information, or an error in case it's not configured.
-    pub fn get_oauth(&self) -> ClientResult<&OAuth> {
+    pub(in crate) fn get_oauth(&self) -> ClientResult<&OAuth> {
         self.oauth
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
@@ -159,14 +171,14 @@ impl Spotify {
 
     /// Returns the oauth information as mutable, or an error in case it's not
     /// configured.
-    pub fn get_oauth_mut(&mut self) -> ClientResult<&mut OAuth> {
+    pub(in crate) fn get_oauth_mut(&mut self) -> ClientResult<&mut OAuth> {
         self.oauth
             .as_mut()
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
     }
 
     /// Converts a JSON response from Spotify into its model.
-    pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> ClientResult<T> {
+    fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> ClientResult<T> {
         serde_json::from_str::<T>(input).map_err(Into::into)
     }
 

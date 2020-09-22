@@ -152,15 +152,17 @@ pub mod oauth2;
 pub mod senum;
 pub mod util;
 
-/// Reduce boilerplate when inserting new elements in a JSON object.
 #[doc(hidden)]
-#[macro_export]
-macro_rules! json_insert {
-    ($json:expr, $p1:expr, $p2:expr) => {
-        // TODO: maybe into instead
-        $json
-            .as_object_mut()
-            .unwrap()
-            .insert($p1.to_string(), json!($p2))
-    };
+mod macros {
+    /// Reduce boilerplate when inserting new elements in a JSON object.
+    #[macro_export]
+    macro_rules! json_insert {
+        ($json:expr, $p1:expr, $p2:expr) => {
+            // TODO: maybe into instead
+            $json
+                .as_object_mut()
+                .unwrap()
+                .insert($p1.to_string(), json!($p2))
+        };
+    }
 }
