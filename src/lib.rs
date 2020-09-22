@@ -118,30 +118,39 @@
 //! ```
 //!
 //! ```rust
-//! use rspotify::client::Spotify;
-//! use rspotify::oauth2::SpotifyClientCredentials;
+//! use rspotify::client::SpotifyBuilder;
+//! use rspotify::oauth2::CredentialsBuilder;
 //! use rspotify::senum::Country;
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     // Set client_id and client_secret in .env file or
+//!     // Set client_id and client_secret in .env file with the `env-file`
+//!     // feature or:
+//!     //
 //!     // export RSPOTIFY_CLIENT_ID="your client_id"
 //!     // export RSPOTIFY_CLIENT_SECRET="secret"
-//!     let client_credential = SpotifyClientCredentials::default().build();
-//!
-//!     // Or set client_id and client_secret explictly
-//!     // let client_credential = SpotifyClientCredentials::default()
+//!     //
+//!     // Or set client_id and client_secret explictly:
+//!     //
+//!     // let client_credential = CredentialsBuilder::default()
 //!     //     .client_id("this-is-my-client-id")
 //!     //     .client_secret("this-is-my-client-secret")
-//!     //     .build();
-//!     let spotify = Spotify::default()
+//!     //     .build()
+//!     //     .unwrap();
+//!     let client_credential = CredentialsBuilder::from_env().build().unwrap();
+//!
+//!     let spotify = SpotifyBuilder::default()
 //!         .client_credentials_manager(client_credential)
-//!         .build();
+//!         .build()
+//!         .unwrap();
+//!
+//!     spotify.request_client_token().await.unwrap();
+//!
 //!     let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
 //!     let tracks = spotify
 //!         .artist_top_tracks(birdy_uri, Country::UnitedStates)
 //!         .await;
-//!     println!("{:?}", tracks.unwrap());
+//!     println!("Response: {:?}", tracks.unwrap());
 //! }
 //! ```
 
