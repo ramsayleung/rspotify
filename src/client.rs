@@ -43,8 +43,11 @@ use super::senum::{
 use super::util::{convert_map_to_string, datetime_to_timestamp};
 
 const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
-const AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
-const TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
+
+mod api_urls {
+    pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
+    pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
+}
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -313,7 +316,7 @@ impl Spotify {
                 .collect::<HashMap<String, String>>(),
         );
         let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
-        let url = format!("{}?{}", AUTHORIZE_URL, encoded);
+        let url = format!("{}?{}", api_urls::AUTHORIZE, encoded);
 
         Ok(url)
     }
@@ -347,7 +350,7 @@ impl Spotify {
         let (key, val) = headers::basic_auth(&self.get_creds()?.id, &self.get_creds()?.secret);
         head.insert(key, val);
 
-        let response = self.post_form(TOKEN_URL, Some(&head), payload).await?;
+        let response = self.post_form(api_urls::TOKEN, Some(&head), payload).await?;
         let mut tok = serde_json::from_str::<Token>(&response)?;
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
 
