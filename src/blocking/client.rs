@@ -17,6 +17,9 @@ use std::io::Read;
 use std::string::String;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
+use crate::enums::{
+    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
+};
 use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
@@ -34,9 +37,6 @@ use crate::model::show::{
 };
 use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use crate::model::user::{PrivateUser, PublicUser};
-use crate::enums::{
-    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
-};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]

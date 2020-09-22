@@ -14,6 +14,9 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::string::String;
 
+use super::enums::{
+    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
+};
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
 use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
@@ -32,9 +35,6 @@ use super::model::show::{
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
 use super::oauth2::SpotifyClientCredentials;
-use super::enums::{
-    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
-};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]

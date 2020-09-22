@@ -1,6 +1,6 @@
 use rspotify::client::Spotify;
-use rspotify::oauth2::SpotifyClientCredentials;
 use rspotify::enums::{AlbumType, Country};
+use rspotify::oauth2::SpotifyClientCredentials;
 
 use std::sync::Mutex;
 
@@ -34,9 +34,9 @@ async fn test_album() {
 
 #[tokio::test]
 async fn test_albums() {
-    let birdy_uri1 = String::from("spotify:album:41MnTivkwTO3UUJ8DrqEJJ");
-    let birdy_uri2 = String::from("spotify:album:6JWc4iAiJ9FjyK0B59ABb4");
-    let birdy_uri3 = String::from("spotify:album:6UXCm6bOO4gFlDQZV5yL37");
+    let birdy_uri1 = "spotify:album:41MnTivkwTO3UUJ8DrqEJJ";
+    let birdy_uri2 = "spotify:album:6JWc4iAiJ9FjyK0B59ABb4";
+    let birdy_uri3 = "spotify:album:6UXCm6bOO4gFlDQZV5yL37";
     let track_uris = vec![birdy_uri1, birdy_uri2, birdy_uri3];
     let albums = async_client().albums(track_uris).await;
     assert!(albums.is_ok())
@@ -80,8 +80,8 @@ async fn test_artists_albums() {
 
 #[tokio::test]
 async fn test_artists() {
-    let birdy_uri1 = String::from("spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy");
-    let birdy_uri2 = String::from("spotify:artist:3dBVyJ7JuOMt4GE9607Qin");
+    let birdy_uri1 = "spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy";
+    let birdy_uri2 = "spotify:artist:3dBVyJ7JuOMt4GE9607Qin";
     let artist_uris = vec![birdy_uri1, birdy_uri2];
     let artists = async_client().artists(artist_uris).await;
     assert!(artists.is_ok());
@@ -113,11 +113,11 @@ async fn test_audio_features() {
 #[tokio::test]
 async fn test_audios_features() {
     let mut tracks_ids = vec![];
-    let track_id1 = String::from("spotify:track:4JpKVNYnVcJ8tuMKjAj50A");
+    let track_id1 = "spotify:track:4JpKVNYnVcJ8tuMKjAj50A";
     tracks_ids.push(track_id1);
-    let track_id2 = String::from("spotify:track:24JygzOLM0EmRQeGtFcIcG");
+    let track_id2 = "spotify:track:24JygzOLM0EmRQeGtFcIcG";
     tracks_ids.push(track_id2);
-    let features = async_client().audios_features(&tracks_ids).await;
+    let features = async_client().audios_features(tracks_ids).await;
     assert!(features.is_ok())
 }
 

@@ -121,7 +121,7 @@
 #[cfg(feature = "blocking")]
 pub mod blocking;
 pub mod client;
+pub mod enums;
 pub mod model;
 pub mod oauth2;
-pub mod enums;
 pub mod util;

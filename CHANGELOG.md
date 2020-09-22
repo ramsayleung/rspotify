@@ -44,6 +44,7 @@
 	- `user_follow_users`
 	- `user_unfollow_users`
 	- `audios_features`
+- Split single `senum.rs` file into a seperate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, check [enums mod.rs file](./src/enums/mod.rs) for details.
 
 ## 0.10 (2020/07/01)
 
