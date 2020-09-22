@@ -17,7 +17,7 @@ use std::io::{Read, Write};
 use std::iter::FromIterator;
 use std::path::PathBuf;
 
-use super::http::{headers, BaseClient, Headers};
+use super::http::{headers, BaseClient, FormData, Headers};
 use super::json_insert;
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
@@ -147,14 +147,17 @@ impl Spotify {
     /// token.
     ///
     // TODO: Maybe pub(in crate) can be avoided?
-    pub(in crate) fn auth_headers(&self) -> ClientResult<String> {
+    pub(in crate) fn auth_headers(&self) -> ClientResult<Headers> {
+        let mut headers = Headers::new();
         let tok = self
             .access_token
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))?;
-        let auth = headers::bearer_auth(&tok.access_token);
 
-        Ok(auth)
+        let auth = headers::bearer_auth(&tok.access_token);
+        headers.insert(headers::AUTHORIZATION.to_owned(), auth.to_owned());
+
+        Ok(headers)
     }
 
     fn get_oauth(&self) -> ClientResult<&OAuth> {
@@ -317,19 +320,15 @@ impl Spotify {
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
-    async fn fetch_access_token(&self, payload: &Value) -> ClientResult<TokenInfo> {
+    async fn fetch_access_token(&self, payload: &FormData) -> ClientResult<TokenInfo> {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
         head.insert(
-            headers::CONTENT_TYPE.to_owned(),
-            "application/x-www-form-urlencoded".to_owned(),
-        );
-        head.insert(
             headers::AUTHORIZATION.to_owned(),
             headers::basic_auth(&self.credentials.id, &self.credentials.secret),
         );
-        let response = self.post(TOKEN_URL, Some(&head), &payload).await?;
+        let response = self.post_form(TOKEN_URL, Some(&head), payload).await?;
         let mut tok = serde_json::from_str::<TokenInfo>(&response)?;
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
 
@@ -343,11 +342,11 @@ impl Spotify {
         &self,
         refresh_token: &str,
     ) -> ClientResult<TokenInfo> {
-        self.fetch_access_token(&json! ({
-            "refresh_token": refresh_token,
-            "grant_type": "refresh_token"
-        }))
-        .await
+        let mut data = FormData::new();
+        data.insert("refresh_token".to_owned(), refresh_token.to_owned());
+        data.insert("grant_type".to_owned(), "refresh_token".to_owned());
+
+        self.fetch_access_token(&data).await
     }
 
     /// The same as `refresh_access_token_without_cache`, but saves the token
@@ -367,14 +366,14 @@ impl Spotify {
     #[maybe_async]
     pub async fn request_access_token_without_cache(&self, code: &str) -> ClientResult<TokenInfo> {
         let oauth = self.get_oauth()?;
-        self.fetch_access_token(&json! ({
-            "redirect_uri": &oauth.redirect_uri,
-            "code": code,
-            "grant_type": "authorization_code",
-            "scope": &oauth.scope,
-            "state": &oauth.state,
-        }))
-        .await
+        let mut data = FormData::new();
+        data.insert("grant_type".to_owned(), "authorization_code".to_owned());
+        data.insert("redirect_uri".to_owned(), oauth.redirect_uri.clone());
+        data.insert("code".to_owned(), code.to_owned());
+        data.insert("scope".to_owned(), oauth.scope.clone());
+        data.insert("state".to_owned(), oauth.state.clone());
+
+        self.fetch_access_token(&data).await
     }
 
     /// The same as `get_access_token_without_cache`, but saves the token into

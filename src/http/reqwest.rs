@@ -2,14 +2,20 @@
 //! default.
 
 use maybe_async::async_impl;
-use reqwest::header::{self, HeaderMap};
 use reqwest::{Method, StatusCode};
 use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{BaseClient, Headers};
+use super::{BaseClient, FormData, Headers};
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
+
+/// Using an enum internally with the possible content types.
+#[derive(Debug)]
+enum Content<'a> {
+    Json(&'a Value),
+    Form(&'a FormData),
+}
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -48,12 +54,12 @@ impl From<reqwest::StatusCode> for ClientError {
 }
 
 impl Spotify {
-    async fn request(
+    async fn request<'a>(
         &self,
         method: Method,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: Content<'a>,
     ) -> ClientResult<String> {
         // Using the client's prefix in case it's a relative route.
         let url = if !url.starts_with("http") {
@@ -62,33 +68,35 @@ impl Spotify {
             url.to_string()
         };
 
-        // The default headers may be overriden for any value that isn't None.
-        //
-        // The values parsed for the headers values are of type `HeaderValue`,
-        // which won't fail as long as its contents are ASCII.
+        // The default auth headers are used if none were specified.
+        let auth;
         let headers = match headers {
-            Some(headers) => headers.try_into().unwrap(),
+            Some(h) => h,
             None => {
-                let mut headers = HeaderMap::new();
-                headers.insert(header::AUTHORIZATION, self.auth_headers()?.parse().unwrap());
-                headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
-                headers
+                auth = self.auth_headers()?;
+                &auth
             }
         };
+        // The headers need to be converted into a `reqwest::HeaderMap`, which
+        // won't fail as long as its contents are ASCII. This is an internal
+        // function, so the condition will always be true.
+        let headers = headers.try_into().unwrap();
 
         log::debug!(
             "Sending {:?} request to `{}` with headers `{:?}` and payload `{:?}`",
-            method, url, headers, payload
+            method,
+            url,
+            headers,
+            payload
         );
 
-        let response = self
-            .client
-            .request(method, &url)
-            .headers(headers)
-            .json(payload)
-            .send()
-            .await
-            .map_err(ClientError::from)?;
+        let request = self.client.request(method, &url).headers(headers);
+        let request = match payload {
+            Content::Json(value) => request.json(value),
+            Content::Form(value) => request.form(value),
+        };
+
+        let response = request.send().await.map_err(ClientError::from)?;
 
         if response.status().is_success() {
             response.text().await.map_err(Into::into)
@@ -107,7 +115,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::GET, url, headers, payload).await
+        self.request(Method::GET, url, headers, Content::Json(payload))
+            .await
     }
 
     #[inline]
@@ -117,7 +126,19 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::POST, url, headers, payload).await
+        self.request(Method::POST, url, headers, Content::Json(payload))
+            .await
+    }
+
+    #[inline]
+    async fn post_form(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &FormData,
+    ) -> ClientResult<String> {
+        self.request(Method::POST, url, headers, Content::Form(payload))
+            .await
     }
 
     #[inline]
@@ -127,7 +148,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::PUT, url, headers, payload).await
+        self.request(Method::PUT, url, headers, Content::Json(payload))
+            .await
     }
 
     #[inline]
@@ -137,6 +159,7 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::DELETE, url, headers, payload).await
+        self.request(Method::DELETE, url, headers, Content::Json(payload))
+            .await
     }
 }
