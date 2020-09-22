@@ -8,7 +8,7 @@ use std::env;
 
 /// Spotify access token information.
 #[derive(Builder, Clone, Debug, Serialize, Deserialize)]
-pub struct TokenInfo {
+pub struct Token {
     #[builder(setter(into))]
     pub access_token: String,
     #[builder(setter(into))]

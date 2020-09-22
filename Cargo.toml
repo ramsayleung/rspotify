@@ -26,17 +26,19 @@ getrandom = "0.2.0"
 reqwest = { version = "0.10.7", features = ["json", "socks"], default-features = false, optional = true }
 serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
-ureq = { version = "1.4.1", optional = true }
+ureq = { version = "1.4.1", features = ["json"], optional = true }
 webbrowser = { version = "0.5.5", optional = true }
 thiserror = "1.0.20"
 
 [dev-dependencies]
 async_once = { version = "0.1.0", features = ["tokio"] }
+env_logger = "0.7.1"
 tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-default = ["client-reqwest", "reqwest/default-tls"]
+# default = ["client-reqwest", "reqwest/default-tls"]
+default = ["client-ureq"]
 cli = ["webbrowser"]
 env-file = ["dotenv"]
 
@@ -79,20 +81,20 @@ path = "examples/with_refresh_token.rs"
 
 [[example]]
 name = "device"
-required-features = ["env-file", "cli", "blocking"]
+required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/blocking/device.rs"
 
 [[example]]
 name = "me"
-required-features = ["env-file", "cli", "blocking"]
+required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/blocking/me.rs"
 
 [[example]]
 name = "search"
-required-features = ["env-file", "cli", "blocking"]
+required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/blocking/search.rs"
             
 [[example]]
 name = "seek_track"
-required-features = ["env-file", "cli", "blocking"]
+required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/blocking/seek_track.rs"

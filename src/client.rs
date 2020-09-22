@@ -36,7 +36,7 @@ use super::model::show::{
 };
 use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
 use super::model::user::{PrivateUser, PublicUser};
-use super::oauth2::{Credentials, OAuth, TokenInfo};
+use super::oauth2::{Credentials, OAuth, Token};
 use super::senum::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
@@ -109,14 +109,14 @@ pub enum ApiError {
 /// Spotify API object
 #[derive(Builder, Debug, Clone)]
 pub struct Spotify {
+    /// reqwest needs an instance of its client to perform requests.
     #[cfg(feature = "client-reqwest")]
     #[builder(setter(skip))]
-    // TODO: Maybe pub(in crate) can be avoided?
     pub(in crate) client: reqwest::Client,
 
-    /// The minimal access token required for requests to the Spotify API.
+    /// The access token information required for requests to the Spotify API.
     #[builder(setter(into, strip_option), default)]
-    pub access_token: Option<TokenInfo>,
+    pub token: Option<Token>,
 
     /// The credentials needed for obtaining a new access token, for requests
     /// without OAuth authentication.
@@ -143,30 +143,23 @@ pub struct Spotify {
 
 /// Client-related methods
 impl Spotify {
-    /// Returns the authorization headers, or an error if there is no access
-    /// token.
-    ///
-    // TODO: Maybe pub(in crate) can be avoided?
-    pub(in crate) fn auth_headers(&self) -> ClientResult<Headers> {
-        let mut headers = Headers::new();
-        let tok = self
-            .access_token
+    /// Returns the access token, or an error in case it's not configured.
+    pub fn get_token(&self) -> ClientResult<&Token> {
+        self.token
             .as_ref()
-            .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))?;
-
-        let auth = headers::bearer_auth(&tok.access_token);
-        headers.insert(headers::AUTHORIZATION.to_owned(), auth.to_owned());
-
-        Ok(headers)
+            .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))
     }
 
-    fn get_oauth(&self) -> ClientResult<&OAuth> {
+    /// Returns the oauth information, or an error in case it's not configured.
+    pub fn get_oauth(&self) -> ClientResult<&OAuth> {
         self.oauth
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
     }
 
-    fn get_oauth_mut(&mut self) -> ClientResult<&mut OAuth> {
+    /// Returns the oauth information as mutable, or an error in case it's not
+    /// configured.
+    pub fn get_oauth_mut(&mut self) -> ClientResult<&mut OAuth> {
         self.oauth
             .as_mut()
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
@@ -177,6 +170,7 @@ impl Spotify {
         serde_json::from_str::<T>(input).map_err(Into::into)
     }
 
+    /// TODO: should be moved into a custom type
     fn get_uri(&self, _type: Type, _id: &str) -> String {
         format!("spotify:{}:{}", _type.as_str(), self.get_id(_type, _id))
     }
@@ -228,6 +222,9 @@ impl Spotify {
     }
 
     /// Parse the response code in the given response url
+    ///
+    /// Step 2 of the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
+    ///
     /// TODO: this might be better off with an implementation from a separate
     /// library.
     pub fn parse_response_code(&self, url: &str) -> Option<String> {
@@ -239,8 +236,8 @@ impl Spotify {
 
     /// TODO: we should use `Instant` for expiration dates, which requires this
     /// to be modified.
-    /// TODO: this should be moved into `TokenInfo`
-    fn is_token_expired(&self, token_info: &TokenInfo) -> bool {
+    /// TODO: this should be moved into `Token`
+    fn is_token_expired(&self, token_info: &Token) -> bool {
         let now: DateTime<Utc> = Utc::now();
 
         // 10s as buffer time
@@ -250,21 +247,22 @@ impl Spotify {
         }
     }
 
-    /// Saves the access token information into its file.
-    fn save_token_info(&self, token_info: &str) -> ClientResult<()> {
+    /// Saves the internal access token information into its cache file.
+    fn save_token_info(&self) -> ClientResult<()> {
+        let token_info = serde_json::to_string(&self.token)?;
+
         let mut file = fs::OpenOptions::new()
             .write(true)
             .create(true)
             .open(self.cache_path.as_path())?;
-
         file.set_len(0)?;
         file.write_all(token_info.as_bytes())?;
 
         Ok(())
     }
 
-    /// Gets the required URL to authorize the current client.
-    /// TODO: should this be moved into `OAuth` somehow?
+    /// Gets the required URL to authorize the current client to start the
+    /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
     pub fn get_authorize_request_url(&self, show_dialog: bool) -> ClientResult<String> {
         let oauth = self.get_oauth()?;
         let mut payload = json! ({
@@ -281,9 +279,11 @@ impl Spotify {
             json_insert!(payload, "show_dialog", "true");
         }
 
-        // TODO this should be improved
         // FIXME for some reason to_string for Value::String::to_string adds
         // quotes if as_str isn't used. This is horrendous and temporary.
+        //
+        // TODO: Perhaps the `BaseClient` implementation should provide this
+        // method, so that reqwest can use its own implementation.
         let query_str = convert_map_to_string(
             payload
                 .as_object()
@@ -300,12 +300,12 @@ impl Spotify {
 
     /// Tries to read the cache file's token, which may not exist.
     #[maybe_async]
-    pub async fn get_cached_token(&mut self) -> Option<TokenInfo> {
+    pub async fn get_cached_token(&mut self) -> Option<Token> {
         let mut file = fs::File::open(&self.cache_path).ok()?;
         let mut tok_str = String::new();
         file.read_to_string(&mut tok_str).ok()?;
 
-        let mut tok: TokenInfo = serde_json::from_str(&tok_str).ok()?;
+        let mut tok: Token = serde_json::from_str(&tok_str).ok()?;
 
         if !Self::is_scope_subset(&mut self.get_oauth_mut().ok()?.scope, &mut tok.scope)
             || self.is_token_expired(&tok)
@@ -320,51 +320,74 @@ impl Spotify {
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
-    async fn fetch_access_token(&self, payload: &FormData) -> ClientResult<TokenInfo> {
+    async fn fetch_access_token(&self, payload: &FormData) -> ClientResult<Token> {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
-        head.insert(
-            headers::AUTHORIZATION.to_owned(),
-            headers::basic_auth(&self.credentials.id, &self.credentials.secret),
-        );
+        let (key, val) = headers::basic_auth(&self.credentials.id, &self.credentials.secret);
+        head.insert(key, val);
+
         let response = self.post_form(TOKEN_URL, Some(&head), payload).await?;
-        let mut tok = serde_json::from_str::<TokenInfo>(&response)?;
+        let mut tok = serde_json::from_str::<Token>(&response)?;
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
 
         Ok(tok)
     }
 
-    /// Refreshes the access token from a refresh token without saving it into
-    /// the cache file.
+    /// Refreshes the access token with the refresh token provided by the
+    /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow),
+    /// without saving it into the cache file.
+    /// 
+    /// The obtained token will be saved internally.
     #[maybe_async]
-    pub async fn refresh_access_token_without_cache(
-        &self,
+    pub async fn refresh_user_token_without_cache(
+        &mut self,
         refresh_token: &str,
-    ) -> ClientResult<TokenInfo> {
+    ) -> ClientResult<()> {
         let mut data = FormData::new();
         data.insert("refresh_token".to_owned(), refresh_token.to_owned());
         data.insert("grant_type".to_owned(), "refresh_token".to_owned());
 
-        self.fetch_access_token(&data).await
+        self.token = Some(self.fetch_access_token(&data).await?);
+
+        Ok(())
     }
 
-    /// The same as `refresh_access_token_without_cache`, but saves the token
+    /// The same as `refresh_user_token_without_cache`, but saves the token
     /// into the cache file if possible.
     #[maybe_async]
-    pub async fn refresh_access_token(&self, refresh_token: &str) -> ClientResult<TokenInfo> {
-        let tok = self
-            .refresh_access_token_without_cache(refresh_token)
-            .await?;
-        self.save_token_info(&serde_json::to_string(&tok)?)?;
-
-        Ok(tok)
+    pub async fn refresh_user_token(&mut self, refresh_token: &str) -> ClientResult<()> {
+        self.refresh_user_token_without_cache(refresh_token).await?;
+        self.save_token_info()
     }
 
-    /// Gets the access token for the app with the given code without saving
-    /// it into the cache file.
+    /// Obtains the client access token for the app without saving it into the
+    /// cache file. The resulting token is saved internally.
     #[maybe_async]
-    pub async fn request_access_token_without_cache(&self, code: &str) -> ClientResult<TokenInfo> {
+    pub async fn request_client_token_without_cache(&mut self) -> ClientResult<()> {
+        let mut data = FormData::new();
+        data.insert("grant_type".to_owned(), "client_credentials".to_owned());
+
+        self.token = Some(self.fetch_access_token(&data).await?);
+
+        Ok(())
+    }
+
+    /// The same as `request_client_token_without_cache`, but saves the token
+    /// into the cache file if possible.
+    #[maybe_async]
+    pub async fn request_client_token(&mut self) -> ClientResult<()> {
+        self.request_client_token_without_cache().await?;
+        self.save_token_info()
+    }
+
+    /// Obtains the user access token for the app with the given code without
+    /// saving it into the cache file, as part of the OAuth authentication.
+    /// The access token will be saved inside the Spotify instance.
+    ///
+    /// Step 3 of the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
+    #[maybe_async]
+    pub async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
         let oauth = self.get_oauth()?;
         let mut data = FormData::new();
         data.insert("grant_type".to_owned(), "authorization_code".to_owned());
@@ -373,17 +396,18 @@ impl Spotify {
         data.insert("scope".to_owned(), oauth.scope.clone());
         data.insert("state".to_owned(), oauth.state.clone());
 
-        self.fetch_access_token(&data).await
+
+        self.token = Some(self.fetch_access_token(&data).await?);
+
+        Ok(())
     }
 
-    /// The same as `get_access_token_without_cache`, but saves the token into
+    /// The same as `request_user_token_without_cache`, but saves the token into
     /// the cache file if possible.
     #[maybe_async]
-    pub async fn request_access_token(&self, code: &str) -> ClientResult<TokenInfo> {
-        let tok = self.request_access_token_without_cache(code).await?;
-        self.save_token_info(&serde_json::to_string(&tok)?)?;
-
-        Ok(tok)
+    pub async fn request_user_token(&mut self, code: &str) -> ClientResult<()> {
+        self.request_user_token_without_cache(code).await?;
+        self.save_token_info()
     }
 
     /// Opens up the authorization URL in the user's browser so that it can
@@ -394,7 +418,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn prompt_for_user_token_without_cache(&mut self) -> ClientResult<()> {
         let code = self.get_code_from_user()?;
-        self.access_token = Some(self.request_access_token_without_cache(&code).await?);
+        self.request_user_token_without_cache(&code).await?;
 
         Ok(())
     }
@@ -408,13 +432,13 @@ impl Spotify {
         // TODO: not sure where the cached token should be read. Should it
         // be more explicit? Also outside of this function?
         // TODO: shouldn't this also refresh the obtained token?
-        self.access_token = self.get_cached_token().await;
+        self.token = self.get_cached_token().await;
 
         // Otherwise following the usual procedure to get the token.
-        if self.access_token.is_none() {
+        if self.token.is_none() {
             let code = self.get_code_from_user()?;
             // Will write to the cache file if successful
-            self.access_token = Some(self.request_access_token(&code).await?);
+            self.request_user_token(&code).await?;
         }
 
         Ok(())
@@ -606,6 +630,7 @@ impl Spotify {
     pub async fn album(&self, album_id: &str) -> ClientResult<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}", trid);
+
         let result = self.get(&url, None, &Value::Null).await?;
         self.convert_result::<FullAlbum>(&result)
     }
@@ -670,6 +695,7 @@ impl Spotify {
     /// - album_id - the album ID, URI or URL
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
+    #[maybe_async]
     pub async fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         album_id: &str,
@@ -690,6 +716,7 @@ impl Spotify {
     ///Gets basic profile information about a Spotify User
     ///Parameters:
     ///- user - the id of the usr
+    #[maybe_async]
     pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id);
         let result = self.get(&url, None, &Value::Null).await?;
@@ -701,6 +728,7 @@ impl Spotify {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     /// - market - an ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn playlist(
         &self,
         playlist_id: &str,
@@ -726,6 +754,7 @@ impl Spotify {
     /// Parameters:
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
+    #[maybe_async]
     pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
@@ -746,6 +775,7 @@ impl Spotify {
     /// - user_id - the id of the usr
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
+    #[maybe_async]
     pub async fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         user_id: &str,
@@ -767,6 +797,7 @@ impl Spotify {
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - fields - which fields to return
+    #[maybe_async]
     pub async fn user_playlist(
         &self,
         user_id: &str,
@@ -805,6 +836,7 @@ impl Spotify {
     /// - limit - the maximum number of tracks to return
     /// - offset - the index of the first track to return
     /// - market - an ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         user_id: &str,
@@ -837,6 +869,7 @@ impl Spotify {
     /// - name - the name of the playlist
     /// - public - is the created playlist public
     /// - description - the description of the playlist
+    #[maybe_async]
     pub async fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
         &self,
         user_id: &str,
@@ -865,6 +898,7 @@ impl Spotify {
     /// - public - optional is the playlist public
     /// - collaborative - optional is the playlist collaborative
     /// - description - optional description of the playlist
+    #[maybe_async]
     pub async fn user_playlist_change_detail(
         &self,
         user_id: &str,
@@ -896,6 +930,7 @@ impl Spotify {
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
+    #[maybe_async]
     pub async fn user_playlist_unfollow(
         &self,
         user_id: &str,
@@ -912,6 +947,7 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
     /// - position - the position to add the tracks
+    #[maybe_async]
     pub async fn user_playlist_add_tracks(
         &self,
         user_id: &str,
@@ -939,6 +975,7 @@ impl Spotify {
     ///- user - the id of the user
     ///- playlist_id - the id of the playlist
     ///- tracks - the list of track ids to add to the playlist
+    #[maybe_async]
     pub async fn user_playlist_replace_tracks(
         &self,
         user_id: &str,
@@ -969,6 +1006,7 @@ impl Spotify {
     /// - range_length - optional the number of tracks to be reordered (default: 1)
     /// - insert_before - the position where the tracks should be inserted
     /// - snapshot_id - optional playlist's snapshot ID
+    #[maybe_async]
     pub async fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
         &self,
         user_id: &str,
@@ -999,6 +1037,7 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - track_ids - the list of track ids to add to the playlist
     /// - snapshot_id - optional id of the playlist snapshot
+    #[maybe_async]
     pub async fn user_playlist_remove_all_occurrences_of_tracks(
         &self,
         user_id: &str,
@@ -1055,6 +1094,7 @@ impl Spotify {
     /// }
     /// ```
     /// - snapshot_id: optional id of the playlist snapshot
+    #[maybe_async]
     pub async fn user_playlist_remove_specific_occurrences_of_tracks(
         &self,
         user_id: &str,
@@ -1090,6 +1130,7 @@ impl Spotify {
     /// Parameters:
     /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
+    #[maybe_async]
     pub async fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
         &self,
         playlist_owner_id: &str,
@@ -1116,6 +1157,7 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - user_ids - the ids of the users that you want to
     /// check to see if they follow the playlist. Maximum: 5 ids.
+    #[maybe_async]
     pub async fn user_playlist_check_follow(
         &self,
         playlist_owner_id: &str,
@@ -1137,6 +1179,7 @@ impl Spotify {
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
+    #[maybe_async]
     pub async fn me(&self) -> ClientResult<PrivateUser> {
         let url = String::from("me/");
         let result = self.get(&url, None, &Value::Null).await?;
@@ -1144,12 +1187,14 @@ impl Spotify {
     }
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
+    #[maybe_async]
     pub async fn current_user(&self) -> ClientResult<PrivateUser> {
         self.me().await
     }
 
     ///  [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     ///  Get information about the current users currently playing track.
+    #[maybe_async]
     pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
         let url = String::from("me/player/currently-playing");
         match self.get(&url, None, &Value::Null).await {
@@ -1171,6 +1216,7 @@ impl Spotify {
     /// - limit - the number of albums to return
     /// - offset - the index of the first album to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
+    #[maybe_async]
     pub async fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
@@ -1193,6 +1239,7 @@ impl Spotify {
     ///- limit - the number of tracks to return
     ///- offset - the index of the first track to return
     ///- market - Provide this parameter if you want to apply Track Relinking.
+    #[maybe_async]
     pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
@@ -1215,6 +1262,7 @@ impl Spotify {
     ///Parameters:
     ///- limit - the number of tracks to return
     ///- after - ghe last artist ID retrieved from the previous request
+    #[maybe_async]
     pub async fn current_user_followed_artists<L: Into<Option<u32>>>(
         &self,
         limit: L,
@@ -1237,6 +1285,7 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
+    #[maybe_async]
     pub async fn current_user_saved_tracks_delete(&self, track_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
             .iter()
@@ -1254,6 +1303,7 @@ impl Spotify {
     /// the current Spotify user’s “Your Music” library.
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
+    #[maybe_async]
     pub async fn current_user_saved_tracks_contains(
         &self,
         track_ids: &[String],
@@ -1272,6 +1322,7 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
+    #[maybe_async]
     pub async fn current_user_saved_tracks_add(&self, track_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
             .iter()
@@ -1290,6 +1341,7 @@ impl Spotify {
     /// - limit - the number of entities to return
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
+    #[maybe_async]
     pub async fn current_user_top_artists<
         L: Into<Option<u32>>,
         O: Into<Option<u32>>,
@@ -1320,6 +1372,7 @@ impl Spotify {
     /// - limit - the number of entities to return
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
+    #[maybe_async]
     pub async fn current_user_top_tracks<
         L: Into<Option<u32>>,
         O: Into<Option<u32>>,
@@ -1348,6 +1401,7 @@ impl Spotify {
     /// Get the current user's recently played tracks
     /// Parameters:
     /// - limit - the number of entities to return
+    #[maybe_async]
     pub async fn current_user_recently_played<L: Into<Option<u32>>>(
         &self,
         limit: L,
@@ -1369,6 +1423,7 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
+    #[maybe_async]
     pub async fn current_user_saved_albums_add(&self, album_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
             .iter()
@@ -1386,6 +1441,7 @@ impl Spotify {
     /// "Your Music" library.
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
+    #[maybe_async]
     pub async fn current_user_saved_albums_delete(&self, album_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
             .iter()
@@ -1403,6 +1459,7 @@ impl Spotify {
     /// the current Spotify user’s “Your Music” library.
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
+    #[maybe_async]
     pub async fn current_user_saved_albums_contains(
         &self,
         album_ids: &[String],
@@ -1420,6 +1477,7 @@ impl Spotify {
     /// Follow one or more artists
     /// Parameters:
     /// - artist_ids - a list of artist IDs
+    #[maybe_async]
     pub async fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
         match self.put(&url, None, &Value::Null).await {
@@ -1432,6 +1490,7 @@ impl Spotify {
     /// Unfollow one or more artists
     /// Parameters:
     /// - artist_ids - a list of artist IDs
+    #[maybe_async]
     pub async fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
         match self.delete(&url, None, &Value::Null).await {
@@ -1445,6 +1504,7 @@ impl Spotify {
     /// Check to see if the given users are following the given artists
     /// Parameters:
     /// - artist_ids - the ids of the users that you want to
+    #[maybe_async]
     pub async fn user_artist_check_follow(&self, artsit_ids: &[String]) -> ClientResult<Vec<bool>> {
         let url = format!(
             "me/following/contains?type=artist&ids={}",
@@ -1458,6 +1518,7 @@ impl Spotify {
     /// Follow one or more users
     /// Parameters:
     /// - user_ids - a list of artist IDs
+    #[maybe_async]
     pub async fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
         match self.put(&url, None, &Value::Null).await {
@@ -1470,6 +1531,7 @@ impl Spotify {
     /// Unfollow one or more users
     /// Parameters:
     /// - user_ids - a list of artist IDs
+    #[maybe_async]
     pub async fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
         match self.delete(&url, None, &Value::Null).await {
@@ -1494,6 +1556,7 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0
     /// (the first object). Use with limit to get the next set of
     /// items.
+    #[maybe_async]
     pub async fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         locale: Option<String>,
@@ -1528,6 +1591,7 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0
     /// (the first object). Use with limit to get the next set of
     /// items.
+    #[maybe_async]
     pub async fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         country: Option<Country>,
@@ -1558,6 +1622,7 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0
     /// (the first object). Use with limit to get the next set of
     /// items.
+    #[maybe_async]
     pub async fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         locale: Option<String>,
@@ -1592,6 +1657,7 @@ impl Spotify {
     /// - min/max/target_<attribute> - For the tuneable track attributes listed
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
+    #[maybe_async]
     pub async fn recommendations<L: Into<Option<u32>>>(
         &self,
         seed_artists: Option<Vec<String>>,
@@ -1656,6 +1722,7 @@ impl Spotify {
     /// [get audio features](https://developer.spotify.com/web-api/get-audio-features/)
     /// Get audio features for a track
     /// - track - track URI, URL or ID
+    #[maybe_async]
     pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
@@ -1666,6 +1733,7 @@ impl Spotify {
     /// [get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
     /// Get Audio Features for Several Tracks
     /// - tracks a list of track URIs, URLs or IDs
+    #[maybe_async]
     pub async fn audios_features(
         &self,
         tracks: &[String],
@@ -1691,6 +1759,7 @@ impl Spotify {
     /// Get Audio Analysis for a Track
     /// Parameters:
     /// - track_id - a track URI, URL or ID
+    #[maybe_async]
     pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
@@ -1700,6 +1769,7 @@ impl Spotify {
 
     /// [get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     /// Get a User’s Available Devices
+    #[maybe_async]
     pub async fn device(&self) -> ClientResult<DevicePayload> {
         let url = String::from("me/player/devices");
         let result = self.get(&url, None, &Value::Null).await?;
@@ -1711,6 +1781,7 @@ impl Spotify {
     /// Parameters:
     /// - market: Optional. an ISO 3166-1 alpha-2 country code.
     /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
+    #[maybe_async]
     pub async fn current_playback(
         &self,
         market: Option<Country>,
@@ -1749,6 +1820,7 @@ impl Spotify {
     /// Parameters:
     /// - market: Optional. an ISO 3166-1 alpha-2 country code.
     /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
+    #[maybe_async]
     pub async fn current_playing(
         &self,
         market: Option<Country>,
@@ -1789,6 +1861,7 @@ impl Spotify {
     /// - device_id - transfer playback to this device
     /// - force_play - true: after transfer, play. false:
     /// keep current state.
+    #[maybe_async]
     pub async fn transfer_playback<T: Into<Option<bool>>>(
         &self,
         device_id: &str,
@@ -1823,6 +1896,7 @@ impl Spotify {
     /// - uris - spotify track uris
     /// - offset - offset into context by index or track
     /// - position_ms - Indicates from what position to start playback.
+    #[maybe_async]
     pub async fn start_playback(
         &self,
         device_id: Option<String>,
@@ -1866,6 +1940,7 @@ impl Spotify {
     /// Pause a User’s Playback
     /// Parameters:
     /// - device_id - device target for playback
+    #[maybe_async]
     pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
         match self.put(&url, None, &Value::Null).await {
@@ -1878,6 +1953,7 @@ impl Spotify {
     /// Skip User’s Playback To Next Track
     /// Parameters:
     /// - device_id - device target for playback
+    #[maybe_async]
     pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
         match self.post(&url, None, &Value::Null).await {
@@ -1890,6 +1966,7 @@ impl Spotify {
     /// Skip User’s Playback To Previous Track
     /// Parameters:
     /// - device_id - device target for playback
+    #[maybe_async]
     pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
         match self.post(&url, None, &Value::Null).await {
@@ -1903,6 +1980,7 @@ impl Spotify {
     /// Parameters:
     /// - position_ms - position in milliseconds to seek to
     /// - device_id - device target for playback
+    #[maybe_async]
     pub async fn seek_track(
         &self,
         position_ms: u32,
@@ -1923,6 +2001,7 @@ impl Spotify {
     /// Parameters:
     ///  - state - `track`, `context`, or `off`
     ///  - device_id - device target for playback
+    #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
             &format!("me/player/repeat?state={}", state.as_str()),
@@ -1939,6 +2018,7 @@ impl Spotify {
     /// Parameters:
     /// - volume_percent - volume between 0 and 100
     /// - device_id - device target for playback
+    #[maybe_async]
     pub async fn volume(&self, volume_percent: u8, device_id: Option<String>) -> ClientResult<()> {
         if volume_percent > 100u8 {
             error!("volume must be between 0 and 100, inclusive");
@@ -1958,6 +2038,7 @@ impl Spotify {
     /// Parameters:
     /// - state - true or false
     /// - device_id - device target for playback
+    #[maybe_async]
     pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
         match self.put(&url, None, &Value::Null).await {
@@ -1972,6 +2053,7 @@ impl Spotify {
     /// - uri - THe uri of the item to add, Track or Episode
     /// - device id - The id of the device targeting
     /// - If no device ID provided the user's currently active device is targeted
+    #[maybe_async]
     pub async fn add_item_to_queue(
         &self,
         item: String,
@@ -1988,6 +2070,7 @@ impl Spotify {
     /// Add a show or a list of shows to a user’s library
     /// Parameters:
     /// - ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    #[maybe_async]
     pub async fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
         let joined_ids = ids.join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
@@ -2001,6 +2084,7 @@ impl Spotify {
     /// [Get user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
     /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
     /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    #[maybe_async]
     pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
@@ -2025,6 +2109,7 @@ impl Spotify {
     /// - id: The Spotify ID for the show.
     /// Query Parameters
     /// - market(Optional): An ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
         let url = format!("shows/{}", id);
         let mut params = json!({});
@@ -2040,6 +2125,7 @@ impl Spotify {
     /// Query Parameters
     /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     /// - market(Optional) An ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn get_several_shows(
         &self,
         ids: Vec<String>,
@@ -2062,6 +2148,7 @@ impl Spotify {
     /// - limit: Optional. The maximum number of episodes to return. Default: 20. Minimum: 1. Maximum: 50.
     /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         id: String,
@@ -2087,6 +2174,7 @@ impl Spotify {
     /// - id: The Spotify ID for the episode.
     ///  Query Parameters
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn get_an_episode(
         &self,
         id: String,
@@ -2106,6 +2194,7 @@ impl Spotify {
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the episodes. Maximum: 50 IDs.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn get_several_episodes(
         &self,
         ids: Vec<String>,
@@ -2125,6 +2214,7 @@ impl Spotify {
     /// [Check users saved shows](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
+    #[maybe_async]
     pub async fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
         let result = self
             .get(
@@ -2144,6 +2234,7 @@ impl Spotify {
     /// Query Parameters
     /// - ids: Required. A comma-separated list of Spotify IDs for the shows to be deleted from the user’s library.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    #[maybe_async]
     pub async fn remove_users_saved_shows(
         &self,
         ids: Vec<String>,
@@ -2194,8 +2285,8 @@ mod tests {
             .cache_path(PathBuf::from(".spotify_token_cache.json"))
             .build();
 
-        let tok = TokenInfo::default()
-            .access_token("test-access_token")
+        let tok = Token::default()
+            .token("test-access_token")
             .token_type("code")
             .expires_in(3600)
             .expires_at(1515841743)
@@ -2228,7 +2319,7 @@ mod tests {
     #[test]
     fn test_get_id() {
         // Assert artist
-        let spotify = Spotify::default().access_token("test-access").build();
+        let spotify = Spotify::default().token("test-access").build();
         let mut artist_id = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
         let id = spotify.get_id(Type::Artist, &mut artist_id);
         assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
@@ -2262,7 +2353,7 @@ mod tests {
 
     #[test]
     fn test_get_uri() {
-        let spotify = Spotify::default().access_token("test-access").build();
+        let spotify = Spotify::default().token("test-access").build();
         let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
         let track_id2 = "1301WleyT98MSxVHPZCA6M";
         let uri1 = spotify.get_uri(Type::Track, track_id1);

@@ -3,16 +3,18 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
 #[tokio::main]
 async fn main() {
+    // You can use any logger for debugging.
+    env_logger::init();
+
     // Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and
     // RSPOTIFY_REDIRECT_URI in an .env file or export them manually:
     //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     // export RSPOTIFY_CLIENT_SECRET="secret"
-    // export RSPOTIFY_REDIRECT_URI=your-direct-uri
     //
     // These will then be read with `from_env`.
-
-    // Or set client_id and client_secret explictly:
+    //
+    // Otherwise, set client_id and client_secret explictly:
     //
     // let creds = CredentialsBuilder::default()
     //     .client_id("this-is-my-client-id")

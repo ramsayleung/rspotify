@@ -1,62 +1,108 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 //! TODO
 
-use super::{BaseClient, HTTPMethod};
-use crate::client::{ApiError, ClientError, ClientResult, Spotify};
-use crate::util::convert_map_to_string;
+use super::{BaseClient, Content, headers, Headers, FormData};
+use crate::client::{ClientError, ClientResult, Spotify};
 
-use std::borrow::Cow;
-use std::collections::HashMap;
-
-use maybe_async::async_impl;
+use maybe_async::sync_impl;
 use serde_json::Value;
 
 impl ClientError {
-    pub async fn from_response(response: reqwest::Response) -> Self {
-        match response.status() {
-            StatusCode::UNAUTHORIZED => Self::Unauthorized,
-            StatusCode::TOO_MANY_REQUESTS => Self::RateLimited(
-                response
-                    .headers()
-                    .get(reqwest::header::RETRY_AFTER)
-                    .and_then(|header| header.to_str().ok())
-                    .and_then(|duration| duration.parse().ok()),
-            ),
-            status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => response
-                .json::<ApiError>()
-                .await
-                .map(Into::into)
-                .unwrap_or_else(|_| status.into()),
-            status => status.into(),
+    pub fn from_response(r: ureq::Response) -> Self {
+        ClientError::StatusCode(r.status(), r.status_text().to_string())
+    }
+}
+
+fn convert_to_ureq_form<'a>(data: &'a FormData) -> Vec<(&'a str, &'a str)> {
+    data.iter()
+        .map(|(key, val)| (key.as_str(), val.as_str()))
+        .collect()
+}
+
+impl Spotify {
+    fn request<'a>(
+        &self,
+        req: &mut ureq::Request,
+        headers: Option<&Headers>,
+        payload: Content<'a>
+    ) -> ClientResult<String> {
+        // Setting the headers, which will be the token auth if unspecified.
+        match headers {
+            Some(headers) => {
+                for (key, val) in headers.iter() {
+                    req.set(&key, &val);
+                }
+            },
+            None => {
+                let (key, val) = headers::bearer_auth(self.get_token()?);
+                req.set(&key, &val);
+            }
+        }
+
+        // TODO: maybe it'd be better to take ownership of the content to
+        // avoid this clone.
+        let response = match payload {
+            Content::Json(value) => req.send_json(value.clone()),
+            Content::Form(value) => req.send_form(&convert_to_ureq_form(value)),
+        };
+
+        if response.ok() {
+            response.into_string().map_err(Into::into)
+        } else {
+            Err(ClientError::from_response(response))
         }
     }
 }
 
-#[async_impl]
+#[sync_impl]
 impl BaseClient for Spotify {
-    /// Send get request
-    async fn get(&self, url: &str, params: &mut HashMap<String, String>) -> ClientResult<String> {
-        if !params.is_empty() {
-            let params = format!("?{}", convert_map_to_string(params));
-            url_with_params.push_str(&param);
-            ureq::get(url).query_str(&params).call()
-        } else {
-            ureq::get(url).call()
-        }
+    #[inline]
+    fn get(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(&mut ureq::get(url), headers, Content::Json(payload))
     }
 
     #[inline]
-    async fn post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        ureq::post(url).call();
+    fn post(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(&mut ureq::post(url), headers, Content::Json(payload))
     }
 
     #[inline]
-    async fn put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        ureq::put(url).call();
+    fn post_form(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &FormData,
+    ) -> ClientResult<String> {
+        self.request(&mut ureq::post(url), headers, Content::Form(payload))
     }
 
     #[inline]
-    async fn delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        ureq::delete(url).call();
+    fn put(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(&mut ureq::put(url), headers, Content::Json(payload))
+    }
+
+    #[inline]
+    fn delete(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        self.request(&mut ureq::delete(url), headers, Content::Json(payload))
     }
 }

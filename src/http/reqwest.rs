@@ -7,15 +7,8 @@ use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{BaseClient, FormData, Headers};
+use super::{Content,headers, BaseClient, FormData, Headers};
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
-
-/// Using an enum internally with the possible content types.
-#[derive(Debug)]
-enum Content<'a> {
-    Json(&'a Value),
-    Form(&'a FormData),
-}
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -69,32 +62,30 @@ impl Spotify {
         };
 
         // The default auth headers are used if none were specified.
-        let auth;
+        let mut auth;
         let headers = match headers {
             Some(h) => h,
             None => {
-                auth = self.auth_headers()?;
+                auth = Headers::new();
+                let (key, val) = headers::bearer_auth(self.get_token()?);
+                auth.insert(key, val);
                 &auth
             }
         };
         // The headers need to be converted into a `reqwest::HeaderMap`, which
         // won't fail as long as its contents are ASCII. This is an internal
         // function, so the condition will always be true.
+        //
+        // The content-type header will be set automatically.
         let headers = headers.try_into().unwrap();
-
-        log::debug!(
-            "Sending {:?} request to `{}` with headers `{:?}` and payload `{:?}`",
-            method,
-            url,
-            headers,
-            payload
-        );
 
         let request = self.client.request(method, &url).headers(headers);
         let request = match payload {
             Content::Json(value) => request.json(value),
             Content::Form(value) => request.form(value),
         };
+
+        log::debug!("Making request {:?} with payload {:?}", request, payload);
 
         let response = request.send().await.map_err(ClientError::from)?;
 

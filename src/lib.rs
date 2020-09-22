@@ -61,18 +61,19 @@
 //! flows available](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
 //!
 //! In a nutshell, these are the steps you need to make authenticated requests:
-//! 1. Generate a request URL with `Spotify::get_authorize_request_url`
-//! 2. The user logs in with the request URL, which redirects to the redirect
-//!    URI and provides a code in the parameters.
-//! 3. The code may be parsed with `Spotify::parse_response_code`.
+//! 0. Generate a request URL with `Spotify::get_authorize_request_url`.
+//! 1. The user logs in with the request URL, which redirects to the redirect
+//!    URI and provides a code in the parameters. This happens on your side.
+//! 2. The code obtained in the previous step is parsed with
+//!    `Spotify::parse_response_code`.
 //! 3. The code is sent to Spotify in order to obtain an access token with
-//!    `Spotify::request_access_token` or
-//!    `Spotify::request_access_token_without_cache`
+//!    `Spotify::request_user_token` or
+//!    `Spotify::request_user_token_without_cache`
 //! 4. Finally, this access token can be used internally for the requests.
 //!    This access token may expire relatively soon, so it can be refreshed
 //!    with the refresh token (obtained in the third step as well) using
-//!    `Spotify::refresh_access_token` or
-//!    `Spotify::refresh_access_token_without_cache`. Otherwise, a new access
+//!    `Spotify::refresh_user_token` or
+//!    `Spotify::refresh_user_token_without_cache`. Otherwise, a new access
 //!    token may be generated from scratch by repeating these steps, but the
 //!    advantage of refreshing it is that this doesn't require the user to log
 //!    in, and that it's a simpler procedure.
