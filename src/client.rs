@@ -115,17 +115,18 @@ pub struct Spotify {
     pub(in crate) client: reqwest::Client,
 
     /// The access token information required for requests to the Spotify API.
-    #[builder(setter(into, strip_option), default)]
+    #[builder(setter(strip_option), default)]
     pub token: Option<Token>,
 
     /// The credentials needed for obtaining a new access token, for requests
     /// without OAuth authentication.
-    pub credentials: Credentials,
+    #[builder(setter(strip_option), default)]
+    pub credentials: Option<Credentials>,
 
     /// The OAuth information required for obtaining a new access token, for
     /// requests with OAuth authentication. `credentials` also needs to be
     /// set up.
-    #[builder(setter(into, strip_option), default)]
+    #[builder(setter(strip_option), default)]
     pub oauth: Option<OAuth>,
 
     /// The Spotify API prefix, `https://api.spotify.com/v1/` by default.
@@ -160,6 +161,13 @@ impl Spotify {
         self.token
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))
+    }
+
+    /// Returns the credentials, or an error in case it's not configured.
+    pub(in crate) fn get_creds(&self) -> ClientResult<&Credentials> {
+        self.credentials
+            .as_ref()
+            .ok_or_else(|| ClientError::InvalidAuth("no credentials configured".to_string()))
     }
 
     /// Returns the oauth information, or an error in case it's not configured.
@@ -278,7 +286,7 @@ impl Spotify {
     pub fn get_authorize_request_url(&self, show_dialog: bool) -> ClientResult<String> {
         let oauth = self.get_oauth()?;
         let mut payload = json! ({
-            "client_id": &self.credentials.id,
+            "client_id": &self.get_creds()?.id,
             "response_type": "code",
             // TODO: Maybe these OAuth options should go in a struct, or
             // `Credentials` could be expanded with these.
@@ -336,7 +344,7 @@ impl Spotify {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
-        let (key, val) = headers::basic_auth(&self.credentials.id, &self.credentials.secret);
+        let (key, val) = headers::basic_auth(&self.get_creds()?.id, &self.get_creds()?.secret);
         head.insert(key, val);
 
         let response = self.post_form(TOKEN_URL, Some(&head), payload).await?;
@@ -2272,8 +2280,7 @@ impl Spotify {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json;
-    use std::path::PathBuf;
+    use crate::oauth2::TokenBuilder;
 
     #[test]
     fn test_is_scope_subset() {
@@ -2292,23 +2299,23 @@ mod tests {
 
     #[test]
     fn test_save_token_info() {
-        let spotify = Spotify::default()
-            .state(&generate_random_string(16))
-            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
-            .cache_path(PathBuf::from(".spotify_token_cache.json"))
-            .build();
-
-        let tok = Token::default()
-            .token("test-access_token")
-            .token_type("code")
+        let tok = TokenBuilder::default()
+            .access_token("test-access_token")
             .expires_in(3600)
             .expires_at(1515841743)
             .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
-            .refresh_token("fghjklrftyhujkuiovbnm");
+            .refresh_token("...")
+            .build()
+            .unwrap();
+
+        let spotify = SpotifyBuilder::default()
+            .token(tok.clone())
+            .build()
+            .unwrap();
 
         let tok_str = serde_json::to_string(&tok).unwrap();
 
-        spotify.save_token_info(&tok_str);
+        spotify.save_token_info().unwrap();
 
         let mut file = fs::File::open(&spotify.cache_path).unwrap();
         let mut tok_str_file = String::new();
@@ -2319,54 +2326,51 @@ mod tests {
 
     #[test]
     fn test_parse_response_code() {
-        let mut url = String::from("http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_");
-        let spotify = Spotify::default()
-            .state(&generate_random_string(16))
-            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
-            .cache_path(PathBuf::from(".spotify_token_cache.json"))
-            .build();
-        let code = spotify.parse_response_code(&mut url).unwrap();
+        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_";
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        let code = spotify.parse_response_code(url).unwrap();
         assert_eq!(code, "AQD0yXvFEOvw");
     }
 
     #[test]
     fn test_get_id() {
         // Assert artist
-        let spotify = Spotify::default().token("test-access").build();
-        let mut artist_id = String::from("spotify:artist:2WX2uTcsvV5OnS0inACecP");
-        let id = spotify.get_id(Type::Artist, &mut artist_id);
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        let artist_id = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
+        let id = spotify.get_id(Type::Artist, artist_id);
         assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
+
         // Assert album
-        let mut artist_id_a = String::from("spotify/album/2WX2uTcsvV5OnS0inACecP");
+        let artist_id_a = "spotify/album/2WX2uTcsvV5OnS0inACecP";
         assert_eq!(
             "2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Album, &mut artist_id_a)
+            &spotify.get_id(Type::Album, artist_id_a)
         );
 
         // Mismatch type
-        let mut artist_id_b = String::from("spotify:album:2WX2uTcsvV5OnS0inACecP");
+        let artist_id_b = "spotify:album:2WX2uTcsvV5OnS0inACecP";
         assert_eq!(
             "spotify:album:2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, &mut artist_id_b)
+            &spotify.get_id(Type::Artist, artist_id_b)
         );
 
         // Could not split
-        let mut artist_id_c = String::from("spotify-album-2WX2uTcsvV5OnS0inACecP");
+        let artist_id_c = "spotify-album-2WX2uTcsvV5OnS0inACecP";
         assert_eq!(
             "spotify-album-2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, &mut artist_id_c)
+            &spotify.get_id(Type::Artist, artist_id_c)
         );
 
-        let mut playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
+        let playlist_id = "spotify:playlist:59ZbFPES4DQwEjBpWHzrtC";
         assert_eq!(
             "59ZbFPES4DQwEjBpWHzrtC",
-            &spotify.get_id(Type::Playlist, &mut playlist_id)
+            &spotify.get_id(Type::Playlist, playlist_id)
         );
     }
 
     #[test]
     fn test_get_uri() {
-        let spotify = Spotify::default().token("test-access").build();
+        let spotify = SpotifyBuilder::default().build().unwrap();
         let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
         let track_id2 = "1301WleyT98MSxVHPZCA6M";
         let uri1 = spotify.get_uri(Type::Track, track_id1);

@@ -14,6 +14,7 @@ pub struct Token {
     #[builder(setter(into))]
     pub access_token: String,
     pub expires_in: u32,
+    #[builder(setter(strip_option), default)]
     pub expires_at: Option<i64>,
     #[builder(setter(into, strip_option), default)]
     pub refresh_token: Option<String>,

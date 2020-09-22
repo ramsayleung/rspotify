@@ -1,5 +1,5 @@
-use rspotify::client::Spotify;
-use rspotify::oauth2::SpotifyClientCredentials;
+use rspotify::client::{Spotify, SpotifyBuilder};
+use rspotify::oauth2::{Credentials, CredentialsBuilder};
 use rspotify::senum::{AlbumType, Country};
 
 use std::sync::Mutex;
@@ -7,22 +7,21 @@ use std::sync::Mutex;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    // Set client_id and client_secret in .env file or
+    // Set client_id and client_secret in .env file (with the `env-file`
+    // feature) or:
+    //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     // export RSPOTIFY_CLIENT_SECRET="secret"
-    static ref CLIENT_CREDENTIAL: Mutex<SpotifyClientCredentials>
-        = Mutex::new(SpotifyClientCredentials::default().build());
+    static ref CLIENT_CREDENTIAL: Mutex<Credentials>
+        = Mutex::new(CredentialsBuilder::from_env().build().unwrap());
 }
 
+/// Generating a new client for the requests.
 fn async_client() -> Spotify {
-    // Or set client_id and client_secret explictly
-    // let client_credential = SpotifyClientCredentials::default()
-    //     .client_id("this-is-my-client-id")
-    //     .client_secret("this-is-my-client-secret")
-    //     .build();
-    Spotify::default()
-        .client_credentials_manager(CLIENT_CREDENTIAL.lock().unwrap().clone())
+    SpotifyBuilder::default()
+        .credentials(CLIENT_CREDENTIAL.lock().unwrap().clone())
         .build()
+        .unwrap()
 }
 
 #[tokio::test]

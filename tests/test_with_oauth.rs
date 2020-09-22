@@ -3,26 +3,31 @@
 //! Continuous Integration for now. The tests are written so that no account
 //! data is modified.
 //!
-//! You can run them manually with `cargo test -- --ignored`.
+//! You can run them manually with `cargo test --features=cli -- --ignored`.
 
 use async_once::AsyncOnce;
 use chrono::prelude::*;
 use lazy_static::lazy_static;
 use serde_json::map::Map;
 
-use rspotify::client::Spotify;
+use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
-use rspotify::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, Token};
 use rspotify::senum::{Country, RepeatState, SearchType, TimeRange};
-use rspotify::util::get_token;
 
 lazy_static! {
     // With so many tests, it's a better idea to authenticate only once at the
     // beginning. The `Spotify` instance needed here is for async requests,
     // so this uses `AsyncOnce` to work with `lazy_static`.
-    static ref CLIENT_CREDENTIAL: AsyncOnce<SpotifyClientCredentials> = AsyncOnce::new(async {
+    static ref AUTH_TOKEN: AsyncOnce<Token> = AsyncOnce::new(async {
+        // The credentials must be available in the environment. Enable
+        // `env-file` in order to read them from an `.env` file.
+        let creds = CredentialsBuilder::from_env()
+            .build()
+            .unwrap();
+
         // Using every possible scope
-        let mut oauth = SpotifyOAuth::default()
+        let oauth = OAuthBuilder::from_env()
             .scope(
                 "user-read-email user-read-private user-top-read
                  user-read-recently-played user-follow-read user-library-read
@@ -32,19 +37,24 @@ lazy_static! {
                  user-modify-playback-state playlist-modify-public
                  playlist-modify-private ugc-image-upload"
             )
-            .build();
-
-        let token = get_token(&mut oauth).await.unwrap();
-        SpotifyClientCredentials::default()
-            .token_info(token)
             .build()
+            .unwrap();
+
+        let mut spotify = SpotifyBuilder::default()
+            .credentials(creds)
+            .oauth(oauth)
+            .build()
+            .unwrap();
+
+        spotify.prompt_for_user_token().await.unwrap();
+
+        spotify.token.unwrap()
     });
 }
 
 // Even easier to use and change in the future by using a macro.
 async fn async_client() -> Spotify {
-    let creds = CLIENT_CREDENTIAL.get().await;
-    Spotify::default().client_credentials_manager(creds).build()
+    SpotifyBuilder::default().token(AUTH_TOKEN.get().await).build().unwrap()
 }
 
 #[tokio::test]
