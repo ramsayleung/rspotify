@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 use crate::enums::Error;
 use crate::enums::ErrorKind;
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 ///ISO 3166-1 alpha-2 country code, [wiki about ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
 ///Source from [country-list](https://datahub.io/core/country-list)

@@ -17,26 +17,26 @@ use std::io::Read;
 use std::string::String;
 
 use crate::blocking::oauth2::SpotifyClientCredentials;
-use crate::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
-use crate::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
-use crate::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
-use crate::model::category::PageCategory;
-use crate::model::context::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
-use crate::model::cud_result::CUDResult;
-use crate::model::device::DevicePayload;
-use crate::model::page::{CursorBasedPage, Page};
-use crate::model::playing::{PlayHistory, Playing};
-use crate::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use crate::model::recommend::Recommendations;
-use crate::model::search::SearchResult;
-use crate::model::show::{
-    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
-};
-use crate::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
-use crate::model::user::{PrivateUser, PublicUser};
 use crate::enums::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
+use crate::model::CUDResult;
+use crate::model::DevicePayload;
+use crate::model::PageCategory;
+use crate::model::Recommendations;
+use crate::model::SearchResult;
+use crate::model::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
+use crate::model::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
+use crate::model::{CursorBasedPage, Page};
+use crate::model::{CursorPageFullArtists, FullArtist, FullArtists};
+use crate::model::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
+use crate::model::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
+use crate::model::{
+    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
+};
+use crate::model::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
+use crate::model::{PlayHistory, Playing};
+use crate::model::{PrivateUser, PublicUser};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]

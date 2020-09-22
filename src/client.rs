@@ -14,27 +14,27 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::string::String;
 
-use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
-use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
-use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
-use super::model::category::PageCategory;
-use super::model::context::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
-use super::model::cud_result::CUDResult;
-use super::model::device::DevicePayload;
-use super::model::page::{CursorBasedPage, Page};
-use super::model::playing::{PlayHistory, Playing};
-use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use super::model::recommend::Recommendations;
-use super::model::search::SearchResult;
-use super::model::show::{
-    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
-};
-use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
-use super::model::user::{PrivateUser, PublicUser};
-use super::oauth2::SpotifyClientCredentials;
 use super::enums::{
     AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
 };
+use super::model::CUDResult;
+use super::model::DevicePayload;
+use super::model::PageCategory;
+use super::model::Recommendations;
+use super::model::SearchResult;
+use super::model::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
+use super::model::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
+use super::model::{CursorBasedPage, Page};
+use super::model::{CursorPageFullArtists, FullArtist, FullArtists};
+use super::model::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
+use super::model::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
+use super::model::{
+    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
+};
+use super::model::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
+use super::model::{PlayHistory, Playing};
+use super::model::{PrivateUser, PublicUser};
+use super::oauth2::SpotifyClientCredentials;
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -1617,7 +1617,7 @@ impl Spotify {
         device_id: Option<String>,
         context_uri: Option<String>,
         uris: Option<Vec<String>>,
-        offset: Option<super::model::offset::Offset>,
+        offset: Option<super::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         if context_uri.is_some() && uris.is_some() {
