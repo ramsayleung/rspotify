@@ -7,7 +7,7 @@ use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{Content,headers, BaseClient, FormData, Headers};
+use super::{headers, BaseClient, Content, FormData, Headers};
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
 
 impl ClientError {

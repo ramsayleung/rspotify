@@ -20,9 +20,7 @@ fn main() {
     //     .client_secret("this-is-my-client-secret")
     //     .build()
     //     .unwrap();
-    let creds = CredentialsBuilder::from_env()
-        .build()
-        .unwrap();
+    let creds = CredentialsBuilder::from_env().build().unwrap();
 
     // Or set the redirect_uri explictly:
     //

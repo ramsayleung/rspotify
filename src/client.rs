@@ -349,7 +349,7 @@ impl Spotify {
     /// Refreshes the access token with the refresh token provided by the
     /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow),
     /// without saving it into the cache file.
-    /// 
+    ///
     /// The obtained token will be saved internally.
     #[maybe_async]
     pub async fn refresh_user_token_without_cache(
@@ -407,7 +407,6 @@ impl Spotify {
         data.insert("code".to_owned(), code.to_owned());
         data.insert("scope".to_owned(), oauth.scope.clone());
         data.insert("state".to_owned(), oauth.state.clone());
-
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
