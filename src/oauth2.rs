@@ -13,7 +13,7 @@ use std::fs;
 use std::io::{Read, Write};
 use std::iter::FromIterator;
 
-use super::client::{ClientError, ClientResult, Spotify};
+use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, FormData, Headers};
 use super::json_insert;
 use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
@@ -334,6 +334,8 @@ impl Spotify {
     /// the obtained code.
     #[cfg(feature = "cli")]
     fn get_code_from_user(&self) -> ClientResult<String> {
+        use crate::client::ClientError;
+
         let url = self.get_authorize_request_url(false)?;
 
         match webbrowser::open(&url) {

@@ -121,13 +121,13 @@ pub struct Spotify {
     /// The Spotify API prefix, `https://api.spotify.com/v1/` by default.
     #[builder(
         setter(into),
-        default = "String::from(\"https://api.spotify.com/v1/\")"
+        default = r#"String::from("https://api.spotify.com/v1/")"#
     )]
     pub prefix: String,
 
     /// The cache file path, in case it's used. By default it's
     /// `.spotify_token_cache.json`.
-    #[builder(default = "PathBuf::from(\".spotify_token_cache.json\")")]
+    #[builder(default = r#"PathBuf::from(".spotify_token_cache.json")"#)]
     pub cache_path: PathBuf,
 }
 
