@@ -7,7 +7,7 @@ mod reqwest;
 #[cfg(feature = "client-ureq")]
 mod ureq;
 
-use crate::client::ClientResult;
+use crate::client::{ClientResult, Spotify};
 
 use std::collections::HashMap;
 
@@ -82,4 +82,19 @@ pub trait BaseClient {
         headers: Option<&Headers>,
         payload: Option<&Value>,
     ) -> ClientResult<String>;
+}
+
+/// HTTP-related methods for the client.
+impl Spotify {
+    /// If it's a relative URL (`"me"`), the prefix is appended to it
+    /// (`"https://api.spotify.com/v1/me"`). Otherwise, the same URL is
+    /// returned.
+    fn endpoint_url(&self, url: &str) -> String {
+        // Using the client's prefix in case it's a relative route.
+        if !url.starts_with("http") {
+            self.prefix.clone() + &url
+        } else {
+            url.to_string()
+        }
+    }
 }
