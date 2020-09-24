@@ -1575,7 +1575,9 @@ impl Spotify {
             );
         }
 
-        let result = self.get("me/player/currently-playing", None, Some(&params)).await?;
+        let result = self
+            .get("me/player/currently-playing", None, Some(&params))
+            .await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -1598,7 +1600,7 @@ impl Spotify {
         force_play: T,
     ) -> ClientResult<()> {
         self.put(
-           "me/player",
+            "me/player",
             None,
             &json! ({
                 "device_ids": vec![device_id.to_owned()],

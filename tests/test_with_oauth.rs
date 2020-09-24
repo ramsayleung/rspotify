@@ -3,6 +3,8 @@
 //! Continuous Integration for now. The tests are written so that no account
 //! data is modified.
 //!
+//! Note: Most of these require a Spotify Premium account to work.
+//!
 //! You can run them manually with `cargo test --features=cli -- --ignored`.
 
 use async_once::AsyncOnce;
@@ -716,4 +718,15 @@ async fn test_user_playlist_unfollow() {
 #[ignore]
 async fn test_volume() {
     async_client().await.volume(78, None).await.unwrap();
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_add_queue() {
+    let birdy_uri = String::from("spotify:track:6rqhFgbbKwnb9MLmUQDhG6");
+    async_client()
+        .await
+        .add_item_to_queue(birdy_uri, None)
+        .await
+        .unwrap();
 }

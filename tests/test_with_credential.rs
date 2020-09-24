@@ -175,13 +175,3 @@ async fn test_fake_playlist() {
         .await
         .unwrap();
 }
-
-#[tokio::test]
-async fn test_add_queue() {
-    let birdy_uri = String::from("spotify:track:6rqhFgbbKwnb9MLmUQDhG6");
-    async_client()
-        .await
-        .add_item_to_queue(birdy_uri, None)
-        .await
-        .unwrap();
-}

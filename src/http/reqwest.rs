@@ -85,7 +85,7 @@ impl Spotify {
                     Method::POST | Method::PUT | Method::DELETE => request.json(payload),
                     // Method: Options, Head, Trace haven't implemented in `rspotify` yet, just leave it alone.
                     _ => request,
-                }
+                },
                 Content::Form(payload) => {
                     // `Request::form` won't work for `GET` requests
                     assert!(method != Method::GET);
@@ -129,13 +129,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(
-            Method::POST,
-            url,
-            headers,
-            Some(Content::Json(payload))
-        )
-        .await
+        self.request(Method::POST, url, headers, Some(Content::Json(payload)))
+            .await
     }
 
     #[inline]
@@ -145,13 +140,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &FormData,
     ) -> ClientResult<String> {
-        self.request(
-            Method::POST,
-            url,
-            headers,
-            Some(Content::Form(payload))
-        )
-        .await
+        self.request(Method::POST, url, headers, Some(Content::Form(payload)))
+            .await
     }
 
     #[inline]
@@ -161,13 +151,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(
-            Method::PUT,
-            url,
-            headers,
-            Some(Content::Json(payload))
-        )
-        .await
+        self.request(Method::PUT, url, headers, Some(Content::Json(payload)))
+            .await
     }
 
     #[inline]
@@ -177,12 +162,7 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(
-            Method::DELETE,
-            url,
-            headers,
-            Some(Content::Json(payload))
-        )
-        .await
+        self.request(Method::DELETE, url, headers, Some(Content::Json(payload)))
+            .await
     }
 }
