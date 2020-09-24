@@ -242,7 +242,7 @@ impl Spotify {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<FullTrack>(&result)
+        self.convert_result(&result)
     }
 
     /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
@@ -266,7 +266,7 @@ impl Spotify {
             json_insert!(params, "market", market);
         }
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<FullTracks>(&result)
+        self.convert_result(&result)
     }
 
     /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
@@ -278,7 +278,7 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}", trid);
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<FullArtist>(&result)
+        self.convert_result(&result)
     }
 
     /// [get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
@@ -293,7 +293,7 @@ impl Spotify {
         }
         let url = format!("artists/?ids={}", ids.join(","));
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<FullArtists>(&result)
+        self.convert_result(&result)
     }
 
     /// [get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
@@ -328,7 +328,7 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<Page<SimplifiedAlbum>>(&result)
+        self.convert_result(&result)
     }
 
     /// [get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
@@ -353,7 +353,7 @@ impl Spotify {
         let url = format!("artists/{}/top-tracks", trid);
 
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<FullTracks>(&result)
+        self.convert_result(&result)
     }
 
     /// [get related artists](https://developer.spotify.com/web-api/get-related-artists/)
@@ -367,7 +367,7 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<FullArtists>(&result)
+        self.convert_result(&result)
     }
 
     /// [get album](https://developer.spotify.com/web-api/get-album/)
@@ -380,7 +380,7 @@ impl Spotify {
         let url = format!("albums/{}", trid);
 
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<FullAlbum>(&result)
+        self.convert_result(&result)
     }
 
     /// [get several albums](https://developer.spotify.com/web-api/get-several-albums/)
@@ -395,7 +395,7 @@ impl Spotify {
         }
         let url = format!("albums/?ids={}", ids.join(","));
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<FullAlbums>(&result)
+        self.convert_result(&result)
     }
 
     /// [search for items](https://developer.spotify.com/web-api/search-item/)
@@ -434,7 +434,7 @@ impl Spotify {
         }
 
         let result = self.get("search", None, Some(&params)).await?;
-        self.convert_result::<SearchResult>(&result)
+        self.convert_result(&result)
     }
 
     /// [get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
@@ -457,7 +457,7 @@ impl Spotify {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}/tracks", trid);
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<Page<SimplifiedTrack>>(&result)
+        self.convert_result(&result)
     }
 
     ///[get users profile](https://developer.spotify.com/web-api/get-users-profile/)
@@ -468,7 +468,7 @@ impl Spotify {
     pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id);
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<PublicUser>(&result)
+        self.convert_result(&result)
     }
 
     /// [get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
@@ -494,7 +494,7 @@ impl Spotify {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("playlists/{}", plid);
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<FullPlaylist>(&result)
+        self.convert_result(&result)
     }
 
     /// [get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
@@ -514,7 +514,7 @@ impl Spotify {
         });
 
         let result = self.get("me/playlists", None, Some(&params)).await?;
-        self.convert_result::<Page<SimplifiedPlaylist>>(&result)
+        self.convert_result(&result)
     }
 
     /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
@@ -536,7 +536,7 @@ impl Spotify {
         });
         let url = format!("users/{}/playlists", user_id);
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<Page<SimplifiedPlaylist>>(&result)
+        self.convert_result(&result)
     }
 
     /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
@@ -561,16 +561,16 @@ impl Spotify {
             json_insert!(params, "market", market.as_str());
         }
         match playlist_id {
-            Some(_playlist_id) => {
-                let plid = self.get_id(Type::Playlist, _playlist_id);
+            Some(playlist_id) => {
+                let plid = self.get_id(Type::Playlist, playlist_id);
                 let url = format!("users/{}/playlists/{}", user_id, plid);
                 let result = self.get(&url, None, Some(&params)).await?;
-                self.convert_result::<FullPlaylist>(&result)
+                self.convert_result(&result)
             }
             None => {
                 let url = format!("users/{}/starred", user_id);
                 let result = self.get(&url, None, Some(&params)).await?;
-                self.convert_result::<FullPlaylist>(&result)
+                self.convert_result(&result)
             }
         }
     }
@@ -607,7 +607,7 @@ impl Spotify {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<Page<PlaylistTrack>>(&result)
+        self.convert_result(&result)
     }
 
     /// [create playlist](https://developer.spotify.com/web-api/create-playlist/)
@@ -634,7 +634,7 @@ impl Spotify {
         });
         let url = format!("users/{}/playlists", user_id);
         let result = self.post(&url, None, Some(&params)).await?;
-        self.convert_result::<FullPlaylist>(&result)
+        self.convert_result(&result)
     }
 
     /// [change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
@@ -714,7 +714,7 @@ impl Spotify {
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         let result = self.post(&url, None, Some(&params)).await?;
-        self.convert_result::<CUDResult>(&result)
+        self.convert_result(&result)
     }
     ///[replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     ///Replace all tracks in a playlist
@@ -738,10 +738,9 @@ impl Spotify {
         // params.insert("uris".to_owned(), uris.into());
         let params = json!({ "uris": uris });
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
-        match self.put(&url, None, Some(&params)).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, Some(&params)).await?;
+
+        Ok(())
     }
 
     /// [reorder playlists tracks](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
@@ -775,7 +774,7 @@ impl Spotify {
 
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         let result = self.put(&url, None, Some(&params)).await?;
-        self.convert_result::<CUDResult>(&result)
+        self.convert_result(&result)
     }
 
     /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -812,7 +811,7 @@ impl Spotify {
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         let result = self.delete(&url, None, Some(&params)).await?;
-        self.convert_result::<CUDResult>(&result)
+        self.convert_result(&result)
     }
 
     /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -872,7 +871,7 @@ impl Spotify {
         }
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         let result = self.delete(&url, None, Some(&params)).await?;
-        self.convert_result::<CUDResult>(&result)
+        self.convert_result(&result)
     }
 
     /// [follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
@@ -928,16 +927,15 @@ impl Spotify {
             user_ids.join(",")
         );
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<Vec<bool>>(&result)
+        self.convert_result(&result)
     }
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
     #[maybe_async]
     pub async fn me(&self) -> ClientResult<PrivateUser> {
-        let url = String::from("me/");
-        let result = self.get(&url, None, None).await?;
-        self.convert_result::<PrivateUser>(&result)
+        let result = self.get("me/", None, None).await?;
+        self.convert_result(&result)
     }
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
@@ -950,16 +948,11 @@ impl Spotify {
     ///  Get information about the current users currently playing track.
     #[maybe_async]
     pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
-        let url = String::from("me/player/currently-playing");
-        match self.get(&url, None, None).await {
-            Ok(result) => {
-                if result.is_empty() {
-                    Ok(None)
-                } else {
-                    self.convert_result::<Option<Playing>>(&result)
-                }
-            }
-            Err(e) => Err(e),
+        let result = self.get("me/player/currently-playing", None, None).await?;
+        if result.is_empty() {
+            Ok(None)
+        } else {
+            self.convert_result(&result)
         }
     }
 
@@ -986,7 +979,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<Page<SavedAlbum>>(&result)
+        self.convert_result(&result)
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     ///Parameters:
@@ -1009,7 +1002,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<Page<SavedTrack>>(&result)
+        self.convert_result(&result)
     }
     ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
     ///Gets a list of the artists followed by the current authorized user
@@ -1031,7 +1024,7 @@ impl Spotify {
         }
 
         let result = self.get("me/following", None, Some(&params)).await?;
-        self.convert_result::<CursorPageFullArtists>(&result)
+        self.convert_result(&result)
     }
 
     /// [remove tracks users](https://developer.spotify.com/web-api/remove-tracks-user/)
@@ -1046,10 +1039,9 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        match self.delete(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.delete(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [check users saved tracks](https://developer.spotify.com/web-api/check-users-saved-tracks/)
@@ -1068,7 +1060,7 @@ impl Spotify {
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<Vec<bool>>(&result)
+        self.convert_result(&result)
     }
 
     /// [save tracks user ](https://developer.spotify.com/web-api/save-tracks-user/)
@@ -1083,10 +1075,9 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [get users  top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
@@ -1117,7 +1108,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<Page<FullArtist>>(&result)
+        self.convert_result(&result)
     }
 
     /// [get users top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
@@ -1148,7 +1139,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<Page<FullTrack>>(&result)
+        self.convert_result(&result)
     }
 
     /// [get recently played](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
@@ -1169,7 +1160,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<CursorBasedPage<PlayHistory>>(&result)
+        self.convert_result(&result)
     }
 
     /// [save albums user](https://developer.spotify.com/web-api/save-albums-user/)
@@ -1184,10 +1175,9 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [remove albums user](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
@@ -1202,10 +1192,9 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
-        match self.delete(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.delete(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [check users saved albums](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-albums/)
@@ -1224,7 +1213,7 @@ impl Spotify {
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<Vec<bool>>(&result)
+        self.convert_result(&result)
     }
 
     /// [follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
@@ -1234,10 +1223,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
@@ -1247,10 +1235,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
-        match self.delete(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.delete(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [check user following
@@ -1265,7 +1252,7 @@ impl Spotify {
             artsit_ids.join(",")
         );
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<Vec<bool>>(&result)
+        self.convert_result(&result)
     }
 
     /// [follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
@@ -1275,10 +1262,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
@@ -1288,10 +1274,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
-        match self.delete(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.delete(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
@@ -1335,7 +1320,7 @@ impl Spotify {
         let result = self
             .get("browse/featured-playlists", None, Some(&params))
             .await?;
-        self.convert_result::<FeaturedPlaylists>(&result)
+        self.convert_result(&result)
     }
 
     /// [get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
@@ -1363,7 +1348,7 @@ impl Spotify {
         }
 
         let result = self.get("browse/new-releases", None, Some(&params)).await?;
-        self.convert_result::<PageSimpliedAlbums>(&result)
+        self.convert_result(&result)
     }
 
     /// [get list categories](https://developer.spotify.com/web-api/get-list-categories/)
@@ -1397,7 +1382,7 @@ impl Spotify {
             json_insert!(params, "country", country);
         }
         let result = self.get("browse/categories", None, Some(&params)).await?;
-        self.convert_result::<PageCategory>(&result)
+        self.convert_result(&result)
     }
 
     /// [get recommendtions](https://developer.spotify.com/web-api/get-recommendations/)
@@ -1472,7 +1457,7 @@ impl Spotify {
             }
         }
         let result = self.get("recommendations", None, Some(&params)).await?;
-        self.convert_result::<Recommendations>(&result)
+        self.convert_result(&result)
     }
 
     /// [get audio features](https://developer.spotify.com/web-api/get-audio-features/)
@@ -1483,7 +1468,7 @@ impl Spotify {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<AudioFeatures>(&result)
+        self.convert_result(&result)
     }
 
     /// [get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
@@ -1499,15 +1484,12 @@ impl Spotify {
             .map(|track| self.get_id(Type::Track, track))
             .collect();
         let url = format!("audio-features/?ids={}", ids.join(","));
-        match self.get(&url, None, None).await {
-            Ok(result) => {
-                if result.is_empty() {
-                    Ok(None)
-                } else {
-                    self.convert_result::<Option<AudioFeaturesPayload>>(&result)
-                }
-            }
-            Err(e) => Err(e),
+
+        let result = self.get(&url, None, None).await?;
+        if result.is_empty() {
+            Ok(None)
+        } else {
+            self.convert_result(&result)
         }
     }
 
@@ -1520,16 +1502,15 @@ impl Spotify {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
         let result = self.get(&url, None, None).await?;
-        self.convert_result::<AudioAnalysis>(&result)
+        self.convert_result(&result)
     }
 
     /// [get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     /// Get a User’s Available Devices
     #[maybe_async]
     pub async fn device(&self) -> ClientResult<DevicePayload> {
-        let url = String::from("me/player/devices");
-        let result = self.get(&url, None, None).await?;
-        self.convert_result::<DevicePayload>(&result)
+        let result = self.get("me/player/devices", None, None).await?;
+        self.convert_result(&result)
     }
 
     /// [get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
@@ -1543,7 +1524,6 @@ impl Spotify {
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlaybackContext>> {
-        let url = String::from("me/player");
         let mut params = json!({});
         if let Some(market) = market {
             json_insert!(params, "country", market);
@@ -1559,15 +1539,12 @@ impl Spotify {
                     .join(",")
             );
         }
-        match self.get(&url, None, Some(&params)).await {
-            Ok(result) => {
-                if result.is_empty() {
-                    Ok(None)
-                } else {
-                    self.convert_result::<Option<CurrentlyPlaybackContext>>(&result)
-                }
-            }
-            Err(e) => Err(e),
+
+        let result = self.get("me/player", None, Some(&params)).await?;
+        if result.is_empty() {
+            Ok(None)
+        } else {
+            self.convert_result(&result)
         }
     }
 
@@ -1582,7 +1559,6 @@ impl Spotify {
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
-        let url = String::from("me/player/currently-playing");
         let mut params = json!({});
         if let Some(market) = market {
             json_insert!(params, "country", market);
@@ -1598,17 +1574,15 @@ impl Spotify {
                     .join(",")
             );
         }
-        match self.get(&url, None, Some(&params)).await {
-            Ok(result) => {
-                if result.is_empty() {
-                    Ok(None)
-                } else {
-                    self.convert_result::<Option<CurrentlyPlayingContext>>(&result)
-                }
-            }
-            Err(e) => Err(e),
+
+        let result = self.get("me/player/currently-playing", None, Some(&params)).await?;
+        if result.is_empty() {
+            Ok(None)
+        } else {
+            self.convert_result(&result)
         }
     }
+
     /// [transfer a users playback](https://developer.spotify.com/web-api/transfer-a-users-playback/)
     /// Transfer a User’s Playback
     /// Note: Although an array is accepted, only a single device_id is currently
@@ -1623,10 +1597,8 @@ impl Spotify {
         device_id: &str,
         force_play: T,
     ) -> ClientResult<()> {
-        let url = String::from("me/player");
-
         self.put(
-            &url,
+           "me/player",
             None,
             Some(&json! ({
                 "device_ids": vec![device_id.to_owned()],
@@ -1697,10 +1669,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [skip users playback to the next track](https://developer.spotify.com/web-api/skip-users-playback-to-next-track/)
@@ -1710,10 +1681,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
-        match self.post(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.post(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [skip users playback to previous track](https://developer.spotify.com/web-api/skip-users-playback-to-previous-track/)
@@ -1723,10 +1693,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
-        match self.post(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.post(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [seek-to-position-in-currently-playing-track/](https://developer.spotify.com/web-api/seek-to-position-in-currently-playing-track/)
@@ -1744,10 +1713,9 @@ impl Spotify {
             &format!("me/player/seek?position_ms={}", position_ms),
             device_id,
         );
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [set repeat mode on users playback](https://developer.spotify.com/web-api/set-repeat-mode-on-users-playback/)
@@ -1761,10 +1729,9 @@ impl Spotify {
             &format!("me/player/repeat?state={}", state.as_str()),
             device_id,
         );
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [set-volume-for-users-playback](https://developer.spotify.com/web-api/set-volume-for-users-playback/)
@@ -1781,10 +1748,9 @@ impl Spotify {
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,
         );
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [toggle shuffle for user playback](https://developer.spotify.com/web-api/toggle-shuffle-for-users-playback/)
@@ -1795,10 +1761,9 @@ impl Spotify {
     #[maybe_async]
     pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [Add an item to the end fo the user's current playback queue](https://developer.spotify.com/console/post-queue/)
@@ -1814,10 +1779,9 @@ impl Spotify {
         device_id: Option<String>,
     ) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
-        match self.post(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.post(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// [Save Shows for Current User](https://developer.spotify.com/console/put-current-user-saved-shows)
@@ -1828,10 +1792,9 @@ impl Spotify {
     pub async fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
         let joined_ids = ids.join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
-        match self.put(&url, None, None).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        self.put(&url, None, None).await?;
+
+        Ok(())
     }
 
     /// Get a list of shows saved in the current Spotify user’s library. Optional parameters can be used to limit the number of shows returned.
@@ -1854,7 +1817,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<Page<Show>>(&result)
+        self.convert_result(&result)
     }
 
     /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
@@ -1871,7 +1834,7 @@ impl Spotify {
             json_insert!(params, "country", market);
         }
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<FullShow>(&result)
+        self.convert_result(&result)
     }
 
     /// Get Spotify catalog information for multiple shows based on their Spotify IDs.
@@ -1892,7 +1855,7 @@ impl Spotify {
             json_insert!(params, "country", market);
         }
         let result = self.get("shows", None, Some(&params)).await?;
-        self.convert_result::<SeversalSimplifiedShows>(&result)
+        self.convert_result(&result)
     }
     /// Get Spotify catalog information about an show’s episodes. Optional parameters can be used to limit the number of episodes returned.
     /// [Get a show's episodes](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
@@ -1919,7 +1882,7 @@ impl Spotify {
             json_insert!(params, "country", market);
         }
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<Page<SimplifiedEpisode>>(&result)
+        self.convert_result(&result)
     }
 
     /// Get Spotify catalog information for a single episode identified by its unique Spotify ID.
@@ -1939,8 +1902,9 @@ impl Spotify {
         if let Some(market) = market {
             json_insert!(params, "country", market);
         }
+
         let result = self.get(&url, None, Some(&params)).await?;
-        self.convert_result::<FullEpisode>(&result)
+        self.convert_result(&result)
     }
 
     /// Get Spotify catalog information for multiple episodes based on their Spotify IDs.
@@ -1961,7 +1925,7 @@ impl Spotify {
             json_insert!(params, "country", market.as_str());
         }
         let result = self.get("episodes", None, Some(&params)).await?;
-        self.convert_result::<SeveralEpisodes>(&result)
+        self.convert_result(&result)
     }
 
     /// Check if one or more shows is already saved in the current Spotify user’s library.
@@ -1979,7 +1943,7 @@ impl Spotify {
                 })),
             )
             .await?;
-        self.convert_result::<Vec<bool>>(&result)
+        self.convert_result(&result)
     }
 
     /// Delete one or more shows from current Spotify user's library.
