@@ -74,14 +74,23 @@ impl Spotify {
         // The content-type header will be set automatically.
         let headers = headers.try_into().unwrap();
 
-        let mut request = self.client.request(method, &url).headers(headers);
+        let mut request = self.client.request(method.clone(), &url).headers(headers);
 
         log::info!("Making request {:?} with payload {:?}", request, payload);
 
         if let Some(payload) = payload {
             request = match payload {
-                Content::Json(value) => request.json(value),
-                Content::Form(value) => request.form(value),
+                Content::Json(payload) => match method {
+                    Method::GET => request.query(payload),
+                    Method::POST | Method::PUT | Method::DELETE => request.json(payload),
+                    // Method: Options, Head, Trace haven't implemented in `rspotify` yet, just leave it alone.
+                    _ => request,
+                }
+                Content::Form(payload) => {
+                    // `Request::form` won't work for `GET` requests
+                    assert!(method != Method::GET);
+                    request.form(payload)
+                }
             };
         }
 
