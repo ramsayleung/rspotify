@@ -24,10 +24,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all-targets
+          args: --all-targets --features=cli,env-file
 
   cross-compile:
-    name: Cross Compile
+    name: Cross Compile and Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -35,6 +35,9 @@ jobs:
           - aarch64-unknown-linux-gnu
           - arm-unknown-linux-gnueabihf
           - armv7-unknown-linux-gnueabihf
+        client:
+          - client-ureq
+          - client-reqwest,reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -54,27 +57,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --target ${{ matrix.target }} --no-default-features --features "rustls-tls"
-
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          args: --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features cli,env-file
+          args: --target ${{ matrix.target }} --features=cli,env-file,${{ matrix.client }}
 
   lints:
     name: Lints
