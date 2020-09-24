@@ -55,32 +55,34 @@ pub trait BaseClient {
         params: Option<&Value>,
     ) -> ClientResult<String>;
 
+    /// The payload in a POST request is mandatory. If it's empty, `json! ({})`
+    /// can be used.
     async fn post(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 
     async fn post_form(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&FormData>,
+        payload: &FormData,
     ) -> ClientResult<String>;
 
     async fn put(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 
     async fn delete(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 }
 

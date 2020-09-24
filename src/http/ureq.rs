@@ -81,12 +81,12 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
         self.request(
             &mut ureq::post(&self.endpoint_url(url)),
             headers,
-            payload.and_then(|x| Some(Content::Json(x))),
+            Some(Content::Json(payload))
         )
     }
 
@@ -95,12 +95,12 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&FormData>,
+        payload: &FormData,
     ) -> ClientResult<String> {
         self.request(
             &mut ureq::post(&self.endpoint_url(url)),
             headers,
-            payload.and_then(|x| Some(Content::Form(x))),
+            Some(Content::Form(payload))
         )
     }
 
@@ -109,12 +109,12 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
         self.request(
             &mut ureq::put(&self.endpoint_url(url)),
             headers,
-            payload.and_then(|x| Some(Content::Json(x))),
+            Some(Content::Json(payload))
         )
     }
 
@@ -123,12 +123,12 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
         self.request(
             &mut ureq::delete(&self.endpoint_url(url)),
             headers,
-            payload.and_then(|x| Some(Content::Json(x))),
+            Some(Content::Json(payload))
         )
     }
 }
