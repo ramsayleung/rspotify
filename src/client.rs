@@ -2009,49 +2009,6 @@ impl Spotify {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::oauth2::TokenBuilder;
-
-    #[test]
-    fn test_is_scope_subset() {
-        let mut needle_scope = String::from("1 2 3");
-        let mut haystack_scope = String::from("1 2 3 4");
-        let mut broken_scope = String::from("5 2 4");
-        assert!(Spotify::is_scope_subset(
-            &mut needle_scope,
-            &mut haystack_scope
-        ));
-        assert!(!Spotify::is_scope_subset(
-            &mut broken_scope,
-            &mut haystack_scope
-        ));
-    }
-
-    #[test]
-    fn test_save_token_info() {
-        let tok = TokenBuilder::default()
-            .access_token("test-access_token")
-            .expires_in(3600)
-            .expires_at(1515841743)
-            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
-            .refresh_token("...")
-            .build()
-            .unwrap();
-
-        let spotify = SpotifyBuilder::default()
-            .token(tok.clone())
-            .build()
-            .unwrap();
-
-        let tok_str = serde_json::to_string(&tok).unwrap();
-
-        spotify.save_token_info().unwrap();
-
-        let mut file = fs::File::open(&spotify.cache_path).unwrap();
-        let mut tok_str_file = String::new();
-        file.read_to_string(&mut tok_str_file).unwrap();
-
-        assert_eq!(tok_str, tok_str_file);
-    }
 
     #[test]
     fn test_parse_response_code() {
