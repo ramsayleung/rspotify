@@ -42,8 +42,8 @@ cli = ["webbrowser"]
 env-file = ["dotenv"]
 
 # Available clients
-client-ureq = ["ureq", "maybe-async/is_sync"]
-client-reqwest = ["reqwest"]
+client-ureq = ["ureq", "__sync"]
+client-reqwest = ["reqwest", "__async"]
 
 # Passing the TLS features to reqwest.
 reqwest-native-tls = ["reqwest/native-tls"]
@@ -53,29 +53,33 @@ reqwest-native-tls-vendored-blocking = ["reqwest/native-tls-vendored", "reqwest/
 reqwest-rustls-tls = ["reqwest/rustls-tls"]
 reqwest-rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
 
+# Internal features for checking async or sync compilation
+__async = []
+__sync = ["maybe-async/is_sync"]
+
 [[example]]
 name = "album"
-required-features = ["env-file", "cli"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/album.rs"
 
 [[example]]
 name = "current_user_recently_played"
-required-features = ["env-file", "cli"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/current_user_recently_played.rs"
 
 [[example]]
 name = "track"
-required-features = ["env-file", "cli"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/track.rs"
 
 [[example]]
 name = "tracks"
-required-features = ["env-file", "cli"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/tracks.rs"
 
 [[example]]
 name = "with_refresh_token"
-required-features = ["env-file", "cli"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/with_refresh_token.rs"
 
 [[example]]
