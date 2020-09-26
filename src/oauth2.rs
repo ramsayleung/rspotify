@@ -78,11 +78,7 @@ impl CredentialsBuilder {
         let id = env::var("RSPOTIFY_CLIENT_ID").ok();
         let secret = env::var("RSPOTIFY_CLIENT_SECRET").ok();
 
-        CredentialsBuilder {
-            id,
-            secret,
-            ..Default::default()
-        }
+        CredentialsBuilder { id, secret }
     }
 }
 

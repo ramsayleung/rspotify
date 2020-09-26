@@ -52,7 +52,7 @@ impl Spotify {
         method: Method,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<Content<'a>>,
+        payload: Option<Content<'_>>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
 
