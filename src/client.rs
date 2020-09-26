@@ -937,6 +937,7 @@ impl Spotify {
         let result = self.get("me/", None, None).await?;
         self.convert_result(&result)
     }
+
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
     #[maybe_async]
