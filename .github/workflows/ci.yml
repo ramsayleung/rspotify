@@ -95,4 +95,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
+          # TODO: `-A unused-parens` is needed until
+          # https://github.com/fMeow/maybe-async-rs/issues/1 is resolved.
+          args: --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings  -A unused-parens
