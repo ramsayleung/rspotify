@@ -13,10 +13,14 @@
 //! [dependencies]
 //! rspotify = "0.10.0"
 //! ```
-//!
-//! By default, Rspotify uses asynchronous programming with `async` and
-//! `await`, but the `blocking` feature can be enabled to have access to the
-//! [blocking](blocking/index.html) module, with non-async methods.
+//! Rspotify uses [maybe_async](https://docs.rs/maybe-async/0.2.0/maybe_async/)
+//! crate to switch between different HTTP clients to get different features.
+//! In our case, `rspotify` supports async and blocking feature by triggering
+//! `maybe_async` inside `Cargo.toml`, so we don't have maintain two sets of
+//! code which are almostly same. By default, Rspotify uses asynchronous
+//! programming with `async` and `await` by leveraging `reqwest` crate by
+//! using `client-reqwest` feature. And the blocking IO feature can be
+//! enabled to access with `client-ureq` feature, with non-async methods.
 //!
 //! ```toml
 //! [dependencies]
@@ -152,6 +156,24 @@
 //!         .await;
 //!     println!("Response: {:?}", tracks.unwrap());
 //! }
+//! ```
+//! ## Building
+//! As mention above, rspotify uses `maybe_async` crate to switch between async
+//! and blocking client, which is triggered inside `Cargo.toml`, so there is
+//! something you need to pay attention to when you are trying to build `rspotify`
+//! ```sh
+//! # Build with `client-reqwest` feature, the `async` version
+//! cargo build --features client-reqwest
+//! 
+//! # Build with `client-ureq` feature, the `blocking` version
+//! cargo build --no-default-features --features client-ureq
+//! 
+//! # Noticed that you could not build `rspotify` with all features like this:
+//! cargo build --all --all-features
+//! # Because in order to switch between different clients, the different
+//! # clients have to implement the same methods, so if you build with all
+//! # features, you'll get `duplicate definitions` error. As every coin has two
+//! # sides, you could only have one side at a time, not all sides of it.
 //! ```
 
 pub mod client;
