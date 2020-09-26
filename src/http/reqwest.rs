@@ -113,13 +113,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(
-            Method::GET,
-            url,
-            headers,
-            payload.map(|x| Content::Json(x)),
-        )
-        .await
+        self.request(Method::GET, url, headers, payload.map(|x| Content::Json(x)))
+            .await
     }
 
     #[inline]
