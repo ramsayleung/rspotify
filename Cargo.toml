@@ -37,7 +37,7 @@ tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-default = ["client-reqwest", "reqwest/default-tls"]
+default = ["client-reqwest", "reqwest-default-tls"]
 cli = ["webbrowser"]
 env-file = ["dotenv"]
 
@@ -46,12 +46,10 @@ client-ureq = ["ureq", "__sync"]
 client-reqwest = ["reqwest", "__async"]
 
 # Passing the TLS features to reqwest.
+reqwest-default-tls = ["reqwest/default-tls"]
 reqwest-native-tls = ["reqwest/native-tls"]
-reqwest-native-tls-blocking = ["reqwest/native-tls", "reqwest/blocking"]
 reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
-reqwest-native-tls-vendored-blocking = ["reqwest/native-tls-vendored", "reqwest/blocking"]
 reqwest-rustls-tls = ["reqwest/rustls-tls"]
-reqwest-rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
 
 # Internal features for checking async or sync compilation
 __async = []

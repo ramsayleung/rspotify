@@ -68,6 +68,11 @@ jobs:
   lints:
     name: Lints
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client:
+          - client-ureq
+          - client-reqwest,reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -90,4 +95,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings

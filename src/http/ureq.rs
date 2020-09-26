@@ -72,7 +72,7 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::get(&self.endpoint_url(url)),
             headers,
-            payload.and_then(|x| Some(Content::Json(x))),
+            payload.map(|x| Content::Json(x)),
         )
     }
 
