@@ -296,6 +296,8 @@ impl Spotify {
     /// authenticate. It also reads from the standard input the redirect URI
     /// in order to obtain the access token information. The resulting access
     /// token will be saved internally once the operation is successful.
+    ///
+    /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_user_token_without_cache(&mut self) -> ClientResult<()> {
@@ -308,6 +310,8 @@ impl Spotify {
     /// The same as the `prompt_for_user_token_without_cache` method, but it
     /// will try to use the user token into the cache file, and save it in
     /// case it didn't exist/was invalid.
+    ///
+    /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
@@ -328,6 +332,8 @@ impl Spotify {
 
     /// Tries to open the authorization URL in the user's browser, and returns
     /// the obtained code.
+    ///
+    /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
     fn get_code_from_user(&self) -> ClientResult<String> {
         use crate::client::ClientError;
