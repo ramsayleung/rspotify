@@ -216,8 +216,7 @@ impl Spotify {
     pub fn parse_response_code(&self, url: &str) -> Option<String> {
         url.split("?code=")
             .nth(1)
-            .and_then(|s| s.split('&').next())
-            .and_then(|s| Some(s.to_string()))
+	    .and_then(|s| s.split('&').next()).map(|s| s.to_string())
     }
 
     /// Append device ID to an API path.

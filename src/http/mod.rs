@@ -94,7 +94,7 @@ impl Spotify {
     fn endpoint_url(&self, url: &str) -> String {
         // Using the client's prefix in case it's a relative route.
         if !url.starts_with("http") {
-            self.prefix.clone() + &url
+            self.prefix.clone() + url
         } else {
             url.to_string()
         }

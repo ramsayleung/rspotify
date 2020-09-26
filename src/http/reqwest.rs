@@ -117,7 +117,7 @@ impl BaseClient for Spotify {
             Method::GET,
             url,
             headers,
-            payload.and_then(|x| Some(Content::Json(x))),
+            payload.map(|x| Content::Json(x)),
         )
         .await
     }
