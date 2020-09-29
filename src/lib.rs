@@ -197,29 +197,6 @@
 //!     println!("Response: {:?}", tracks.unwrap());
 //! }
 //! ```
-//! ## Building
-//! As mention above, rspotify uses `maybe_async` crate to switch between async
-//! and blocking client, which is triggered inside `Cargo.toml`, so there is
-//! something you need to pay attention to when you are trying to build `rspotify`
-//!
-//! Build with `client-reqwest` feature, the `async` version, and this would compile Rspotify with [`reqwest`](https://docs.rs/reqwest/)
-//! ```sh
-//! cargo build --features client-reqwest
-//! ```
-//! 
-//! # Build with `client-ureq` feature, the `blocking` version, and this would compile Rspotify with [`ureq`](https://docs.rs/ureq/)
-//! ```sh
-//! cargo build --no-default-features --features client-ureq
-//! ```
-//! 
-//! # Noticed that you could not build `rspotify` with all features like this:
-//! ```sh
-//! cargo build --all --all-features
-//! ```
-//! # Because in order to switch between different clients, the different
-//! # clients have to implement the same methods, so if you build with all
-//! # features, you'll get `duplicate definitions` error. As every coin has two
-//! # sides, you could only have one side at a time, not all sides of it.
 
 pub mod client;
 mod http;
@@ -242,5 +219,3 @@ mod macros {
         };
     }
 }
-//!  (and
-//! thus, blocking programming instead of asynchronous), 
