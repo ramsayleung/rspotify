@@ -39,7 +39,7 @@ pub fn oauth_client() -> Spotify {
 #[async_impl]
 pub async fn oauth_client() -> Spotify {
     SpotifyBuilder::default()
-        .token(OAUTH_TOKEN.get().await)
+        .token(get_oauth_token().await)
         .build()
         .unwrap()
 }
@@ -55,7 +55,7 @@ pub fn creds_client() -> Spotify {
 #[async_impl]
 pub async fn creds_client() -> Spotify {
     SpotifyBuilder::default()
-        .token(CREDS_TOKEN.get().await)
+        .token(get_creds_token().await)
         .build()
         .unwrap()
 }

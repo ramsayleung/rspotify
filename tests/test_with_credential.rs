@@ -153,9 +153,9 @@ async fn test_existing_playlist() {
 #[maybe_async]
 #[maybe_async_test]
 async fn test_fake_playlist() {
-    creds_client()
+    let playlist = creds_client()
         .await
         .playlist("fake_id", None, None)
-        .await
-        .unwrap();
+        .await;
+    assert!(!playlist.is_ok());
 }
