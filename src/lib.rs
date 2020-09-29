@@ -81,7 +81,7 @@
 //! the [official guide for a detailed explanation of the different
 //! authorization flows available
 //! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
-//! 
+//!
 //! The most basic authentication flow, named the [Client Credentials flow
 //! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow),
 //! consists on requesting a token to Spotify given some client credentials.
@@ -164,12 +164,12 @@
 //! ```rust
 //! use rspotify::client::SpotifyBuilder;
 //! use rspotify::oauth2::CredentialsBuilder;
-//! 
+//!
 //! #[tokio::main]
 //! async fn main() {
 //!     // You can use any logger for debugging.
 //!     env_logger::init();
-//! 
+//!
 //!     // Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and
 //!     // RSPOTIFY_REDIRECT_URI in an .env file or export them manually:
 //!     //
@@ -186,21 +186,21 @@
 //!     //     .build()
 //!     //     .unwrap();
 //!     let creds = CredentialsBuilder::from_env().build().unwrap();
-//! 
+//!
 //!     let mut spotify = SpotifyBuilder::default()
 //!         .credentials(creds)
 //!         .build()
 //!         .unwrap();
-//! 
+//!
 //!     // Obtaining the access token. Requires to be mutable because the internal
 //!     // token will be modified. We don't need OAuth for this specific endpoint,
 //!     // so `...` is used instead of `prompt_for_user_token`.
 //!     spotify.request_client_token().await.unwrap();
-//! 
+//!
 //!     // Running the requests
 //!     let birdy_uri = "spotify:album:0sNOF9WDwhWunNAHPD3Baj";
 //!     let albums = spotify.album(birdy_uri).await;
-//! 
+//!
 //!     println!("Response: {:#?}", albums);
 //! }
 //! ```
