@@ -19,7 +19,7 @@ If you find any problems or have suggestions about this crate, please submit an 
 
 ## Building
 
-As mention above, rspotify uses `maybe_async` crate to switch between async and blocking client, which is triggered inside `Cargo.toml`, so there is something you need to pay attention to when you are trying to build `rspotify`
+Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) crate to switch between async and blocking client, which is triggered inside `Cargo.toml`, so there is something you need to pay attention to when you are trying to build `rspotify`
 
 Build with `client-reqwest` feature, the `async` version, and this would compile Rspotify with [`reqwest`](https://docs.rs/reqwest/)
 
