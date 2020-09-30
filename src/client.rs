@@ -95,6 +95,9 @@ pub enum ApiError {
     },
 }
 
+pub const DEFAULT_API_PREFIX: &str = "https://api.spotify.com/v1/";
+pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
+
 /// Spotify API object
 #[derive(Builder, Debug, Clone)]
 pub struct Spotify {
@@ -118,16 +121,14 @@ pub struct Spotify {
     #[builder(setter(strip_option), default)]
     pub oauth: Option<OAuth>,
 
-    /// The Spotify API prefix, `https://api.spotify.com/v1/` by default.
-    #[builder(
-        setter(into),
-        default = r#"String::from("https://api.spotify.com/v1/")"#
-    )]
+    /// The Spotify API prefix, [`DEFAULT_API_PREFIX`
+    /// ](constant.DEFAULT_CACHE_PATH.html) by default.
+    #[builder(setter(into), default = "String::from(DEFAULT_API_PREFIX)")]
     pub prefix: String,
 
     /// The cache file path, in case it's used. By default it's
-    /// `.spotify_token_cache.json`.
-    #[builder(default = r#"PathBuf::from(".spotify_token_cache.json")"#)]
+    /// [`DEFAULT_CACHE_PATH`](constant.DEFAULT_API_PREFIX.html).
+    #[builder(default = r#"PathBuf::from(DEFAULT_CACHE_PATH)"#)]
     pub cache_path: PathBuf,
 }
 
@@ -151,14 +152,6 @@ impl Spotify {
     pub(in crate) fn get_oauth(&self) -> ClientResult<&OAuth> {
         self.oauth
             .as_ref()
-            .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
-    }
-
-    /// Returns the oauth information as mutable, or an error in case it's not
-    /// configured.
-    pub(in crate) fn get_oauth_mut(&mut self) -> ClientResult<&mut OAuth> {
-        self.oauth
-            .as_mut()
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
     }
 

@@ -31,7 +31,6 @@ ureq = { version = "1.4.1", default-features = false, features = ["json", "cooki
 webbrowser = { version = "0.5.5", optional = true }
 
 [dev-dependencies]
-async_once = { version = "0.1.0", features = ["tokio"] }
 env_logger = "0.7.1"
 tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
@@ -72,6 +71,11 @@ path = "examples/album.rs"
 name = "current_user_recently_played"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/current_user_recently_played.rs"
+
+[[example]]
+name = "oauth_tokens"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/oauth_tokens.rs"
 
 [[example]]
 name = "track"

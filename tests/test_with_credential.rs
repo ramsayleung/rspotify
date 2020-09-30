@@ -1,9 +1,28 @@
 mod common;
 
-use common::{creds_client, maybe_async_test};
+use common::maybe_async_test;
+use rspotify::client::{Spotify, SpotifyBuilder};
+use rspotify::oauth2::CredentialsBuilder;
 use rspotify::senum::{AlbumType, Country};
 
 use maybe_async::maybe_async;
+
+/// Generating a new basic client for the requests.
+#[maybe_async]
+pub async fn creds_client() -> Spotify {
+    // The credentials must be available in the environment. Enable
+    // `env-file` in order to read them from an `.env` file.
+    let creds = CredentialsBuilder::from_env().build().unwrap();
+
+    let mut spotify = SpotifyBuilder::default()
+        .credentials(creds)
+        .build()
+        .unwrap();
+
+    spotify.request_client_token().await.unwrap();
+
+    spotify
+}
 
 #[maybe_async]
 #[maybe_async_test]

@@ -12,6 +12,7 @@ use std::env;
 use std::fs;
 use std::io::{Read, Write};
 use std::iter::FromIterator;
+use std::path::Path;
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, FormData, Headers};
@@ -25,9 +26,18 @@ mod auth_urls {
     pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
 }
 
+// TODO this should be removed after making a custom type for scopes
+// or handling them as a vector of strings.
+fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
+    let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
+    let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
+    let needle_set: HashSet<&str> = HashSet::from_iter(needle_vec);
+    let haystack_set: HashSet<&str> = HashSet::from_iter(haystack_vec);
+    // needle_set - haystack_set
+    needle_set.is_subset(&haystack_set)
+}
+
 /// Spotify access token information.
-///
-/// TODO: does this need the builder pattern?
 #[derive(Builder, Clone, Debug, Serialize, Deserialize)]
 pub struct Token {
     #[builder(setter(into))]
@@ -41,6 +51,53 @@ pub struct Token {
     pub scope: String,
 }
 
+impl TokenBuilder {
+    /// Tries to initialize the token from a cache file.
+    pub fn from_cache<T: AsRef<Path>>(path: T) -> Self {
+        if let Ok(mut file) = fs::File::open(path) {
+            let mut tok_str = String::new();
+            if file.read_to_string(&mut tok_str).is_ok() {
+                if let Ok(tok) = serde_json::from_str::<Token>(&tok_str) {
+                    return TokenBuilder {
+                        access_token: Some(tok.access_token),
+                        expires_in: Some(tok.expires_in),
+                        expires_at: Some(tok.expires_at),
+                        refresh_token: Some(tok.refresh_token),
+                        scope: Some(tok.scope),
+                    };
+                }
+            }
+        }
+
+        TokenBuilder::default()
+    }
+}
+
+impl Token {
+    /// Saves the token information into its cache file.
+    pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> ClientResult<()> {
+        let token_info = serde_json::to_string(&self)?;
+
+        let mut file = fs::OpenOptions::new().write(true).create(true).open(path)?;
+        file.set_len(0)?;
+        file.write_all(token_info.as_bytes())?;
+
+        Ok(())
+    }
+
+    // TODO: we should use `Instant` for expiration dates, which requires this
+    // to be modified.
+    pub fn is_expired(&self) -> bool {
+        let now: DateTime<Utc> = Utc::now();
+
+        // 10s as buffer time
+        match self.expires_at {
+            Some(expires_at) => now.timestamp() > expires_at - 10,
+            None => true,
+        }
+    }
+}
+
 /// Simple client credentials object for Spotify.
 #[derive(Builder, Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Credentials {
@@ -48,6 +105,24 @@ pub struct Credentials {
     pub id: String,
     #[builder(setter(into))]
     pub secret: String,
+}
+
+impl CredentialsBuilder {
+    /// Parses the credentials from the environment variables
+    /// `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`. You can optionally
+    /// activate the `env-file` feature in order to read these variables from
+    /// a `.env` file.
+    pub fn from_env() -> Self {
+        #[cfg(feature = "env-file")]
+        {
+            dotenv::dotenv().ok();
+        }
+
+        CredentialsBuilder {
+            id: env::var("RSPOTIFY_CLIENT_ID").ok(),
+            secret: env::var("RSPOTIFY_CLIENT_SECRET").ok(),
+        }
+    }
 }
 
 /// Structure that holds the required information for requests with OAuth.
@@ -65,23 +140,6 @@ pub struct OAuth {
     pub proxies: Option<String>,
 }
 
-impl CredentialsBuilder {
-    /// Parses the credentials from the environment variables
-    /// `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`. You can optionally
-    /// activate the `env-file` feature in order to read these variables from
-    /// a `.env` file.
-    pub fn from_env() -> Self {
-        #[cfg(feature = "env-file")]
-        {
-            dotenv::dotenv().ok();
-        }
-        let id = env::var("RSPOTIFY_CLIENT_ID").ok();
-        let secret = env::var("RSPOTIFY_CLIENT_SECRET").ok();
-
-        CredentialsBuilder { id, secret }
-    }
-}
-
 impl OAuthBuilder {
     /// Parses the credentials from the environment variable
     /// `RSPOTIFY_REDIRECT_URI`. You can optionally activate the `env-file`
@@ -91,10 +149,9 @@ impl OAuthBuilder {
         {
             dotenv::dotenv().ok();
         }
-        let redirect_uri = env::var("RSPOTIFY_REDIRECT_URI").ok();
 
         OAuthBuilder {
-            redirect_uri,
+            redirect_uri: env::var("RSPOTIFY_REDIRECT_URI").ok(),
             ..Default::default()
         }
     }
@@ -102,40 +159,11 @@ impl OAuthBuilder {
 
 /// Authorization-related methods for the client.
 impl Spotify {
-    /// TODO this should be removed after making a custom type for scopes
-    /// or handling them as a vector of strings.
-    fn is_scope_subset(needle_scope: &mut str, haystack_scope: &mut str) -> bool {
-        let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
-        let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
-        let needle_set: HashSet<&str> = HashSet::from_iter(needle_vec);
-        let haystack_set: HashSet<&str> = HashSet::from_iter(haystack_vec);
-        // needle_set - haystack_set
-        needle_set.is_subset(&haystack_set)
-    }
-
-    /// TODO: we should use `Instant` for expiration dates, which requires this
-    /// to be modified.
-    /// TODO: this should be moved into `Token`
-    fn is_token_expired(&self, token_info: &Token) -> bool {
-        let now: DateTime<Utc> = Utc::now();
-
-        // 10s as buffer time
-        match token_info.expires_at {
-            Some(expires_at) => now.timestamp() > expires_at - 10,
-            None => true,
+    /// Updates the cache file at the internal cache path.
+    pub fn write_token_cache(&self) -> ClientResult<()> {
+        if let Some(tok) = self.token.as_ref() {
+            tok.write_cache(&self.cache_path)?;
         }
-    }
-
-    /// Saves the internal access token information into its cache file.
-    fn save_token_info(&self) -> ClientResult<()> {
-        let token_info = serde_json::to_string(&self.token)?;
-
-        let mut file = fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .open(self.cache_path.as_path())?;
-        file.set_len(0)?;
-        file.write_all(token_info.as_bytes())?;
 
         Ok(())
     }
@@ -147,8 +175,6 @@ impl Spotify {
         let mut payload = json! ({
             "client_id": &self.get_creds()?.id,
             "response_type": "code",
-            // TODO: Maybe these OAuth options should go in a struct, or
-            // `Credentials` could be expanded with these.
             "redirect_uri": &oauth.redirect_uri,
             "scope": &oauth.scope,
             "state": &oauth.state
@@ -180,15 +206,9 @@ impl Spotify {
     /// Tries to read the cache file's token, which may not exist.
     #[maybe_async]
     pub async fn get_cached_token(&mut self) -> Option<Token> {
-        let mut file = fs::File::open(&self.cache_path).ok()?;
-        let mut tok_str = String::new();
-        file.read_to_string(&mut tok_str).ok()?;
+        let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
 
-        let mut tok: Token = serde_json::from_str(&tok_str).ok()?;
-
-        if !Self::is_scope_subset(&mut self.get_oauth_mut().ok()?.scope, &mut tok.scope)
-            || self.is_token_expired(&tok)
-        {
+        if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             None
@@ -241,7 +261,8 @@ impl Spotify {
     #[maybe_async]
     pub async fn refresh_user_token(&mut self, refresh_token: &str) -> ClientResult<()> {
         self.refresh_user_token_without_cache(refresh_token).await?;
-        self.save_token_info()
+
+        Ok(())
     }
 
     /// Obtains the client access token for the app without saving it into the
@@ -261,7 +282,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn request_client_token(&mut self) -> ClientResult<()> {
         self.request_client_token_without_cache().await?;
-        self.save_token_info()
+        self.write_token_cache()
     }
 
     /// Obtains the user access token for the app with the given code without
@@ -289,7 +310,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn request_user_token(&mut self, code: &str) -> ClientResult<()> {
         self.request_user_token_without_cache(code).await?;
-        self.save_token_info()
+        self.write_token_cache()
     }
 
     /// Opens up the authorization URL in the user's browser so that it can
@@ -373,18 +394,12 @@ mod tests {
         let mut needle_scope = String::from("1 2 3");
         let mut haystack_scope = String::from("1 2 3 4");
         let mut broken_scope = String::from("5 2 4");
-        assert!(Spotify::is_scope_subset(
-            &mut needle_scope,
-            &mut haystack_scope
-        ));
-        assert!(!Spotify::is_scope_subset(
-            &mut broken_scope,
-            &mut haystack_scope
-        ));
+        assert!(is_scope_subset(&mut needle_scope, &mut haystack_scope));
+        assert!(!is_scope_subset(&mut broken_scope, &mut haystack_scope));
     }
 
     #[test]
-    fn test_save_token_info() {
+    fn test_write_token() {
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(3600)
@@ -400,8 +415,7 @@ mod tests {
             .unwrap();
 
         let tok_str = serde_json::to_string(&tok).unwrap();
-
-        spotify.save_token_info().unwrap();
+        spotify.write_token_cache().unwrap();
 
         let mut file = fs::File::open(&spotify.cache_path).unwrap();
         let mut tok_str_file = String::new();

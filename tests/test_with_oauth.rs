@@ -1,21 +1,79 @@
-//! These tests currently require user interaction to authenticate an account
-//! where the tests can be ran, so they are ran manually instead of with
-//! Continuous Integration for now. The tests are written so that no account
-//! data is modified.
+//! Most of tests currently require a Spotify Premium account where the tests
+//! can be ran, which will be ignored in the CI for now. The tests are written
+//! so that no user data is modified.
 //!
-//! Note: Most of these require a Spotify Premium account to work.
+//! You can run all of them with:
 //!
-//! You can run them manually with `cargo test --features=cli -- --ignored`.
+//! ```
+//! $ cargo test --features=cli,env-file -- --ignored
+//! ```
+//!
+//! The access token must be obtained previously, and this test file will try
+//! to authenticate with the access token from the `RSPOTIFY_ACCESS_TOKEN`
+//! environment variable or the refresh token from `RSPOTIFY_REFRESH_TOKEN`
+//! (these tokens must have been generated for all available scopes, see
+//! the `oauth_tokens` example).
 
 mod common;
 
-use common::{maybe_async_test, oauth_client};
+use common::maybe_async_test;
+use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
+use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::senum::{Country, RepeatState, SearchType, TimeRange};
+
+use std::env;
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
 use serde_json::map::Map;
+
+/// Generating a new OAuth client for the requests.
+#[maybe_async]
+pub async fn oauth_client() -> Spotify {
+    if let Ok(access_token) = env::var("RSPOTIFY_ACCESS_TOKEN") {
+        let tok = TokenBuilder::default()
+            .access_token(access_token)
+            .build()
+            .unwrap();
+
+        SpotifyBuilder::default().token(tok).build().unwrap()
+    } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
+        // The credentials must be available in the environment. Enable
+        // `env-file` in order to read them from an `.env` file.
+        let creds = CredentialsBuilder::from_env().build().unwrap();
+
+        // Using every possible scope
+        let oauth = OAuthBuilder::from_env()
+            .scope(
+                "user-read-email user-read-private user-top-read \
+                 user-read-recently-played user-follow-read user-library-read \
+                 user-read-currently-playing user-read-playback-state \
+                 user-read-playback-position playlist-read-collaborative \
+                 playlist-read-private user-follow-modify user-library-modify \
+                 user-modify-playback-state playlist-modify-public \
+                 playlist-modify-private ugc-image-upload",
+            )
+            .build()
+            .unwrap();
+
+        let mut spotify = SpotifyBuilder::default()
+            .credentials(creds)
+            .oauth(oauth)
+            .build()
+            .unwrap();
+
+        spotify.refresh_user_token(&refresh_token).await.unwrap();
+
+        spotify
+    } else {
+        panic!(
+            "No access tokens configured. Please set `RSPOTIFY_ACCESS_TOKEN` \
+             or `RSPOTIFY_REFRESH_TOKEN`, which can be obtained with the \
+             `oauth_tokens` example."
+        )
+    }
+}
 
 #[maybe_async]
 #[maybe_async_test]
