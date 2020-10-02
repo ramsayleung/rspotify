@@ -63,6 +63,9 @@ pub enum ClientError {
     #[error("json parse error: {0}")]
     ParseJSON(#[from] serde_json::Error),
 
+    #[error("url parse error: {0}")]
+    ParseURL(#[from] url::ParseError),
+
     #[error("input/output error: {0}")]
     IO(#[from] std::io::Error),
 

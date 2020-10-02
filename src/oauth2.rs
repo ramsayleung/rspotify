@@ -3,9 +3,8 @@
 use chrono::prelude::*;
 use derive_builder::Builder;
 use maybe_async::maybe_async;
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use url::Url;
 
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -16,10 +15,7 @@ use std::path::Path;
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, FormData, Headers};
-use super::json_insert;
-use super::util::{convert_map_to_string, datetime_to_timestamp, generate_random_string};
-
-const PATH_SEGMENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%').add(b'/');
+use super::util::{datetime_to_timestamp, generate_random_string};
 
 mod auth_urls {
     pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
@@ -172,35 +168,19 @@ impl Spotify {
     /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
     pub fn get_authorize_request_url(&self, show_dialog: bool) -> ClientResult<String> {
         let oauth = self.get_oauth()?;
-        let mut payload = json! ({
-            "client_id": &self.get_creds()?.id,
-            "response_type": "code",
-            "redirect_uri": &oauth.redirect_uri,
-            "scope": &oauth.scope,
-            "state": &oauth.state
-        });
+        let mut payload: HashMap<&str, &str> = HashMap::new();
+        payload.insert("client_id", &self.get_creds()?.id);
+        payload.insert("response_type", "code");
+        payload.insert("redirect_uri", &oauth.redirect_uri);
+        payload.insert("scope", &oauth.scope);
+        payload.insert("state", &oauth.state);
 
         if show_dialog {
-            json_insert!(payload, "show_dialog", "true");
+            payload.insert("show_dialog", "true");
         }
 
-        // FIXME for some reason to_string for Value::String::to_string adds
-        // quotes if as_str isn't used. This is horrendous and temporary.
-        //
-        // TODO: Perhaps the `BaseClient` implementation should provide this
-        // method, so that reqwest can use its own implementation.
-        let query_str = convert_map_to_string(
-            payload
-                .as_object()
-                .unwrap()
-                .into_iter()
-                .map(|(key, val)| (key.to_owned(), val.as_str().unwrap().to_owned()))
-                .collect::<HashMap<String, String>>(),
-        );
-        let encoded = &utf8_percent_encode(&query_str, PATH_SEGMENT_ENCODE_SET);
-        let url = format!("{}?{}", auth_urls::AUTHORIZE, encoded);
-
-        Ok(url)
+        let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
+        Ok(parsed.into_string())
     }
 
     /// Tries to read the cache file's token, which may not exist.
