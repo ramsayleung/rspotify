@@ -708,16 +708,14 @@ impl Spotify {
     /// Adds tracks to a playlist.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
     /// - position - the position to add the tracks
     ///
     /// [Reference](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_add_tracks(
+    pub async fn playlist_add_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         track_ids: &[String],
         position: Option<i32>,
@@ -731,7 +729,7 @@ impl Spotify {
         if let Some(position) = position {
             json_insert!(params, "position", position);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.post(&url, None, &params).await?;
         self.convert_result(&result)
     }
