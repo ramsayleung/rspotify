@@ -696,17 +696,12 @@ impl Spotify {
     /// Unfollows (deletes) a playlist for a user.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/web-api/unfollow-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_unfollow(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-    ) -> ClientResult<String> {
-        let url = format!("users/{}/playlists/{}/followers", user_id, playlist_id);
+    pub async fn playlist_unfollow(&self, playlist_id: &str) -> ClientResult<String> {
+        let url = format!("playlists/{}/followers", playlist_id);
         self.delete(&url, None, &json!({})).await
     }
 
