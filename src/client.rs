@@ -597,7 +597,6 @@ impl Spotify {
     /// Get full details of the tracks of a playlist owned by a user.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - fields - which fields to return
     /// - limit - the maximum number of tracks to return
@@ -606,9 +605,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-playlists-tracks/)
     #[maybe_async]
-    pub async fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        user_id: &str,
         playlist_id: &str,
         fields: Option<&str>,
         limit: L,
@@ -625,7 +623,7 @@ impl Spotify {
             params.insert("fields".to_owned(), fields.to_owned());
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
