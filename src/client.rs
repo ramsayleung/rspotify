@@ -660,7 +660,6 @@ impl Spotify {
     /// Changes a playlist's name and/or public/private state.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - name - optional name of the playlist
     /// - public - optional is the playlist public
@@ -669,9 +668,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/change-playlist-details/)
     #[maybe_async]
-    pub async fn user_playlist_change_detail(
+    pub async fn playlist_change_detail(
         &self,
-        user_id: &str,
         playlist_id: &str,
         name: Option<&str>,
         public: Option<bool>,
@@ -691,7 +689,7 @@ impl Spotify {
         if let Some(description) = description {
             json_insert!(params, "description", description);
         }
-        let url = format!("users/{}/playlists/{}", user_id, playlist_id);
+        let url = format!("playlists/{}", playlist_id);
         self.put(&url, None, &params).await
     }
 
