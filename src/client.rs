@@ -922,16 +922,14 @@ impl Spotify {
     /// Check to see if the given users are following the given playlist.
     ///
     /// Parameters:
-    /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
     /// - user_ids - the ids of the users that you want to
     /// check to see if they follow the playlist. Maximum: 5 ids.
     ///
     /// [Reference](https://developer.spotify.com/web-api/check-user-following-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_check_follow(
+    pub async fn playlist_check_follow(
         &self,
-        playlist_owner_id: &str,
         playlist_id: &str,
         user_ids: &[String],
     ) -> ClientResult<Vec<bool>> {
@@ -939,8 +937,7 @@ impl Spotify {
             error!("The maximum length of user ids is limited to 5 :-)");
         }
         let url = format!(
-            "users/{}/playlists/{}/followers/contains?ids={}",
-            playlist_owner_id,
+            "playlists/{}/followers/contains?ids={}",
             playlist_id,
             user_ids.join(",")
         );
