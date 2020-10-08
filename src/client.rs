@@ -743,9 +743,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     #[maybe_async]
-    pub async fn user_playlist_replace_tracks(
+    pub async fn playlist_replace_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         track_ids: &[String],
     ) -> ClientResult<()> {
@@ -757,7 +756,7 @@ impl Spotify {
         // let mut params = Map::new();
         // params.insert("uris".to_owned(), uris.into());
         let params = json!({ "uris": uris });
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         self.put(&url, None, &params).await?;
 
         Ok(())
