@@ -799,16 +799,14 @@ impl Spotify {
     /// Removes all occurrences of the given tracks from the given playlist.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - track_ids - the list of track ids to add to the playlist
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_remove_all_occurrences_of_tracks(
+    pub async fn playlist_remove_all_occurrences_of_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         track_ids: &[String],
         snapshot_id: Option<String>,
@@ -830,7 +828,7 @@ impl Spotify {
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
