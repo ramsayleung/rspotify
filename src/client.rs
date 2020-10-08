@@ -765,7 +765,6 @@ impl Spotify {
     /// Reorder tracks in a playlist.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - range_start - the position of the first track to be reordered
     /// - range_length - optional the number of tracks to be reordered (default: 1)
@@ -774,9 +773,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
     #[maybe_async]
-    pub async fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
+    pub async fn playlist_reorder_tracks<R: Into<Option<u32>>>(
         &self,
-        user_id: &str,
         playlist_id: &str,
         range_start: i32,
         range_length: R,
@@ -793,7 +791,7 @@ impl Spotify {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
 
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.put(&url, None, &params).await?;
         self.convert_result(&result)
     }
