@@ -896,21 +896,16 @@ impl Spotify {
     /// Add the current authenticated user as a follower of a playlist.
     ///
     /// Parameters:
-    /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/web-api/follow-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
+    pub async fn playlist_follow<P: Into<Option<bool>>>(
         &self,
-        playlist_owner_id: &str,
         playlist_id: &str,
         public: P,
     ) -> ClientResult<()> {
-        let url = format!(
-            "users/{}/playlists/{}/followers",
-            playlist_owner_id, playlist_id
-        );
+        let url = format!("playlists/{}/followers", playlist_id);
 
         self.put(
             &url,
