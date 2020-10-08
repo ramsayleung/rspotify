@@ -836,7 +836,6 @@ impl Spotify {
     /// Removes specfic occurrences of the given tracks from the given playlist.
     ///
     /// Parameters:
-    /// - user_id: the id of the user
     /// - playlist_id: the id of the playlist
     /// - tracks: an array of map containing Spotify URIs of the tracks to remove
     /// with their current positions in the playlist. For example:
@@ -864,9 +863,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_remove_specific_occurrences_of_tracks(
+    pub async fn playlist_remove_specific_occurrences_of_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         tracks: Vec<Map<String, Value>>,
         snapshot_id: Option<String>,
@@ -890,7 +888,7 @@ impl Spotify {
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
