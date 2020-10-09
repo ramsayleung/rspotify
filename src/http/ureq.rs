@@ -1,11 +1,12 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 //! TODO
 
-use super::{headers, BaseClient, Content, FormData, Headers};
+use super::{headers, BaseClient, FormData, Headers};
 use crate::client::{ClientError, ClientResult, Spotify};
 
 use maybe_async::sync_impl;
 use serde_json::Value;
+use ureq::{Request, Response};
 
 impl ClientError {
     pub fn from_response(r: ureq::Response) -> Self {
@@ -14,43 +15,31 @@ impl ClientError {
 }
 
 impl Spotify {
-    fn request<'a>(
+    fn request<'a, D>(
         &self,
-        req: &mut ureq::Request,
+        request: &mut Request,
         headers: Option<&Headers>,
-        payload: Option<Content<'a>>,
-    ) -> ClientResult<String> {
+        send_request: D,
+    ) -> ClientResult<String>
+    where
+        D: Fn(&mut Request) -> Response,
+    {
         // Setting the headers, which will be the token auth if unspecified.
         match headers {
             Some(headers) => {
                 for (key, val) in headers.iter() {
-                    req.set(&key, &val);
+                    request.set(&key, &val);
                 }
             }
             None => {
                 let (key, val) = headers::bearer_auth(self.get_token()?);
-                req.set(&key, &val);
+                request.set(&key, &val);
             }
         }
 
-        log::info!("Making request {:?} with payload {:?}", req, payload);
-
-        // TODO: maybe it'd be better to take ownership of the content to
-        // avoid this clone.
-        let response = match payload {
-            None => req.call(),
-            Some(value) => match value {
-                Content::Json(value) => req.send_json(value.clone()),
-                Content::Form(value) => {
-                    // Converting the header to ureq's `[(&str, &str)]` type.
-                    let value = value
-                        .iter()
-                        .map(|(key, val)| (key.as_str(), val.as_str()))
-                        .collect::<Vec<_>>();
-                    req.send_form(&value)
-                }
-            },
-        };
+        log::info!("Making request {:?}", request);
+        println!("REQUEST: {:?}", request);
+        let response = send_request(request);
 
         if response.ok() {
             response.into_string().map_err(Into::into)
@@ -72,7 +61,10 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::get(&self.endpoint_url(url)),
             headers,
-            payload.map(|x| Content::Json(x)),
+            |req| match payload {
+                Some(payload) => req.send_json(payload.clone()),
+                None => req.call(),
+            },
         )
     }
 
@@ -86,7 +78,10 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::post(&self.endpoint_url(url)),
             headers,
-            payload.map(|x| Content::Json(x)),
+            |req| match payload {
+                Some(payload) => req.send_json(payload.clone()),
+                None => req.call(),
+            },
         )
     }
 
@@ -95,13 +90,16 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&FormData>,
+        payload: &FormData,
     ) -> ClientResult<String> {
-        self.request(
-            &mut ureq::post(&self.endpoint_url(url)),
-            headers,
-            payload.map(|x| Content::Form(x)),
-        )
+        let payload = payload
+            .iter()
+            .map(|(key, val)| (key.as_str(), val.as_str()))
+            .collect::<Vec<_>>();
+
+        self.request(&mut ureq::post(&self.endpoint_url(url)), headers, |req| {
+            req.send_form(&payload)
+        })
     }
 
     #[inline]
@@ -114,7 +112,10 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::put(&self.endpoint_url(url)),
             headers,
-            payload.map(|x| Content::Json(x)),
+            |req| match payload {
+                Some(payload) => req.send_json(payload.clone()),
+                None => req.call(),
+            },
         )
     }
 
@@ -128,7 +129,10 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::delete(&self.endpoint_url(url)),
             headers,
-            payload.map(|x| Content::Json(x)),
+            |req| match payload {
+                Some(payload) => req.send_json(payload.clone()),
+                None => req.call(),
+            },
         )
     }
 }
