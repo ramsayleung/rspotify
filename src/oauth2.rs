@@ -207,7 +207,7 @@ impl Spotify {
         head.insert(key, val);
 
         let response = self
-            .post_form(auth_urls::TOKEN, Some(&head), payload)
+            .post_form(auth_urls::TOKEN, Some(&head), Some(payload))
             .await?;
         let mut tok = serde_json::from_str::<Token>(&response)?;
         tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
