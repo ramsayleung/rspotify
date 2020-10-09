@@ -15,7 +15,7 @@ impl ClientError {
 }
 
 impl Spotify {
-    fn request<'a, D>(
+    fn request<D>(
         &self,
         request: &mut Request,
         headers: Option<&Headers>,
@@ -38,7 +38,6 @@ impl Spotify {
         }
 
         log::info!("Making request {:?}", request);
-        println!("REQUEST: {:?}", request);
         let response = send_request(request);
 
         if response.ok() {
@@ -47,21 +46,45 @@ impl Spotify {
             Err(ClientError::from_response(response))
         }
     }
+
+    // Ureq won't work with empty payloads.
+    fn optional_payload<'a>(&self, payload: &'a Value) -> Option<&'a Value> {
+        match payload {
+            Value::String(val) => {
+                if val.is_empty() {
+                    None
+                } else {
+                    Some(payload)
+                }
+            }
+            Value::Array(val) => {
+                if val.is_empty() {
+                    None
+                } else {
+                    Some(payload)
+                }
+            }
+            Value::Object(val) => {
+                if val.is_empty() {
+                    None
+                } else {
+                    Some(payload)
+                }
+            }
+            Value::Null => None,
+            _ => Some(payload),
+        }
+    }
 }
 
 #[sync_impl]
 impl BaseClient for Spotify {
     #[inline]
-    fn get(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: Option<&Value>,
-    ) -> ClientResult<String> {
+    fn get(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
         self.request(
             &mut ureq::get(&self.endpoint_url(url)),
             headers,
-            |req| match payload {
+            |req| match self.optional_payload(payload) {
                 Some(payload) => req.send_json(payload.clone()),
                 None => req.call(),
             },
@@ -69,16 +92,11 @@ impl BaseClient for Spotify {
     }
 
     #[inline]
-    fn post(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: Option<&Value>,
-    ) -> ClientResult<String> {
+    fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
         self.request(
             &mut ureq::post(&self.endpoint_url(url)),
             headers,
-            |req| match payload {
+            |req| match self.optional_payload(payload) {
                 Some(payload) => req.send_json(payload.clone()),
                 None => req.call(),
             },
@@ -103,16 +121,11 @@ impl BaseClient for Spotify {
     }
 
     #[inline]
-    fn put(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: Option<&Value>,
-    ) -> ClientResult<String> {
+    fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
         self.request(
             &mut ureq::put(&self.endpoint_url(url)),
             headers,
-            |req| match payload {
+            |req| match self.optional_payload(payload) {
                 Some(payload) => req.send_json(payload.clone()),
                 None => req.call(),
             },
@@ -124,12 +137,12 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
         self.request(
             &mut ureq::delete(&self.endpoint_url(url)),
             headers,
-            |req| match payload {
+            |req| match self.optional_payload(payload) {
                 Some(payload) => req.send_json(payload.clone()),
                 None => req.call(),
             },

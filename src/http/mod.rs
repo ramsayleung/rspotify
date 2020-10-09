@@ -39,20 +39,27 @@ pub mod headers {
 }
 
 /// The default headers will be overriden if its value is other than None.
+///
+/// When any of the request doesn't need parameters, the empty or default value
+/// of the payload type should be passed. For example, `json!({})` to `get`.
+/// This avoids using `Option<T>` because `Value` itself may be null in
+/// other different ways (`Value::Null`, an empty `Value::Object`...), so this
+/// removes redundancy and edge cases (a `Some(Value::Null), for example,
+/// doesn't make much sense).
 #[maybe_async]
 pub trait BaseClient {
     async fn get(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        params: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 
     async fn post(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 
     async fn post_form(
@@ -66,14 +73,14 @@ pub trait BaseClient {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 
     async fn delete(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String>;
 }
 
