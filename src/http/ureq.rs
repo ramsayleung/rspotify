@@ -75,6 +75,19 @@ impl Spotify {
             _ => Some(payload),
         }
     }
+
+    // Converting a `Value` into a string properly. `Value::to_string` adds
+    // quotes because it also works with types like objects or arrays. This
+    // function shall panic if the type inside the value doesn't implement
+    // `ToString` (maps, arrays...).
+    fn value_string(&self, v: &Value) -> String {
+        match v {
+            Value::Bool(b) => b.to_string(),
+            Value::Number(n) => n.to_string(),
+            Value::String(s) => s.clone(),
+            _ => panic!("invalid type given to `value_string`"),
+        }
+    }
 }
 
 #[sync_impl]
@@ -84,9 +97,13 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::get(&self.endpoint_url(url)),
             headers,
-            |req| match self.optional_payload(payload) {
-                Some(payload) => req.send_json(payload.clone()),
-                None => req.call(),
+            |mut req| {
+                if let Some(payload) = self.optional_payload(payload) {
+                    for (key, val) in payload.as_object().unwrap().iter() {
+                        req = req.query(&key, &self.value_string(val))
+                    }
+                }
+                req.call()
             },
         )
     }

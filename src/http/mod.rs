@@ -48,6 +48,7 @@ pub mod headers {
 /// doesn't make much sense).
 #[maybe_async]
 pub trait BaseClient {
+    // This internal function should always be given an object value in JSON.
     async fn get(
         &self,
         url: &str,
