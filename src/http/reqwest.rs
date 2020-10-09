@@ -2,12 +2,12 @@
 //! default.
 
 use maybe_async::async_impl;
-use reqwest::{Method, StatusCode};
-use serde_json::Value;
+use reqwest::{Method, RequestBuilder, StatusCode};
+use serde_json::{json, Value};
 
 use std::convert::TryInto;
 
-use super::{headers, BaseClient, Content, FormData, Headers};
+use super::{headers, BaseClient, FormData, Headers};
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
 
 impl ClientError {
@@ -47,13 +47,16 @@ impl From<reqwest::StatusCode> for ClientError {
 }
 
 impl Spotify {
-    async fn request<'a>(
+    async fn request<D>(
         &self,
         method: Method,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<Content<'_>>,
-    ) -> ClientResult<String> {
+        add_data: D,
+    ) -> ClientResult<String>
+    where
+        D: Fn(RequestBuilder) -> RequestBuilder,
+    {
         let url = self.endpoint_url(url);
 
         // The default auth headers are used if none were specified.
@@ -75,26 +78,9 @@ impl Spotify {
         let headers = headers.try_into().unwrap();
 
         let mut request = self.client.request(method.clone(), &url).headers(headers);
-
-        log::info!("Making request {:?} with payload {:?}", request, payload);
-
-        if let Some(payload) = payload {
-            request = match payload {
-                Content::Json(payload) => match method {
-                    Method::GET => request.query(payload),
-                    Method::POST | Method::PUT | Method::DELETE => request.json(payload),
-                    // Method: Options, Head, Trace haven't implemented in `rspotify` yet, just leave it alone.
-                    _ => request,
-                },
-                Content::Form(payload) => {
-                    // `Request::form` won't work for `GET` requests
-                    assert!(method != Method::GET);
-                    request.form(payload)
-                }
-            };
-        }
-
-        let response = request.send().await.map_err(ClientError::from)?;
+        request = add_data(request);
+        log::info!("Making request {:?}", request);
+        let response = request.send().await?;
 
         if response.status().is_success() {
             response.text().await.map_err(Into::into)
@@ -113,8 +99,11 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(Method::GET, url, headers, payload.map(|x| Content::Json(x)))
-            .await
+        self.request(Method::GET, url, headers, |req| match payload {
+            Some(payload) => req.query(payload),
+            None => req.query(&json!({})),
+        })
+        .await
     }
 
     #[inline]
@@ -124,12 +113,10 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(
-            Method::POST,
-            url,
-            headers,
-            payload.map(|x| Content::Json(x)),
-        )
+        self.request(Method::POST, url, headers, |req| match payload {
+            Some(payload) => req.query(payload),
+            None => req.json(&json!({})),
+        })
         .await
     }
 
@@ -138,15 +125,10 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&FormData>,
+        payload: &FormData,
     ) -> ClientResult<String> {
-        self.request(
-            Method::POST,
-            url,
-            headers,
-            payload.map(|x| Content::Form(x)),
-        )
-        .await
+        self.request(Method::POST, url, headers, |req| req.form(payload))
+            .await
     }
 
     #[inline]
@@ -156,8 +138,11 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(Method::PUT, url, headers, payload.map(|x| Content::Json(x)))
-            .await
+        self.request(Method::PUT, url, headers, |req| match payload {
+            Some(payload) => req.query(payload),
+            None => req.json(&json!({})),
+        })
+        .await
     }
 
     #[inline]
@@ -167,12 +152,10 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: Option<&Value>,
     ) -> ClientResult<String> {
-        self.request(
-            Method::DELETE,
-            url,
-            headers,
-            payload.map(|x| Content::Json(x)),
-        )
+        self.request(Method::DELETE, url, headers, |req| match payload {
+            Some(payload) => req.query(payload),
+            None => req.json(&json!({})),
+        })
         .await
     }
 }

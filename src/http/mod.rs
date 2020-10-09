@@ -17,13 +17,6 @@ use serde_json::Value;
 pub type Headers = HashMap<String, String>;
 pub type FormData = HashMap<String, String>;
 
-/// Using an enum internally with the possible content types.
-#[derive(Debug)]
-pub enum Content<'a> {
-    Json(&'a Value),
-    Form(&'a FormData),
-}
-
 pub mod headers {
     use crate::oauth2::Token;
 
@@ -66,7 +59,7 @@ pub trait BaseClient {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&FormData>,
+        payload: &FormData,
     ) -> ClientResult<String>;
 
     async fn put(
