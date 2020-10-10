@@ -422,7 +422,7 @@ impl Spotify {
         include_external: Option<IncludeExternal>,
     ) -> ClientResult<SearchResult> {
         let mut params = Query::with_capacity(4);
-        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("limit".to_owned(), limit.into().unwrap_or(10).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         params.insert("q".to_owned(), q.to_owned());
         params.insert("type".to_owned(), _type.as_str().to_owned());
