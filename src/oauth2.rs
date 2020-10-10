@@ -185,7 +185,7 @@ impl Spotify {
 
     /// Tries to read the cache file's token, which may not exist.
     #[maybe_async]
-    pub async fn get_cached_token(&mut self) -> Option<Token> {
+    pub async fn read_token_cache(&mut self) -> Option<Token> {
         let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
 
         if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
@@ -319,7 +319,7 @@ impl Spotify {
         // TODO: not sure where the cached token should be read. Should it
         // be more explicit? Also outside of this function?
         // TODO: shouldn't this also refresh the obtained token?
-        self.token = self.get_cached_token().await;
+        self.token = self.read_token_cache().await;
 
         // Otherwise following the usual procedure to get the token.
         if self.token.is_none() {
