@@ -1,5 +1,4 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
-//! TODO
 
 use super::{headers, BaseClient, Form, Headers, Query};
 use crate::client::{ClientError, ClientResult, Spotify};
@@ -46,35 +45,6 @@ impl Spotify {
             Err(ClientError::from_response(response))
         }
     }
-
-    // Ureq won't work with empty payloads.
-    fn optional_payload<'a>(&self, payload: &'a Value) -> Option<&'a Value> {
-        match payload {
-            Value::String(val) => {
-                if val.is_empty() {
-                    None
-                } else {
-                    Some(payload)
-                }
-            }
-            Value::Array(val) => {
-                if val.is_empty() {
-                    None
-                } else {
-                    Some(payload)
-                }
-            }
-            Value::Object(val) => {
-                if val.is_empty() {
-                    None
-                } else {
-                    Some(payload)
-                }
-            }
-            Value::Null => None,
-            _ => Some(payload),
-        }
-    }
 }
 
 #[sync_impl]
@@ -98,10 +68,7 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::post(&self.endpoint_url(url)),
             headers,
-            |req| match self.optional_payload(payload) {
-                Some(payload) => req.send_json(payload.clone()),
-                None => req.call(),
-            },
+            |req| req.send_json(payload.clone())
         )
     }
 
@@ -127,10 +94,7 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::put(&self.endpoint_url(url)),
             headers,
-            |req| match self.optional_payload(payload) {
-                Some(payload) => req.send_json(payload.clone()),
-                None => req.call(),
-            },
+            |req| req.send_json(payload.clone())
         )
     }
 
@@ -144,10 +108,7 @@ impl BaseClient for Spotify {
         self.request(
             &mut ureq::delete(&self.endpoint_url(url)),
             headers,
-            |req| match self.optional_payload(payload) {
-                Some(payload) => req.send_json(payload.clone()),
-                None => req.call(),
-            },
+            |req| req.send_json(payload.clone())
         )
     }
 }

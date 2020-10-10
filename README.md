@@ -19,27 +19,27 @@ If you find any problems or have suggestions about this crate, please submit an 
 
 ## Building
 
-Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) crate to switch between async and blocking client, which is triggered inside `Cargo.toml`, so there is something you need to pay attention to when you are trying to build `rspotify`
+Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) to switch between async and blocking clients, which is triggered inside `Cargo.toml`. So that must be taken into account when building `rspotify`. Read the Configuration section in the docs for more information about how to build with custom TLS implementations, and more.
 
-Build with `client-reqwest` feature, the `async` version, and this would compile Rspotify with [`reqwest`](https://docs.rs/reqwest/)
-
-```sh
-cargo build --features client-reqwest
-```
-
-Build with `client-ureq` feature, the `blocking` version, and this would compile Rspotify with [`ureq`](https://docs.rs/ureq/):
+`client-reqwest` is used by default. It should be as easy as
 
 ```sh
-cargo build --no-default-features --features client-ureq
+$ cargo build
 ```
 
-Noticed that you could not build `rspotify` with all features like this:
+`client-ureq` is also available as the `blocking` interface, which compiles Rspotify with [`ureq`](https://docs.rs/ureq/) (a TLS has to be specified as well):
 
 ```sh
-cargo build --all --all-features
+$ cargo build --no-default-features --features client-ureq,ureq-rustls-tls
 ```
 
-Because in order to switch between different clients, the different clients have to implement the same methods, so if you build with all features, you'll get `duplicate definitions` error. As every coin has two sides, you could only have one side at a time, not all sides of it.
+Notice that you can't build `rspotify` with all features like this:
+
+```sh
+$ cargo build --all-features
+```
+
+Because in order to switch between clients, the different clients have to implement the same base trait in [src/http/mod.rs](https://github.com/ramsayleung/rspotify/blob/master/src/http/mod.rs), so if you build with all features, you'll get `duplicate definitions` error. As every coin has two sides, you can only have one side at a time, not all sides of it.
 
 ## License
 

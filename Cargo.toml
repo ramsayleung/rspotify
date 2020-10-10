@@ -95,19 +95,19 @@ path = "examples/with_refresh_token.rs"
 [[example]]
 name = "device"
 required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/blocking/device.rs"
+path = "examples/ureq/device.rs"
 
 [[example]]
 name = "me"
 required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/blocking/me.rs"
+path = "examples/ureq/me.rs"
 
 [[example]]
 name = "search"
 required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/blocking/search.rs"
+path = "examples/ureq/search.rs"
             
 [[example]]
 name = "seek_track"
 required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/blocking/seek_track.rs"
+path = "examples/ureq/seek_track.rs"
