@@ -65,11 +65,9 @@ impl BaseClient for Spotify {
 
     #[inline]
     fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
-        self.request(
-            &mut ureq::post(&self.endpoint_url(url)),
-            headers,
-            |req| req.send_json(payload.clone())
-        )
+        self.request(&mut ureq::post(&self.endpoint_url(url)), headers, |req| {
+            req.send_json(payload.clone())
+        })
     }
 
     #[inline]
@@ -91,11 +89,9 @@ impl BaseClient for Spotify {
 
     #[inline]
     fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
-        self.request(
-            &mut ureq::put(&self.endpoint_url(url)),
-            headers,
-            |req| req.send_json(payload.clone())
-        )
+        self.request(&mut ureq::put(&self.endpoint_url(url)), headers, |req| {
+            req.send_json(payload.clone())
+        })
     }
 
     #[inline]
@@ -105,10 +101,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(
-            &mut ureq::delete(&self.endpoint_url(url)),
-            headers,
-            |req| req.send_json(payload.clone())
-        )
+        self.request(&mut ureq::delete(&self.endpoint_url(url)), headers, |req| {
+            req.send_json(payload.clone())
+        })
     }
 }
