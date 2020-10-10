@@ -166,7 +166,7 @@ impl Spotify {
 
     /// Gets the required URL to authorize the current client to start the
     /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
-    pub fn get_authorize_request_url(&self, show_dialog: bool) -> ClientResult<String> {
+    pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let oauth = self.get_oauth()?;
         let mut payload: HashMap<&str, &str> = HashMap::new();
         payload.insert("client_id", &self.get_creds()?.id);
@@ -339,7 +339,7 @@ impl Spotify {
     fn get_code_from_user(&self) -> ClientResult<String> {
         use crate::client::ClientError;
 
-        let url = self.get_authorize_request_url(false)?;
+        let url = self.get_authorize_url(false)?;
 
         match webbrowser::open(&url) {
             Ok(_) => println!("Opened {} in your browser.", url),

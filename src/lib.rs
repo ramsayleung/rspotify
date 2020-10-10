@@ -95,8 +95,8 @@
 //! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
 //! instead. In a nutshell, these are the steps you need to make for this:
 //!
-//! 0. Generate a request URL with [`Spotify::get_authorize_request_url`
-//!    ](client/struct.Spotify.html#method.get_authorize_request_url).
+//! 0. Generate a request URL with [`Spotify::get_authorize_url`
+//!    ](client/struct.Spotify.html#method.get_authorize_url).
 //! 1. The user logs in with the request URL, which redirects to the redirect
 //!    URI and provides a code in the parameters. This happens on your side.
 //! 2. The code obtained in the previous step is parsed with
