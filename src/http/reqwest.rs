@@ -3,11 +3,11 @@
 
 use maybe_async::async_impl;
 use reqwest::{Method, RequestBuilder, StatusCode};
-use serde_json::{json, Value};
+use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{headers, BaseClient, FormData, Headers};
+use super::{headers, BaseClient, Form, Headers, Query};
 use crate::client::{ApiError, ClientError, ClientResult, Spotify};
 
 impl ClientError {
@@ -97,13 +97,10 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Query,
     ) -> ClientResult<String> {
-        self.request(Method::GET, url, headers, |req| match payload {
-            Some(payload) => req.query(payload),
-            None => req.query(&json!({})),
-        })
-        .await
+        self.request(Method::GET, url, headers, |req| req.query(payload))
+            .await
     }
 
     #[inline]
@@ -111,13 +108,10 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::POST, url, headers, |req| match payload {
-            Some(payload) => req.query(payload),
-            None => req.json(&json!({})),
-        })
-        .await
+        self.request(Method::POST, url, headers, |req| req.json(payload))
+            .await
     }
 
     #[inline]
@@ -125,7 +119,7 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &FormData,
+        payload: &Form,
     ) -> ClientResult<String> {
         self.request(Method::POST, url, headers, |req| req.form(payload))
             .await
@@ -136,13 +130,10 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::PUT, url, headers, |req| match payload {
-            Some(payload) => req.query(payload),
-            None => req.json(&json!({})),
-        })
-        .await
+        self.request(Method::PUT, url, headers, |req| req.json(payload))
+            .await
     }
 
     #[inline]
@@ -150,12 +141,9 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: Option<&Value>,
+        payload: &Value,
     ) -> ClientResult<String> {
-        self.request(Method::DELETE, url, headers, |req| match payload {
-            Some(payload) => req.query(payload),
-            None => req.json(&json!({})),
-        })
-        .await
+        self.request(Method::DELETE, url, headers, |req| req.json(payload))
+            .await
     }
 }

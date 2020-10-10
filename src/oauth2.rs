@@ -14,7 +14,7 @@ use std::iter::FromIterator;
 use std::path::Path;
 
 use super::client::{ClientResult, Spotify};
-use super::http::{headers, BaseClient, FormData, Headers};
+use super::http::{headers, BaseClient, Form, Headers};
 use super::util::{datetime_to_timestamp, generate_random_string};
 
 mod auth_urls {
@@ -199,7 +199,7 @@ impl Spotify {
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
-    async fn fetch_access_token(&self, payload: &FormData) -> ClientResult<Token> {
+    async fn fetch_access_token(&self, payload: &Form) -> ClientResult<Token> {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
@@ -225,7 +225,7 @@ impl Spotify {
         &mut self,
         refresh_token: &str,
     ) -> ClientResult<()> {
-        let mut data = FormData::new();
+        let mut data = Form::new();
         data.insert("refresh_token".to_owned(), refresh_token.to_owned());
         data.insert("grant_type".to_owned(), "refresh_token".to_owned());
 
@@ -249,7 +249,7 @@ impl Spotify {
     /// cache file. The resulting token is saved internally.
     #[maybe_async]
     pub async fn request_client_token_without_cache(&mut self) -> ClientResult<()> {
-        let mut data = FormData::new();
+        let mut data = Form::new();
         data.insert("grant_type".to_owned(), "client_credentials".to_owned());
 
         self.token = Some(self.fetch_access_token(&data).await?);
@@ -273,7 +273,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
         let oauth = self.get_oauth()?;
-        let mut data = FormData::new();
+        let mut data = Form::new();
         data.insert("grant_type".to_owned(), "authorization_code".to_owned());
         data.insert("redirect_uri".to_owned(), oauth.redirect_uri.clone());
         data.insert("code".to_owned(), code.to_owned());

@@ -15,7 +15,8 @@ use maybe_async::maybe_async;
 use serde_json::Value;
 
 pub type Headers = HashMap<String, String>;
-pub type FormData = HashMap<String, String>;
+pub type Query = HashMap<String, String>;
+pub type Form = HashMap<String, String>;
 
 pub mod headers {
     use crate::oauth2::Token;
@@ -41,11 +42,11 @@ pub mod headers {
 /// The default headers will be overriden if its value is other than None.
 ///
 /// When any of the request doesn't need parameters, the empty or default value
-/// of the payload type should be passed. For example, `json!({})` to `get`.
-/// This avoids using `Option<T>` because `Value` itself may be null in
-/// other different ways (`Value::Null`, an empty `Value::Object`...), so this
-/// removes redundancy and edge cases (a `Some(Value::Null), for example,
-/// doesn't make much sense).
+/// of the payload type should be passed. For example, `json!({})` or
+/// `Query::new()`. This avoids using `Option<T>` because `Value` itself may be
+/// null in other different ways (`Value::Null`, an empty `Value::Object`...),
+/// so this removes redundancy and edge cases (a `Some(Value::Null), for
+/// example, doesn't make much sense).
 #[maybe_async]
 pub trait BaseClient {
     // This internal function should always be given an object value in JSON.
@@ -53,7 +54,7 @@ pub trait BaseClient {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Value,
+        payload: &Query,
     ) -> ClientResult<String>;
 
     async fn post(
@@ -67,7 +68,7 @@ pub trait BaseClient {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &FormData,
+        payload: &Form,
     ) -> ClientResult<String>;
 
     async fn put(
@@ -87,9 +88,8 @@ pub trait BaseClient {
 
 /// HTTP-related methods for the client.
 impl Spotify {
-    /// If it's a relative URL (`"me"`), the prefix is appended to it
-    /// (`"https://api.spotify.com/v1/me"`). Otherwise, the same URL is
-    /// returned.
+    /// If it's a relative URL like "me", the prefix is appended to it.
+    /// Otherwise, the same URL is returned.
     fn endpoint_url(&self, url: &str) -> String {
         // Using the client's prefix in case it's a relative route.
         if !url.starts_with("http") {

@@ -11,7 +11,7 @@ use thiserror::Error;
 
 use std::path::PathBuf;
 
-use super::http::BaseClient;
+use super::http::{BaseClient, Query};
 use super::json_insert;
 use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
 use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
@@ -237,7 +237,7 @@ impl Spotify {
     pub async fn track(&self, track_id: &str) -> ClientResult<FullTrack> {
         let trid = self.get_id(Type::Track, track_id);
         let url = format!("tracks/{}", trid);
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -252,15 +252,18 @@ impl Spotify {
         track_ids: Vec<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullTracks> {
+        // TODO: this can be improved
         let mut ids: Vec<String> = vec![];
         for track_id in track_ids {
             ids.push(self.get_id(Type::Track, track_id));
         }
-        let url = format!("tracks/?ids={}", ids.join(","));
-        let mut params = json!({});
+
+        let mut params = Query::new();
         if let Some(market) = market {
-            json_insert!(params, "market", market);
+            params.insert("market".to_owned(), market.as_str().to_owned());
         }
+
+        let url = format!("tracks/?ids={}", ids.join(","));
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -273,7 +276,7 @@ impl Spotify {
     pub async fn artist(&self, artist_id: &str) -> ClientResult<FullArtist> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}", trid);
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -288,7 +291,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Artist, &artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -308,18 +311,18 @@ impl Spotify {
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(limit) = limit {
-            json_insert!(params, "limit", limit);
+            params.insert("limit".to_owned(), limit.to_string());
         }
         if let Some(album_type) = album_type {
-            json_insert!(params, "album_type", album_type.as_str());
+            params.insert("album_type".to_owned(), album_type.as_str().to_owned());
         }
         if let Some(offset) = offset {
-            json_insert!(params, "offset", offset);
+            params.insert("offset".to_owned(), offset.to_string());
         }
         if let Some(country) = country {
-            json_insert!(params, "country", country.as_str());
+            params.insert("country".to_owned(), country.as_str().to_owned());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
@@ -338,12 +341,15 @@ impl Spotify {
         artist_id: &str,
         country: T,
     ) -> ClientResult<FullTracks> {
-        let params = json!({
-            "country": country
+        let mut params = Query::with_capacity(1);
+        params.insert(
+            "country".to_owned(),
+            country
                 .into()
                 .unwrap_or(Country::UnitedStates)
                 .as_str()
-        });
+                .to_owned(),
+        );
 
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
@@ -361,7 +367,7 @@ impl Spotify {
     pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -374,7 +380,7 @@ impl Spotify {
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}", trid);
 
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -389,7 +395,7 @@ impl Spotify {
             ids.push(self.get_id(Type::Album, &album_id));
         }
         let url = format!("albums/?ids={}", ids.join(","));
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -415,17 +421,19 @@ impl Spotify {
         market: Option<Country>,
         include_external: Option<IncludeExternal>,
     ) -> ClientResult<SearchResult> {
-        let mut params = json! ({
-            "limit": limit.into().unwrap_or(10),
-            "offset": offset.into().unwrap_or(0),
-            "q": q,
-            "type": _type,
-        });
+        let mut params = Query::with_capacity(4);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert("q".to_owned(), q.to_owned());
+        params.insert("type".to_owned(), _type.as_str().to_owned());
         if let Some(market) = market {
-            json_insert!(params, "market", market);
+            params.insert("market".to_owned(), market.as_str().to_owned());
         }
         if let Some(include_external) = include_external {
-            json_insert!(params, "include_external", include_external);
+            params.insert(
+                "include_external".to_owned(),
+                include_external.as_str().to_owned(),
+            );
         }
 
         let result = self.get("search", None, &params).await?;
@@ -445,10 +453,9 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedTrack>> {
-        let params = json!({
-            "limit": limit.into().unwrap_or(50).to_string(),
-            "offset": offset.into().unwrap_or(0).to_string(),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         let trid = self.get_id(Type::Album, album_id);
         let url = format!("albums/{}/tracks", trid);
         let result = self.get(&url, None, &params).await?;
@@ -462,7 +469,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id);
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -478,12 +485,12 @@ impl Spotify {
         fields: Option<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(fields) = fields {
-            json_insert!(params, "fields", fields);
+            params.insert("fields".to_owned(), fields.to_owned());
         }
         if let Some(market) = market {
-            json_insert!(params, "market", market.as_str());
+            params.insert("market".to_owned(), market.as_str().to_owned());
         }
 
         let plid = self.get_id(Type::Playlist, playlist_id);
@@ -503,10 +510,9 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let params = json!({
-            "limit": limit.into().unwrap_or(50).to_string(),
-            "offset": offset.into().unwrap_or(0).to_string(),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
 
         let result = self.get("me/playlists", None, &params).await?;
         self.convert_result(&result)
@@ -525,10 +531,9 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let params = json!({
-            "limit": limit.into().unwrap_or(50).to_string(),
-            "offset": offset.into().unwrap_or(0).to_string(),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         let url = format!("users/{}/playlists", user_id);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
@@ -548,12 +553,12 @@ impl Spotify {
         fields: Option<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(fields) = fields {
-            json_insert!(params, "fields", fields);
+            params.insert("fields".to_owned(), fields.to_string());
         }
         if let Some(market) = market {
-            json_insert!(params, "market", market.as_str());
+            params.insert("market".to_owned(), market.as_str().to_owned());
         }
         match playlist_id {
             Some(playlist_id) => {
@@ -589,15 +594,14 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> ClientResult<Page<PlaylistTrack>> {
-        let mut params = json!({
-            "limit": limit.into().unwrap_or(50).to_string(),
-            "offset": offset.into().unwrap_or(0).to_string(),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            json_insert!(params, "market", market.as_str());
+            params.insert("market".to_owned(), market.as_str().to_owned());
         }
         if let Some(fields) = fields {
-            json_insert!(params, "fields", fields);
+            params.insert("fields".to_owned(), fields.to_owned());
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
@@ -921,7 +925,7 @@ impl Spotify {
             playlist_id,
             user_ids.join(",")
         );
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
     /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
@@ -929,7 +933,7 @@ impl Spotify {
     /// An alias for the 'current_user' method.
     #[maybe_async]
     pub async fn me(&self) -> ClientResult<PrivateUser> {
-        let result = self.get("me/", None, &json!({})).await?;
+        let result = self.get("me/", None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -945,7 +949,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
         let result = self
-            .get("me/player/currently-playing", None, &json!({}))
+            .get("me/player/currently-playing", None, &Query::new())
             .await?;
         if result.is_empty() {
             Ok(None)
@@ -967,16 +971,10 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedAlbum>> {
-        let result = self
-            .get(
-                "me/albums",
-                None,
-                &json!({
-                    "limit": limit.into().unwrap_or(20),
-                    "offset": offset.into().unwrap_or(0),
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        let result = self.get("me/albums", None, &params).await?;
         self.convert_result(&result)
     }
     ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
@@ -990,16 +988,10 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedTrack>> {
-        let result = self
-            .get(
-                "me/tracks",
-                None,
-                &json!({
-                    "limit": limit.into().unwrap_or(20),
-                    "offset": offset.into().unwrap_or(0),
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        let result = self.get("me/tracks", None, &params).await?;
         self.convert_result(&result)
     }
     ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
@@ -1013,12 +1005,11 @@ impl Spotify {
         limit: L,
         after: Option<String>,
     ) -> ClientResult<CursorPageFullArtists> {
-        let mut params = json!({
-            "limit": limit.into().unwrap_or(20),
-            "type": Type::Artist.as_str()
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
         if let Some(after) = after {
-            json_insert!(params, "after", after);
+            params.insert("after".to_owned(), after);
         }
 
         let result = self.get("me/following", None, &params).await?;
@@ -1057,7 +1048,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1095,17 +1086,18 @@ impl Spotify {
         offset: O,
         time_range: T,
     ) -> ClientResult<Page<FullArtist>> {
-        let result = self
-            .get(
-                &"me/top/artists",
-                None,
-                &json! ({
-                    "limit": limit.into().unwrap_or(20),
-                    "offset": offset.into().unwrap_or(0),
-                    "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(3);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert(
+            "time_range".to_owned(),
+            time_range
+                .into()
+                .unwrap_or(TimeRange::MediumTerm)
+                .as_str()
+                .to_owned(),
+        );
+        let result = self.get(&"me/top/artists", None, &params).await?;
         self.convert_result(&result)
     }
 
@@ -1126,17 +1118,18 @@ impl Spotify {
         offset: O,
         time_range: T,
     ) -> ClientResult<Page<FullTrack>> {
-        let result = self
-            .get(
-                "me/top/tracks",
-                None,
-                &json!({
-                    "limit": limit.into().unwrap_or(20),
-                    "offset": offset.into().unwrap_or(0),
-                    "time_range": time_range.into().unwrap_or(TimeRange::MediumTerm),
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(3);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        params.insert(
+            "time_range".to_owned(),
+            time_range
+                .into()
+                .unwrap_or(TimeRange::MediumTerm)
+                .as_str()
+                .to_owned(),
+        );
+        let result = self.get("me/top/tracks", None, &params).await?;
         self.convert_result(&result)
     }
 
@@ -1149,15 +1142,9 @@ impl Spotify {
         &self,
         limit: L,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
-        let result = self
-            .get(
-                "me/player/recently-played",
-                None,
-                &json!({
-                    "limit": limit.into().unwrap_or(50)
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(1);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        let result = self.get("me/player/recently-played", None, &params).await?;
         self.convert_result(&result)
     }
 
@@ -1210,7 +1197,7 @@ impl Spotify {
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1249,7 +1236,7 @@ impl Spotify {
             "me/following/contains?type=artist&ids={}",
             artsit_ids.join(",")
         );
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1302,18 +1289,17 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<FeaturedPlaylists> {
-        let mut params = json!({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(locale) = locale {
-            json_insert!(params, "locale", locale);
+            params.insert("locale".to_owned(), locale);
         }
         if let Some(country) = country {
-            json_insert!(params, "country", country.as_str());
+            params.insert("country".to_owned(), country.as_str().to_owned());
         }
         if let Some(timestamp) = timestamp {
-            json_insert!(params, "timestamp", timestamp.to_rfc3339());
+            params.insert("timestamp".to_owned(), timestamp.to_rfc3339());
         }
         let result = self.get("browse/featured-playlists", None, &params).await?;
         self.convert_result(&result)
@@ -1335,12 +1321,11 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<PageSimpliedAlbums> {
-        let mut params = json! ({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(country) = country {
-            json_insert!(params, "country", country);
+            params.insert("country".to_owned(), country.as_str().to_owned());
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
@@ -1367,15 +1352,14 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<PageCategory> {
-        let mut params = json!({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(locale) = locale {
-            json_insert!(params, "locale", locale);
+            params.insert("locale".to_owned(), locale);
         }
         if let Some(country) = country {
-            json_insert!(params, "country", country);
+            params.insert("country".to_owned(), country.as_str().to_owned());
         }
         let result = self.get("browse/categories", None, &params).await?;
         self.convert_result(&result)
@@ -1404,29 +1388,9 @@ impl Spotify {
         country: Option<Country>,
         payload: &Map<String, Value>,
     ) -> ClientResult<Recommendations> {
-        let mut params = json! ({
-            "limit": limit.into().unwrap_or(20),
-        });
-        if let Some(seed_artists) = seed_artists {
-            let seed_artists_ids = seed_artists
-                .iter()
-                .map(|id| self.get_id(Type::Artist, id))
-                .collect::<Vec<_>>();
-            json_insert!(params, "seed_artists", seed_artists_ids.join(","));
-        }
-        if let Some(seed_genres) = seed_genres {
-            json_insert!(params, "seed_genres", seed_genres.join(","));
-        }
-        if let Some(seed_tracks) = seed_tracks {
-            let seed_tracks_ids = seed_tracks
-                .iter()
-                .map(|id| self.get_id(Type::Track, id))
-                .collect::<Vec<_>>();
-            json_insert!(params, "seed_tracks", seed_tracks_ids.join(","));
-        }
-        if let Some(country) = country {
-            json_insert!(params, "market", country.as_str());
-        }
+        let mut params = Query::with_capacity(payload.len() + 1);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        // TODO: this probably can be improved.
         let attributes = [
             "acousticness",
             "danceability",
@@ -1448,9 +1412,32 @@ impl Spotify {
             for prefix in prefixes.iter() {
                 let param = format!("{}_{}", prefix, attribute);
                 if let Some(value) = payload.get(&param) {
-                    json_insert!(params, param, value);
+                    // TODO: not sure if this `to_string` is what we want. It
+                    // might add quotes to the strings.
+                    params.insert(param, value.to_string());
                 }
             }
+        }
+
+        if let Some(seed_artists) = seed_artists {
+            let seed_artists_ids = seed_artists
+                .iter()
+                .map(|id| self.get_id(Type::Artist, id))
+                .collect::<Vec<_>>();
+            params.insert("seed_artists".to_owned(), seed_artists_ids.join(","));
+        }
+        if let Some(seed_genres) = seed_genres {
+            params.insert("seed_genres".to_owned(), seed_genres.join(","));
+        }
+        if let Some(seed_tracks) = seed_tracks {
+            let seed_tracks_ids = seed_tracks
+                .iter()
+                .map(|id| self.get_id(Type::Track, id))
+                .collect::<Vec<_>>();
+            params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
+        }
+        if let Some(country) = country {
+            params.insert("market".to_owned(), country.as_str().to_owned());
         }
         let result = self.get("recommendations", None, &params).await?;
         self.convert_result(&result)
@@ -1463,7 +1450,7 @@ impl Spotify {
     pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1481,7 +1468,7 @@ impl Spotify {
             .collect();
         let url = format!("audio-features/?ids={}", ids.join(","));
 
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -1497,7 +1484,7 @@ impl Spotify {
     pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
-        let result = self.get(&url, None, &json!({})).await?;
+        let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1505,7 +1492,7 @@ impl Spotify {
     /// Get a User’s Available Devices
     #[maybe_async]
     pub async fn device(&self) -> ClientResult<DevicePayload> {
-        let result = self.get("me/player/devices", None, &json!({})).await?;
+        let result = self.get("me/player/devices", None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1520,19 +1507,18 @@ impl Spotify {
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlaybackContext>> {
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(market) = market {
-            json_insert!(params, "country", market);
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
         if let Some(additional_types) = additional_types {
-            json_insert!(
-                params,
-                "additional_types",
+            params.insert(
+                "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|&x| x.as_str().to_owned())
+                    .map(|x| x.as_str())
                     .collect::<Vec<_>>()
-                    .join(",")
+                    .join(","),
             );
         }
 
@@ -1555,19 +1541,18 @@ impl Spotify {
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(market) = market {
-            json_insert!(params, "country", market);
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
         if let Some(additional_types) = additional_types {
-            json_insert!(
-                params,
-                "additional_types",
+            params.insert(
+                "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|&x| x.as_str().to_owned())
+                    .map(|x| x.as_str())
                     .collect::<Vec<_>>()
-                    .join(",")
+                    .join(","),
             );
         }
 
@@ -1805,16 +1790,10 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<Show>> {
-        let result = self
-            .get(
-                "me/shows",
-                None,
-                &json! ({
-                    "limit": limit.into().unwrap_or(20),
-                    "offset": offset.into().unwrap_or(0)
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        let result = self.get("me/shows", None, &params).await?;
         self.convert_result(&result)
     }
 
@@ -1826,11 +1805,11 @@ impl Spotify {
     /// - market(Optional): An ISO 3166-1 alpha-2 country code.
     #[maybe_async]
     pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
-        let url = format!("shows/{}", id);
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(market) = market {
-            json_insert!(params, "country", market);
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
+        let url = format!("shows/{}", id);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -1846,11 +1825,11 @@ impl Spotify {
         ids: Vec<String>,
         market: Option<Country>,
     ) -> ClientResult<SeversalSimplifiedShows> {
-        let mut params = json! ({
-            "ids": ids.join(","),
-        });
+        // TODO: This can probably be better
+        let mut params = Query::with_capacity(1);
+        params.insert("ids".to_owned(), ids.join(","));
         if let Some(market) = market {
-            json_insert!(params, "country", market);
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
         let result = self.get("shows", None, &params).await?;
         self.convert_result(&result)
@@ -1871,14 +1850,13 @@ impl Spotify {
         offset: O,
         market: Option<Country>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
-        let url = format!("shows/{}/episodes", id);
-        let mut params = json! ({
-            "limit": limit.into().unwrap_or(20),
-            "offset": offset.into().unwrap_or(0),
-        });
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            json_insert!(params, "country", market);
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
+        let url = format!("shows/{}/episodes", id);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -1896,9 +1874,9 @@ impl Spotify {
         market: Option<Country>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id);
-        let mut params = json!({});
+        let mut params = Query::new();
         if let Some(market) = market {
-            json_insert!(params, "country", market);
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
 
         let result = self.get(&url, None, &params).await?;
@@ -1916,11 +1894,10 @@ impl Spotify {
         ids: Vec<String>,
         market: Option<Country>,
     ) -> ClientResult<SeveralEpisodes> {
-        let mut params = json!({
-            "ids": ids.join(","),
-        });
+        let mut params = Query::with_capacity(1);
+        params.insert("ids".to_owned(), ids.join(","));
         if let Some(market) = market {
-            json_insert!(params, "country", market.as_str());
+            params.insert("country".to_owned(), market.as_str().to_owned());
         }
         let result = self.get("episodes", None, &params).await?;
         self.convert_result(&result)
@@ -1932,15 +1909,9 @@ impl Spotify {
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     #[maybe_async]
     pub async fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
-        let result = self
-            .get(
-                "me/shows/contains",
-                None,
-                &json! ({
-                    "ids": ids.join(","),
-                }),
-            )
-            .await?;
+        let mut params = Query::with_capacity(1);
+        params.insert("ids".to_owned(), ids.join(","));
+        let result = self.get("me/shows/contains", None, &params).await?;
         self.convert_result(&result)
     }
 

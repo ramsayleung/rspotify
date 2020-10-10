@@ -1,7 +1,7 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 //! TODO
 
-use super::{headers, BaseClient, FormData, Headers};
+use super::{headers, BaseClient, Form, Headers, Query};
 use crate::client::{ClientError, ClientResult, Spotify};
 
 use maybe_async::sync_impl;
@@ -75,33 +75,18 @@ impl Spotify {
             _ => Some(payload),
         }
     }
-
-    // Converting a `Value` into a string properly. `Value::to_string` adds
-    // quotes because it also works with types like objects or arrays. This
-    // function shall panic if the type inside the value doesn't implement
-    // `ToString` (maps, arrays...).
-    fn value_string(&self, v: &Value) -> String {
-        match v {
-            Value::Bool(b) => b.to_string(),
-            Value::Number(n) => n.to_string(),
-            Value::String(s) => s.clone(),
-            _ => panic!("invalid type given to `value_string`"),
-        }
-    }
 }
 
 #[sync_impl]
 impl BaseClient for Spotify {
     #[inline]
-    fn get(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
+    fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> ClientResult<String> {
         self.request(
             &mut ureq::get(&self.endpoint_url(url)),
             headers,
             |mut req| {
-                if let Some(payload) = self.optional_payload(payload) {
-                    for (key, val) in payload.as_object().unwrap().iter() {
-                        req = req.query(&key, &self.value_string(val))
-                    }
+                for (key, val) in payload.iter() {
+                    req = req.query(&key, &val)
                 }
                 req.call()
             },
@@ -125,7 +110,7 @@ impl BaseClient for Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &FormData,
+        payload: &Form,
     ) -> ClientResult<String> {
         let payload = payload
             .iter()
