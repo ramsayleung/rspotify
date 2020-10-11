@@ -138,21 +138,21 @@ pub struct Spotify {
 // Endpoint-related methods for the client.
 impl Spotify {
     /// Returns the access token, or an error in case it's not configured.
-    pub (in crate) fn get_token(&self) -> ClientResult<&Token> {
+    pub(in crate) fn get_token(&self) -> ClientResult<&Token> {
         self.token
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no access token configured".to_string()))
     }
 
     /// Returns the credentials, or an error in case it's not configured.
-    pub (in crate) fn get_creds(&self) -> ClientResult<&Credentials> {
+    pub(in crate) fn get_creds(&self) -> ClientResult<&Credentials> {
         self.credentials
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no credentials configured".to_string()))
     }
 
     /// Returns the oauth information, or an error in case it's not configured.
-    pub (in crate) fn get_oauth(&self) -> ClientResult<&OAuth> {
+    pub(in crate) fn get_oauth(&self) -> ClientResult<&OAuth> {
         self.oauth
             .as_ref()
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
