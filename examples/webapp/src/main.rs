@@ -13,7 +13,7 @@ use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
-use rspotify::client::{Spotify, SpotifyBuilder};
+use rspotify::client::{ClientError, Spotify, SpotifyBuilder};
 
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::util;
@@ -102,21 +102,25 @@ fn index(mut cookies: Cookies) -> AppResponse {
     }
     let spotify = init_spotify(cookies);
     let mut context = HashMap::new();
-    match spotify.get_token() {
-        Ok(token) => token,
-        Err(_) => {
+    match spotify.me() {
+        Ok(user_info) => {
+            context.insert(
+                "display_name",
+                user_info.display_name.unwrap_or(String::from("Dear")),
+            );
+            AppResponse::Template(Template::render("index", context.clone()))
+        }
+        Err(ClientError::InvalidAuth(_)) => {
             let auth_url = spotify.get_authorize_url(true).unwrap();
             context.insert("auth_url", auth_url);
-            return AppResponse::Template(Template::render("authorize", context));
+            AppResponse::Template(Template::render("authorize", context))
         }
-    };
-    let me = spotify.me();
-    println!("me: {:?}", me);
-    context.insert(
-        "display_name",
-        me.unwrap().display_name.unwrap_or(String::from("Dear")),
-    );
-    AppResponse::Template(Template::render("index", context.clone()))
+        Err(_) => {
+            let mut context = HashMap::new();
+            context.insert("err_msg", "Failed for unknown reason!");
+            AppResponse::Template(Template::render("error", context))
+        }
+    }
 }
 
 #[get("/sign_out")]
@@ -128,21 +132,19 @@ fn sign_out(cookies: Cookies) -> AppResponse {
 #[get("/playlists")]
 fn playlist(cookies: Cookies) -> AppResponse {
     let spotify = init_spotify(cookies);
-    if spotify.get_token().is_err() {
-        return AppResponse::Redirect(Redirect::to("/"));
+    match spotify.current_user_playlists(Some(20), Some(0)) {
+        Ok(playlists) => AppResponse::Json(json!(playlists)),
+        Err(_) => AppResponse::Redirect(Redirect::to("/")),
     }
-    let playlists = spotify.current_user_playlists(Some(20), Some(0)).unwrap();
-    AppResponse::Json(json!(playlists))
 }
 
 #[get("/me")]
 fn me(cookies: Cookies) -> AppResponse {
     let spotify = init_spotify(cookies);
-    if spotify.get_token().is_err() {
-        return AppResponse::Redirect(Redirect::to("/"));
+    match spotify.me() {
+        Ok(user_info) => AppResponse::Json(json!(user_info)),
+        Err(_) => AppResponse::Redirect(Redirect::to("/")),
     }
-    let user_info = spotify.me().unwrap();
-    AppResponse::Json(json!(user_info))
 }
 
 fn main() {
