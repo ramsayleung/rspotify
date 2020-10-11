@@ -34,7 +34,7 @@ const CACHE_PATH: &str = ".spotify_cache/";
 
 fn cache_path(cookies: Cookies) -> PathBuf {
     let project_dir_path = env::current_dir().unwrap();
-    let mut cache_path = PathBuf::from(project_dir_path);
+    let mut cache_path = project_dir_path;
     cache_path.push(CACHE_PATH);
     let cache_dir = cache_path.display().to_string();
     cache_path.push(cookies.get("uuid").unwrap().value());
@@ -45,9 +45,9 @@ fn cache_path(cookies: Cookies) -> PathBuf {
     cache_path
 }
 
-fn remove_cache_path(mut cookies: Cookies) -> () {
+fn remove_cache_path(mut cookies: Cookies) {
     let project_dir_path = env::current_dir().unwrap();
-    let mut cache_path = PathBuf::from(project_dir_path);
+    let mut cache_path = project_dir_path;
     cache_path.push(CACHE_PATH);
     let cache_dir = cache_path.display().to_string();
     if Path::new(cache_dir.as_str()).exists() {
@@ -73,8 +73,8 @@ fn init_spotify(cookies: Cookies) -> Spotify {
         .unwrap();
 
     SpotifyBuilder::default()
-        .credentials(creds.clone())
-        .oauth(oauth.clone())
+        .credentials(creds)
+        .oauth(oauth)
         .cache_path(cache_path(cookies))
         .build()
         .unwrap()
@@ -97,7 +97,7 @@ fn callback(cookies: Cookies, code: String) -> AppResponse {
 #[get("/")]
 fn index(mut cookies: Cookies) -> AppResponse {
     let cookie = cookies.get("uuid");
-    if let None = cookie {
+    if cookie.is_none() {
         cookies.add(Cookie::new("uuid", util::generate_random_string(64)));
     }
     let spotify = init_spotify(cookies);
@@ -106,7 +106,7 @@ fn index(mut cookies: Cookies) -> AppResponse {
         Ok(user_info) => {
             context.insert(
                 "display_name",
-                user_info.display_name.unwrap_or(String::from("Dear")),
+                user_info.display_name.unwrap_or_else(||String::from("Dear")),
             );
             AppResponse::Template(Template::render("index", context.clone()))
         }
