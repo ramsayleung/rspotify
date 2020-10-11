@@ -58,7 +58,7 @@ pub enum ClientError {
     StatusCode(u16, String),
 
     #[error("spotify error: {0}")]
-    Api(#[from] ApiError),
+    API(#[from] APIError),
 
     #[error("json parse error: {0}")]
     ParseJSON(#[from] serde_json::Error),
@@ -82,7 +82,7 @@ pub type ClientResult<T> = Result<T, ClientError>;
 /// Matches errors that are returned from the Spotfiy
 /// API as part of the JSON response object.
 #[derive(Debug, Error, Deserialize)]
-pub enum ApiError {
+pub enum APIError {
     /// See https://developer.spotify.com/documentation/web-api/reference/object-model/#error-object
     #[error("{status}: {message}")]
     #[serde(alias = "error")]

@@ -8,7 +8,7 @@ use serde_json::Value;
 use std::convert::TryInto;
 
 use super::{headers, BaseClient, Form, Headers, Query};
-use crate::client::{ApiError, ClientError, ClientResult, Spotify};
+use crate::client::{APIError, ClientError, ClientResult, Spotify};
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -22,7 +22,7 @@ impl ClientError {
                     .and_then(|duration| duration.parse().ok()),
             ),
             status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => response
-                .json::<ApiError>()
+                .json::<APIError>()
                 .await
                 .map(Into::into)
                 .unwrap_or_else(|_| status.into()),
