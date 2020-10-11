@@ -10,6 +10,9 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
 #[tokio::main]
 async fn main() {
+    // You can use any logger for debugging.
+    env_logger::init();
+
     // The credentials must be available in the environment. Enable
     // `env-file` in order to read them from an `.env` file.
     let creds = CredentialsBuilder::from_env().build().unwrap();
