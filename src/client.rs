@@ -113,7 +113,7 @@ pub struct Spotify {
     #[builder(setter(strip_option), default)]
     pub token: Option<Token>,
 
-    /// The credentials needed for obtaining a new access token, for requests
+    /// The credentials needed for obtaining a new access token, for requests.
     /// without OAuth authentication.
     #[builder(setter(strip_option), default)]
     pub credentials: Option<Credentials>,
@@ -203,9 +203,10 @@ impl Spotify {
         _id.to_owned()
     }
 
-    /// Parse the response code in the given response url
+    /// Parse the response code in the given response url.
     ///
-    /// Step 2 of the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
+    /// Step 2 of the [Authorization Code Flow
+    /// ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
     ///
     /// TODO: this might be better off with an implementation from a separate
     /// library.
@@ -229,10 +230,12 @@ impl Spotify {
         new_path
     }
 
-    /// [get-track](https://developer.spotify.com/web-api/get-track/)
-    /// returns a single track given the track's ID, URI or URL
+    /// Returns a single track given the track's ID, URI or URL.
+    ///
     /// Parameters:
     /// - track_id - a spotify URI, URL or ID
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-track/)
     #[maybe_async]
     pub async fn track(&self, track_id: &str) -> ClientResult<FullTrack> {
         let trid = self.get_id(Type::Track, track_id);
@@ -241,11 +244,13 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get-several-tracks](https://developer.spotify.com/web-api/get-several-tracks/)
-    /// returns a list of tracks given a list of track IDs, URIs, or URLs
+    /// Returns a list of tracks given a list of track IDs, URIs, or URLs.
+    ///
     /// Parameters:
     /// - track_ids - a list of spotify URIs, URLs or IDs
     /// - market - an ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
     #[maybe_async]
     pub async fn tracks(
         &self,
@@ -268,10 +273,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get-artist](https://developer.spotify.com/web-api/get-artist/)
-    /// returns a single artist given the artist's ID, URI or URL
+    /// Returns a single artist given the artist's ID, URI or URL.
+    ///
     /// Parameters:
     /// - artist_id - an artist ID, URI or URL
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-artist/)
     #[maybe_async]
     pub async fn artist(&self, artist_id: &str) -> ClientResult<FullArtist> {
         let trid = self.get_id(Type::Artist, artist_id);
@@ -280,10 +287,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get-several-artists](https://developer.spotify.com/web-api/get-several-artists/)
-    /// returns a list of artists given the artist IDs, URIs, or URLs
+    /// Returns a list of artists given the artist IDs, URIs, or URLs.
+    ///
     /// Parameters:
-    /// - artist_ids - a list of  artist IDs, URIs or URLs
+    /// - artist_ids - a list of artist IDs, URIs or URLs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-several-artists/)
     #[maybe_async]
     pub async fn artists(&self, artist_ids: Vec<String>) -> ClientResult<FullArtists> {
         let mut ids: Vec<String> = vec![];
@@ -295,13 +304,16 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get-artists-albums](https://developer.spotify.com/web-api/get-artists-albums/)
-    /// Get Spotify catalog information about an artist's albums
+    /// Get Spotify catalog information about an artist's albums.
+    ///
+    /// Parameters:
     /// - artist_id - the artist ID, URI or URL
     /// - album_type - 'album', 'single', 'appears_on', 'compilation'
     /// - country - limit the response to one particular country.
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-artists-albums/)
     #[maybe_async]
     pub async fn artist_albums(
         &self,
@@ -330,11 +342,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get artists to tracks](https://developer.spotify.com/web-api/get-artists-top-tracks/)
-    /// Get Spotify catalog information about an artist's top 10 tracks by country.
+    /// Get Spotify catalog information about an artist's top 10 tracks by
+    /// country.
+    ///
     /// Parameters:
-    ///        - artist_id - the artist ID, URI or URL
-    ///        - country - limit the response to one particular country.
+    /// - artist_id - the artist ID, URI or URL
+    /// - country - limit the response to one particular country.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-artists-top-tracks/)
     #[maybe_async]
     pub async fn artist_top_tracks<T: Into<Option<Country>>>(
         &self,
@@ -357,12 +372,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get related artists](https://developer.spotify.com/web-api/get-related-artists/)
-    /// Get Spotify catalog information about artists similar to an
-    /// identified artist. Similarity is based on analysis of the
-    /// Spotify community's listening history.
+    /// Get Spotify catalog information about artists similar to an identified
+    /// artist. Similarity is based on analysis of the Spotify community's
+    /// listening history.
+    ///
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-related-artists/)
     #[maybe_async]
     pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
         let trid = self.get_id(Type::Artist, artist_id);
@@ -371,10 +388,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get album](https://developer.spotify.com/web-api/get-album/)
-    /// returns a single album given the album's ID, URIs or URL
+    /// Returns a single album given the album's ID, URIs or URL.
+    ///
     /// Parameters:
     /// - album_id - the album ID, URI or URL
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-album/)
     #[maybe_async]
     pub async fn album(&self, album_id: &str) -> ClientResult<FullAlbum> {
         let trid = self.get_id(Type::Album, album_id);
@@ -384,10 +403,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get several albums](https://developer.spotify.com/web-api/get-several-albums/)
-    /// returns a list of albums given the album IDs, URIs, or URLs
+    /// Returns a list of albums given the album IDs, URIs, or URLs.
+    ///
     /// Parameters:
-    /// - albums_ids - a list of  album IDs, URIs or URLs
+    /// - albums_ids - a list of album IDs, URIs or URLs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-several-albums/)
     #[maybe_async]
     pub async fn albums(&self, album_ids: Vec<String>) -> ClientResult<FullAlbums> {
         let mut ids: Vec<String> = vec![];
@@ -399,10 +420,9 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [search for items](https://developer.spotify.com/web-api/search-item/)
-    /// Search for an Item
-    /// Get Spotify catalog information about artists, albums, tracks or
-    /// playlists that match a keyword string.
+    /// Search for an Item. Get Spotify catalog information about artists,
+    /// albums, tracks or playlists that match a keyword string.
+    ///
     /// Parameters:
     /// - q - the search query
     /// - limit  - the number of items to return
@@ -410,7 +430,11 @@ impl Spotify {
     /// - type - the type of item to return. One of 'artist', 'album', 'track',
     ///  'playlist', 'show' or 'episode'
     /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
-    /// - include_external: Optional.Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally.  
+    /// - include_external: Optional.Possible values: audio. If
+    ///   include_external=audio is specified the response will include any
+    ///   relevant audio content that is hosted externally.  
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/search-item/)
     #[maybe_async]
     pub async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -440,12 +464,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get albums tracks](https://developer.spotify.com/web-api/get-albums-tracks/)
-    /// Get Spotify catalog information about an album's tracks
+    /// Get Spotify catalog information about an album's tracks.
+    ///
     /// Parameters:
     /// - album_id - the album ID, URI or URL
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-albums-tracks/)
     #[maybe_async]
     pub async fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -462,10 +488,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    ///[get users profile](https://developer.spotify.com/web-api/get-users-profile/)
-    ///Gets basic profile information about a Spotify User
-    ///Parameters:
-    ///- user - the id of the usr
+    /// Gets basic profile information about a Spotify User.
+    ///
+    /// Parameters:
+    /// - user - the id of the usr
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-users-profile/)
     #[maybe_async]
     pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id);
@@ -473,11 +501,13 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get playlist](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
-    /// Get full details about Spotify playlist
+    /// Get full details about Spotify playlist.
+    ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
     /// - market - an ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
     #[maybe_async]
     pub async fn playlist(
         &self,
@@ -499,11 +529,13 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get users playlists](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
-    /// Get current user playlists without required getting his profile
+    /// Get current user playlists without required getting his profile.
+    ///
     /// Parameters:
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
     #[maybe_async]
     pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -518,12 +550,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
-    /// Gets playlists of a user
+    /// Gets playlists of a user.
+    ///
     /// Parameters:
     /// - user_id - the id of the usr
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-list-users-playlists/)
     #[maybe_async]
     pub async fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -539,12 +573,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get list users playlists](https://developer.spotify.com/web-api/get-list-users-playlists/)
-    /// Gets playlist of a user
+    /// Gets playlist of a user.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - fields - which fields to return
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-list-users-playlists/)
     #[maybe_async]
     pub async fn user_playlist(
         &self,
@@ -575,8 +611,8 @@ impl Spotify {
         }
     }
 
-    /// [get playlists tracks](https://developer.spotify.com/web-api/get-playlists-tracks/)
-    /// Get full details of the tracks of a playlist owned by a user
+    /// Get full details of the tracks of a playlist owned by a user.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
@@ -584,6 +620,8 @@ impl Spotify {
     /// - limit - the maximum number of tracks to return
     /// - offset - the index of the first track to return
     /// - market - an ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-playlists-tracks/)
     #[maybe_async]
     pub async fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -609,13 +647,15 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [create playlist](https://developer.spotify.com/web-api/create-playlist/)
-    /// Creates a playlist for a user
+    /// Creates a playlist for a user.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - name - the name of the playlist
     /// - public - is the created playlist public
     /// - description - the description of the playlist
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/create-playlist/)
     #[maybe_async]
     pub async fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
         &self,
@@ -636,8 +676,8 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [change playlists details](https://developer.spotify.com/web-api/change-playlist-details/)
-    /// Changes a playlist's name and/or public/private state
+    /// Changes a playlist's name and/or public/private state.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
@@ -645,6 +685,8 @@ impl Spotify {
     /// - public - optional is the playlist public
     /// - collaborative - optional is the playlist collaborative
     /// - description - optional description of the playlist
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/change-playlist-details/)
     #[maybe_async]
     pub async fn user_playlist_change_detail(
         &self,
@@ -672,11 +714,13 @@ impl Spotify {
         self.put(&url, None, &params).await
     }
 
-    /// [unfollow playlist](https://developer.spotify.com/web-api/unfollow-playlist/)
-    /// Unfollows (deletes) a playlist for a user
+    /// Unfollows (deletes) a playlist for a user.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/unfollow-playlist/)
     #[maybe_async]
     pub async fn user_playlist_unfollow(
         &self,
@@ -687,13 +731,15 @@ impl Spotify {
         self.delete(&url, None, &json!({})).await
     }
 
-    /// [add tracks to playlist](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
-    /// Adds tracks to a playlist
+    /// Adds tracks to a playlist.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
     /// - position - the position to add the tracks
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
     #[maybe_async]
     pub async fn user_playlist_add_tracks(
         &self,
@@ -715,12 +761,15 @@ impl Spotify {
         let result = self.post(&url, None, &params).await?;
         self.convert_result(&result)
     }
-    ///[replaced playlists tracks](https://developer.spotify.com/web-api/replace-playlists-tracks/)
-    ///Replace all tracks in a playlist
-    ///Parameters:
-    ///- user - the id of the user
-    ///- playlist_id - the id of the playlist
-    ///- tracks - the list of track ids to add to the playlist
+
+    /// Replace all tracks in a playlist
+    ///
+    /// Parameters:
+    /// - user - the id of the user
+    /// - playlist_id - the id of the playlist
+    /// - tracks - the list of track ids to add to the playlist
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     #[maybe_async]
     pub async fn user_playlist_replace_tracks(
         &self,
@@ -742,8 +791,8 @@ impl Spotify {
         Ok(())
     }
 
-    /// [reorder playlists tracks](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
-    /// Reorder tracks in a playlist
+    /// Reorder tracks in a playlist.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
@@ -751,6 +800,8 @@ impl Spotify {
     /// - range_length - optional the number of tracks to be reordered (default: 1)
     /// - insert_before - the position where the tracks should be inserted
     /// - snapshot_id - optional playlist's snapshot ID
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
     #[maybe_async]
     pub async fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
         &self,
@@ -776,13 +827,15 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
-    /// Removes all occurrences of the given tracks from the given playlist
+    /// Removes all occurrences of the given tracks from the given playlist.
+    ///
     /// Parameters:
     /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - track_ids - the list of track ids to add to the playlist
     /// - snapshot_id - optional id of the playlist snapshot
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
     pub async fn user_playlist_remove_all_occurrences_of_tracks(
         &self,
@@ -813,8 +866,8 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [remove tracks playlist](https://developer.spotify.com/web-api/remove-tracks-playlist/)
-    /// Removes specfic occurrences of the given tracks from the given playlist
+    /// Removes specfic occurrences of the given tracks from the given playlist.
+    ///
     /// Parameters:
     /// - user_id: the id of the user
     /// - playlist_id: the id of the playlist
@@ -841,6 +894,8 @@ impl Spotify {
     /// }
     /// ```
     /// - snapshot_id: optional id of the playlist snapshot
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
     pub async fn user_playlist_remove_specific_occurrences_of_tracks(
         &self,
@@ -873,11 +928,13 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [follow playlist](https://developer.spotify.com/web-api/follow-playlist/)
     /// Add the current authenticated user as a follower of a playlist.
+    ///
     /// Parameters:
     /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/follow-playlist/)
     #[maybe_async]
     pub async fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
         &self,
@@ -902,13 +959,15 @@ impl Spotify {
         Ok(())
     }
 
-    /// [check user following playlist](https://developer.spotify.com/web-api/check-user-following-playlist/)
-    /// Check to see if the given users are following the given playlist
+    /// Check to see if the given users are following the given playlist.
+    ///
     /// Parameters:
     /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
     /// - user_ids - the ids of the users that you want to
     /// check to see if they follow the playlist. Maximum: 5 ids.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/check-user-following-playlist/)
     #[maybe_async]
     pub async fn user_playlist_check_follow(
         &self,
@@ -928,9 +987,11 @@ impl Spotify {
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
-    /// [get current users profile](https://developer.spotify.com/web-api/get-current-users-profile/)
+
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-current-users-profile/)
     #[maybe_async]
     pub async fn me(&self) -> ClientResult<PrivateUser> {
         let result = self.get("me/", None, &Query::new()).await?;
@@ -939,13 +1000,16 @@ impl Spotify {
 
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-current-users-profile/)
     #[maybe_async]
     pub async fn current_user(&self) -> ClientResult<PrivateUser> {
         self.me().await
     }
 
-    ///  [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
-    ///  Get information about the current users currently playing track.
+    /// Get information about the current users currently playing track.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     #[maybe_async]
     pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
         let result = self
@@ -958,13 +1022,15 @@ impl Spotify {
         }
     }
 
-    /// [get user saved albums](https://developer.spotify.com/web-api/get-users-saved-albums/)
     /// Gets a list of the albums saved in the current authorized user's
     /// "Your Music" library
+    ///
     /// Parameters:
     /// - limit - the number of albums to return
     /// - offset - the index of the first album to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-albums/)
     #[maybe_async]
     pub async fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -977,11 +1043,16 @@ impl Spotify {
         let result = self.get("me/albums", None, &params).await?;
         self.convert_result(&result)
     }
-    ///[get users saved tracks](https://developer.spotify.com/web-api/get-users-saved-tracks/)
-    ///Parameters:
-    ///- limit - the number of tracks to return
-    ///- offset - the index of the first track to return
-    ///- market - Provide this parameter if you want to apply Track Relinking.
+
+    /// Get a list of the songs saved in the current Spotify user's "Your Music"
+    /// library.
+    ///
+    /// Parameters:
+    /// - limit - the number of tracks to return
+    /// - offset - the index of the first track to return
+    /// - market - Provide this parameter if you want to apply Track Relinking.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     #[maybe_async]
     pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -994,11 +1065,15 @@ impl Spotify {
         let result = self.get("me/tracks", None, &params).await?;
         self.convert_result(&result)
     }
-    ///[get followed artists](https://developer.spotify.com/web-api/get-followed-artists/)
-    ///Gets a list of the artists followed by the current authorized user
-    ///Parameters:
-    ///- limit - the number of tracks to return
-    ///- after - ghe last artist ID retrieved from the previous request
+
+    /// Gets a list of the artists followed by the current authorized user.
+    ///
+    /// Parameters:
+    /// - limit - the number of tracks to return
+    /// - after - the last artist ID retrieved from the previous request
+    ///
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-followed-artists/)
     #[maybe_async]
     pub async fn current_user_followed_artists<L: Into<Option<u32>>>(
         &self,
@@ -1016,11 +1091,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [remove tracks users](https://developer.spotify.com/web-api/remove-tracks-user/)
-    /// Remove one or more tracks from the current user's
-    /// "Your Music" library.
+    /// Remove one or more tracks from the current user's "Your Music" library.
+    ///
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/remove-tracks-user/)
     #[maybe_async]
     pub async fn current_user_saved_tracks_delete(&self, track_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
@@ -1033,11 +1109,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [check users saved tracks](https://developer.spotify.com/web-api/check-users-saved-tracks/)
-    /// Check if one or more tracks is already saved in
-    /// the current Spotify user’s “Your Music” library.
+    /// Check if one or more tracks is already saved in the current Spotify
+    /// user’s "Your Music" library.
+    ///
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/check-users-saved-tracks/)
     #[maybe_async]
     pub async fn current_user_saved_tracks_contains(
         &self,
@@ -1052,11 +1130,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [save tracks user ](https://developer.spotify.com/web-api/save-tracks-user/)
-    /// Save one or more tracks to the current user's
-    /// "Your Music" library.
+    /// Save one or more tracks to the current user's "Your Music" library.
+    ///
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/save-tracks-user/)
     #[maybe_async]
     pub async fn current_user_saved_tracks_add(&self, track_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
@@ -1069,12 +1148,14 @@ impl Spotify {
         Ok(())
     }
 
-    /// [get users  top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
-    /// Get the current user's top artists
+    /// Get the current user's top artists.
+    ///
     /// Parameters:
     /// - limit - the number of entities to return
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
     #[maybe_async]
     pub async fn current_user_top_artists<
         L: Into<Option<u32>>,
@@ -1101,12 +1182,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get users top artists and tracks](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
-    /// Get the current user's top tracks
+    /// Get the current user's top tracks.
+    ///
     /// Parameters:
     /// - limit - the number of entities to return
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
     #[maybe_async]
     pub async fn current_user_top_tracks<
         L: Into<Option<u32>>,
@@ -1133,10 +1216,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get recently played](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
-    /// Get the current user's recently played tracks
+    /// Get the current user's recently played tracks.
+    ///
     /// Parameters:
     /// - limit - the number of entities to return
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
     #[maybe_async]
     pub async fn current_user_recently_played<L: Into<Option<u32>>>(
         &self,
@@ -1148,11 +1233,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [save albums user](https://developer.spotify.com/web-api/save-albums-user/)
-    /// Add one or more albums to the current user's
-    /// "Your Music" library.
+    /// Add one or more albums to the current user's "Your Music" library.
+    ///
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/save-albums-user/)
     #[maybe_async]
     pub async fn current_user_saved_albums_add(&self, album_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
@@ -1165,11 +1251,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [remove albums user](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
-    /// Remove one or more albums from the current user's
-    /// "Your Music" library.
+    /// Remove one or more albums from the current user's "Your Music" library.
+    ///
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
     #[maybe_async]
     pub async fn current_user_saved_albums_delete(&self, album_ids: &[String]) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
@@ -1182,11 +1269,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [check users saved albums](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-albums/)
-    /// Check if one or more albums is already saved in
-    /// the current Spotify user’s “Your Music” library.
+    /// Check if one or more albums is already saved in the current Spotify
+    /// user’s "Your Music” library.
+    ///
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-albums/)
     #[maybe_async]
     pub async fn current_user_saved_albums_contains(
         &self,
@@ -1201,10 +1290,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
-    /// Follow one or more artists
+    /// Follow one or more artists.
+    ///
     /// Parameters:
     /// - artist_ids - a list of artist IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/follow-artists-users/)
     #[maybe_async]
     pub async fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
@@ -1213,10 +1304,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
-    /// Unfollow one or more artists
+    /// Unfollow one or more artists.
+    ///
     /// Parameters:
     /// - artist_ids - a list of artist IDs
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
     #[maybe_async]
     pub async fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
@@ -1225,11 +1318,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [check user following
-    /// artists](https://developer.spotify.com/web-api/checkcurrent-user-follows/)
-    /// Check to see if the given users are following the given artists
+    /// Check to see if the current user is following one or more artists or
+    /// other Spotify users.
+    ///
     /// Parameters:
     /// - artist_ids - the ids of the users that you want to
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/check-current-user-follows/)
     #[maybe_async]
     pub async fn user_artist_check_follow(&self, artsit_ids: &[String]) -> ClientResult<Vec<bool>> {
         let url = format!(
@@ -1240,10 +1335,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [follow artists users](https://developer.spotify.com/web-api/follow-artists-users/)
-    /// Follow one or more users
+    /// Follow one or more users.
+    ///
     /// Parameters:
     /// - user_ids - a list of artist IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/follow-artists-users/)
     #[maybe_async]
     pub async fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
@@ -1252,10 +1349,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [unfollow artists users](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
-    /// Unfollow one or more users
+    /// Unfollow one or more users.
+    ///
     /// Parameters:
     /// - user_ids - a list of artist IDs
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
     #[maybe_async]
     pub async fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", user_ids.join(","));
@@ -1264,22 +1363,23 @@ impl Spotify {
         Ok(())
     }
 
-    /// [get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
-    /// Get a list of Spotify featured playlists
+    /// Get a list of Spotify featured playlists.
+    ///
     /// Parameters:
-    /// - locale - The desired language, consisting of a lowercase ISO
-    /// 639 language code and an uppercase ISO 3166-1 alpha-2 country
-    /// code, joined by an underscore.
+    /// - locale - The desired language, consisting of a lowercase ISO 639
+    ///   language code and an uppercase ISO 3166-1 alpha-2 country code,
+    ///   joined by an underscore.
     /// - country - An ISO 3166-1 alpha-2 country code.
-    /// - timestamp - A timestamp in ISO 8601 format:
-    /// yyyy-MM-ddTHH:mm:ss. Use this parameter to specify the user's
-    /// local time to get results tailored for that specific date and
-    /// time in the day
+    /// - timestamp - A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use
+    ///   this parameter to specify the user's local time to get results
+    ///   tailored for that specific date and time in the day
     /// - limit - The maximum number of items to return. Default: 20.
-    /// Minimum: 1. Maximum: 50
+    ///   Minimum: 1. Maximum: 50
     /// - offset - The index of the first item to return. Default: 0
-    /// (the first object). Use with limit to get the next set of
-    /// items.
+    ///   (the first object). Use with limit to get the next set of
+    ///   items.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-list-featured-playlists/)
     #[maybe_async]
     pub async fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1305,15 +1405,16 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
-    /// Get a list of new album releases featured in Spotify
+    /// Get a list of new album releases featured in Spotify.
+    ///
     /// Parameters:
     /// - country - An ISO 3166-1 alpha-2 country code.
     /// - limit - The maximum number of items to return. Default: 20.
-    /// Minimum: 1. Maximum: 50
-    /// - offset - The index of the first item to return. Default: 0
-    /// (the first object). Use with limit to get the next set of
-    /// items.
+    ///   Minimum: 1. Maximum: 50
+    /// - offset - The index of the first item to return. Default: 0 (the first
+    ///   object). Use with limit to get the next set of items.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-list-new-releases/)
     #[maybe_async]
     pub async fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1332,18 +1433,18 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get list categories](https://developer.spotify.com/web-api/get-list-categories/)
     /// Get a list of new album releases featured in Spotify
+    ///
     /// Parameters:
     /// - country - An ISO 3166-1 alpha-2 country code.
-    /// - locale - The desired language, consisting of an ISO 639
-    /// language code and an ISO 3166-1 alpha-2 country code, joined
-    /// by an underscore.
+    /// - locale - The desired language, consisting of an ISO 639 language code
+    ///   and an ISO 3166-1 alpha-2 country code, joined by an underscore.
     /// - limit - The maximum number of items to return. Default: 20.
-    /// Minimum: 1. Maximum: 50
-    /// - offset - The index of the first item to return. Default: 0
-    /// (the first object). Use with limit to get the next set of
-    /// items.
+    ///   Minimum: 1. Maximum: 50
+    /// - offset - The index of the first item to return. Default: 0 (the first
+    ///   object). Use with limit to get the next set of items.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-list-categories/)
     #[maybe_async]
     pub async fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1365,8 +1466,8 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get recommendtions](https://developer.spotify.com/web-api/get-recommendations/)
     /// Get Recommendations Based on Seeds
+    ///
     /// Parameters:
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
@@ -1378,6 +1479,8 @@ impl Spotify {
     /// - min/max/target_<attribute> - For the tuneable track attributes listed
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-recommendations/)
     #[maybe_async]
     pub async fn recommendations<L: Into<Option<u32>>>(
         &self,
@@ -1443,9 +1546,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get audio features](https://developer.spotify.com/web-api/get-audio-features/)
     /// Get audio features for a track
+    ///
+    /// Parameters:
     /// - track - track URI, URL or ID
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-audio-features/)
     #[maybe_async]
     pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
@@ -1454,9 +1560,12 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get several audio features](https://developer.spotify.com/web-api/get-several-audio-features/)
     /// Get Audio Features for Several Tracks
+    ///
+    /// Parameters:
     /// - tracks a list of track URIs, URLs or IDs
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-several-audio-features/)
     #[maybe_async]
     pub async fn audios_features(
         &self,
@@ -1476,10 +1585,12 @@ impl Spotify {
         }
     }
 
-    /// [get audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
     /// Get Audio Analysis for a Track
+    ///
     /// Parameters:
     /// - track_id - a track URI, URL or ID
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
     #[maybe_async]
     pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
@@ -1488,19 +1599,24 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// [get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     /// Get a User’s Available Devices
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     #[maybe_async]
     pub async fn device(&self) -> ClientResult<DevicePayload> {
         let result = self.get("me/player/devices", None, &Query::new()).await?;
         self.convert_result(&result)
     }
 
-    /// [get informatation about the users  current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
     /// Get Information About The User’s Current Playback
+    ///
     /// Parameters:
     /// - market: Optional. an ISO 3166-1 alpha-2 country code.
-    /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
+    /// - additional_types: Optional. A comma-separated list of item types that
+    ///   your client supports besides the default track type. Valid types are:
+    ///   `track` and `episode`.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
     #[maybe_async]
     pub async fn current_playback(
         &self,
@@ -1530,11 +1646,15 @@ impl Spotify {
         }
     }
 
-    /// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     /// Get the User’s Currently Playing Track
+    ///
     /// Parameters:
     /// - market: Optional. an ISO 3166-1 alpha-2 country code.
-    /// - additional_types: Optional. A comma-separated list of item types that your client supports besides the default track type. Valid types are: `track` and `episode`.
+    /// - additional_types: Optional. A comma-separated list of item types that
+    ///   your client supports besides the default track type. Valid types are:
+    ///   `track` and `episode`.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     #[maybe_async]
     pub async fn current_playing(
         &self,
@@ -1566,14 +1686,17 @@ impl Spotify {
         }
     }
 
-    /// [transfer a users playback](https://developer.spotify.com/web-api/transfer-a-users-playback/)
-    /// Transfer a User’s Playback
-    /// Note: Although an array is accepted, only a single device_id is currently
-    /// supported. Supplying more than one will return 400 Bad Request
+    /// Transfer a User’s Playback.
+    ///
+    /// Note: Although an array is accepted, only a single device_id is
+    /// currently supported. Supplying more than one will return 400 Bad Request
+    ///
     /// Parameters:
     /// - device_id - transfer playback to this device
     /// - force_play - true: after transfer, play. false:
-    /// keep current state.
+    ///   keep current state.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/transfer-a-users-playback/)
     #[maybe_async]
     pub async fn transfer_playback<T: Into<Option<bool>>>(
         &self,
@@ -1593,16 +1716,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [start a users playback](https://developer.spotify.com/web-api/start-a-users-playback/)
-    /// Start/Resume a User’s Playback
-    /// Provide a `context_uri` to start playback or a album,
-    /// artist, or playlist.
+    /// Start/Resume a User’s Playback.
     ///
-    /// Provide a `uris` list to start playback of one or more
-    /// tracks.
-    ///
-    /// Provide `offset` as {"position": <int>} or {"uri": "<track uri>"}
-    /// to start playback at a particular offset.
+    /// Provide a `context_uri` to start playback or a album, artist, or
+    /// playlist. Provide a `uris` list to start playback of one or more tracks.
+    /// Provide `offset` as {"position": <int>} or {"uri": "<track uri>"} to
+    /// start playback at a particular offset.
     ///
     /// Parameters:
     /// - device_id - device target for playback
@@ -1610,6 +1729,8 @@ impl Spotify {
     /// - uris - spotify track uris
     /// - offset - offset into context by index or track
     /// - position_ms - Indicates from what position to start playback.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/start-a-users-playback/)
     #[maybe_async]
     pub async fn start_playback(
         &self,
@@ -1645,10 +1766,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [pause a users playback](https://developer.spotify.com/web-api/pause-a-users-playback/)
-    /// Pause a User’s Playback
+    /// Pause a User’s Playback.
+    ///
     /// Parameters:
     /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/pause-a-users-playback/)
     #[maybe_async]
     pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
@@ -1657,10 +1780,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [skip users playback to the next track](https://developer.spotify.com/web-api/skip-users-playback-to-next-track/)
-    /// Skip User’s Playback To Next Track
+    /// Skip User’s Playback To Next Track.
+    ///
     /// Parameters:
     /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/skip-users-playback-to-next-track/)
     #[maybe_async]
     pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
@@ -1669,10 +1794,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [skip users playback to previous track](https://developer.spotify.com/web-api/skip-users-playback-to-previous-track/)
-    /// Skip User’s Playback To Previous Track
+    /// Skip User’s Playback To Previous Track.
+    ///
     /// Parameters:
     /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/skip-users-playback-to-previous-track/)
     #[maybe_async]
     pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
@@ -1681,11 +1808,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [seek-to-position-in-currently-playing-track/](https://developer.spotify.com/web-api/seek-to-position-in-currently-playing-track/)
-    /// Seek To Position In Currently Playing Track
+    /// Seek To Position In Currently Playing Track.
+    ///
     /// Parameters:
     /// - position_ms - position in milliseconds to seek to
     /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/seek-to-position-in-currently-playing-track/)
     #[maybe_async]
     pub async fn seek_track(
         &self,
@@ -1701,11 +1830,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [set repeat mode on users playback](https://developer.spotify.com/web-api/set-repeat-mode-on-users-playback/)
-    /// Set Repeat Mode On User’s Playback
+    /// Set Repeat Mode On User’s Playback.
+    ///
     /// Parameters:
-    ///  - state - `track`, `context`, or `off`
-    ///  - device_id - device target for playback
+    /// - state - `track`, `context`, or `off`
+    /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/set-repeat-mode-on-users-playback/)
     #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
@@ -1717,11 +1848,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [set-volume-for-users-playback](https://developer.spotify.com/web-api/set-volume-for-users-playback/)
-    /// Set Volume For User’s Playback
+    /// Set Volume For User’s Playback.
+    ///
     /// Parameters:
     /// - volume_percent - volume between 0 and 100
     /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/set-volume-for-users-playback/)
     #[maybe_async]
     pub async fn volume(&self, volume_percent: u8, device_id: Option<String>) -> ClientResult<()> {
         if volume_percent > 100u8 {
@@ -1736,11 +1869,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// [toggle shuffle for user playback](https://developer.spotify.com/web-api/toggle-shuffle-for-users-playback/)
-    /// Toggle Shuffle For User’s Playback
+    /// Toggle Shuffle For User’s Playback.
+    ///
     /// Parameters:
     /// - state - true or false
     /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/toggle-shuffle-for-users-playback/)
     #[maybe_async]
     pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
@@ -1749,12 +1884,14 @@ impl Spotify {
         Ok(())
     }
 
-    /// [Add an item to the end fo the user's current playback queue](https://developer.spotify.com/console/post-queue/)
-    /// Add an item to the end of the user's playback queue
+    /// Add an item to the end of the user's playback queue.
+    ///
     /// Parameters:
     /// - uri - THe uri of the item to add, Track or Episode
     /// - device id - The id of the device targeting
     /// - If no device ID provided the user's currently active device is targeted
+    ///
+    /// [Reference](https://developer.spotify.com/console/post-queue/)
     #[maybe_async]
     pub async fn add_item_to_queue(
         &self,
@@ -1767,10 +1904,12 @@ impl Spotify {
         Ok(())
     }
 
-    /// [Save Shows for Current User](https://developer.spotify.com/console/put-current-user-saved-shows)
-    /// Add a show or a list of shows to a user’s library
+    /// Add a show or a list of shows to a user’s library.
+    ///
     /// Parameters:
     /// - ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    ///
+    /// [Reference](https://developer.spotify.com/console/put-current-user-saved-shows)
     #[maybe_async]
     pub async fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
         let joined_ids = ids.join(",");
@@ -1780,10 +1919,14 @@ impl Spotify {
         Ok(())
     }
 
-    /// Get a list of shows saved in the current Spotify user’s library. Optional parameters can be used to limit the number of shows returned.
-    /// [Get user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
+    /// Get a list of shows saved in the current Spotify user’s library.
+    /// Optional parameters can be used to limit the number of shows returned.
+    ///
+    /// Parameters:
     /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
     /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
     #[maybe_async]
     pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1798,11 +1941,14 @@ impl Spotify {
     }
 
     /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
-    /// [Get a show](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
+    ///
     /// Path Parameters:
     /// - id: The Spotify ID for the show.
+    ///
     /// Query Parameters
     /// - market(Optional): An ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
     #[maybe_async]
     pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
         let mut params = Query::new();
@@ -1814,11 +1960,14 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// Get Spotify catalog information for multiple shows based on their Spotify IDs.
-    /// [Get seversal shows](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
+    /// Get Spotify catalog information for multiple shows based on their
+    /// Spotify IDs.
+    ///
     /// Query Parameters
     /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     /// - market(Optional) An ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
     #[maybe_async]
     pub async fn get_several_shows(
         &self,
@@ -1834,14 +1983,19 @@ impl Spotify {
         let result = self.get("shows", None, &params).await?;
         self.convert_result(&result)
     }
-    /// Get Spotify catalog information about an show’s episodes. Optional parameters can be used to limit the number of episodes returned.
-    /// [Get a show's episodes](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
+
+    /// Get Spotify catalog information about an show’s episodes. Optional
+    /// parameters can be used to limit the number of episodes returned.
+    ///
     /// Path Parameters
     /// - id: The Spotify ID for the show.
+    ///
     /// Query Parameters
     /// - limit: Optional. The maximum number of episodes to return. Default: 20. Minimum: 1. Maximum: 50.
     /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
     #[maybe_async]
     pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1862,11 +2016,14 @@ impl Spotify {
     }
 
     /// Get Spotify catalog information for a single episode identified by its unique Spotify ID.
-    /// [Get an Episode](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
+    ///
     /// Path Parameters
     /// - id: The Spotify ID for the episode.
-    ///  Query Parameters
+    ///
+    /// Query Parameters
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
     #[maybe_async]
     pub async fn get_an_episode(
         &self,
@@ -1884,10 +2041,12 @@ impl Spotify {
     }
 
     /// Get Spotify catalog information for multiple episodes based on their Spotify IDs.
-    /// [Get seversal episodes](https://developer.spotify.com/documentation/web-api/reference/episodes/get-several-episodes/)
+    ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the episodes. Maximum: 50 IDs.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-several-episodes/)
     #[maybe_async]
     pub async fn get_several_episodes(
         &self,
@@ -1904,9 +2063,11 @@ impl Spotify {
     }
 
     /// Check if one or more shows is already saved in the current Spotify user’s library.
-    /// [Check users saved shows](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
+    ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
     #[maybe_async]
     pub async fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
         let mut params = Query::with_capacity(1);
@@ -1917,10 +2078,12 @@ impl Spotify {
 
     /// Delete one or more shows from current Spotify user's library.
     /// Changes to a user's saved shows may not be visible in other Spotify applications immediately.
-    /// [Remove user's saved shows](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
+    ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of Spotify IDs for the shows to be deleted from the user’s library.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
     #[maybe_async]
     pub async fn remove_users_saved_shows(
         &self,
