@@ -203,20 +203,6 @@ impl Spotify {
         _id.to_owned()
     }
 
-    /// Parse the response code in the given response url.
-    ///
-    /// Step 2 of the [Authorization Code Flow
-    /// ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
-    ///
-    /// TODO: this might be better off with an implementation from a separate
-    /// library.
-    pub fn parse_response_code(&self, url: &str) -> Option<String> {
-        url.split("?code=")
-            .nth(1)
-            .and_then(|s| s.split('&').next())
-            .map(|s| s.to_string())
-    }
-
     /// Append device ID to an API path.
     fn append_device_id(&self, path: &str, device_id: Option<String>) -> String {
         let mut new_path = path.to_string();
