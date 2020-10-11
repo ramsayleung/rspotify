@@ -17,6 +17,30 @@ Please see the [changelog](./CHANGELOG.md) for a release history and indications
 
 If you find any problems or have suggestions about this crate, please submit an issue. Moreover, any pull request, code review and feedback are welcome.
 
+## Building
+
+Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) to switch between async and blocking clients, which is triggered inside `Cargo.toml`. So that must be taken into account when building `rspotify`. Read the Configuration section in the docs for more information about how to build with custom TLS implementations, and more.
+
+`client-reqwest` is used by default. It should be as easy as
+
+```sh
+$ cargo build
+```
+
+`client-ureq` is also available as the `blocking` interface, which compiles Rspotify with [`ureq`](https://docs.rs/ureq/) (a TLS has to be specified as well):
+
+```sh
+$ cargo build --no-default-features --features client-ureq,ureq-rustls-tls
+```
+
+Notice that you can't build `rspotify` with all features like this:
+
+```sh
+$ cargo build --all-features
+```
+
+Because in order to switch between clients, the different clients have to implement the same base trait in [src/http/mod.rs](https://github.com/ramsayleung/rspotify/blob/master/src/http/mod.rs), so if you build with all features, you'll get `duplicate definitions` error. As every coin has two sides, you can only have one side at a time, not all sides of it.
+
 ## License
 
 [MIT](./LICENSE)

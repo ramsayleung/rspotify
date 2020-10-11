@@ -11,80 +11,103 @@ keywords = ["spotify","api"]
 edition = "2018"
 
 [dependencies]
+# Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
+# `maybe_async`.
+async-trait = "0.1.40"
+base64 = "0.12.3"
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
+derive_builder = "0.9.0"
 dotenv = { version = "0.15.0", optional = true }
+getrandom = "0.2.0"
 lazy_static = "1.4.0"
 log = "0.4.11"
-getrandom = "0.2.0"
-reqwest = { version = "0.10.7", features = ["json", "socks"], default-features = false }
+maybe-async = "0.2.1"
+reqwest = { version = "0.10.7", default-features = false, features = ["json", "socks"], optional = true }
 serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
-webbrowser = { version = "0.5.5", optional = true }
 thiserror = "1.0.20"
+ureq = { version = "1.4.1", default-features = false, features = ["json", "cookies"], optional = true }
+url = "2.1.1"
+webbrowser = { version = "0.5.5", optional = true }
 
 [dev-dependencies]
-async_once = { version = "0.1.0", features = ["tokio"] }
+env_logger = "0.7.1"
 tokio = { version = "0.2.22", features = ["full"] }
 futures = "0.3.5"
 
 [features]
-default = ["reqwest/default-tls", "browser"]
+default = ["client-reqwest", "reqwest-default-tls"]
+cli = ["webbrowser"]
 env-file = ["dotenv"]
-browser = ["webbrowser"]
-blocking = ["reqwest/default-tls", "reqwest/blocking"]
+
+# Available clients. By default they don't include a TLS so that it can be
+# configured.
+client-ureq = ["ureq", "__sync"]
+client-reqwest = ["reqwest", "__async"]
+
 # Passing the TLS features to reqwest.
-native-tls = ["reqwest/native-tls"]
-native-tls-blocking = ["reqwest/native-tls", "reqwest/blocking"]
-native-tls-vendored = ["reqwest/native-tls-vendored"]
-native-tls-vendored-blocking = ["reqwest/native-tls-vendored", "reqwest/blocking"]
-rustls-tls = ["reqwest/rustls-tls"]
-rustls-tls-blocking = ["reqwest/rustls-tls", "reqwest/blocking"]
+reqwest-default-tls = ["reqwest/default-tls"]
+reqwest-rustls-tls = ["reqwest/rustls-tls"]
+reqwest-native-tls = ["reqwest/native-tls"]
+reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
+# Same for ureq.
+ureq-rustls-tls = ["ureq/tls"]
+ureq-native-tls = ["ureq/native-tls"]
+
+# Internal features for checking async or sync compilation
+__async = []
+__sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
-# Also documenting the blocking module
-features = ["blocking"]
+# Also documenting the CLI methods
+features = ["cli"]
 
 [[example]]
 name = "album"
-required-features = ["env-file"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/album.rs"
 
 [[example]]
 name = "current_user_recently_played"
-required-features = ["env-file"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/current_user_recently_played.rs"
 
 [[example]]
+name = "oauth_tokens"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/oauth_tokens.rs"
+
+[[example]]
 name = "track"
-required-features = ["env-file"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/track.rs"
 
 [[example]]
 name = "tracks"
-required-features = ["env-file"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/tracks.rs"
 
 [[example]]
 name = "with_refresh_token"
-required-features = ["env-file"]
+required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/with_refresh_token.rs"
 
 [[example]]
 name = "device"
-required-features = ["env-file", "blocking"]
-path = "examples/blocking/device.rs"
+required-features = ["env-file", "cli", "client-ureq"]
+path = "examples/ureq/device.rs"
 
 [[example]]
 name = "me"
-required-features = ["env-file", "blocking"]
-path = "examples/blocking/me.rs"
+required-features = ["env-file", "cli", "client-ureq"]
+path = "examples/ureq/me.rs"
 
 [[example]]
-name = "blocking_search"
-required-features = ["env-file", "blocking"]
-path = "examples/blocking/search.rs"
+name = "search"
+required-features = ["env-file", "cli", "client-ureq"]
+path = "examples/ureq/search.rs"
             
 [[example]]
 name = "seek_track"
-required-features = ["env-file", "blocking"]
-path = "examples/blocking/seek_track.rs"
+required-features = ["env-file", "cli", "client-ureq"]
+path = "examples/ureq/seek_track.rs"

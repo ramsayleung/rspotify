@@ -1,8 +1,7 @@
 use rspotify::client::SpotifyBuilder;
-use rspotify::oauth2::CredentialsBuilder;
+use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
-#[tokio::main]
-async fn main() {
+fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
@@ -23,19 +22,27 @@ async fn main() {
     //     .unwrap();
     let creds = CredentialsBuilder::from_env().build().unwrap();
 
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds)
+    // Or set the redirect_uri explictly:
+    //
+    // let oauth = OAuthBuilder::default()
+    //     .redirect_uri("http://localhost:8888/callback")
+    //     .build()
+    //     .unwrap();
+    let oauth = OAuthBuilder::from_env()
+        .scope("user-read-playback-state")
         .build()
         .unwrap();
 
-    // Obtaining the access token. Requires to be mutable because the internal
-    // token will be modified. We don't need OAuth for this specific endpoint,
-    // so `...` is used instead of `prompt_for_user_token`.
-    spotify.request_client_token().await.unwrap();
+    let mut spotify = SpotifyBuilder::default()
+        .credentials(creds)
+        .oauth(oauth)
+        .build()
+        .unwrap();
 
-    let birdy_uri1 = "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp";
-    let birdy_uri2 = "spotify:track:3twNvmDtFQtAd5gMKedhLD";
-    let track_uris = vec![birdy_uri1, birdy_uri2];
-    let tracks = spotify.tracks(track_uris, None).await;
-    println!("Response: {:?}", tracks);
+    // Obtaining the access token
+    spotify.prompt_for_user_token().unwrap();
+
+    let devices = spotify.device();
+
+    println!("Request: {:?}", devices);
 }
