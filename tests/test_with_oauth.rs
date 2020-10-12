@@ -717,7 +717,7 @@ async fn test_user_playlist_replace_tracks() {
     tracks_ids.push(track_id1);
     oauth_client()
         .await
-        .user_playlist_replace_tracks(user_id, playlist_id, &tracks_ids)
+        .user_playlist_replace_tracks(user_id, playlist_id, tracks_ids)
         .await
         .unwrap();
 }
