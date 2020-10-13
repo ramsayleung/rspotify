@@ -26,12 +26,6 @@ jobs:
           command: check
           args: --all-targets --features=cli,env-file
 
-      - name: Build With All Features
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all --all-features
-
   cross-compile:
     name: Cross Compile
     runs-on: ubuntu-latest
