@@ -265,6 +265,20 @@ impl Spotify {
         self.write_token_cache()
     }
 
+    /// Parse the response code in the given response url.
+    ///
+    /// Step 2 of the [Authorization Code Flow
+    /// ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
+    ///
+    /// TODO: this might be better off with an implementation from a separate
+    /// library.
+    pub fn parse_response_code(&self, url: &str) -> Option<String> {
+        url.split("?code=")
+            .nth(1)
+            .and_then(|s| s.split('&').next())
+            .map(|s| s.to_string())
+    }
+
     /// Obtains the user access token for the app with the given code without
     /// saving it into the cache file, as part of the OAuth authentication.
     /// The access token will be saved inside the Spotify instance.
