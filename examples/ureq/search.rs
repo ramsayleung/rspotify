@@ -1,6 +1,6 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::senum::{Country, SearchType};
+use rspotify::enums::{Country, SearchType};
 
 fn main() {
     // You can use any logger for debugging.
