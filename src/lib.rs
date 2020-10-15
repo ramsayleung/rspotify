@@ -36,7 +36,7 @@
 //! crate to switch between different HTTP clients to get different features.
 //! In our case, `rspotify` supports async and blocking feature by triggering
 //! `maybe_async` inside `Cargo.toml`, so we don't have maintain two sets of
-//! code which are almostly same. By default, Rspotify uses asynchronous
+//! code which are mostly same. By default, Rspotify uses asynchronous
 //! programming with `async` and `await` by leveraging `reqwest` crate by
 //! using `client-reqwest` feature. And the blocking IO feature can be
 //! enabled to access with `client-ureq` feature, with non-async methods
