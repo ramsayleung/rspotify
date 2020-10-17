@@ -39,6 +39,7 @@ If we missed any change or there's something you'd like to discuss about this ve
     + The `ClientError::CLI` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
+- Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
 
 ## 0.10 (2020/07/01)
 
