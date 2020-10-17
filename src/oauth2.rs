@@ -265,18 +265,16 @@ impl Spotify {
         self.write_token_cache()
     }
 
-    /// Parse the response code in the given response url.
+    /// Parse the response code in the given response url. If the URL cannot be
+    /// parsed or the `code` parameter is not present, this will return `None`.
     ///
     /// Step 2 of the [Authorization Code Flow
     /// ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
-    ///
-    /// TODO: this might be better off with an implementation from a separate
-    /// library.
     pub fn parse_response_code(&self, url: &str) -> Option<String> {
-        url.split("?code=")
-            .nth(1)
-            .and_then(|s| s.split('&').next())
-            .map(|s| s.to_string())
+        let url = Url::parse(url).ok()?;
+        let mut params = url.query_pairs();
+        let (_, url) = params.find(|(key, _)| key == "code")?;
+        Some(url.to_string())
     }
 
     /// Obtains the user access token for the app with the given code without
@@ -330,8 +328,6 @@ impl Spotify {
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
-        // TODO: not sure where the cached token should be read. Should it
-        // be more explicit? Also outside of this function?
         // TODO: shouldn't this also refresh the obtained token?
         self.token = self.read_token_cache().await;
 
