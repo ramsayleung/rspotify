@@ -13,13 +13,12 @@ edition = "2018"
 [dependencies]
 # Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
 # `maybe_async`.
-async-trait = "0.1.40"
+async-trait = { version = "0.1.40", optional = true }
 base64 = "0.12.3"
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
 derive_builder = "0.9.0"
 dotenv = { version = "0.15.0", optional = true }
 getrandom = "0.2.0"
-lazy_static = "1.4.0"
 log = "0.4.11"
 maybe-async = "0.2.1"
 reqwest = { version = "0.10.7", default-features = false, features = ["json", "socks"], optional = true }
@@ -55,7 +54,7 @@ ureq-rustls-tls = ["ureq/tls"]
 ureq-native-tls = ["ureq/native-tls"]
 
 # Internal features for checking async or sync compilation
-__async = []
+__async = ["async-trait"]
 __sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
