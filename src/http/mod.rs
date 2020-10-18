@@ -33,7 +33,7 @@ pub mod headers {
     pub const RESPONSE_CODE: &str = "code";
     pub const RESPONSE_TYPE: &str = "response_type";
     pub const SCOPE: &str = "scope";
-    pub const SHOW_DIALOG: &str = "state";
+    pub const SHOW_DIALOG: &str = "show_dialog";
     pub const STATE: &str = "state";
 
     /// Generates an HTTP token authorization header with proper formatting
