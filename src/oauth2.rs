@@ -413,4 +413,25 @@ mod tests {
 
         assert_eq!(tok_str, tok_str_file);
     }
+
+    #[test]
+    fn test_parse_response_code() {
+        let spotify = SpotifyBuilder::default().build().unwrap();
+
+        let url = "http://localhost:8888/callback";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, None);
+
+        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
+
+        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
+
+        let url = "http://localhost:8888/callback?state=sN&code=AQD0yXvFEOvw#_=_";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
+    }
 }
