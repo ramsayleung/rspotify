@@ -21,6 +21,21 @@ pub type Form = HashMap<String, String>;
 pub mod headers {
     use crate::oauth2::Token;
 
+    // Common headers as constants
+    pub const CLIENT_ID: &str = "client_id";
+    pub const CODE: &str = "code";
+    pub const GRANT_AUTH_CODE: &str = "authorization_code";
+    pub const GRANT_CLIENT_CREDS: &str = "client_credentials";
+    pub const GRANT_REFRESH_TOKEN: &str = "refresh_token";
+    pub const GRANT_TYPE: &str = "grant_type";
+    pub const REDIRECT_URI: &str = "redirect_uri";
+    pub const REFRESH_TOKEN: &str = "refresh_token";
+    pub const RESPONSE_CODE: &str = "code";
+    pub const RESPONSE_TYPE: &str = "response_type";
+    pub const SCOPE: &str = "scope";
+    pub const SHOW_DIALOG: &str = "state";
+    pub const STATE: &str = "state";
+
     /// Generates an HTTP token authorization header with proper formatting
     pub fn bearer_auth(tok: &Token) -> (String, String) {
         let auth = "authorization".to_owned();
