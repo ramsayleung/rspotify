@@ -163,7 +163,8 @@ pub mod util;
 
 #[doc(hidden)]
 mod macros {
-    /// Reduce boilerplate when inserting new elements in a JSON object.
+    /// Reduce boilerplate when inserting new elements in a JSON object. The
+    /// Value object it's being inserted into should always be an object.
     #[macro_export]
     macro_rules! json_insert {
         ($json:expr, $p1:expr, $p2:expr) => {
