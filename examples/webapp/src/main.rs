@@ -13,15 +13,15 @@ use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
-use rspotify::blocking::client::Spotify;
+use rspotify::client::{ClientError, SpotifyBuilder};
 
-use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
-use rspotify::blocking::util;
+use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
+use rspotify::util;
 
-use std::env;
 use std::collections::HashMap;
+use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug, Responder)]
 pub enum AppResponse {
@@ -32,59 +32,70 @@ pub enum AppResponse {
 
 const CACHE_PATH: &str = ".spotify_cache/";
 
-fn cache_path(cookies: Cookies) -> PathBuf {
-    let project_dir_path = env::current_dir().unwrap();
-    let mut cache_path = PathBuf::from(project_dir_path);
-    cache_path.push(CACHE_PATH);
-    let cache_dir = cache_path.display().to_string();
-    cache_path.push(cookies.get("uuid").unwrap().value());
-    println!("cache_path: {:?}", cache_path);
-    if !Path::new(cache_dir.as_str()).exists() {
-        fs::create_dir_all(cache_dir).unwrap();
+fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
+    let (exist, cache_path) = check_cache_path_exists(cookies);
+    if !exist {
+        let mut path = cache_path.clone();
+        path.pop();
+        fs::create_dir_all(path).unwrap();
     }
-    cache_path
+    cache_path.clone()
 }
 
-fn remove_cache_path(mut cookies: Cookies) -> () {
-    let project_dir_path = env::current_dir().unwrap();
-    let mut cache_path = PathBuf::from(project_dir_path);
-    cache_path.push(CACHE_PATH);
-    let cache_dir = cache_path.display().to_string();
-    if Path::new(cache_dir.as_str()).exists() {
-        fs::remove_dir_all(cache_dir).unwrap()
+fn remove_cache_path(mut cookies: Cookies) {
+    let (exist, cache_path) = check_cache_path_exists(&cookies);
+    if exist {
+        fs::remove_file(cache_path).unwrap()
     }
     cookies.remove(Cookie::named("uuid"))
 }
 
-fn spotify(mut auth_manager: SpotifyOAuth) -> Spotify {
-    let token_info = util::get_token(&mut auth_manager).unwrap();
-    let client_credential = SpotifyClientCredentials::default()
-        .token_info(token_info)
-        .build();
-    Spotify::default()
-        .client_credentials_manager(client_credential)
-        .build()
+fn check_cache_path_exists(cookies: &Cookies) -> (bool, PathBuf) {
+    let project_dir_path = env::current_dir().unwrap();
+    let mut cache_path = project_dir_path;
+    cache_path.push(CACHE_PATH);
+    cache_path.push(cookies.get("uuid").unwrap().value());
+    (cache_path.exists(), cache_path)
 }
 
-fn auth_manager(cookies: Cookies) -> SpotifyOAuth {
-    // Please notice that protocol of redirect_uri, make sure it's http(or https). It will fail if you mix them up.
-    SpotifyOAuth::default()
-        .client_id("your-client-id")
-        .client_secret("your-client-secret")
+fn init_spotify() -> SpotifyBuilder {
+    // Please notice that protocol of redirect_uri, make sure it's http
+    // (or https). It will fail if you mix them up.
+    let oauth = OAuthBuilder::default()
         .redirect_uri("http://localhost:8000/callback")
-        .cache_path(cache_path(cookies))
         .scope("user-read-currently-playing playlist-modify-private")
         .build()
+        .unwrap();
+
+    // Replacing client_id and client_secret with yours.
+    let creds = CredentialsBuilder::default()
+        .id("e1dce60f1e274e20861ce5d96142a4d3")
+        .secret("0e4e03b9be8d465d87fc32857a4b5aa3")
+        .build()
+        .unwrap();
+
+    SpotifyBuilder::default()
+        .credentials(creds)
+        .oauth(oauth)
+        .clone()
 }
 
 #[get("/callback?<code>")]
 fn callback(cookies: Cookies, code: String) -> AppResponse {
-    let auth_manager = auth_manager(cookies);
-    return match auth_manager.get_access_token(code.as_str()) {
-        Some(_) => AppResponse::Redirect(Redirect::to("/")),
-        _ => {
+    let mut spotify = init_spotify();
+    let mut spotify = spotify
+        .cache_path(create_cache_path_if_absent(&cookies))
+        .build()
+        .unwrap();
+    return match spotify.request_user_token(code.as_str()) {
+        Ok(_) => {
+            println!("request user token successful");
+            AppResponse::Redirect(Redirect::to("/"))
+        }
+        Err(err) => {
+            println!("Failed to get user token {:?}", err);
             let mut context = HashMap::new();
-            context.insert("err_msg", "Can not get code!");
+            context.insert("err_msg", "Failed to get token!");
             AppResponse::Template(Template::render("error", context))
         }
     };
@@ -93,34 +104,44 @@ fn callback(cookies: Cookies, code: String) -> AppResponse {
 #[get("/")]
 fn index(mut cookies: Cookies) -> AppResponse {
     let cookie = cookies.get("uuid");
-    if let None = cookie {
-        cookies.add(Cookie::new("uuid", util::generate_random_string(64)));
-    }
-    let mut auth_manager = auth_manager(cookies);
-    let mut context = HashMap::new();
-    match auth_manager.get_cached_token() {
-        Some(token) => token,
-        None => {
-            let state = util::generate_random_string(16);
-            let auth_url = auth_manager.get_authorize_url(Some(&state), None);
-            context.insert("auth_url", auth_url);
-            return AppResponse::Template(Template::render("authorize", context));
+    let mut spotify_builder = init_spotify();
+    let spotify = match cookie.is_none() {
+        true => {
+            cookies.add(Cookie::new("uuid", util::generate_random_string(64)));
+            spotify_builder
+                .cache_path(create_cache_path_if_absent(&cookies))
+                .build()
+                .unwrap()
+        }
+        false => {
+            let (_exist, cache_path) = check_cache_path_exists(&cookies);
+            let token = TokenBuilder::from_cache(cache_path).build().unwrap();
+            spotify_builder.token(token).build().unwrap()
         }
     };
-    let token_info = util::get_token(&mut auth_manager).unwrap();
-    let client_credential = SpotifyClientCredentials::default()
-        .token_info(token_info)
-        .build();
-    let spotify = Spotify::default()
-        .client_credentials_manager(client_credential)
-        .build();
-    let me = spotify.me();
-    println!("me: {:?}", me);
-    context.insert(
-        "display_name",
-        me.unwrap().display_name.unwrap_or(String::from("Dear")),
-    );
-    AppResponse::Template(Template::render("index", context.clone()))
+    let mut context = HashMap::new();
+    match spotify.me() {
+        Ok(user_info) => {
+            context.insert(
+                "display_name",
+                user_info
+                    .display_name
+                    .unwrap_or_else(|| String::from("Dear")),
+            );
+            AppResponse::Template(Template::render("index", context.clone()))
+        }
+        Err(ClientError::InvalidAuth(msg)) => {
+            println!("InvalidAuth msg {:?}", msg);
+            let auth_url = spotify.get_authorize_url(true).unwrap();
+            context.insert("auth_url", auth_url);
+            AppResponse::Template(Template::render("authorize", context))
+        }
+        Err(err) => {
+            let mut context = HashMap::new();
+            context.insert("err_msg", format!("Failed for {}!", err));
+            AppResponse::Template(Template::render("error", context))
+        }
+    }
 }
 
 #[get("/sign_out")]
@@ -131,28 +152,34 @@ fn sign_out(cookies: Cookies) -> AppResponse {
 
 #[get("/playlists")]
 fn playlist(cookies: Cookies) -> AppResponse {
-    let mut auth_manager = SpotifyOAuth::default()
-        .cache_path(cache_path(cookies))
-        .build();
-    if let None = auth_manager.get_cached_token() {
+    let mut spotify = init_spotify();
+    let (exist, cache_path) = check_cache_path_exists(&cookies);
+    if !exist {
         return AppResponse::Redirect(Redirect::to("/"));
     }
-    let spotify = spotify(auth_manager);
-    let playlists = spotify.current_user_playlists(Some(20), Some(0)).unwrap();
-    AppResponse::Json(json!(playlists))
+
+    let token = TokenBuilder::from_cache(cache_path).build().unwrap();
+    let spotify = spotify.token(token).build().unwrap();
+    match spotify.current_user_playlists(Some(20), Some(0)) {
+        Ok(playlists) => AppResponse::Json(json!(playlists)),
+        Err(_) => AppResponse::Redirect(Redirect::to("/")),
+    }
 }
 
 #[get("/me")]
 fn me(cookies: Cookies) -> AppResponse {
-    let mut auth_manager = SpotifyOAuth::default()
-        .cache_path(cache_path(cookies))
-        .build();
-    if let None = auth_manager.get_cached_token() {
+    let mut spotify = init_spotify();
+    let (exist, cache_path) = check_cache_path_exists(&cookies);
+    if !exist {
         return AppResponse::Redirect(Redirect::to("/"));
     }
-    let spotify = spotify(auth_manager);
-    let user_info = spotify.me().unwrap();
-    AppResponse::Json(json!(user_info))
+
+    let token = TokenBuilder::from_cache(cache_path).build().unwrap();
+    let spotify = spotify.token(token).build().unwrap();
+    match spotify.me() {
+        Ok(user_info) => AppResponse::Json(json!(user_info)),
+        Err(_) => AppResponse::Redirect(Redirect::to("/")),
+    }
 }
 
 fn main() {

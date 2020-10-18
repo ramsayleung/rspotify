@@ -1,23 +1,44 @@
 ## 0.11 (unreleased)
+This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and no more versions like this should happen again. Lots of internal code was rewritten to make Rspotify more flexible, performant and easier to use. Sorry for the inconvenience!
+
+If we missed any change or there's something you'd like to discuss about this version, please open a new issue and let us know.
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
 - Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
 - Add `add_item_to_queue` endpoint.
-- Fix typo in `transfer_playback`: `device_id` to `device_ids`.
-- Fix race condition when using a single client from multiple threads (see [#114](https://github.com/ramsayleung/rspotify/pull/114) for more information).
+- Fix race condition when using a single client from multiple threads ([#114](https://github.com/ramsayleung/rspotify/pull/114)).
 - Rspotify should now be considerably lighter and less bloated ([discussion in #108](https://github.com/ramsayleung/rspotify/issues/108)):
-  + Remove unused dependencies: `base64`, `env_logger`, `derive_builder`, `random`, `url`. <!-- NOTE: derive_builder might not be removed after all -->
+  + Remove unused dependencies: `base64`, `env_logger`, `random`, `url`.
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
-  + `webbrowser` and access to functions that use it (`util::get_token`, `util::get_token_without_cache` and `util::request_token`) can be disabled for the non-CLI applications with the `browser` feature. It's still enabled by default due to [its frequent usage](https://github.com/ramsayleung/rspotify/pull/110#issuecomment-674410604).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
 - Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 
 **Breaking changes:**
-- `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)).
+- `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
+- `TokenInfo` has been renamed to `Token`. It no longer has the `token_type` member, as it's always `Bearer` for now ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- `SpotifyOAuth` has been renamed to `OAuth`. It only contains the necessary parameters for OAuth authorization instead of repeating the items from `Credentials` and `Spotify`, so `client_id`, `client_secret` and `cache_path` are no longer in `OAuth` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- `TokenBuilder` and `OAuthBuilder` will only read from environment variables when `from_env` is used, instead of `default`.
+- `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
+- All fallible calls in the client return a `ClientResult` rather than using `failure`, which is equivalent to a `Result<T, ClientError>`.
+- `ApiError` is now `APIError` for consistency.
+- A real builder pattern is used now. For example, `Token` is constructed now with `TokenBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)). These are the main changes:
+    + `TokenInfo::get_cached_token` is now `TokenBuilder::from_cache` and `Spotify::read_token_cache` (using the internal cache path). Instead of panicking, the resulting `TokenBuilder` may be empty (and `build` will fail).
+    + `Spotify::save_token_info` is now `Token::write_cache` and `Spotify::write_token_cache`. The latter uses the client's set cache path for the write. These functions also now return `ClientResult` instead of panicking.
+    + `Spotify::is_token_expired` is now `Token::is_expired`.
+    + `SpotifyOAuth2::get_authorize_url` is now `Spotify::get_authorize_url`, and it returns `ClientResult<String>` instead of panicking.
+    + `SpotifyOAuth2::refresh_access_token[_without_cache]` are now `Spotify::refresh_user_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
+    + `SpotifyOAuth2::request_client_token[_without_cache]` are now `Spotify::request_client_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
+    + `SpotifyOAuth2::get_access_token[_without_cache]` are now `Spotify::request_user_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
+    + `get_token[_without_cache]` is now `Spotify::prompt_for_user_token[_without_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
+- CLI-exclusive functions and  are now optional under the `cli` feature:
+    + `Spotify::prompt_for_user_token[_without_cache]`
+    + The `ClientError::CLI` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
-- All fallible calls in the client return a `ClientError` rather than using `failure`.
+- Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
 
 ## 0.10 (2020/07/01)

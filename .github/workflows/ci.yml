@@ -24,7 +24,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all-targets
+          args: --all-targets --features=cli,env-file
 
   cross-compile:
     name: Cross Compile
@@ -35,6 +35,9 @@ jobs:
           - aarch64-unknown-linux-gnu
           - arm-unknown-linux-gnueabihf
           - armv7-unknown-linux-gnueabihf
+        client:
+          - client-ureq,ureq-rustls-tls
+          - client-reqwest,reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -54,11 +57,17 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --target ${{ matrix.target }} --no-default-features --features "rustls-tls"
+          args: --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
+
 
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client:
+          - client-ureq,ureq-rustls-tls
+          - client-reqwest,reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -74,11 +83,16 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features env-file
+          args: --no-default-features --features=cli,env-file,${{ matrix.client }}
 
   lints:
     name: Lints
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client:
+          - client-ureq,ureq-rustls-tls
+          - client-reqwest,reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -101,4 +115,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
