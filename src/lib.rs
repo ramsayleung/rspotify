@@ -167,7 +167,6 @@ mod macros {
     #[macro_export]
     macro_rules! json_insert {
         ($json:expr, $p1:expr, $p2:expr) => {
-            // TODO: maybe into instead
             $json
                 .as_object_mut()
                 .unwrap()

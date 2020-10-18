@@ -42,15 +42,12 @@ pub enum ClientError {
     #[error("invalid client authentication: {0}")]
     InvalidAuth(String),
 
-    // TODO: this could be replaced with `StatusCode`
     #[error("request unauthorized")]
     Unauthorized,
 
-    // TODO: this could be replaced with `StatusCode`
     #[error("exceeded request limit")]
     RateLimited(Option<usize>),
 
-    // TODO: this could be replaced with `StatusCode`
     #[error("request error: {0}")]
     Request(String),
 

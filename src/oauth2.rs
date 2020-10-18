@@ -169,14 +169,14 @@ impl Spotify {
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let oauth = self.get_oauth()?;
         let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert("client_id", &self.get_creds()?.id);
-        payload.insert("response_type", "code");
-        payload.insert("redirect_uri", &oauth.redirect_uri);
-        payload.insert("scope", &oauth.scope);
-        payload.insert("state", &oauth.state);
+        payload.insert(headers::CLIENT_ID, &self.get_creds()?.id);
+        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
+        payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
+        payload.insert(headers::SCOPE, &oauth.scope);
+        payload.insert(headers::STATE, &oauth.state);
 
         if show_dialog {
-            payload.insert("show_dialog", "true");
+            payload.insert(headers::SHOW_DIALOG, "true");
         }
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
@@ -226,8 +226,11 @@ impl Spotify {
         refresh_token: &str,
     ) -> ClientResult<()> {
         let mut data = Form::new();
-        data.insert("refresh_token".to_owned(), refresh_token.to_owned());
-        data.insert("grant_type".to_owned(), "refresh_token".to_owned());
+        data.insert(headers::REFRESH_TOKEN.to_owned(), refresh_token.to_owned());
+        data.insert(
+            headers::GRANT_TYPE.to_owned(),
+            headers::GRANT_REFRESH_TOKEN.to_owned(),
+        );
 
         let mut tok = self.fetch_access_token(&data).await?;
         tok.refresh_token = Some(refresh_token.to_string());
@@ -250,7 +253,10 @@ impl Spotify {
     #[maybe_async]
     pub async fn request_client_token_without_cache(&mut self) -> ClientResult<()> {
         let mut data = Form::new();
-        data.insert("grant_type".to_owned(), "client_credentials".to_owned());
+        data.insert(
+            headers::GRANT_TYPE.to_owned(),
+            headers::GRANT_CLIENT_CREDS.to_owned(),
+        );
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
@@ -265,18 +271,16 @@ impl Spotify {
         self.write_token_cache()
     }
 
-    /// Parse the response code in the given response url.
+    /// Parse the response code in the given response url. If the URL cannot be
+    /// parsed or the `code` parameter is not present, this will return `None`.
     ///
     /// Step 2 of the [Authorization Code Flow
     /// ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
-    ///
-    /// TODO: this might be better off with an implementation from a separate
-    /// library.
     pub fn parse_response_code(&self, url: &str) -> Option<String> {
-        url.split("?code=")
-            .nth(1)
-            .and_then(|s| s.split('&').next())
-            .map(|s| s.to_string())
+        let url = Url::parse(url).ok()?;
+        let mut params = url.query_pairs();
+        let (_, url) = params.find(|(key, _)| key == "code")?;
+        Some(url.to_string())
     }
 
     /// Obtains the user access token for the app with the given code without
@@ -288,11 +292,14 @@ impl Spotify {
     pub async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
         let oauth = self.get_oauth()?;
         let mut data = Form::new();
-        data.insert("grant_type".to_owned(), "authorization_code".to_owned());
-        data.insert("redirect_uri".to_owned(), oauth.redirect_uri.clone());
-        data.insert("code".to_owned(), code.to_owned());
-        data.insert("scope".to_owned(), oauth.scope.clone());
-        data.insert("state".to_owned(), oauth.state.clone());
+        data.insert(
+            headers::GRANT_TYPE.to_owned(),
+            headers::GRANT_AUTH_CODE.to_owned(),
+        );
+        data.insert(headers::REDIRECT_URI.to_owned(), oauth.redirect_uri.clone());
+        data.insert(headers::CODE.to_owned(), code.to_owned());
+        data.insert(headers::SCOPE.to_owned(), oauth.scope.clone());
+        data.insert(headers::STATE.to_owned(), oauth.state.clone());
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
@@ -330,8 +337,6 @@ impl Spotify {
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
-        // TODO: not sure where the cached token should be read. Should it
-        // be more explicit? Also outside of this function?
         // TODO: shouldn't this also refresh the obtained token?
         self.token = self.read_token_cache().await;
 
@@ -416,5 +421,26 @@ mod tests {
         file.read_to_string(&mut tok_str_file).unwrap();
 
         assert_eq!(tok_str, tok_str_file);
+    }
+
+    #[test]
+    fn test_parse_response_code() {
+        let spotify = SpotifyBuilder::default().build().unwrap();
+
+        let url = "http://localhost:8888/callback";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, None);
+
+        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
+
+        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
+
+        let url = "http://localhost:8888/callback?state=sN&code=AQD0yXvFEOvw#_=_";
+        let code = spotify.parse_response_code(url);
+        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
     }
 }
