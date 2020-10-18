@@ -240,18 +240,17 @@ impl Spotify {
         track_ids: Vec<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullTracks> {
-        // TODO: this can be improved
-        let mut ids: Vec<String> = vec![];
-        for track_id in track_ids {
-            ids.push(self.get_id(Type::Track, track_id));
-        }
-
         let mut params = Query::new();
         if let Some(market) = market {
             params.insert("market".to_owned(), market.as_str().to_owned());
         }
 
-        let url = format!("tracks/?ids={}", ids.join(","));
+        let ids = track_ids
+            .iter()
+            .map(|id| self.get_id(Type::Track, id))
+            .collect::<Vec<_>>()
+            .join(",");
+        let url = format!("tracks/?ids={}", ids);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -765,8 +764,6 @@ impl Spotify {
             .iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
-        // let mut params = Map::new();
-        // params.insert("uris".to_owned(), uris.into());
         let params = json!({ "uris": uris });
         let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
         self.put(&url, None, &params).await?;
@@ -827,24 +824,19 @@ impl Spotify {
         track_ids: &[String],
         snapshot_id: Option<String>,
     ) -> ClientResult<CUDResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
+        let playlist_id = self.get_id(Type::Playlist, playlist_id);
+        let tracks = track_ids
             .iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
+            .map(|id| json!({ "uri": self.get_uri(Type::Track, id) }))
+            .collect::<Vec<_>>();
 
-        // TODO: this can be improved
-        let mut tracks: Vec<Map<String, Value>> = vec![];
-        for uri in uris {
-            let mut map = Map::new();
-            map.insert("uri".to_owned(), uri.into());
-            tracks.push(map);
-        }
-        let mut params = json!({ "tracks": tracks });
+        let mut params = json!({
+            "tracks": tracks
+        });
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("users/{}/playlists/{}/tracks", user_id, playlist_id);
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -854,28 +846,26 @@ impl Spotify {
     /// Parameters:
     /// - user_id: the id of the user
     /// - playlist_id: the id of the playlist
-    /// - tracks: an array of map containing Spotify URIs of the tracks to remove
-    /// with their current positions in the playlist. For example:
-    ///
-    /// ```json
-    /// {
-    ///    "tracks":[
-    ///       {
-    ///          "uri":"spotify:track:4iV5W9uYEdYUVa79Axb7Rh",
-    ///          "positions":[
-    ///             0,
-    ///             3
-    ///          ]
-    ///       },
-    ///       {
-    ///          "uri":"spotify:track:1301WleyT98MSxVHPZCA6M",
-    ///          "positions":[
-    ///             7
-    ///          ]
-    ///       }
-    ///    ]
-    /// }
-    /// ```
+    /// - tracks: an array of maps containing Spotify URIs of the tracks to
+    ///   remove with their current positions in the playlist. For example,
+    ///   this should be the equivalent in JSON:
+    ///   ```json
+    ///   [
+    ///     {
+    ///        "uri": "spotify:track:4iV5W9uYEdYUVa79Axb7Rh",
+    ///        "positions": [
+    ///           0,
+    ///           3
+    ///        ]
+    ///     },
+    ///     {
+    ///        "uri": "spotify:track:1301WleyT98MSxVHPZCA6M",
+    ///        "positions": [
+    ///           7
+    ///        ]
+    ///     }
+    ///   ]
+    ///   ```
     /// - snapshot_id: optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
@@ -887,17 +877,17 @@ impl Spotify {
         tracks: Vec<Map<String, Value>>,
         snapshot_id: Option<String>,
     ) -> ClientResult<CUDResult> {
-        // TODO: this can be improved
-        let plid = self.get_id(Type::Playlist, playlist_id);
+        // TODO: this should be improved
+        let playlist_id = self.get_id(Type::Playlist, playlist_id);
         let mut ftracks: Vec<Map<String, Value>> = vec![];
         for track in tracks {
             let mut map = Map::new();
-            if let Some(_uri) = track.get("uri") {
-                let uri = self.get_uri(Type::Track, &_uri.as_str().unwrap().to_owned());
+            if let Some(uri) = track.get("uri") {
+                let uri = self.get_uri(Type::Track, &uri.as_str().unwrap().to_owned());
                 map.insert("uri".to_owned(), uri.into());
             }
-            if let Some(_position) = track.get("position") {
-                map.insert("position".to_owned(), _position.to_owned());
+            if let Some(position) = track.get("position") {
+                map.insert("position".to_owned(), position.to_owned());
             }
             ftracks.push(map);
         }
@@ -906,7 +896,7 @@ impl Spotify {
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("users/{}/playlists/{}/tracks", user_id, playlist_id);
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -1957,7 +1947,6 @@ impl Spotify {
         ids: Vec<String>,
         market: Option<Country>,
     ) -> ClientResult<SeversalSimplifiedShows> {
-        // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
         params.insert("ids".to_owned(), ids.join(","));
         if let Some(market) = market {
