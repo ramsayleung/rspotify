@@ -15,7 +15,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 + Remove `convert_map_to_str` and `convert_str_to_map` from both `util.rs` and `blocking/util.rs`, replacing them with `reqwest`'s `query` and `Url::Parse`. Remove crate `percent-encoding`
 + Remove `generate_random_string` and `datetime_to_timestamp` from `blocking/util.rs`, using `generate_random_string` and `datetime_to_timestamp` from `util.rs` instead.
-  
+
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
 - `TokenInfo` has been renamed to `Token`. It no longer has the `token_type` member, as it's always `Bearer` for now ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
