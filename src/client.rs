@@ -830,9 +830,7 @@ impl Spotify {
             .map(|id| json!({ "uri": self.get_uri(Type::Track, id) }))
             .collect::<Vec<_>>();
 
-        let mut params = json!({
-            "tracks": tracks
-        });
+        let mut params = json!({ "tracks": tracks });
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
