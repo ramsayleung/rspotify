@@ -1304,7 +1304,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         let url = format!(
             "me/following?type=artist&ids={}",
-            artist_ids.into_iter().collect::<Vec<&str>>().join(",")
+            artist_ids.into_iter().collect::<Vec<_>>().join(",")
         );
         self.put(&url, None, &json!({})).await?;
 
@@ -1324,7 +1324,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         let url = format!(
             "me/following?type=artist&ids={}",
-            artist_ids.into_iter().collect::<Vec<&str>>().join(",")
+            artist_ids.into_iter().collect::<Vec<_>>().join(",")
         );
         self.delete(&url, None, &json!({})).await?;
 
@@ -1345,7 +1345,7 @@ impl Spotify {
     ) -> ClientResult<Vec<bool>> {
         let url = format!(
             "me/following/contains?type=artist&ids={}",
-            artsit_ids.into_iter().collect::<Vec<&str>>().join(",")
+            artsit_ids.into_iter().collect::<Vec<_>>().join(",")
         );
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
@@ -1364,7 +1364,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         let url = format!(
             "me/following?type=user&ids={}",
-            user_ids.into_iter().collect::<Vec<&str>>().join(",")
+            user_ids.into_iter().collect::<Vec<_>>().join(",")
         );
         self.put(&url, None, &json!({})).await?;
 
@@ -1384,7 +1384,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         let url = format!(
             "me/following?type=user&ids={}",
-            user_ids.into_iter().collect::<Vec<&str>>().join(",")
+            user_ids.into_iter().collect::<Vec<_>>().join(",")
         );
         self.delete(&url, None, &json!({})).await?;
 
@@ -1940,7 +1940,7 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/console/put-current-user-saved-shows)
     #[maybe_async]
     pub async fn save_shows<'a>(&self, ids: impl IntoIterator<Item = &'a str>) -> ClientResult<()> {
-        let joined_ids = ids.into_iter().collect::<Vec<&str>>().join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
         self.put(&url, None, &json!({})).await?;
 
@@ -2006,7 +2006,7 @@ impl Spotify {
         let mut params = Query::with_capacity(1);
         params.insert(
             "ids".to_owned(),
-            ids.into_iter().collect::<Vec<&str>>().join(","),
+            ids.into_iter().collect::<Vec<_>>().join(","),
         );
         if let Some(market) = market {
             params.insert("country".to_owned(), market.as_str().to_owned());
@@ -2087,7 +2087,7 @@ impl Spotify {
         let mut params = Query::with_capacity(1);
         params.insert(
             "ids".to_owned(),
-            ids.into_iter().collect::<Vec<&str>>().join(","),
+            ids.into_iter().collect::<Vec<_>>().join(","),
         );
         if let Some(market) = market {
             params.insert("country".to_owned(), market.as_str().to_owned());
@@ -2110,7 +2110,7 @@ impl Spotify {
         let mut params = Query::with_capacity(1);
         params.insert(
             "ids".to_owned(),
-            ids.into_iter().collect::<Vec<&str>>().join(","),
+            ids.into_iter().collect::<Vec<_>>().join(","),
         );
         let result = self.get("me/shows/contains", None, &params).await?;
         self.convert_result(&result)
@@ -2130,7 +2130,7 @@ impl Spotify {
         ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
     ) -> ClientResult<()> {
-        let joined_ids = ids.into_iter().collect::<Vec<&str>>().join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
         let url = format!("me/shows?ids={}", joined_ids);
         let mut params = json!({});
         if let Some(market) = market {

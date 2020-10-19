@@ -43,7 +43,7 @@ async fn do_things(spotify: Spotify) {
     );
 
     spotify
-        .user_unfollow_artists(artists.clone())
+        .user_unfollow_artists(artists)
         .await
         .expect("couldn't unfollow artists");
     println!("Unfollowed {} artists successfully.", artists.len());
