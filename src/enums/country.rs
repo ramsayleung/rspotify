@@ -769,10 +769,16 @@ impl FromStr for Country {
         }
     }
 }
-#[test]
-fn test_convert_country_from_str() {
-    let country = Country::from_str("JP");
-    assert_eq!(country.unwrap(), Country::Japan);
-    let unknown_country = Country::from_str("not exist enum");
-    assert_eq!(unknown_country.is_err(), true);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_convert_country_from_str() {
+        let country = Country::from_str("JP");
+        assert_eq!(country.unwrap(), Country::Japan);
+        let unknown_country = Country::from_str("not exist enum");
+        assert_eq!(unknown_country.is_err(), true);
+    }
 }

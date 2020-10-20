@@ -84,14 +84,6 @@ impl FromStr for TimeRange {
     }
 }
 
-#[test]
-fn test_convert_time_range_from_str() {
-    let time_range = TimeRange::from_str("long_term");
-    assert_eq!(time_range.unwrap(), TimeRange::LongTerm);
-    let empty_range = TimeRange::from_str("not exist enum");
-    assert_eq!(empty_range.is_err(), true);
-}
-
 ///repeat state: track, context or off.
 /// - track will repeat the current track.
 /// - context will repeat the current context.
@@ -124,13 +116,6 @@ impl FromStr for RepeatState {
     }
 }
 
-#[test]
-fn test_convert_repeat_state_from_str() {
-    let repeat_state = RepeatState::from_str("off");
-    assert_eq!(repeat_state.unwrap(), RepeatState::Off);
-    let unknown_state = RepeatState::from_str("not exist enum");
-    assert_eq!(unknown_state.is_err(), true);
-}
 /// Type for include_external: audio
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -151,5 +136,24 @@ impl FromStr for IncludeExternal {
             "audio" => Ok(IncludeExternal::Audio),
             _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_convert_repeat_state_from_str() {
+        let repeat_state = RepeatState::from_str("off");
+        assert_eq!(repeat_state.unwrap(), RepeatState::Off);
+        let unknown_state = RepeatState::from_str("not exist enum");
+        assert_eq!(unknown_state.is_err(), true);
+    }
+
+    #[test]
+    fn test_convert_time_range_from_str() {
+        let time_range = TimeRange::from_str("long_term");
+        assert_eq!(time_range.unwrap(), TimeRange::LongTerm);
+        let empty_range = TimeRange::from_str("not exist enum");
+        assert_eq!(empty_range.is_err(), true);
     }
 }

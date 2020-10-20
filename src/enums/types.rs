@@ -119,15 +119,6 @@ impl FromStr for Type {
     }
 }
 
-#[test]
-fn test_type_convert_from_str() {
-    let _type = Type::from_str("album");
-    assert_eq!(_type.unwrap(), Type::Album);
-
-    let empty_type = Type::from_str("not_exist_type");
-    assert_eq!(empty_type.is_err(), true);
-}
-
 /// additional_typs: track, episode
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -224,14 +215,6 @@ impl FromStr for SearchType {
     }
 }
 
-#[test]
-fn test_convert_search_type_from_str() {
-    let search_type = SearchType::from_str("artist");
-    assert_eq!(search_type.unwrap(), SearchType::Artist);
-    let unknown_search_type = SearchType::from_str("unknown_search_type");
-    assert_eq!(unknown_search_type.is_err(), true);
-}
-
 /// Device Type: computer, smartphone, speaker, TV, etc.
 /// See the [Spotify developer
 /// docs](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
@@ -251,4 +234,25 @@ pub enum DeviceType {
     CastAudio,
     Automobile,
     Unknown,
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_convert_search_type_from_str() {
+        let search_type = SearchType::from_str("artist");
+        assert_eq!(search_type.unwrap(), SearchType::Artist);
+        let unknown_search_type = SearchType::from_str("unknown_search_type");
+        assert_eq!(unknown_search_type.is_err(), true);
+    }
+
+    #[test]
+    fn test_type_convert_from_str() {
+        let _type = Type::from_str("album");
+        assert_eq!(_type.unwrap(), Type::Album);
+
+        let empty_type = Type::from_str("not_exist_type");
+        assert_eq!(empty_type.is_err(), true);
+    }
 }
