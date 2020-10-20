@@ -1,5 +1,5 @@
-use crate::enums::Error;
-use crate::enums::ErrorKind;
+use crate::model::Error;
+use crate::model::ErrorKind;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 

@@ -11,9 +11,6 @@ use thiserror::Error;
 
 use std::path::PathBuf;
 
-use super::enums::{
-    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
-};
 use super::http::{BaseClient, Query};
 use super::json_insert;
 use super::model::CUDResult;
@@ -21,6 +18,9 @@ use super::model::DevicePayload;
 use super::model::PageCategory;
 use super::model::Recommendations;
 use super::model::SearchResult;
+use super::model::{
+    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
+};
 use super::model::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
 use super::model::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
 use super::model::{CursorBasedPage, Page};

@@ -2,7 +2,7 @@ mod common;
 
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
-use rspotify::enums::{AlbumType, Country};
+use rspotify::model::{AlbumType, Country};
 use rspotify::oauth2::CredentialsBuilder;
 
 use maybe_async::maybe_async;

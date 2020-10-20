@@ -155,7 +155,6 @@
 //! which can serve as a learning tool.
 
 pub mod client;
-pub mod enums;
 mod http;
 pub mod model;
 pub mod oauth2;

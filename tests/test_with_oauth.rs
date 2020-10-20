@@ -18,8 +18,8 @@ mod common;
 
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
-use rspotify::enums::{Country, RepeatState, SearchType, TimeRange};
 use rspotify::model::offset::for_position;
+use rspotify::model::{Country, RepeatState, SearchType, TimeRange};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 
 use std::env;
