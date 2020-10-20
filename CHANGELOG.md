@@ -63,7 +63,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 	- `user_follow_users`
 	- `user_unfollow_users`
 	- `audios_features`
-- Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::FullAlbum`.
+- Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - Split single `senum.rs` file into a separate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, check [enums mod.rs file](./src/enums/mod.rs) for details.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
