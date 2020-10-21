@@ -1,5 +1,5 @@
 use rspotify::client::SpotifyBuilder;
-use rspotify::enums::{Country, SearchType};
+use rspotify::model::{Country, SearchType};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
 fn main() {

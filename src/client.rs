@@ -13,26 +13,7 @@ use std::path::PathBuf;
 
 use super::http::{BaseClient, Query};
 use super::json_insert;
-use super::model::CUDResult;
-use super::model::DevicePayload;
-use super::model::PageCategory;
-use super::model::Recommendations;
-use super::model::SearchResult;
-use super::model::{
-    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
-};
-use super::model::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
-use super::model::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
-use super::model::{CursorBasedPage, Page};
-use super::model::{CursorPageFullArtists, FullArtist, FullArtists};
-use super::model::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use super::model::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
-use super::model::{
-    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
-};
-use super::model::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
-use super::model::{PlayHistory, Playing};
-use super::model::{PrivateUser, PublicUser};
+use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
 
 /// Possible errors returned from the `rspotify` client.
