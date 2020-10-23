@@ -419,7 +419,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(10).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         params.insert("q".to_owned(), q.to_owned());
-        params.insert("type".to_owned(), _type.as_str().to_owned());
+        params.insert("type".to_owned(), _type.to_string());
         if let Some(market) = market {
             params.insert("market".to_owned(), market.as_str().to_owned());
         }

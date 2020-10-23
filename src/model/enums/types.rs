@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
-use std::str::FromStr;
 use strum::{AsRefStr, Display, EnumString};
 
 #[derive(Clone, Debug)]
@@ -57,7 +56,9 @@ pub enum AlbumType {
 }
 
 ///  Type: 'artist', 'album','track', 'playlist', 'show' or 'episode'
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display)]
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     #[strum(serialize = "artist")]
@@ -77,7 +78,9 @@ pub enum Type {
 }
 
 /// additional_typs: track, episode
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display)]
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AdditionalType {
     #[strum(serialize = "track")]
@@ -87,7 +90,9 @@ pub enum AdditionalType {
 }
 
 /// currently_playing_type: track, episode, ad, unknown.
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display)]
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum CurrentlyPlayingType {
     #[strum(serialize = "track")]
@@ -101,42 +106,23 @@ pub enum CurrentlyPlayingType {
 }
 
 /// Type for search: artist, album, track, playlist, show, episode
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum SearchType {
+    #[strum(serialize = "artist")]
     Artist,
+    #[strum(serialize = "album")]
     Album,
+    #[strum(serialize = "track")]
     Track,
+    #[strum(serialize = "playlist")]
     Playlist,
+    #[strum(serialize = "show")]
     Show,
+    #[strum(serialize = "episode")]
     Episode,
-}
-
-impl SearchType {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            SearchType::Album => "album",
-            SearchType::Artist => "artist",
-            SearchType::Track => "track",
-            SearchType::Playlist => "playlist",
-            SearchType::Show => "show",
-            SearchType::Episode => "episode",
-        }
-    }
-}
-impl FromStr for SearchType {
-    type Err = EnumError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "artist" => Ok(SearchType::Artist),
-            "album" => Ok(SearchType::Album),
-            "track" => Ok(SearchType::Track),
-            "playlist" => Ok(SearchType::Playlist),
-            "show" => Ok(SearchType::Show),
-            "episode" => Ok(SearchType::Episode),
-            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
-        }
-    }
 }
 
 /// Device Type: computer, smartphone, speaker, TV, etc.
@@ -188,27 +174,35 @@ mod tests {
         let _type = Type::from_str("album");
         assert_eq!(_type.unwrap(), Type::Album);
         let artist = Type::Artist;
-        assert_eq!(artist.as_ref(),"artist");
-        assert_eq!(artist.to_string(),"artist".to_string());
+        assert_eq!(artist.as_ref(), "artist");
+        assert_eq!(artist.to_string(), "artist".to_string());
 
         let empty_type = Type::from_str("not_exist_type");
         assert!(empty_type.is_err());
     }
     #[test]
-    fn test_additional_type(){
+    fn test_additional_type() {
         let track = AdditionalType::from_str("track");
         assert_eq!(track.unwrap(), AdditionalType::Track);
         let episode = AdditionalType::Episode;
-        assert_eq!(episode.to_string(),"episode".to_string());
+        assert_eq!(episode.to_string(), "episode".to_string());
         assert_eq!(episode.as_ref(), "episode".to_string());
     }
     #[test]
-    fn test_current_playing_type(){
+    fn test_current_playing_type() {
         let track = CurrentlyPlayingType::from_str("track");
         assert_eq!(track.unwrap(), CurrentlyPlayingType::Track);
         let episode = CurrentlyPlayingType::Episode;
         assert_eq!(episode.as_ref(), "episode");
         let ad = CurrentlyPlayingType::Advertisement;
         assert_eq!(ad.as_ref(), "ad");
+    }
+    #[test]
+    fn test_search_type() {
+        let artist = SearchType::from_str("artist");
+        assert_eq!(artist.unwrap(), SearchType::Artist);
+        let episode = SearchType::Episode;
+        assert_eq!(episode.as_ref(), "episode");
+        assert_eq!(episode.to_string(), "episode".to_string());
     }
 }
