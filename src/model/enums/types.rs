@@ -41,83 +41,39 @@ impl fmt::Display for EnumError {
     }
 }
 /// Album type - 'album', 'single', 'appears_on', 'compilation'
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AlbumType {
+    #[strum(serialize = "album")]
     Album,
+    #[strum(serialize = "single")]
     Single,
+    #[strum(serialize = "appears_on")]
     AppearsOn,
+    #[strum(serialize = "compilation")]
     Compilation,
-}
-impl FromStr for AlbumType {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "album" => Ok(AlbumType::Album),
-            "single" => Ok(AlbumType::Single),
-            "appears_on" => Ok(AlbumType::AppearsOn),
-            "compilation" => Ok(AlbumType::Compilation),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
-        }
-    }
-}
-impl AlbumType {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            AlbumType::Album => "album",
-            AlbumType::Single => "single",
-            AlbumType::AppearsOn => "appears_on",
-            AlbumType::Compilation => "compilation",
-        }
-    }
-}
-#[test]
-fn test_album_type_convert_from_str() {
-    let album_type = AlbumType::from_str("album");
-    assert_eq!(album_type.unwrap(), AlbumType::Album);
-    let empty_type = AlbumType::from_str("not exist album");
-    assert_eq!(empty_type.is_err(), true);
 }
 
 ///  Type: 'artist', 'album','track', 'playlist', 'show' or 'episode'
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
+    #[strum(serialize = "artist")]
     Artist,
+    #[strum(serialize = "album")]
     Album,
+    #[strum(serialize = "track")]
     Track,
+    #[strum(serialize = "playlist")]
     Playlist,
+    #[strum(serialize = "user")]
     User,
+    #[strum(serialize = "show")]
     Show,
+    #[strum(serialize = "episode")]
     Episode,
-}
-impl Type {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            Type::Album => "album",
-            Type::Artist => "artist",
-            Type::Track => "track",
-            Type::Playlist => "playlist",
-            Type::User => "user",
-            Type::Show => "show",
-            Type::Episode => "episode",
-        }
-    }
-}
-impl FromStr for Type {
-    type Err = EnumError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "artist" => Ok(Type::Artist),
-            "album" => Ok(Type::Album),
-            "track" => Ok(Type::Track),
-            "playlist" => Ok(Type::Playlist),
-            "user" => Ok(Type::User),
-            "show" => Ok(Type::Show),
-            "episode" => Ok(Type::Episode),
-            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
-        }
-    }
 }
 
 /// additional_typs: track, episode
@@ -241,6 +197,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_album_type_convert_from_str() {
+        let album_type = AlbumType::from_str("album");
+        assert_eq!(album_type.unwrap(), AlbumType::Album);
+        assert_eq!(album_type.unwrap().to_string(), "album".to_string());
+        let empty_type = AlbumType::from_str("not exist album");
+        assert!(empty_type.is_err());
+        let appears_on = AlbumType::AppearsOn;
+        assert_eq!("appears_on".to_string(), appears_on.to_string());
+        let compilation = AlbumType::Compilation;
+        assert_eq!("compilation", compilation.as_ref());
+    }
+    #[test]
     fn test_convert_search_type_from_str() {
         let search_type = SearchType::from_str("artist");
         assert_eq!(search_type.unwrap(), SearchType::Artist);
@@ -252,8 +220,11 @@ mod tests {
     fn test_type_convert_from_str() {
         let _type = Type::from_str("album");
         assert_eq!(_type.unwrap(), Type::Album);
+        let artist = Type::Artist;
+        assert_eq!(artist.as_ref(),"artist");
+        assert_eq!(artist.to_string(),"artist".to_string());
 
         let empty_type = Type::from_str("not_exist_type");
-        assert_eq!(empty_type.is_err(), true);
+        assert!(empty_type.is_err());
     }
 }

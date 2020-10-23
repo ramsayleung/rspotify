@@ -138,7 +138,7 @@ impl Spotify {
 
     /// TODO: should be moved into a custom type
     fn get_uri(&self, _type: Type, _id: &str) -> String {
-        format!("spotify:{}:{}", _type.as_str(), self.get_id(_type, _id))
+        format!("spotify:{}:{}", _type.as_ref(), self.get_id(_type, _id))
     }
 
     /// Converts a JSON response from Spotify into its model.
@@ -153,7 +153,7 @@ impl Spotify {
         let fields: Vec<&str> = _id.split(':').collect();
         let len = fields.len();
         if len >= 3 {
-            if _type.as_str() != fields[len - 2] {
+            if _type.as_ref() != fields[len - 2] {
                 error!(
                     "expected id of type {:?} but found type {:?} {:?}",
                     _type,
@@ -167,7 +167,7 @@ impl Spotify {
         let sfields: Vec<&str> = _id.split('/').collect();
         let len: usize = sfields.len();
         if len >= 3 {
-            if _type.as_str() != sfields[len - 2] {
+            if _type.as_ref() != sfields[len - 2] {
                 error!(
                     "expected id of type {:?} but found type {:?} {:?}",
                     _type,
@@ -295,7 +295,7 @@ impl Spotify {
             params.insert("limit".to_owned(), limit.to_string());
         }
         if let Some(album_type) = album_type {
-            params.insert("album_type".to_owned(), album_type.as_str().to_owned());
+            params.insert("album_type".to_owned(), album_type.to_string());
         }
         if let Some(offset) = offset {
             params.insert("offset".to_owned(), offset.to_string());
@@ -1052,7 +1052,7 @@ impl Spotify {
     ) -> ClientResult<CursorPageFullArtists> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
-        params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
+        params.insert("type".to_owned(), Type::Artist.to_string());
         if let Some(after) = after {
             params.insert("after".to_owned(), after);
         }
