@@ -1641,7 +1641,7 @@ impl Spotify {
                 "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|x| x.as_str())
+                    .map(|x| x.as_ref())
                     .collect::<Vec<_>>()
                     .join(","),
             );
@@ -1679,7 +1679,7 @@ impl Spotify {
                 "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|x| x.as_str())
+                    .map(|x| x.as_ref())
                     .collect::<Vec<_>>()
                     .join(","),
             );

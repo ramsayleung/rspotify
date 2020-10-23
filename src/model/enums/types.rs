@@ -77,60 +77,27 @@ pub enum Type {
 }
 
 /// additional_typs: track, episode
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display)]
 #[serde(rename_all = "snake_case")]
 pub enum AdditionalType {
+    #[strum(serialize = "track")]
     Track,
+    #[strum(serialize = "episode")]
     Episode,
 }
-impl AdditionalType {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            AdditionalType::Track => "track",
-            AdditionalType::Episode => "episode",
-        }
-    }
-}
-impl FromStr for AdditionalType {
-    type Err = EnumError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "track" => Ok(AdditionalType::Track),
-            "episode" => Ok(AdditionalType::Episode),
-            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
-        }
-    }
-}
+
 /// currently_playing_type: track, episode, ad, unknown.
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display)]
 #[serde(rename_all = "snake_case")]
 pub enum CurrentlyPlayingType {
+    #[strum(serialize = "track")]
     Track,
+    #[strum(serialize = "episode")]
     Episode,
+    #[strum(serialize = "ad")]
     Advertisement,
+    #[strum(serialize = "unknown")]
     Unknown,
-}
-impl CurrentlyPlayingType {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            CurrentlyPlayingType::Track => "track",
-            CurrentlyPlayingType::Episode => "episode",
-            CurrentlyPlayingType::Advertisement => "ad",
-            CurrentlyPlayingType::Unknown => "unknown",
-        }
-    }
-}
-impl FromStr for CurrentlyPlayingType {
-    type Err = EnumError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "track" => Ok(CurrentlyPlayingType::Track),
-            "episode" => Ok(CurrentlyPlayingType::Episode),
-            "ad" => Ok(CurrentlyPlayingType::Advertisement),
-            "unknown" => Ok(CurrentlyPlayingType::Unknown),
-            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
-        }
-    }
 }
 
 /// Type for search: artist, album, track, playlist, show, episode
@@ -226,5 +193,22 @@ mod tests {
 
         let empty_type = Type::from_str("not_exist_type");
         assert!(empty_type.is_err());
+    }
+    #[test]
+    fn test_additional_type(){
+        let track = AdditionalType::from_str("track");
+        assert_eq!(track.unwrap(), AdditionalType::Track);
+        let episode = AdditionalType::Episode;
+        assert_eq!(episode.to_string(),"episode".to_string());
+        assert_eq!(episode.as_ref(), "episode".to_string());
+    }
+    #[test]
+    fn test_current_playing_type(){
+        let track = CurrentlyPlayingType::from_str("track");
+        assert_eq!(track.unwrap(), CurrentlyPlayingType::Track);
+        let episode = CurrentlyPlayingType::Episode;
+        assert_eq!(episode.as_ref(), "episode");
+        let ad = CurrentlyPlayingType::Advertisement;
+        assert_eq!(ad.as_ref(), "ad");
     }
 }
