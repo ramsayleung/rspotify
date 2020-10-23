@@ -1151,7 +1151,7 @@ impl Spotify {
             time_range
                 .into()
                 .unwrap_or(TimeRange::MediumTerm)
-                .as_str()
+                .as_ref()
                 .to_owned(),
         );
         let result = self.get(&"me/top/artists", None, &params).await?;
@@ -1185,7 +1185,7 @@ impl Spotify {
             time_range
                 .into()
                 .unwrap_or(TimeRange::MediumTerm)
-                .as_str()
+                .as_ref()
                 .to_owned(),
         );
         let result = self.get("me/top/tracks", None, &params).await?;

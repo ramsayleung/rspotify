@@ -44,14 +44,11 @@ impl fmt::Display for EnumError {
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
 )]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum AlbumType {
-    #[strum(serialize = "album")]
     Album,
-    #[strum(serialize = "single")]
     Single,
-    #[strum(serialize = "appears_on")]
     AppearsOn,
-    #[strum(serialize = "compilation")]
     Compilation,
 }
 
@@ -60,20 +57,14 @@ pub enum AlbumType {
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
 )]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum Type {
-    #[strum(serialize = "artist")]
     Artist,
-    #[strum(serialize = "album")]
     Album,
-    #[strum(serialize = "track")]
     Track,
-    #[strum(serialize = "playlist")]
     Playlist,
-    #[strum(serialize = "user")]
     User,
-    #[strum(serialize = "show")]
     Show,
-    #[strum(serialize = "episode")]
     Episode,
 }
 
@@ -82,10 +73,9 @@ pub enum Type {
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
 )]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum AdditionalType {
-    #[strum(serialize = "track")]
     Track,
-    #[strum(serialize = "episode")]
     Episode,
 }
 
@@ -94,14 +84,12 @@ pub enum AdditionalType {
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
 )]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum CurrentlyPlayingType {
-    #[strum(serialize = "track")]
     Track,
-    #[strum(serialize = "episode")]
     Episode,
     #[strum(serialize = "ad")]
     Advertisement,
-    #[strum(serialize = "unknown")]
     Unknown,
 }
 
@@ -110,18 +98,13 @@ pub enum CurrentlyPlayingType {
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
 )]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum SearchType {
-    #[strum(serialize = "artist")]
     Artist,
-    #[strum(serialize = "album")]
     Album,
-    #[strum(serialize = "track")]
     Track,
-    #[strum(serialize = "playlist")]
     Playlist,
-    #[strum(serialize = "show")]
     Show,
-    #[strum(serialize = "episode")]
     Episode,
 }
 
@@ -129,7 +112,8 @@ pub enum SearchType {
 /// See the [Spotify developer
 /// docs](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
 /// for more information, or in case we are missing a device type here.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, EnumString, AsRefStr, Display)]
+#[strum(serialize_all = "snake_case")]
 pub enum DeviceType {
     Computer,
     Tablet,
@@ -148,6 +132,7 @@ pub enum DeviceType {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_album_type_convert_from_str() {
