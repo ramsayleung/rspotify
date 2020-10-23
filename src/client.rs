@@ -426,7 +426,7 @@ impl Spotify {
         if let Some(include_external) = include_external {
             params.insert(
                 "include_external".to_owned(),
-                include_external.as_str().to_owned(),
+                include_external.to_string(),
             );
         }
 
@@ -1849,7 +1849,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
-            &format!("me/player/repeat?state={}", state.as_str()),
+            &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
         );
         self.put(&url, None, &json!({})).await?;
