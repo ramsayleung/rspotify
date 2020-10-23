@@ -229,7 +229,7 @@ impl Spotify {
 
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
 
         let url = format!("tracks/?ids={}", ids.join(","));
@@ -301,7 +301,7 @@ impl Spotify {
             params.insert("offset".to_owned(), offset.to_string());
         }
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
@@ -326,11 +326,7 @@ impl Spotify {
         let mut params = Query::with_capacity(1);
         params.insert(
             "country".to_owned(),
-            country
-                .into()
-                .unwrap_or(Country::UnitedStates)
-                .as_str()
-                .to_owned(),
+            country.into().unwrap_or(Country::UnitedStates).to_string(),
         );
 
         let trid = self.get_id(Type::Artist, artist_id);
@@ -421,13 +417,10 @@ impl Spotify {
         params.insert("q".to_owned(), q.to_owned());
         params.insert("type".to_owned(), _type.to_string());
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
         if let Some(include_external) = include_external {
-            params.insert(
-                "include_external".to_owned(),
-                include_external.to_string(),
-            );
+            params.insert("include_external".to_owned(), include_external.to_string());
         }
 
         let result = self.get("search", None, &params).await?;
@@ -490,7 +483,7 @@ impl Spotify {
             params.insert("fields".to_owned(), fields.to_owned());
         }
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
 
         let plid = self.get_id(Type::Playlist, playlist_id);
@@ -564,7 +557,7 @@ impl Spotify {
             params.insert("fields".to_owned(), fields.to_string());
         }
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
         match playlist_id {
             Some(playlist_id) => {
@@ -606,7 +599,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
         if let Some(fields) = fields {
             params.insert("fields".to_owned(), fields.to_owned());
@@ -1405,7 +1398,7 @@ impl Spotify {
             params.insert("locale".to_owned(), locale);
         }
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
         if let Some(timestamp) = timestamp {
             params.insert("timestamp".to_owned(), timestamp.to_rfc3339());
@@ -1435,7 +1428,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
@@ -1469,7 +1462,7 @@ impl Spotify {
             params.insert("locale".to_owned(), locale);
         }
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
         let result = self.get("browse/categories", None, &params).await?;
         self.convert_result(&result)
@@ -1549,7 +1542,7 @@ impl Spotify {
             params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
         }
         if let Some(country) = country {
-            params.insert("market".to_owned(), country.as_str().to_owned());
+            params.insert("market".to_owned(), country.to_string());
         }
         let result = self.get("recommendations", None, &params).await?;
         self.convert_result(&result)
@@ -1634,7 +1627,7 @@ impl Spotify {
     ) -> ClientResult<Option<CurrentlyPlaybackContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         if let Some(additional_types) = additional_types {
             params.insert(
@@ -1672,7 +1665,7 @@ impl Spotify {
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         if let Some(additional_types) = additional_types {
             params.insert(
@@ -1962,7 +1955,7 @@ impl Spotify {
     pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let url = format!("shows/{}", id);
         let result = self.get(&url, None, &params).await?;
@@ -1990,7 +1983,7 @@ impl Spotify {
             ids.into_iter().collect::<Vec<_>>().join(","),
         );
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("shows", None, &params).await?;
         self.convert_result(&result)
@@ -2020,7 +2013,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let url = format!("shows/{}/episodes", id);
         let result = self.get(&url, None, &params).await?;
@@ -2045,7 +2038,7 @@ impl Spotify {
         let url = format!("episodes/{}", id);
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
 
         let result = self.get(&url, None, &params).await?;
@@ -2071,7 +2064,7 @@ impl Spotify {
             ids.into_iter().collect::<Vec<_>>().join(","),
         );
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("episodes", None, &params).await?;
         self.convert_result(&result)
@@ -2115,7 +2108,7 @@ impl Spotify {
         let url = format!("me/shows?ids={}", joined_ids);
         let mut params = json!({});
         if let Some(market) = market {
-            json_insert!(params, "country", market.as_str());
+            json_insert!(params, "country", market.as_ref());
         }
         self.delete(&url, None, &params).await?;
 

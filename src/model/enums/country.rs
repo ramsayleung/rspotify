@@ -1,784 +1,525 @@
-use crate::model::EnumError;
-use crate::model::ErrorKind;
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use strum::{AsRefStr, Display, EnumString};
 
 ///ISO 3166-1 alpha-2 country code, [wiki about ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
 ///Source from [country-list](https://datahub.io/core/country-list)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
 pub enum Country {
+    #[strum(serialize = "AF")]
     Afghanistan,
+    #[strum(serialize = "AX")]
     AlandIslands,
+    #[strum(serialize = "AL")]
     Albania,
+    #[strum(serialize = "DZ")]
     Algeria,
+    #[strum(serialize = "AS")]
     AmericanSamoa,
+    #[strum(serialize = "AD")]
     Andorra,
+    #[strum(serialize = "AO")]
     Angola,
+    #[strum(serialize = "AI")]
     Anguilla,
+    #[strum(serialize = "AQ")]
     Antarctica,
+    #[strum(serialize = "AG")]
     AntiguaAndBarbuda,
+    #[strum(serialize = "AR")]
     Argentina,
+    #[strum(serialize = "AM")]
     Armenia,
+    #[strum(serialize = "AW")]
     Aruba,
+    #[strum(serialize = "AU")]
     Australia,
+    #[strum(serialize = "AT")]
     Austria,
+    #[strum(serialize = "AZ")]
     Azerbaijan,
+    #[strum(serialize = "BS")]
     Bahamas,
+    #[strum(serialize = "BH")]
     Bahrain,
+    #[strum(serialize = "BD")]
     Bangladesh,
+    #[strum(serialize = "BB")]
     Barbados,
+    #[strum(serialize = "BY")]
     Belarus,
+    #[strum(serialize = "BE")]
     Belgium,
+    #[strum(serialize = "BZ")]
     Belize,
+    #[strum(serialize = "BJ")]
     Benin,
+    #[strum(serialize = "BM")]
     Bermuda,
+    #[strum(serialize = "BT")]
     Bhutan,
+    #[strum(serialize = "BO")]
     BoliviaPlurinationalStateOf,
+    #[strum(serialize = "BQ")]
     BonaireSintEustatiusAndSaba,
+    #[strum(serialize = "BA")]
     BosniaAndHerzegovina,
+    #[strum(serialize = "BW")]
     Botswana,
+    #[strum(serialize = "BV")]
     BouvetIsland,
+    #[strum(serialize = "BR")]
     Brazil,
+    #[strum(serialize = "IO")]
     BritishIndianOceanTerritory,
+    #[strum(serialize = "BN")]
     BruneiDarussalam,
+    #[strum(serialize = "BG")]
     Bulgaria,
+    #[strum(serialize = "BF")]
     BurkinaFaso,
+    #[strum(serialize = "BI")]
     Burundi,
+    #[strum(serialize = "KH")]
     Cambodia,
+    #[strum(serialize = "CM")]
     Cameroon,
+    #[strum(serialize = "CA")]
     Canada,
+    #[strum(serialize = "CV")]
     CapeVerde,
+    #[strum(serialize = "KY")]
     CaymanIslands,
+    #[strum(serialize = "CF")]
     CentralAfricanRepublic,
+    #[strum(serialize = "TD")]
     Chad,
+    #[strum(serialize = "CL")]
     Chile,
+    #[strum(serialize = "CN")]
     China,
+    #[strum(serialize = "CX")]
     ChristmasIsland,
+    #[strum(serialize = "CC")]
     CocosKeelingIslands,
+    #[strum(serialize = "CO")]
     Colombia,
+    #[strum(serialize = "KM")]
     Comoros,
+    #[strum(serialize = "CG")]
     Congo,
+    #[strum(serialize = "CD")]
     CongoTheDemocraticRepublicOfThe,
+    #[strum(serialize = "CK")]
     CookIslands,
+    #[strum(serialize = "CR")]
     CostaRica,
+    #[strum(serialize = "CI")]
     CoteDivoire,
+    #[strum(serialize = "HR")]
     Croatia,
+    #[strum(serialize = "CU")]
     Cuba,
+    #[strum(serialize = "CW")]
     Curacao,
+    #[strum(serialize = "CY")]
     Cyprus,
+    #[strum(serialize = "CZ")]
     CzechRepublic,
+    #[strum(serialize = "DK")]
     Denmark,
+    #[strum(serialize = "DJ")]
     Djibouti,
+    #[strum(serialize = "DM")]
     Dominica,
+    #[strum(serialize = "DO")]
     DominicanRepublic,
+    #[strum(serialize = "EC")]
     Ecuador,
+    #[strum(serialize = "EG")]
     Egypt,
+    #[strum(serialize = "SV")]
     ElSalvador,
+    #[strum(serialize = "GQ")]
     EquatorialGuinea,
+    #[strum(serialize = "ER")]
     Eritrea,
+    #[strum(serialize = "EE")]
     Estonia,
+    #[strum(serialize = "ET")]
     Ethiopia,
+    #[strum(serialize = "FK")]
     FalklandIslandsMalvinas,
+    #[strum(serialize = "FO")]
     FaroeIslands,
+    #[strum(serialize = "FJ")]
     Fiji,
+    #[strum(serialize = "FI")]
     Finland,
+    #[strum(serialize = "FR")]
     France,
+    #[strum(serialize = "GF")]
     FrenchGuiana,
+    #[strum(serialize = "PF")]
     FrenchPolynesia,
+    #[strum(serialize = "TF")]
     FrenchSouthernTerritories,
+    #[strum(serialize = "GA")]
     Gabon,
+    #[strum(serialize = "GM")]
     Gambia,
+    #[strum(serialize = "GE")]
     Georgia,
+    #[strum(serialize = "DE")]
     Germany,
+    #[strum(serialize = "GH")]
     Ghana,
+    #[strum(serialize = "GI")]
     Gibraltar,
+    #[strum(serialize = "GR")]
     Greece,
+    #[strum(serialize = "GL")]
     Greenland,
+    #[strum(serialize = "GD")]
     Grenada,
+    #[strum(serialize = "GP")]
     Guadeloupe,
+    #[strum(serialize = "GU")]
     Guam,
+    #[strum(serialize = "GT")]
     Guatemala,
+    #[strum(serialize = "GG")]
     Guernsey,
+    #[strum(serialize = "GN")]
     Guinea,
+    #[strum(serialize = "GW")]
     GuineaBissau,
+    #[strum(serialize = "GY")]
     Guyana,
+    #[strum(serialize = "HT")]
     Haiti,
+    #[strum(serialize = "HM")]
     HeardIslandAndMcdonaldIslands,
+    #[strum(serialize = "VA")]
     HolySeeVaticanCityState,
+    #[strum(serialize = "HN")]
     Honduras,
+    #[strum(serialize = "HK")]
     HongKong,
+    #[strum(serialize = "HU")]
     Hungary,
+    #[strum(serialize = "IS")]
     Iceland,
+    #[strum(serialize = "IN")]
     India,
+    #[strum(serialize = "ID")]
     Indonesia,
+    #[strum(serialize = "IR")]
     IranIslamicRepublicOf,
+    #[strum(serialize = "IQ")]
     Iraq,
+    #[strum(serialize = "IE")]
     Ireland,
+    #[strum(serialize = "IM")]
     IsleOfMan,
+    #[strum(serialize = "IL")]
     Israel,
+    #[strum(serialize = "IT")]
     Italy,
+    #[strum(serialize = "JM")]
     Jamaica,
+    #[strum(serialize = "JP")]
     Japan,
+    #[strum(serialize = "JE")]
     Jersey,
+    #[strum(serialize = "JO")]
     Jordan,
+    #[strum(serialize = "KZ")]
     Kazakhstan,
+    #[strum(serialize = "KE")]
     Kenya,
+    #[strum(serialize = "KI")]
     Kiribati,
+    #[strum(serialize = "KP")]
     KoreaDemocraticPeopleRepublicOf,
+    #[strum(serialize = "KR")]
     KoreaRepublicOf,
+    #[strum(serialize = "KW")]
     Kuwait,
+    #[strum(serialize = "KG")]
     Kyrgyzstan,
+    #[strum(serialize = "LA")]
     LaoPeopleDemocraticRepublic,
+    #[strum(serialize = "LV")]
     Latvia,
+    #[strum(serialize = "LB")]
     Lebanon,
+    #[strum(serialize = "LS")]
     Lesotho,
+    #[strum(serialize = "LR")]
     Liberia,
+    #[strum(serialize = "LY")]
     Libya,
+    #[strum(serialize = "LI")]
     Liechtenstein,
+    #[strum(serialize = "LT")]
     Lithuania,
+    #[strum(serialize = "LU")]
     Luxembourg,
+    #[strum(serialize = "MO")]
     Macao,
+    #[strum(serialize = "MK")]
     MacedoniaTheFormerYugoslavRepublicOf,
+    #[strum(serialize = "MG")]
     Madagascar,
+    #[strum(serialize = "MW")]
     Malawi,
+    #[strum(serialize = "MY")]
     Malaysia,
+    #[strum(serialize = "MV")]
     Maldives,
+    #[strum(serialize = "ML")]
     Mali,
+    #[strum(serialize = "MT")]
     Malta,
+    #[strum(serialize = "MH")]
     MarshallIslands,
+    #[strum(serialize = "MQ")]
     Martinique,
+    #[strum(serialize = "MR")]
     Mauritania,
+    #[strum(serialize = "MU")]
     Mauritius,
+    #[strum(serialize = "YT")]
     Mayotte,
+    #[strum(serialize = "MX")]
     Mexico,
+    #[strum(serialize = "FM")]
     MicronesiaFederatedStatesOf,
+    #[strum(serialize = "MD")]
     MoldovaRepublicOf,
+    #[strum(serialize = "MC")]
     Monaco,
+    #[strum(serialize = "MN")]
     Mongolia,
+    #[strum(serialize = "ME")]
     Montenegro,
+    #[strum(serialize = "MS")]
     Montserrat,
+    #[strum(serialize = "MA")]
     Morocco,
+    #[strum(serialize = "MZ")]
     Mozambique,
+    #[strum(serialize = "MM")]
     Myanmar,
+    #[strum(serialize = "NA")]
     Namibia,
+    #[strum(serialize = "NR")]
     Nauru,
+    #[strum(serialize = "NP")]
     Nepal,
+    #[strum(serialize = "NL")]
     Netherlands,
+    #[strum(serialize = "NC")]
     NewCaledonia,
+    #[strum(serialize = "NZ")]
     NewZealand,
+    #[strum(serialize = "NI")]
     Nicaragua,
+    #[strum(serialize = "NE")]
     Niger,
+    #[strum(serialize = "NG")]
     Nigeria,
+    #[strum(serialize = "NU")]
     Niue,
+    #[strum(serialize = "NF")]
     NorfolkIsland,
+    #[strum(serialize = "MP")]
     NorthernMarianaIslands,
+    #[strum(serialize = "NO")]
     Norway,
+    #[strum(serialize = "OM")]
     Oman,
+    #[strum(serialize = "PK")]
     Pakistan,
+    #[strum(serialize = "PW")]
     Palau,
+    #[strum(serialize = "PS")]
     PalestineStateOf,
+    #[strum(serialize = "PA")]
     Panama,
+    #[strum(serialize = "PG")]
     PapuaNewGuinea,
+    #[strum(serialize = "PY")]
     Paraguay,
+    #[strum(serialize = "PE")]
     Peru,
+    #[strum(serialize = "PH")]
     Philippines,
+    #[strum(serialize = "PN")]
     Pitcairn,
+    #[strum(serialize = "PL")]
     Poland,
+    #[strum(serialize = "PT")]
     Portugal,
+    #[strum(serialize = "PR")]
     PuertoRico,
+    #[strum(serialize = "QA")]
     Qatar,
+    #[strum(serialize = "RE")]
     Reunion,
+    #[strum(serialize = "RO")]
     Romania,
+    #[strum(serialize = "RU")]
     RussianFederation,
+    #[strum(serialize = "RW")]
     Rwanda,
+    #[strum(serialize = "BL")]
     SaintBarthelemy,
+    #[strum(serialize = "SH")]
     SaintHelenaAscensionAndTristanDaCunha,
+    #[strum(serialize = "KN")]
     SaintKittsAndNevis,
+    #[strum(serialize = "LC")]
     SaintLucia,
+    #[strum(serialize = "MF")]
     SaintMartinFrenchPart,
+    #[strum(serialize = "PM")]
     SaintPierreAndMiquelon,
+    #[strum(serialize = "VC")]
     SaintVincentAndTheGrenadines,
+    #[strum(serialize = "WS")]
     Samoa,
+    #[strum(serialize = "SM")]
     SanMarino,
+    #[strum(serialize = "ST")]
     SaoTomeAndPrincipe,
+    #[strum(serialize = "SA")]
     SaudiArabia,
+    #[strum(serialize = "SN")]
     Senegal,
+    #[strum(serialize = "RS")]
     Serbia,
+    #[strum(serialize = "SC")]
     Seychelles,
+    #[strum(serialize = "SL")]
     SierraLeone,
+    #[strum(serialize = "SG")]
     Singapore,
+    #[strum(serialize = "SX")]
     SintMaartenDutchPart,
+    #[strum(serialize = "SK")]
     Slovakia,
+    #[strum(serialize = "SI")]
     Slovenia,
+    #[strum(serialize = "SB")]
     SolomonIslands,
+    #[strum(serialize = "SO")]
     Somalia,
+    #[strum(serialize = "ZA")]
     SouthAfrica,
+    #[strum(serialize = "GS")]
     SouthGeorgiaAndTheSouthSandwichIslands,
+    #[strum(serialize = "SS")]
     SouthSudan,
+    #[strum(serialize = "ES")]
     Spain,
+    #[strum(serialize = "LK")]
     SriLanka,
+    #[strum(serialize = "SD")]
     Sudan,
+    #[strum(serialize = "SR")]
     Suriname,
+    #[strum(serialize = "SJ")]
     SvalbardAndJanMayen,
+    #[strum(serialize = "SZ")]
     Swaziland,
+    #[strum(serialize = "SE")]
     Sweden,
+    #[strum(serialize = "CH")]
     Switzerland,
+    #[strum(serialize = "SY")]
     SyrianArabRepublic,
+    #[strum(serialize = "TW")]
     TaiwanProvinceOfChina,
+    #[strum(serialize = "TJ")]
     Tajikistan,
+    #[strum(serialize = "TZ")]
     TanzaniaUnitedRepublicOf,
+    #[strum(serialize = "TH")]
     Thailand,
+    #[strum(serialize = "TL")]
     TimorLeste,
+    #[strum(serialize = "TG")]
     Togo,
+    #[strum(serialize = "TK")]
     Tokelau,
+    #[strum(serialize = "TO")]
     Tonga,
+    #[strum(serialize = "TT")]
     TrinidadAndTobago,
+    #[strum(serialize = "TN")]
     Tunisia,
+    #[strum(serialize = "TR")]
     Turkey,
+    #[strum(serialize = "TM")]
     Turkmenistan,
+    #[strum(serialize = "TC")]
     TurksAndCaicosIslands,
+    #[strum(serialize = "TV")]
     Tuvalu,
+    #[strum(serialize = "UG")]
     Uganda,
+    #[strum(serialize = "UA")]
     Ukraine,
+    #[strum(serialize = "AE")]
     UnitedArabEmirates,
+    #[strum(serialize = "GB")]
     UnitedKingdom,
+    #[strum(serialize = "US")]
     UnitedStates,
+    #[strum(serialize = "UM")]
     UnitedStatesMinorOutlyingIslands,
+    #[strum(serialize = "UY")]
     Uruguay,
+    #[strum(serialize = "UZ")]
     Uzbekistan,
+    #[strum(serialize = "VU")]
     Vanuatu,
+    #[strum(serialize = "VE")]
     VenezuelaBolivarianRepublicOf,
+    #[strum(serialize = "VN")]
     VietNam,
+    #[strum(serialize = "VG")]
     VirginIslandsBritish,
+    #[strum(serialize = "VI")]
     VirginIslandsUS,
+    #[strum(serialize = "WF")]
     WallisAndFutuna,
+    #[strum(serialize = "EH")]
     WesternSahara,
+    #[strum(serialize = "YE")]
     Yemen,
+    #[strum(serialize = "ZM")]
     Zambia,
+    #[strum(serialize = "ZW")]
     Zimbabwe,
-}
-impl Country {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            Country::Afghanistan => "AF",
-            Country::AlandIslands => "AX",
-            Country::Albania => "AL",
-            Country::Algeria => "DZ",
-            Country::AmericanSamoa => "AS",
-            Country::Andorra => "AD",
-            Country::Angola => "AO",
-            Country::Anguilla => "AI",
-            Country::Antarctica => "AQ",
-            Country::AntiguaAndBarbuda => "AG",
-            Country::Argentina => "AR",
-            Country::Armenia => "AM",
-            Country::Aruba => "AW",
-            Country::Australia => "AU",
-            Country::Austria => "AT",
-            Country::Azerbaijan => "AZ",
-            Country::Bahamas => "BS",
-            Country::Bahrain => "BH",
-            Country::Bangladesh => "BD",
-            Country::Barbados => "BB",
-            Country::Belarus => "BY",
-            Country::Belgium => "BE",
-            Country::Belize => "BZ",
-            Country::Benin => "BJ",
-            Country::Bermuda => "BM",
-            Country::Bhutan => "BT",
-            Country::BoliviaPlurinationalStateOf => "BO",
-            Country::BonaireSintEustatiusAndSaba => "BQ",
-            Country::BosniaAndHerzegovina => "BA",
-            Country::Botswana => "BW",
-            Country::BouvetIsland => "BV",
-            Country::Brazil => "BR",
-            Country::BritishIndianOceanTerritory => "IO",
-            Country::BruneiDarussalam => "BN",
-            Country::Bulgaria => "BG",
-            Country::BurkinaFaso => "BF",
-            Country::Burundi => "BI",
-            Country::Cambodia => "KH",
-            Country::Cameroon => "CM",
-            Country::Canada => "CA",
-            Country::CapeVerde => "CV",
-            Country::CaymanIslands => "KY",
-            Country::CentralAfricanRepublic => "CF",
-            Country::Chad => "TD",
-            Country::Chile => "CL",
-            Country::China => "CN",
-            Country::ChristmasIsland => "CX",
-            Country::CocosKeelingIslands => "CC",
-            Country::Colombia => "CO",
-            Country::Comoros => "KM",
-            Country::Congo => "CG",
-            Country::CongoTheDemocraticRepublicOfThe => "CD",
-            Country::CookIslands => "CK",
-            Country::CostaRica => "CR",
-            Country::CoteDivoire => "CI",
-            Country::Croatia => "HR",
-            Country::Cuba => "CU",
-            Country::Curacao => "CW",
-            Country::Cyprus => "CY",
-            Country::CzechRepublic => "CZ",
-            Country::Denmark => "DK",
-            Country::Djibouti => "DJ",
-            Country::Dominica => "DM",
-            Country::DominicanRepublic => "DO",
-            Country::Ecuador => "EC",
-            Country::Egypt => "EG",
-            Country::ElSalvador => "SV",
-            Country::EquatorialGuinea => "GQ",
-            Country::Eritrea => "ER",
-            Country::Estonia => "EE",
-            Country::Ethiopia => "ET",
-            Country::FalklandIslandsMalvinas => "FK",
-            Country::FaroeIslands => "FO",
-            Country::Fiji => "FJ",
-            Country::Finland => "FI",
-            Country::France => "FR",
-            Country::FrenchGuiana => "GF",
-            Country::FrenchPolynesia => "PF",
-            Country::FrenchSouthernTerritories => "TF",
-            Country::Gabon => "GA",
-            Country::Gambia => "GM",
-            Country::Georgia => "GE",
-            Country::Germany => "DE",
-            Country::Ghana => "GH",
-            Country::Gibraltar => "GI",
-            Country::Greece => "GR",
-            Country::Greenland => "GL",
-            Country::Grenada => "GD",
-            Country::Guadeloupe => "GP",
-            Country::Guam => "GU",
-            Country::Guatemala => "GT",
-            Country::Guernsey => "GG",
-            Country::Guinea => "GN",
-            Country::GuineaBissau => "GW",
-            Country::Guyana => "GY",
-            Country::Haiti => "HT",
-            Country::HeardIslandAndMcdonaldIslands => "HM",
-            Country::HolySeeVaticanCityState => "VA",
-            Country::Honduras => "HN",
-            Country::HongKong => "HK",
-            Country::Hungary => "HU",
-            Country::Iceland => "IS",
-            Country::India => "IN",
-            Country::Indonesia => "ID",
-            Country::IranIslamicRepublicOf => "IR",
-            Country::Iraq => "IQ",
-            Country::Ireland => "IE",
-            Country::IsleOfMan => "IM",
-            Country::Israel => "IL",
-            Country::Italy => "IT",
-            Country::Jamaica => "JM",
-            Country::Japan => "JP",
-            Country::Jersey => "JE",
-            Country::Jordan => "JO",
-            Country::Kazakhstan => "KZ",
-            Country::Kenya => "KE",
-            Country::Kiribati => "KI",
-            Country::KoreaDemocraticPeopleRepublicOf => "KP",
-            Country::KoreaRepublicOf => "KR",
-            Country::Kuwait => "KW",
-            Country::Kyrgyzstan => "KG",
-            Country::LaoPeopleDemocraticRepublic => "LA",
-            Country::Latvia => "LV",
-            Country::Lebanon => "LB",
-            Country::Lesotho => "LS",
-            Country::Liberia => "LR",
-            Country::Libya => "LY",
-            Country::Liechtenstein => "LI",
-            Country::Lithuania => "LT",
-            Country::Luxembourg => "LU",
-            Country::Macao => "MO",
-            Country::MacedoniaTheFormerYugoslavRepublicOf => "MK",
-            Country::Madagascar => "MG",
-            Country::Malawi => "MW",
-            Country::Malaysia => "MY",
-            Country::Maldives => "MV",
-            Country::Mali => "ML",
-            Country::Malta => "MT",
-            Country::MarshallIslands => "MH",
-            Country::Martinique => "MQ",
-            Country::Mauritania => "MR",
-            Country::Mauritius => "MU",
-            Country::Mayotte => "YT",
-            Country::Mexico => "MX",
-            Country::MicronesiaFederatedStatesOf => "FM",
-            Country::MoldovaRepublicOf => "MD",
-            Country::Monaco => "MC",
-            Country::Mongolia => "MN",
-            Country::Montenegro => "ME",
-            Country::Montserrat => "MS",
-            Country::Morocco => "MA",
-            Country::Mozambique => "MZ",
-            Country::Myanmar => "MM",
-            Country::Namibia => "NA",
-            Country::Nauru => "NR",
-            Country::Nepal => "NP",
-            Country::Netherlands => "NL",
-            Country::NewCaledonia => "NC",
-            Country::NewZealand => "NZ",
-            Country::Nicaragua => "NI",
-            Country::Niger => "NE",
-            Country::Nigeria => "NG",
-            Country::Niue => "NU",
-            Country::NorfolkIsland => "NF",
-            Country::NorthernMarianaIslands => "MP",
-            Country::Norway => "NO",
-            Country::Oman => "OM",
-            Country::Pakistan => "PK",
-            Country::Palau => "PW",
-            Country::PalestineStateOf => "PS",
-            Country::Panama => "PA",
-            Country::PapuaNewGuinea => "PG",
-            Country::Paraguay => "PY",
-            Country::Peru => "PE",
-            Country::Philippines => "PH",
-            Country::Pitcairn => "PN",
-            Country::Poland => "PL",
-            Country::Portugal => "PT",
-            Country::PuertoRico => "PR",
-            Country::Qatar => "QA",
-            Country::Reunion => "RE",
-            Country::Romania => "RO",
-            Country::RussianFederation => "RU",
-            Country::Rwanda => "RW",
-            Country::SaintBarthelemy => "BL",
-            Country::SaintHelenaAscensionAndTristanDaCunha => "SH",
-            Country::SaintKittsAndNevis => "KN",
-            Country::SaintLucia => "LC",
-            Country::SaintMartinFrenchPart => "MF",
-            Country::SaintPierreAndMiquelon => "PM",
-            Country::SaintVincentAndTheGrenadines => "VC",
-            Country::Samoa => "WS",
-            Country::SanMarino => "SM",
-            Country::SaoTomeAndPrincipe => "ST",
-            Country::SaudiArabia => "SA",
-            Country::Senegal => "SN",
-            Country::Serbia => "RS",
-            Country::Seychelles => "SC",
-            Country::SierraLeone => "SL",
-            Country::Singapore => "SG",
-            Country::SintMaartenDutchPart => "SX",
-            Country::Slovakia => "SK",
-            Country::Slovenia => "SI",
-            Country::SolomonIslands => "SB",
-            Country::Somalia => "SO",
-            Country::SouthAfrica => "ZA",
-            Country::SouthGeorgiaAndTheSouthSandwichIslands => "GS",
-            Country::SouthSudan => "SS",
-            Country::Spain => "ES",
-            Country::SriLanka => "LK",
-            Country::Sudan => "SD",
-            Country::Suriname => "SR",
-            Country::SvalbardAndJanMayen => "SJ",
-            Country::Swaziland => "SZ",
-            Country::Sweden => "SE",
-            Country::Switzerland => "CH",
-            Country::SyrianArabRepublic => "SY",
-            Country::TaiwanProvinceOfChina => "TW",
-            Country::Tajikistan => "TJ",
-            Country::TanzaniaUnitedRepublicOf => "TZ",
-            Country::Thailand => "TH",
-            Country::TimorLeste => "TL",
-            Country::Togo => "TG",
-            Country::Tokelau => "TK",
-            Country::Tonga => "TO",
-            Country::TrinidadAndTobago => "TT",
-            Country::Tunisia => "TN",
-            Country::Turkey => "TR",
-            Country::Turkmenistan => "TM",
-            Country::TurksAndCaicosIslands => "TC",
-            Country::Tuvalu => "TV",
-            Country::Uganda => "UG",
-            Country::Ukraine => "UA",
-            Country::UnitedArabEmirates => "AE",
-            Country::UnitedKingdom => "GB",
-            Country::UnitedStates => "US",
-            Country::UnitedStatesMinorOutlyingIslands => "UM",
-            Country::Uruguay => "UY",
-            Country::Uzbekistan => "UZ",
-            Country::Vanuatu => "VU",
-            Country::VenezuelaBolivarianRepublicOf => "VE",
-            Country::VietNam => "VN",
-            Country::VirginIslandsBritish => "VG",
-            Country::VirginIslandsUS => "VI",
-            Country::WallisAndFutuna => "WF",
-            Country::WesternSahara => "EH",
-            Country::Yemen => "YE",
-            Country::Zambia => "ZM",
-            Country::Zimbabwe => "ZW",
-        }
-    }
-}
-impl FromStr for Country {
-    type Err = EnumError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "AF" => Ok(Country::Afghanistan),
-            "AX" => Ok(Country::AlandIslands),
-            "AL" => Ok(Country::Albania),
-            "DZ" => Ok(Country::Algeria),
-            "AS" => Ok(Country::AmericanSamoa),
-            "AD" => Ok(Country::Andorra),
-            "AO" => Ok(Country::Angola),
-            "AI" => Ok(Country::Anguilla),
-            "AQ" => Ok(Country::Antarctica),
-            "AG" => Ok(Country::AntiguaAndBarbuda),
-            "AR" => Ok(Country::Argentina),
-            "AM" => Ok(Country::Armenia),
-            "AW" => Ok(Country::Aruba),
-            "AU" => Ok(Country::Australia),
-            "AT" => Ok(Country::Austria),
-            "AZ" => Ok(Country::Azerbaijan),
-            "BS" => Ok(Country::Bahamas),
-            "BH" => Ok(Country::Bahrain),
-            "BD" => Ok(Country::Bangladesh),
-            "BB" => Ok(Country::Barbados),
-            "BY" => Ok(Country::Belarus),
-            "BE" => Ok(Country::Belgium),
-            "BZ" => Ok(Country::Belize),
-            "BJ" => Ok(Country::Benin),
-            "BM" => Ok(Country::Bermuda),
-            "BT" => Ok(Country::Bhutan),
-            "BO" => Ok(Country::BoliviaPlurinationalStateOf),
-            "BQ" => Ok(Country::BonaireSintEustatiusAndSaba),
-            "BA" => Ok(Country::BosniaAndHerzegovina),
-            "BW" => Ok(Country::Botswana),
-            "BV" => Ok(Country::BouvetIsland),
-            "BR" => Ok(Country::Brazil),
-            "IO" => Ok(Country::BritishIndianOceanTerritory),
-            "BN" => Ok(Country::BruneiDarussalam),
-            "BG" => Ok(Country::Bulgaria),
-            "BF" => Ok(Country::BurkinaFaso),
-            "BI" => Ok(Country::Burundi),
-            "KH" => Ok(Country::Cambodia),
-            "CM" => Ok(Country::Cameroon),
-            "CA" => Ok(Country::Canada),
-            "CV" => Ok(Country::CapeVerde),
-            "KY" => Ok(Country::CaymanIslands),
-            "CF" => Ok(Country::CentralAfricanRepublic),
-            "TD" => Ok(Country::Chad),
-            "CL" => Ok(Country::Chile),
-            "CN" => Ok(Country::China),
-            "CX" => Ok(Country::ChristmasIsland),
-            "CC" => Ok(Country::CocosKeelingIslands),
-            "CO" => Ok(Country::Colombia),
-            "KM" => Ok(Country::Comoros),
-            "CG" => Ok(Country::Congo),
-            "CD" => Ok(Country::CongoTheDemocraticRepublicOfThe),
-            "CK" => Ok(Country::CookIslands),
-            "CR" => Ok(Country::CostaRica),
-            "CI" => Ok(Country::CoteDivoire),
-            "HR" => Ok(Country::Croatia),
-            "CU" => Ok(Country::Cuba),
-            "CW" => Ok(Country::Curacao),
-            "CY" => Ok(Country::Cyprus),
-            "CZ" => Ok(Country::CzechRepublic),
-            "DK" => Ok(Country::Denmark),
-            "DJ" => Ok(Country::Djibouti),
-            "DM" => Ok(Country::Dominica),
-            "DO" => Ok(Country::DominicanRepublic),
-            "EC" => Ok(Country::Ecuador),
-            "EG" => Ok(Country::Egypt),
-            "SV" => Ok(Country::ElSalvador),
-            "GQ" => Ok(Country::EquatorialGuinea),
-            "ER" => Ok(Country::Eritrea),
-            "EE" => Ok(Country::Estonia),
-            "ET" => Ok(Country::Ethiopia),
-            "FK" => Ok(Country::FalklandIslandsMalvinas),
-            "FO" => Ok(Country::FaroeIslands),
-            "FJ" => Ok(Country::Fiji),
-            "FI" => Ok(Country::Finland),
-            "FR" => Ok(Country::France),
-            "GF" => Ok(Country::FrenchGuiana),
-            "PF" => Ok(Country::FrenchPolynesia),
-            "TF" => Ok(Country::FrenchSouthernTerritories),
-            "GA" => Ok(Country::Gabon),
-            "GM" => Ok(Country::Gambia),
-            "GE" => Ok(Country::Georgia),
-            "DE" => Ok(Country::Germany),
-            "GH" => Ok(Country::Ghana),
-            "GI" => Ok(Country::Gibraltar),
-            "GR" => Ok(Country::Greece),
-            "GL" => Ok(Country::Greenland),
-            "GD" => Ok(Country::Grenada),
-            "GP" => Ok(Country::Guadeloupe),
-            "GU" => Ok(Country::Guam),
-            "GT" => Ok(Country::Guatemala),
-            "GG" => Ok(Country::Guernsey),
-            "GN" => Ok(Country::Guinea),
-            "GW" => Ok(Country::GuineaBissau),
-            "GY" => Ok(Country::Guyana),
-            "HT" => Ok(Country::Haiti),
-            "HM" => Ok(Country::HeardIslandAndMcdonaldIslands),
-            "VA" => Ok(Country::HolySeeVaticanCityState),
-            "HN" => Ok(Country::Honduras),
-            "HK" => Ok(Country::HongKong),
-            "HU" => Ok(Country::Hungary),
-            "IS" => Ok(Country::Iceland),
-            "IN" => Ok(Country::India),
-            "ID" => Ok(Country::Indonesia),
-            "IR" => Ok(Country::IranIslamicRepublicOf),
-            "IQ" => Ok(Country::Iraq),
-            "IE" => Ok(Country::Ireland),
-            "IM" => Ok(Country::IsleOfMan),
-            "IL" => Ok(Country::Israel),
-            "IT" => Ok(Country::Italy),
-            "JM" => Ok(Country::Jamaica),
-            "JP" => Ok(Country::Japan),
-            "JE" => Ok(Country::Jersey),
-            "JO" => Ok(Country::Jordan),
-            "KZ" => Ok(Country::Kazakhstan),
-            "KE" => Ok(Country::Kenya),
-            "KI" => Ok(Country::Kiribati),
-            "KP" => Ok(Country::KoreaDemocraticPeopleRepublicOf),
-            "KR" => Ok(Country::KoreaRepublicOf),
-            "KW" => Ok(Country::Kuwait),
-            "KG" => Ok(Country::Kyrgyzstan),
-            "LA" => Ok(Country::LaoPeopleDemocraticRepublic),
-            "LV" => Ok(Country::Latvia),
-            "LB" => Ok(Country::Lebanon),
-            "LS" => Ok(Country::Lesotho),
-            "LR" => Ok(Country::Liberia),
-            "LY" => Ok(Country::Libya),
-            "LI" => Ok(Country::Liechtenstein),
-            "LT" => Ok(Country::Lithuania),
-            "LU" => Ok(Country::Luxembourg),
-            "MO" => Ok(Country::Macao),
-            "MK" => Ok(Country::MacedoniaTheFormerYugoslavRepublicOf),
-            "MG" => Ok(Country::Madagascar),
-            "MW" => Ok(Country::Malawi),
-            "MY" => Ok(Country::Malaysia),
-            "MV" => Ok(Country::Maldives),
-            "ML" => Ok(Country::Mali),
-            "MT" => Ok(Country::Malta),
-            "MH" => Ok(Country::MarshallIslands),
-            "MQ" => Ok(Country::Martinique),
-            "MR" => Ok(Country::Mauritania),
-            "MU" => Ok(Country::Mauritius),
-            "YT" => Ok(Country::Mayotte),
-            "MX" => Ok(Country::Mexico),
-            "FM" => Ok(Country::MicronesiaFederatedStatesOf),
-            "MD" => Ok(Country::MoldovaRepublicOf),
-            "MC" => Ok(Country::Monaco),
-            "MN" => Ok(Country::Mongolia),
-            "ME" => Ok(Country::Montenegro),
-            "MS" => Ok(Country::Montserrat),
-            "MA" => Ok(Country::Morocco),
-            "MZ" => Ok(Country::Mozambique),
-            "MM" => Ok(Country::Myanmar),
-            "NA" => Ok(Country::Namibia),
-            "NR" => Ok(Country::Nauru),
-            "NP" => Ok(Country::Nepal),
-            "NL" => Ok(Country::Netherlands),
-            "NC" => Ok(Country::NewCaledonia),
-            "NZ" => Ok(Country::NewZealand),
-            "NI" => Ok(Country::Nicaragua),
-            "NE" => Ok(Country::Niger),
-            "NG" => Ok(Country::Nigeria),
-            "NU" => Ok(Country::Niue),
-            "NF" => Ok(Country::NorfolkIsland),
-            "MP" => Ok(Country::NorthernMarianaIslands),
-            "NO" => Ok(Country::Norway),
-            "OM" => Ok(Country::Oman),
-            "PK" => Ok(Country::Pakistan),
-            "PW" => Ok(Country::Palau),
-            "PS" => Ok(Country::PalestineStateOf),
-            "PA" => Ok(Country::Panama),
-            "PG" => Ok(Country::PapuaNewGuinea),
-            "PY" => Ok(Country::Paraguay),
-            "PE" => Ok(Country::Peru),
-            "PH" => Ok(Country::Philippines),
-            "PN" => Ok(Country::Pitcairn),
-            "PL" => Ok(Country::Poland),
-            "PT" => Ok(Country::Portugal),
-            "PR" => Ok(Country::PuertoRico),
-            "QA" => Ok(Country::Qatar),
-            "RE" => Ok(Country::Reunion),
-            "RO" => Ok(Country::Romania),
-            "RU" => Ok(Country::RussianFederation),
-            "RW" => Ok(Country::Rwanda),
-            "BL" => Ok(Country::SaintBarthelemy),
-            "SH" => Ok(Country::SaintHelenaAscensionAndTristanDaCunha),
-            "KN" => Ok(Country::SaintKittsAndNevis),
-            "LC" => Ok(Country::SaintLucia),
-            "MF" => Ok(Country::SaintMartinFrenchPart),
-            "PM" => Ok(Country::SaintPierreAndMiquelon),
-            "VC" => Ok(Country::SaintVincentAndTheGrenadines),
-            "WS" => Ok(Country::Samoa),
-            "SM" => Ok(Country::SanMarino),
-            "ST" => Ok(Country::SaoTomeAndPrincipe),
-            "SA" => Ok(Country::SaudiArabia),
-            "SN" => Ok(Country::Senegal),
-            "RS" => Ok(Country::Serbia),
-            "SC" => Ok(Country::Seychelles),
-            "SL" => Ok(Country::SierraLeone),
-            "SG" => Ok(Country::Singapore),
-            "SX" => Ok(Country::SintMaartenDutchPart),
-            "SK" => Ok(Country::Slovakia),
-            "SI" => Ok(Country::Slovenia),
-            "SB" => Ok(Country::SolomonIslands),
-            "SO" => Ok(Country::Somalia),
-            "ZA" => Ok(Country::SouthAfrica),
-            "GS" => Ok(Country::SouthGeorgiaAndTheSouthSandwichIslands),
-            "SS" => Ok(Country::SouthSudan),
-            "ES" => Ok(Country::Spain),
-            "LK" => Ok(Country::SriLanka),
-            "SD" => Ok(Country::Sudan),
-            "SR" => Ok(Country::Suriname),
-            "SJ" => Ok(Country::SvalbardAndJanMayen),
-            "SZ" => Ok(Country::Swaziland),
-            "SE" => Ok(Country::Sweden),
-            "CH" => Ok(Country::Switzerland),
-            "SY" => Ok(Country::SyrianArabRepublic),
-            "TW" => Ok(Country::TaiwanProvinceOfChina),
-            "TJ" => Ok(Country::Tajikistan),
-            "TZ" => Ok(Country::TanzaniaUnitedRepublicOf),
-            "TH" => Ok(Country::Thailand),
-            "TL" => Ok(Country::TimorLeste),
-            "TG" => Ok(Country::Togo),
-            "TK" => Ok(Country::Tokelau),
-            "TO" => Ok(Country::Tonga),
-            "TT" => Ok(Country::TrinidadAndTobago),
-            "TN" => Ok(Country::Tunisia),
-            "TR" => Ok(Country::Turkey),
-            "TM" => Ok(Country::Turkmenistan),
-            "TC" => Ok(Country::TurksAndCaicosIslands),
-            "TV" => Ok(Country::Tuvalu),
-            "UG" => Ok(Country::Uganda),
-            "UA" => Ok(Country::Ukraine),
-            "AE" => Ok(Country::UnitedArabEmirates),
-            "GB" => Ok(Country::UnitedKingdom),
-            "US" => Ok(Country::UnitedStates),
-            "UM" => Ok(Country::UnitedStatesMinorOutlyingIslands),
-            "UY" => Ok(Country::Uruguay),
-            "UZ" => Ok(Country::Uzbekistan),
-            "VU" => Ok(Country::Vanuatu),
-            "VE" => Ok(Country::VenezuelaBolivarianRepublicOf),
-            "VN" => Ok(Country::VietNam),
-            "VG" => Ok(Country::VirginIslandsBritish),
-            "VI" => Ok(Country::VirginIslandsUS),
-            "WF" => Ok(Country::WallisAndFutuna),
-            "EH" => Ok(Country::WesternSahara),
-            "YE" => Ok(Country::Yemen),
-            "ZM" => Ok(Country::Zambia),
-            "ZW" => Ok(Country::Zimbabwe),
-            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_convert_country_from_str() {
         let country = Country::from_str("JP");
         assert_eq!(country.unwrap(), Country::Japan);
         let unknown_country = Country::from_str("not exist enum");
-        assert_eq!(unknown_country.is_err(), true);
+        assert!(unknown_country.is_err());
+        let zimbabwe = Country::Zimbabwe;
+        assert_eq!(zimbabwe.to_string(), "ZW".to_string());
+        assert_eq!(zimbabwe.as_ref(), "ZW");
     }
 }

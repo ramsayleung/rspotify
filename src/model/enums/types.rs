@@ -1,44 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::error;
-use std::fmt;
 use strum::{AsRefStr, Display, EnumString};
 
-#[derive(Clone, Debug)]
-pub struct EnumError {
-    kind: ErrorKind,
-}
-
-impl EnumError {
-    pub(crate) fn new(kind: ErrorKind) -> EnumError {
-        EnumError { kind }
-    }
-
-    /// Return the kind of this error.
-    pub fn kind(&self) -> &ErrorKind {
-        &self.kind
-    }
-}
-/// The kind of an error that can occur.
-#[derive(Clone, Debug)]
-pub enum ErrorKind {
-    /// This error occurs when no proper enum was found.
-    NoEnum(String),
-}
-impl error::Error for EnumError {
-    fn description(&self) -> &str {
-        match self.kind {
-            ErrorKind::NoEnum(_) => "no proper enum was found",
-        }
-    }
-}
-
-impl fmt::Display for EnumError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            ErrorKind::NoEnum(ref s) => write!(f, "can't find proper enum of `{:?}`", s),
-        }
-    }
-}
 /// Album type - 'album', 'single', 'appears_on', 'compilation'
 #[derive(
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
