@@ -1,4 +1,4 @@
-use crate::model::Error;
+use crate::model::EnumError;
 use crate::model::ErrorKind;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -35,7 +35,7 @@ impl DisallowKey {
     }
 }
 impl FromStr for DisallowKey {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "interrupting_playback" => Ok(DisallowKey::InterruptingPlayback),
@@ -48,7 +48,7 @@ impl FromStr for DisallowKey {
             "toggling_shuffle" => Ok(DisallowKey::TogglingShuffle),
             "toggling_repeat_track" => Ok(DisallowKey::TogglingRepeatTrack),
             "transferring_playback" => Ok(DisallowKey::TransferringPlayback),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
@@ -73,13 +73,13 @@ impl TimeRange {
 }
 
 impl FromStr for TimeRange {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "long_term" => Ok(TimeRange::LongTerm),
             "medium_term" => Ok(TimeRange::MediumTerm),
             "short_term" => Ok(TimeRange::ShortTerm),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
@@ -105,13 +105,13 @@ impl RepeatState {
     }
 }
 impl FromStr for RepeatState {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "off" => Ok(RepeatState::Off),
             "track" => Ok(RepeatState::Track),
             "context" => Ok(RepeatState::Context),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
@@ -130,11 +130,11 @@ impl IncludeExternal {
     }
 }
 impl FromStr for IncludeExternal {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "audio" => Ok(IncludeExternal::Audio),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }

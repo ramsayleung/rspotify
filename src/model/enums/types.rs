@@ -2,15 +2,16 @@ use serde::{Deserialize, Serialize};
 use std::error;
 use std::fmt;
 use std::str::FromStr;
+use strum::{AsRefStr, Display, EnumString};
 
 #[derive(Clone, Debug)]
-pub struct Error {
+pub struct EnumError {
     kind: ErrorKind,
 }
 
-impl Error {
-    pub(crate) fn new(kind: ErrorKind) -> Error {
-        Error { kind }
+impl EnumError {
+    pub(crate) fn new(kind: ErrorKind) -> EnumError {
+        EnumError { kind }
     }
 
     /// Return the kind of this error.
@@ -24,7 +25,7 @@ pub enum ErrorKind {
     /// This error occurs when no proper enum was found.
     NoEnum(String),
 }
-impl error::Error for Error {
+impl error::Error for EnumError {
     fn description(&self) -> &str {
         match self.kind {
             ErrorKind::NoEnum(_) => "no proper enum was found",
@@ -32,7 +33,7 @@ impl error::Error for Error {
     }
 }
 
-impl fmt::Display for Error {
+impl fmt::Display for EnumError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
             ErrorKind::NoEnum(ref s) => write!(f, "can't find proper enum of `{:?}`", s),
@@ -104,7 +105,7 @@ impl Type {
     }
 }
 impl FromStr for Type {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "artist" => Ok(Type::Artist),
@@ -114,7 +115,7 @@ impl FromStr for Type {
             "user" => Ok(Type::User),
             "show" => Ok(Type::Show),
             "episode" => Ok(Type::Episode),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
@@ -135,12 +136,12 @@ impl AdditionalType {
     }
 }
 impl FromStr for AdditionalType {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "track" => Ok(AdditionalType::Track),
             "episode" => Ok(AdditionalType::Episode),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
@@ -164,14 +165,14 @@ impl CurrentlyPlayingType {
     }
 }
 impl FromStr for CurrentlyPlayingType {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "track" => Ok(CurrentlyPlayingType::Track),
             "episode" => Ok(CurrentlyPlayingType::Episode),
             "ad" => Ok(CurrentlyPlayingType::Advertisement),
             "unknown" => Ok(CurrentlyPlayingType::Unknown),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
@@ -201,7 +202,7 @@ impl SearchType {
     }
 }
 impl FromStr for SearchType {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "artist" => Ok(SearchType::Artist),
@@ -210,7 +211,7 @@ impl FromStr for SearchType {
             "playlist" => Ok(SearchType::Playlist),
             "show" => Ok(SearchType::Show),
             "episode" => Ok(SearchType::Episode),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }

@@ -14,7 +14,7 @@ pub use types::AdditionalType;
 pub use types::AlbumType;
 pub use types::CurrentlyPlayingType;
 pub use types::DeviceType;
-pub use types::Error;
+pub use types::EnumError;
 pub use types::ErrorKind;
 pub use types::SearchType;
 pub use types::Type;

@@ -1,4 +1,4 @@
-use crate::model::Error;
+use crate::model::EnumError;
 use crate::model::ErrorKind;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -513,7 +513,7 @@ impl Country {
     }
 }
 impl FromStr for Country {
-    type Err = Error;
+    type Err = EnumError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "AF" => Ok(Country::Afghanistan),
@@ -765,7 +765,7 @@ impl FromStr for Country {
             "YE" => Ok(Country::Yemen),
             "ZM" => Ok(Country::Zambia),
             "ZW" => Ok(Country::Zimbabwe),
-            _ => Err(Error::new(ErrorKind::NoEnum(s.to_owned()))),
+            _ => Err(EnumError::new(ErrorKind::NoEnum(s.to_owned()))),
         }
     }
 }
