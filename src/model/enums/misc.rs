@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString};
 
-/// Disallow key: interrupting_playback, pausing, resuming, seeking, skipping_next, skipping_prev, toggling_repeat_context, toggling_shuffle, toggling_repeat_track, transferring_playback
+/// [Disallows object](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object): interrupting_playback, pausing, resuming, seeking, skipping_next, skipping_prev, toggling_repeat_context, toggling_shuffle, toggling_repeat_track, transferring_playback
 #[derive(
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, EnumString, AsRefStr, Display,
 )]
