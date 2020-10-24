@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString};
 
-/// disallow: interrupting_playback, pausing, resuming, seeking, skipping_next, skipping_prev, toggling_repeat_context, toggling_shuffle, toggling_repeat_track, transferring_playback
+/// Disallow key: interrupting_playback, pausing, resuming, seeking, skipping_next, skipping_prev, toggling_repeat_context, toggling_shuffle, toggling_repeat_track, transferring_playback
 #[derive(
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, EnumString, AsRefStr, Display,
 )]
@@ -20,7 +20,7 @@ pub enum DisallowKey {
     TransferringPlayback,
 }
 
-/// time range: long-term, medium-term, short-term
+/// Time range: long-term, medium-term, short-term
 #[derive(
     Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
 )]
@@ -32,7 +32,7 @@ pub enum TimeRange {
     ShortTerm,
 }
 
-///repeat state: track, context or off.
+/// Repeat state: track, context or off.
 /// - track will repeat the current track.
 /// - context will repeat the current context.
 /// - off will turn repeat off.
@@ -100,6 +100,6 @@ mod tests {
         assert!(empty_range.is_err());
         let medium_range = TimeRange::MediumTerm;
         assert_eq!(medium_range.as_ref(), "medium_term");
-        // assert_eq!(medium_range.to_string(), "medium_range".to_string());
+        assert_eq!(medium_range.to_string(), "medium_term".to_string());
     }
 }
