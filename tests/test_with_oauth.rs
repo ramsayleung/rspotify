@@ -550,8 +550,7 @@ async fn test_user_unfollow_users() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_add_tracks() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_add_tracks() {
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
@@ -560,7 +559,7 @@ async fn test_user_playlist_add_tracks() {
     tracks_ids.push(track_id2);
     oauth_client()
         .await
-        .user_playlist_add_tracks(user_id, playlist_id, tracks_ids, None)
+        .playlist_add_tracks(playlist_id, tracks_ids, None)
         .await
         .unwrap();
 }
@@ -568,20 +567,12 @@ async fn test_user_playlist_add_tracks() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_change_detail() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_change_detail() {
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
     let playlist_name = "A New Playlist-update";
     oauth_client()
         .await
-        .user_playlist_change_detail(
-            user_id,
-            playlist_id,
-            Some(playlist_name),
-            Some(false),
-            None,
-            None,
-        )
+        .playlist_change_detail(playlist_id, Some(playlist_name), Some(false), None, None)
         .await
         .unwrap();
 }
@@ -589,8 +580,7 @@ async fn test_user_playlist_change_detail() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_check_follow() {
-    let owner_id = "jmperezperez";
+async fn test_playlist_check_follow() {
     let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
     let mut user_ids: Vec<String> = vec![];
     let user_id1 = String::from("possan");
@@ -599,7 +589,7 @@ async fn test_user_playlist_check_follow() {
     user_ids.push(user_id2);
     oauth_client()
         .await
-        .user_playlist_check_follow(owner_id, playlist_id, &user_ids)
+        .playlist_check_follow(playlist_id, &user_ids)
         .await
         .unwrap();
 }
@@ -620,12 +610,11 @@ async fn test_user_playlist_create() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_follow_playlist() {
-    let owner_id = "jmperezperez";
+async fn test_playlist_follow_playlist() {
     let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
     oauth_client()
         .await
-        .user_playlist_follow_playlist(owner_id, playlist_id, true)
+        .playlist_follow(playlist_id, true)
         .await
         .unwrap();
 }
@@ -633,22 +622,14 @@ async fn test_user_playlist_follow_playlist() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_recorder_tracks() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_recorder_tracks() {
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
     let range_start = 0;
     let insert_before = 1;
     let range_length = 1;
     oauth_client()
         .await
-        .user_playlist_recorder_tracks(
-            user_id,
-            playlist_id,
-            range_start,
-            range_length,
-            insert_before,
-            None,
-        )
+        .playlist_reorder_tracks(playlist_id, range_start, range_length, insert_before, None)
         .await
         .unwrap();
 }
@@ -656,8 +637,7 @@ async fn test_user_playlist_recorder_tracks() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_remove_all_occurrences_of_tracks() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_remove_all_occurrences_of_tracks() {
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
@@ -666,7 +646,7 @@ async fn test_user_playlist_remove_all_occurrences_of_tracks() {
     tracks_ids.push(track_id1);
     oauth_client()
         .await
-        .user_playlist_remove_all_occurrences_of_tracks(user_id, playlist_id, tracks_ids, None)
+        .playlist_remove_all_occurrences_of_tracks(playlist_id, tracks_ids, None)
         .await
         .unwrap();
 }
@@ -674,8 +654,7 @@ async fn test_user_playlist_remove_all_occurrences_of_tracks() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_remove_specific_occurrences_of_tracks() {
     let playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
     let mut tracks = vec![];
     let mut map1 = Map::new();
@@ -699,7 +678,7 @@ async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
     tracks.push(map2);
     oauth_client()
         .await
-        .user_playlist_remove_specific_occurrences_of_tracks(user_id, &playlist_id, tracks, None)
+        .playlist_remove_specific_occurrences_of_tracks(&playlist_id, tracks, None)
         .await
         .unwrap();
 }
@@ -707,8 +686,7 @@ async fn test_user_playlist_remove_specific_occurrences_of_tracks() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_replace_tracks() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_replace_tracks() {
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
@@ -717,7 +695,7 @@ async fn test_user_playlist_replace_tracks() {
     tracks_ids.push(track_id1);
     oauth_client()
         .await
-        .user_playlist_replace_tracks(user_id, playlist_id, tracks_ids)
+        .playlist_replace_tracks(playlist_id, tracks_ids)
         .await
         .unwrap();
 }
@@ -750,12 +728,11 @@ async fn test_user_playlists() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_tracks() {
-    let user_id = "spotify";
+async fn test_playlist_tracks() {
     let playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
     oauth_client()
         .await
-        .user_playlist_tracks(user_id, &playlist_id, None, Some(2), None, None)
+        .playlist_tracks(&playlist_id, None, Some(2), None, None)
         .await
         .unwrap();
 }
@@ -763,12 +740,11 @@ async fn test_user_playlist_tracks() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
-async fn test_user_playlist_unfollow() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+async fn test_playlist_unfollow() {
     let playlist_id = "65V6djkcVRyOStLd8nza8E";
     oauth_client()
         .await
-        .user_playlist_unfollow(user_id, playlist_id)
+        .playlist_unfollow(playlist_id)
         .await
         .unwrap();
 }
