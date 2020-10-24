@@ -597,7 +597,6 @@ impl Spotify {
     /// Get full details of the tracks of a playlist owned by a user.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - fields - which fields to return
     /// - limit - the maximum number of tracks to return
@@ -606,9 +605,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-playlists-tracks/)
     #[maybe_async]
-    pub async fn user_playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        user_id: &str,
         playlist_id: &str,
         fields: Option<&str>,
         limit: L,
@@ -625,7 +623,7 @@ impl Spotify {
             params.insert("fields".to_owned(), fields.to_owned());
         }
         let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -662,7 +660,6 @@ impl Spotify {
     /// Changes a playlist's name and/or public/private state.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - name - optional name of the playlist
     /// - public - optional is the playlist public
@@ -671,9 +668,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/change-playlist-details/)
     #[maybe_async]
-    pub async fn user_playlist_change_detail(
+    pub async fn playlist_change_detail(
         &self,
-        user_id: &str,
         playlist_id: &str,
         name: Option<&str>,
         public: Option<bool>,
@@ -693,40 +689,33 @@ impl Spotify {
         if let Some(description) = description {
             json_insert!(params, "description", description);
         }
-        let url = format!("users/{}/playlists/{}", user_id, playlist_id);
+        let url = format!("playlists/{}", playlist_id);
         self.put(&url, None, &params).await
     }
 
     /// Unfollows (deletes) a playlist for a user.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/web-api/unfollow-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_unfollow(
-        &self,
-        user_id: &str,
-        playlist_id: &str,
-    ) -> ClientResult<String> {
-        let url = format!("users/{}/playlists/{}/followers", user_id, playlist_id);
+    pub async fn playlist_unfollow(&self, playlist_id: &str) -> ClientResult<String> {
+        let url = format!("playlists/{}/followers", playlist_id);
         self.delete(&url, None, &json!({})).await
     }
 
     /// Adds tracks to a playlist.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
     /// - position - the position to add the tracks
     ///
     /// [Reference](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_add_tracks(
+    pub async fn playlist_add_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         track_ids: &[String],
         position: Option<i32>,
@@ -740,7 +729,7 @@ impl Spotify {
         if let Some(position) = position {
             json_insert!(params, "position", position);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.post(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -754,9 +743,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     #[maybe_async]
-    pub async fn user_playlist_replace_tracks(
+    pub async fn playlist_replace_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         track_ids: &[String],
     ) -> ClientResult<()> {
@@ -768,7 +756,7 @@ impl Spotify {
         // let mut params = Map::new();
         // params.insert("uris".to_owned(), uris.into());
         let params = json!({ "uris": uris });
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         self.put(&url, None, &params).await?;
 
         Ok(())
@@ -777,7 +765,6 @@ impl Spotify {
     /// Reorder tracks in a playlist.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - range_start - the position of the first track to be reordered
     /// - range_length - optional the number of tracks to be reordered (default: 1)
@@ -786,9 +773,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
     #[maybe_async]
-    pub async fn user_playlist_recorder_tracks<R: Into<Option<u32>>>(
+    pub async fn playlist_reorder_tracks<R: Into<Option<u32>>>(
         &self,
-        user_id: &str,
         playlist_id: &str,
         range_start: i32,
         range_length: R,
@@ -805,7 +791,7 @@ impl Spotify {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
 
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.put(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -813,16 +799,14 @@ impl Spotify {
     /// Removes all occurrences of the given tracks from the given playlist.
     ///
     /// Parameters:
-    /// - user_id - the id of the user
     /// - playlist_id - the id of the playlist
     /// - track_ids - the list of track ids to add to the playlist
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_remove_all_occurrences_of_tracks(
+    pub async fn playlist_remove_all_occurrences_of_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         track_ids: &[String],
         snapshot_id: Option<String>,
@@ -844,7 +828,7 @@ impl Spotify {
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -852,7 +836,6 @@ impl Spotify {
     /// Removes specfic occurrences of the given tracks from the given playlist.
     ///
     /// Parameters:
-    /// - user_id: the id of the user
     /// - playlist_id: the id of the playlist
     /// - tracks: an array of map containing Spotify URIs of the tracks to remove
     /// with their current positions in the playlist. For example:
@@ -880,9 +863,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_remove_specific_occurrences_of_tracks(
+    pub async fn playlist_remove_specific_occurrences_of_tracks(
         &self,
-        user_id: &str,
         playlist_id: &str,
         tracks: Vec<Map<String, Value>>,
         snapshot_id: Option<String>,
@@ -906,7 +888,7 @@ impl Spotify {
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("users/{}/playlists/{}/tracks", user_id, plid);
+        let url = format!("playlists/{}/tracks", plid);
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -914,21 +896,16 @@ impl Spotify {
     /// Add the current authenticated user as a follower of a playlist.
     ///
     /// Parameters:
-    /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/web-api/follow-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_follow_playlist<P: Into<Option<bool>>>(
+    pub async fn playlist_follow<P: Into<Option<bool>>>(
         &self,
-        playlist_owner_id: &str,
         playlist_id: &str,
         public: P,
     ) -> ClientResult<()> {
-        let url = format!(
-            "users/{}/playlists/{}/followers",
-            playlist_owner_id, playlist_id
-        );
+        let url = format!("playlists/{}/followers", playlist_id);
 
         self.put(
             &url,
@@ -945,16 +922,14 @@ impl Spotify {
     /// Check to see if the given users are following the given playlist.
     ///
     /// Parameters:
-    /// - playlist_owner_id - the user id of the playlist owner
     /// - playlist_id - the id of the playlist
     /// - user_ids - the ids of the users that you want to
     /// check to see if they follow the playlist. Maximum: 5 ids.
     ///
     /// [Reference](https://developer.spotify.com/web-api/check-user-following-playlist/)
     #[maybe_async]
-    pub async fn user_playlist_check_follow(
+    pub async fn playlist_check_follow(
         &self,
-        playlist_owner_id: &str,
         playlist_id: &str,
         user_ids: &[String],
     ) -> ClientResult<Vec<bool>> {
@@ -962,8 +937,7 @@ impl Spotify {
             error!("The maximum length of user ids is limited to 5 :-)");
         }
         let url = format!(
-            "users/{}/playlists/{}/followers/contains?ids={}",
-            playlist_owner_id,
+            "playlists/{}/followers/contains?ids={}",
             playlist_id,
             user_ids.join(",")
         );
