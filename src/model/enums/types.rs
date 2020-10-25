@@ -51,6 +51,7 @@ pub enum CurrentlyPlayingType {
     Track,
     Episode,
     #[strum(serialize = "ad")]
+    #[serde(rename = "ad")]
     Advertisement,
     Unknown,
 }

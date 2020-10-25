@@ -1529,7 +1529,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-audio-features/)
     #[maybe_async]
-    pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
+    pub async fn track_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
         let result = self.get(&url, None, &Query::new()).await?;
@@ -1543,7 +1543,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-several-audio-features/)
     #[maybe_async]
-    pub async fn audios_features<'a>(
+    pub async fn tracks_features<'a>(
         &self,
         tracks: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Option<AudioFeaturesPayload>> {
@@ -1568,7 +1568,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
     #[maybe_async]
-    pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
+    pub async fn track_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
         let result = self.get(&url, None, &Query::new()).await?;

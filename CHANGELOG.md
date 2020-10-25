@@ -63,6 +63,11 @@ If we missed any change or there's something you'd like to discuss about this ve
 	- `user_follow_users`
 	- `user_unfollow_users`
 	- `audios_features`
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Rename endpoints with more fitting name:
+  + `audio_analysis` -> `track_analysis`
+  + `audio_features` -> `track_features`
+  + `audios_features` -> `tracks_features`
+
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Split single `senum.rs` file into a separate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, and move `enums` module into `model` module, which should be part of the `model` module, check [enums mod.rs file](src/model/enums/mod.rs) for details.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.

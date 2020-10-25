@@ -111,14 +111,14 @@ async fn test_artist_top_tracks() {
 #[maybe_async_test]
 async fn test_audio_analysis() {
     let track = "06AKEBrKUckW0KREUWRnvT";
-    creds_client().await.audio_analysis(track).await.unwrap();
+    creds_client().await.track_analysis(track).await.unwrap();
 }
 
 #[maybe_async]
 #[maybe_async_test]
 async fn test_audio_features() {
     let track = "spotify:track:06AKEBrKUckW0KREUWRnvT";
-    creds_client().await.audio_features(track).await.unwrap();
+    creds_client().await.track_features(track).await.unwrap();
 }
 
 #[maybe_async]
@@ -131,7 +131,7 @@ async fn test_audios_features() {
     tracks_ids.push(track_id2);
     creds_client()
         .await
-        .audios_features(tracks_ids)
+        .tracks_features(tracks_ids)
         .await
         .unwrap();
 }
