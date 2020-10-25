@@ -1598,7 +1598,7 @@ impl Spotify {
         &self,
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
-    ) -> ClientResult<Option<CurrentlyPlaybackContext>> {
+    ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
             params.insert("country".to_owned(), market.to_string());
