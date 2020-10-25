@@ -21,7 +21,7 @@ pub struct PublicUser {
     pub uri: String,
 }
 
-/// [Private user object](https://developer.spotify.com/web-api/object-model/#user-object-private)
+/// [Private user object](https://developer.spotify.com/documentation/web-api/reference/users-profile/get-current-users-profile)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PrivateUser {
     pub birthdate: Option<NaiveDate>,

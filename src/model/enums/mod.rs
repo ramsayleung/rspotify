@@ -5,6 +5,6 @@ pub mod types;
 
 pub use country::Country;
 
-pub use misc::{DisallowKey, IncludeExternal, RepeatState, TimeRange};
+pub use misc::{DisallowKey, IncludeExternal, RepeatState, TimeRange, DatePrecision};
 
 pub use types::{AdditionalType, AlbumType, CurrentlyPlayingType, DeviceType, SearchType, Type};

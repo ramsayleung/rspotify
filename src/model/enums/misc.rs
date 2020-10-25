@@ -56,6 +56,19 @@ pub enum RepeatState {
 pub enum IncludeExternal {
     Audio,
 }
+
+/// [Date precision](https://developer.spotify.com/documentation/web-api/reference/object-model/): year, month, day.
+#[derive(
+    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum DatePrecision {
+    Year,
+    Month,
+    Day,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -101,5 +114,13 @@ mod tests {
         let medium_range = TimeRange::MediumTerm;
         assert_eq!(medium_range.as_ref(), "medium_term");
         assert_eq!(medium_range.to_string(), "medium_term".to_string());
+    }
+    #[test]
+    fn test_date_precision() {
+        let year = DatePrecision::from_str("year");
+        assert_eq!(year.unwrap(), DatePrecision::Year);
+        let month = DatePrecision::Month;
+        assert_eq!(month.as_ref(), "month");
+        assert_eq!(month.to_string(), "month".to_string());
     }
 }
