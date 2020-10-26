@@ -138,7 +138,7 @@ impl Spotify {
 
     /// TODO: should be moved into a custom type
     fn get_uri(&self, _type: Type, _id: &str) -> String {
-        format!("spotify:{}:{}", _type.as_ref(), self.get_id(_type, _id))
+        format!("spotify:{}:{}", _type.to_string(), self.get_id(_type, _id))
     }
 
     /// Converts a JSON response from Spotify into its model.
@@ -153,7 +153,7 @@ impl Spotify {
         let fields: Vec<&str> = _id.split(':').collect();
         let len = fields.len();
         if len >= 3 {
-            if _type.as_ref() != fields[len - 2] {
+            if _type.to_string() != fields[len - 2] {
                 error!(
                     "expected id of type {:?} but found type {:?} {:?}",
                     _type,
@@ -167,7 +167,7 @@ impl Spotify {
         let sfields: Vec<&str> = _id.split('/').collect();
         let len: usize = sfields.len();
         if len >= 3 {
-            if _type.as_ref() != sfields[len - 2] {
+            if _type.to_string() != sfields[len - 2] {
                 error!(
                     "expected id of type {:?} but found type {:?} {:?}",
                     _type,
@@ -1118,8 +1118,7 @@ impl Spotify {
             time_range
                 .into()
                 .unwrap_or(TimeRange::MediumTerm)
-                .as_ref()
-                .to_owned(),
+                .to_string(),
         );
         let result = self.get(&"me/top/artists", None, &params).await?;
         self.convert_result(&result)
@@ -1152,8 +1151,7 @@ impl Spotify {
             time_range
                 .into()
                 .unwrap_or(TimeRange::MediumTerm)
-                .as_ref()
-                .to_owned(),
+                .to_string(),
         );
         let result = self.get("me/top/tracks", None, &params).await?;
         self.convert_result(&result)
@@ -1608,7 +1606,7 @@ impl Spotify {
                 "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|x| x.as_ref())
+                    .map(|x| x.to_string())
                     .collect::<Vec<_>>()
                     .join(","),
             );
@@ -1646,7 +1644,7 @@ impl Spotify {
                 "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|x| x.as_ref())
+                    .map(|x| x.to_string())
                     .collect::<Vec<_>>()
                     .join(","),
             );
@@ -1816,7 +1814,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
-            &format!("me/player/repeat?state={}", state.as_ref()),
+            &format!("me/player/repeat?state={}", state.to_string()),
             device_id,
         );
         self.put(&url, None, &json!({})).await?;
@@ -2082,7 +2080,7 @@ impl Spotify {
         let url = format!("me/shows?ids={}", joined_ids);
         let mut params = json!({});
         if let Some(market) = market {
-            json_insert!(params, "country", market.as_ref());
+            json_insert!(params, "country", market.to_string());
         }
         self.delete(&url, None, &params).await?;
 

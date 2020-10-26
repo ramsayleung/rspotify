@@ -86,4 +86,3 @@ pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,
 }
-

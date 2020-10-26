@@ -1,12 +1,10 @@
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, EnumString};
+use strum::ToString;
 
 /// ISO 3166-1 alpha-2 country code:
 /// [wiki about ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
 /// Source from [country-list](https://datahub.io/core/country-list)
-#[derive(
-    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, EnumString, AsRefStr, Display,
-)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 pub enum Country {
     #[strum(serialize = "AF")]
     Afghanistan,
@@ -511,16 +509,10 @@ pub enum Country {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
 
     #[test]
     fn test_convert_country_from_str() {
-        let country = Country::from_str("JP");
-        assert_eq!(country.unwrap(), Country::Japan);
-        let unknown_country = Country::from_str("not exist enum");
-        assert!(unknown_country.is_err());
         let zimbabwe = Country::Zimbabwe;
         assert_eq!(zimbabwe.to_string(), "ZW".to_string());
-        assert_eq!(zimbabwe.as_ref(), "ZW");
     }
 }
