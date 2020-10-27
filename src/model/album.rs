@@ -8,7 +8,7 @@ use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
-use crate::senum::{AlbumType, Type};
+use crate::model::{AlbumType, DatePrecision, Type};
 
 /// [link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
 /// Simplified Album Object
@@ -59,7 +59,7 @@ pub struct FullAlbum {
     pub name: String,
     pub popularity: u32,
     pub release_date: String,
-    pub release_date_precision: String,
+    pub release_date_precision: DatePrecision,
     pub tracks: Page<SimplifiedTrack>,
     #[serde(rename = "type")]
     pub _type: Type,

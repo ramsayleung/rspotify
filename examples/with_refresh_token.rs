@@ -22,12 +22,12 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: Spotify) {
     let artists = vec![
-        "3RGLhK1IP9jnYFH4BRFJBS".to_owned(), // The Clash
-        "0yNLKJebCb8Aueb54LYya3".to_owned(), // New Order
-        "2jzc5TC5TVFLXQlBNiIUzE".to_owned(), // a-ha
+        "3RGLhK1IP9jnYFH4BRFJBS", // The Clash
+        "0yNLKJebCb8Aueb54LYya3", // New Order
+        "2jzc5TC5TVFLXQlBNiIUzE", // a-ha
     ];
     spotify
-        .user_follow_artists(&artists)
+        .user_follow_artists(artists.clone())
         .await
         .expect("couldn't follow artists");
     println!("Followed {} artists successfully.", artists.len());
@@ -43,7 +43,7 @@ async fn do_things(spotify: Spotify) {
     );
 
     spotify
-        .user_unfollow_artists(&artists)
+        .user_unfollow_artists(artists.clone())
         .await
         .expect("couldn't unfollow artists");
     println!("Unfollowed {} artists successfully.", artists.len());

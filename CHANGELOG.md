@@ -12,7 +12,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
-- Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
+  + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
@@ -38,8 +38,42 @@ If we missed any change or there's something you'd like to discuss about this ve
     + `Spotify::prompt_for_user_token[_without_cache]`
     + The `ClientError::CLI` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
+- ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Endpoints take `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &str>`, which is backward compatibility.
+  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &str>`:
+	- `artists`
+	- `albums`
+	- `save_shows`
+	- `get_several_episodes`
+	- `check_users_saved_shows`
+	- `remove_users_saved_shows`
+  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &str>`:
+	- `user_playlist_add_tracks`
+	- `user_playlist_replace_tracks`
+	- `user_playlist_remove_all_occurrences_of_tracks`
+	- `current_user_saved_tracks_delete`
+	- `current_user_saved_tracks_contains`
+	- `current_user_saved_tracks_add`
+	- `current_user_saved_albums_add`
+	- `current_user_saved_albums_delete`
+	- `current_user_saved_albums_contains`
+	- `user_follow_artists`
+	- `user_unfollow_artists`
+	- `user_artist_check_follow`
+	- `user_follow_users`
+	- `user_unfollow_users`
+	- `audios_features`
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Rename endpoints with more fitting name:
+  + `audio_analysis` -> `track_analysis`
+  + `audio_features` -> `track_features`
+  + `audios_features` -> `tracks_features`
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Split single `senum.rs` file into a separate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, and move `enums` module into `model` module, which should be part of the `model` module, check [enums mod.rs file](src/model/enums/mod.rs) for details.
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
+   + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
+- Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
 
 ## 0.10 (2020/07/01)
 

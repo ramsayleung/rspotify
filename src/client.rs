@@ -13,27 +13,8 @@ use std::path::PathBuf;
 
 use super::http::{BaseClient, Query};
 use super::json_insert;
-use super::model::album::{FullAlbum, FullAlbums, PageSimpliedAlbums, SavedAlbum, SimplifiedAlbum};
-use super::model::artist::{CursorPageFullArtists, FullArtist, FullArtists};
-use super::model::audio::{AudioAnalysis, AudioFeatures, AudioFeaturesPayload};
-use super::model::category::PageCategory;
-use super::model::context::{CurrentlyPlaybackContext, CurrentlyPlayingContext};
-use super::model::cud_result::CUDResult;
-use super::model::device::DevicePayload;
-use super::model::page::{CursorBasedPage, Page};
-use super::model::playing::{PlayHistory, Playing};
-use super::model::playlist::{FeaturedPlaylists, FullPlaylist, PlaylistTrack, SimplifiedPlaylist};
-use super::model::recommend::Recommendations;
-use super::model::search::SearchResult;
-use super::model::show::{
-    FullEpisode, FullShow, SeveralEpisodes, SeversalSimplifiedShows, Show, SimplifiedEpisode,
-};
-use super::model::track::{FullTrack, FullTracks, SavedTrack, SimplifiedTrack};
-use super::model::user::{PrivateUser, PublicUser};
+use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
-use super::senum::{
-    AdditionalType, AlbumType, Country, IncludeExternal, RepeatState, SearchType, TimeRange, Type,
-};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -157,7 +138,7 @@ impl Spotify {
 
     /// TODO: should be moved into a custom type
     fn get_uri(&self, _type: Type, _id: &str) -> String {
-        format!("spotify:{}:{}", _type.as_str(), self.get_id(_type, _id))
+        format!("spotify:{}:{}", _type.to_string(), self.get_id(_type, _id))
     }
 
     /// Converts a JSON response from Spotify into its model.
@@ -172,7 +153,7 @@ impl Spotify {
         let fields: Vec<&str> = _id.split(':').collect();
         let len = fields.len();
         if len >= 3 {
-            if _type.as_str() != fields[len - 2] {
+            if _type.to_string() != fields[len - 2] {
                 error!(
                     "expected id of type {:?} but found type {:?} {:?}",
                     _type,
@@ -186,7 +167,7 @@ impl Spotify {
         let sfields: Vec<&str> = _id.split('/').collect();
         let len: usize = sfields.len();
         if len >= 3 {
-            if _type.as_str() != sfields[len - 2] {
+            if _type.to_string() != sfields[len - 2] {
                 error!(
                     "expected id of type {:?} but found type {:?} {:?}",
                     _type,
@@ -235,9 +216,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
     #[maybe_async]
-    pub async fn tracks(
+    pub async fn tracks<'a>(
         &self,
-        track_ids: Vec<&str>,
+        track_ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
     ) -> ClientResult<FullTracks> {
         // TODO: this can be improved
@@ -248,7 +229,7 @@ impl Spotify {
 
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
 
         let url = format!("tracks/?ids={}", ids.join(","));
@@ -277,10 +258,13 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-several-artists/)
     #[maybe_async]
-    pub async fn artists(&self, artist_ids: Vec<String>) -> ClientResult<FullArtists> {
+    pub async fn artists<'a>(
+        &self,
+        artist_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<FullArtists> {
         let mut ids: Vec<String> = vec![];
         for artist_id in artist_ids {
-            ids.push(self.get_id(Type::Artist, &artist_id));
+            ids.push(self.get_id(Type::Artist, artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
@@ -311,13 +295,13 @@ impl Spotify {
             params.insert("limit".to_owned(), limit.to_string());
         }
         if let Some(album_type) = album_type {
-            params.insert("album_type".to_owned(), album_type.as_str().to_owned());
+            params.insert("album_type".to_owned(), album_type.to_string());
         }
         if let Some(offset) = offset {
             params.insert("offset".to_owned(), offset.to_string());
         }
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
@@ -342,11 +326,7 @@ impl Spotify {
         let mut params = Query::with_capacity(1);
         params.insert(
             "country".to_owned(),
-            country
-                .into()
-                .unwrap_or(Country::UnitedStates)
-                .as_str()
-                .to_owned(),
+            country.into().unwrap_or(Country::UnitedStates).to_string(),
         );
 
         let trid = self.get_id(Type::Artist, artist_id);
@@ -393,10 +373,13 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-several-albums/)
     #[maybe_async]
-    pub async fn albums(&self, album_ids: Vec<String>) -> ClientResult<FullAlbums> {
+    pub async fn albums<'a>(
+        &self,
+        album_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<FullAlbums> {
         let mut ids: Vec<String> = vec![];
         for album_id in album_ids {
-            ids.push(self.get_id(Type::Album, &album_id));
+            ids.push(self.get_id(Type::Album, album_id));
         }
         let url = format!("albums/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
@@ -432,15 +415,12 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(10).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         params.insert("q".to_owned(), q.to_owned());
-        params.insert("type".to_owned(), _type.as_str().to_owned());
+        params.insert("type".to_owned(), _type.to_string());
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
         if let Some(include_external) = include_external {
-            params.insert(
-                "include_external".to_owned(),
-                include_external.as_str().to_owned(),
-            );
+            params.insert("include_external".to_owned(), include_external.to_string());
         }
 
         let result = self.get("search", None, &params).await?;
@@ -503,7 +483,7 @@ impl Spotify {
             params.insert("fields".to_owned(), fields.to_owned());
         }
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
 
         let plid = self.get_id(Type::Playlist, playlist_id);
@@ -577,7 +557,7 @@ impl Spotify {
             params.insert("fields".to_owned(), fields.to_string());
         }
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
         match playlist_id {
             Some(playlist_id) => {
@@ -617,7 +597,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            params.insert("market".to_owned(), market.as_str().to_owned());
+            params.insert("market".to_owned(), market.to_string());
         }
         if let Some(fields) = fields {
             params.insert("fields".to_owned(), fields.to_owned());
@@ -714,15 +694,15 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
     #[maybe_async]
-    pub async fn playlist_add_tracks(
+    pub async fn playlist_add_tracks<'a>(
         &self,
         playlist_id: &str,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a str>,
         position: Option<i32>,
     ) -> ClientResult<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         let mut params = json!({ "uris": uris });
@@ -743,14 +723,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/replace-playlists-tracks/)
     #[maybe_async]
-    pub async fn playlist_replace_tracks(
+    pub async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: &str,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
         // let mut params = Map::new();
@@ -805,15 +785,15 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
     #[maybe_async]
-    pub async fn playlist_remove_all_occurrences_of_tracks(
+    pub async fn playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &str,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a str>,
         snapshot_id: Option<String>,
     ) -> ClientResult<CUDResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_uri(Type::Track, id))
             .collect();
 
@@ -1039,7 +1019,7 @@ impl Spotify {
     ) -> ClientResult<CursorPageFullArtists> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
-        params.insert("type".to_owned(), Type::Artist.as_str().to_owned());
+        params.insert("type".to_owned(), Type::Artist.to_string());
         if let Some(after) = after {
             params.insert("after".to_owned(), after);
         }
@@ -1055,9 +1035,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/remove-tracks-user/)
     #[maybe_async]
-    pub async fn current_user_saved_tracks_delete(&self, track_ids: &[String]) -> ClientResult<()> {
+    pub async fn current_user_saved_tracks_delete<'a>(
+        &self,
+        track_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
@@ -1074,12 +1057,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/check-users-saved-tracks/)
     #[maybe_async]
-    pub async fn current_user_saved_tracks_contains(
+    pub async fn current_user_saved_tracks_contains<'a>(
         &self,
-        track_ids: &[String],
+        track_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Vec<bool>> {
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/contains/?ids={}", uris.join(","));
@@ -1094,9 +1077,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/save-tracks-user/)
     #[maybe_async]
-    pub async fn current_user_saved_tracks_add(&self, track_ids: &[String]) -> ClientResult<()> {
+    pub async fn current_user_saved_tracks_add<'a>(
+        &self,
+        track_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = track_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Track, id))
             .collect();
         let url = format!("me/tracks/?ids={}", uris.join(","));
@@ -1132,8 +1118,7 @@ impl Spotify {
             time_range
                 .into()
                 .unwrap_or(TimeRange::MediumTerm)
-                .as_str()
-                .to_owned(),
+                .to_string(),
         );
         let result = self.get(&"me/top/artists", None, &params).await?;
         self.convert_result(&result)
@@ -1166,8 +1151,7 @@ impl Spotify {
             time_range
                 .into()
                 .unwrap_or(TimeRange::MediumTerm)
-                .as_str()
-                .to_owned(),
+                .to_string(),
         );
         let result = self.get("me/top/tracks", None, &params).await?;
         self.convert_result(&result)
@@ -1197,9 +1181,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/save-albums-user/)
     #[maybe_async]
-    pub async fn current_user_saved_albums_add(&self, album_ids: &[String]) -> ClientResult<()> {
+    pub async fn current_user_saved_albums_add<'a>(
+        &self,
+        album_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
@@ -1215,9 +1202,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
     #[maybe_async]
-    pub async fn current_user_saved_albums_delete(&self, album_ids: &[String]) -> ClientResult<()> {
+    pub async fn current_user_saved_albums_delete<'a>(
+        &self,
+        album_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
         let uris: Vec<String> = album_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/?ids={}", uris.join(","));
@@ -1234,12 +1224,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-albums/)
     #[maybe_async]
-    pub async fn current_user_saved_albums_contains(
+    pub async fn current_user_saved_albums_contains<'a>(
         &self,
-        album_ids: &[String],
+        album_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Vec<bool>> {
         let uris: Vec<String> = album_ids
-            .iter()
+            .into_iter()
             .map(|id| self.get_id(Type::Album, id))
             .collect();
         let url = format!("me/albums/contains/?ids={}", uris.join(","));
@@ -1254,8 +1244,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/follow-artists-users/)
     #[maybe_async]
-    pub async fn user_follow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
+    pub async fn user_follow_artists<'a>(
+        &self,
+        artist_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=artist&ids={}",
+            artist_ids.into_iter().collect::<Vec<_>>().join(",")
+        );
         self.put(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1268,8 +1264,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
     #[maybe_async]
-    pub async fn user_unfollow_artists(&self, artist_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=artist&ids={}", artist_ids.join(","));
+    pub async fn user_unfollow_artists<'a>(
+        &self,
+        artist_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=artist&ids={}",
+            artist_ids.into_iter().collect::<Vec<_>>().join(",")
+        );
         self.delete(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1283,10 +1285,13 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/check-current-user-follows/)
     #[maybe_async]
-    pub async fn user_artist_check_follow(&self, artsit_ids: &[String]) -> ClientResult<Vec<bool>> {
+    pub async fn user_artist_check_follow<'a>(
+        &self,
+        artsit_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<Vec<bool>> {
         let url = format!(
             "me/following/contains?type=artist&ids={}",
-            artsit_ids.join(",")
+            artsit_ids.into_iter().collect::<Vec<_>>().join(",")
         );
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
@@ -1299,8 +1304,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/follow-artists-users/)
     #[maybe_async]
-    pub async fn user_follow_users(&self, user_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=user&ids={}", user_ids.join(","));
+    pub async fn user_follow_users<'a>(
+        &self,
+        user_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=user&ids={}",
+            user_ids.into_iter().collect::<Vec<_>>().join(",")
+        );
         self.put(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1313,8 +1324,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
     #[maybe_async]
-    pub async fn user_unfollow_users(&self, user_ids: &[String]) -> ClientResult<()> {
-        let url = format!("me/following?type=user&ids={}", user_ids.join(","));
+    pub async fn user_unfollow_users<'a>(
+        &self,
+        user_ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<()> {
+        let url = format!(
+            "me/following?type=user&ids={}",
+            user_ids.into_iter().collect::<Vec<_>>().join(",")
+        );
         self.delete(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1353,7 +1370,7 @@ impl Spotify {
             params.insert("locale".to_owned(), locale);
         }
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
         if let Some(timestamp) = timestamp {
             params.insert("timestamp".to_owned(), timestamp.to_rfc3339());
@@ -1383,7 +1400,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
@@ -1417,7 +1434,7 @@ impl Spotify {
             params.insert("locale".to_owned(), locale);
         }
         if let Some(country) = country {
-            params.insert("country".to_owned(), country.as_str().to_owned());
+            params.insert("country".to_owned(), country.to_string());
         }
         let result = self.get("browse/categories", None, &params).await?;
         self.convert_result(&result)
@@ -1497,7 +1514,7 @@ impl Spotify {
             params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
         }
         if let Some(country) = country {
-            params.insert("market".to_owned(), country.as_str().to_owned());
+            params.insert("market".to_owned(), country.to_string());
         }
         let result = self.get("recommendations", None, &params).await?;
         self.convert_result(&result)
@@ -1510,7 +1527,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-audio-features/)
     #[maybe_async]
-    pub async fn audio_features(&self, track: &str) -> ClientResult<AudioFeatures> {
+    pub async fn track_features(&self, track: &str) -> ClientResult<AudioFeatures> {
         let track_id = self.get_id(Type::Track, track);
         let url = format!("audio-features/{}", track_id);
         let result = self.get(&url, None, &Query::new()).await?;
@@ -1524,12 +1541,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-several-audio-features/)
     #[maybe_async]
-    pub async fn audios_features(
+    pub async fn tracks_features<'a>(
         &self,
-        tracks: &[String],
+        tracks: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Option<AudioFeaturesPayload>> {
         let ids: Vec<String> = tracks
-            .iter()
+            .into_iter()
             .map(|track| self.get_id(Type::Track, track))
             .collect();
         let url = format!("audio-features/?ids={}", ids.join(","));
@@ -1549,7 +1566,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
     #[maybe_async]
-    pub async fn audio_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
+    pub async fn track_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
         let trid = self.get_id(Type::Track, track);
         let url = format!("audio-analysis/{}", trid);
         let result = self.get(&url, None, &Query::new()).await?;
@@ -1579,17 +1596,17 @@ impl Spotify {
         &self,
         market: Option<Country>,
         additional_types: Option<Vec<AdditionalType>>,
-    ) -> ClientResult<Option<CurrentlyPlaybackContext>> {
+    ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         if let Some(additional_types) = additional_types {
             params.insert(
                 "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|x| x.as_str())
+                    .map(|x| x.to_string())
                     .collect::<Vec<_>>()
                     .join(","),
             );
@@ -1620,14 +1637,14 @@ impl Spotify {
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         if let Some(additional_types) = additional_types {
             params.insert(
                 "additional_types".to_owned(),
                 additional_types
                     .iter()
-                    .map(|x| x.as_str())
+                    .map(|x| x.to_string())
                     .collect::<Vec<_>>()
                     .join(","),
             );
@@ -1694,7 +1711,7 @@ impl Spotify {
         device_id: Option<String>,
         context_uri: Option<String>,
         uris: Option<Vec<String>>,
-        offset: Option<super::model::offset::Offset>,
+        offset: Option<super::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         if context_uri.is_some() && uris.is_some() {
@@ -1797,7 +1814,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
-            &format!("me/player/repeat?state={}", state.as_str()),
+            &format!("me/player/repeat?state={}", state.to_string()),
             device_id,
         );
         self.put(&url, None, &json!({})).await?;
@@ -1868,8 +1885,8 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/console/put-current-user-saved-shows)
     #[maybe_async]
-    pub async fn save_shows(&self, ids: Vec<String>) -> ClientResult<()> {
-        let joined_ids = ids.join(",");
+    pub async fn save_shows<'a>(&self, ids: impl IntoIterator<Item = &'a str>) -> ClientResult<()> {
+        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
         self.put(&url, None, &json!({})).await?;
 
@@ -1910,7 +1927,7 @@ impl Spotify {
     pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let url = format!("shows/{}", id);
         let result = self.get(&url, None, &params).await?;
@@ -1926,16 +1943,19 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
     #[maybe_async]
-    pub async fn get_several_shows(
+    pub async fn get_several_shows<'a>(
         &self,
-        ids: Vec<String>,
+        ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
     ) -> ClientResult<SeversalSimplifiedShows> {
         // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
-        params.insert("ids".to_owned(), ids.join(","));
+        params.insert(
+            "ids".to_owned(),
+            ids.into_iter().collect::<Vec<_>>().join(","),
+        );
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("shows", None, &params).await?;
         self.convert_result(&result)
@@ -1965,7 +1985,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let url = format!("shows/{}/episodes", id);
         let result = self.get(&url, None, &params).await?;
@@ -1990,7 +2010,7 @@ impl Spotify {
         let url = format!("episodes/{}", id);
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
 
         let result = self.get(&url, None, &params).await?;
@@ -2005,15 +2025,18 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-several-episodes/)
     #[maybe_async]
-    pub async fn get_several_episodes(
+    pub async fn get_several_episodes<'a>(
         &self,
-        ids: Vec<String>,
+        ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
     ) -> ClientResult<SeveralEpisodes> {
         let mut params = Query::with_capacity(1);
-        params.insert("ids".to_owned(), ids.join(","));
+        params.insert(
+            "ids".to_owned(),
+            ids.into_iter().collect::<Vec<_>>().join(","),
+        );
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.as_str().to_owned());
+            params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("episodes", None, &params).await?;
         self.convert_result(&result)
@@ -2026,9 +2049,15 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
     #[maybe_async]
-    pub async fn check_users_saved_shows(&self, ids: Vec<String>) -> ClientResult<Vec<bool>> {
+    pub async fn check_users_saved_shows<'a>(
+        &self,
+        ids: impl IntoIterator<Item = &'a str>,
+    ) -> ClientResult<Vec<bool>> {
         let mut params = Query::with_capacity(1);
-        params.insert("ids".to_owned(), ids.join(","));
+        params.insert(
+            "ids".to_owned(),
+            ids.into_iter().collect::<Vec<_>>().join(","),
+        );
         let result = self.get("me/shows/contains", None, &params).await?;
         self.convert_result(&result)
     }
@@ -2042,16 +2071,16 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
     #[maybe_async]
-    pub async fn remove_users_saved_shows(
+    pub async fn remove_users_saved_shows<'a>(
         &self,
-        ids: Vec<String>,
+        ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
     ) -> ClientResult<()> {
-        let joined_ids = ids.join(",");
+        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
         let url = format!("me/shows?ids={}", joined_ids);
         let mut params = json!({});
         if let Some(market) = market {
-            json_insert!(params, "country", market.as_str());
+            json_insert!(params, "country", market.to_string());
         }
         self.delete(&url, None, &params).await?;
 

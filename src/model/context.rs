@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use super::device::Device;
 use super::track::FullTrack;
 use super::PlayingItem;
-use crate::senum::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
+use crate::model::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
 /// Context object
 /// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -54,7 +54,7 @@ pub struct CurrentlyPlayingContext {
 }
 /// [Currently Playback Context](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CurrentlyPlaybackContext {
+pub struct CurrentPlaybackContext {
     pub device: Device,
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,

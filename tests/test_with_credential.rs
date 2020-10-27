@@ -2,8 +2,8 @@ mod common;
 
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
+use rspotify::model::{AlbumType, Country};
 use rspotify::oauth2::CredentialsBuilder;
-use rspotify::senum::{AlbumType, Country};
 
 use maybe_async::maybe_async;
 
@@ -34,9 +34,9 @@ async fn test_album() {
 #[maybe_async]
 #[maybe_async_test]
 async fn test_albums() {
-    let birdy_uri1 = String::from("spotify:album:41MnTivkwTO3UUJ8DrqEJJ");
-    let birdy_uri2 = String::from("spotify:album:6JWc4iAiJ9FjyK0B59ABb4");
-    let birdy_uri3 = String::from("spotify:album:6UXCm6bOO4gFlDQZV5yL37");
+    let birdy_uri1 = "spotify:album:41MnTivkwTO3UUJ8DrqEJJ";
+    let birdy_uri2 = "spotify:album:6JWc4iAiJ9FjyK0B59ABb4";
+    let birdy_uri3 = "spotify:album:6UXCm6bOO4gFlDQZV5yL37";
     let track_uris = vec![birdy_uri1, birdy_uri2, birdy_uri3];
     creds_client().await.albums(track_uris).await.unwrap();
 }
@@ -90,8 +90,8 @@ async fn test_artists_albums() {
 #[maybe_async]
 #[maybe_async_test]
 async fn test_artists() {
-    let birdy_uri1 = String::from("spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy");
-    let birdy_uri2 = String::from("spotify:artist:3dBVyJ7JuOMt4GE9607Qin");
+    let birdy_uri1 = "spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy";
+    let birdy_uri2 = "spotify:artist:3dBVyJ7JuOMt4GE9607Qin";
     let artist_uris = vec![birdy_uri1, birdy_uri2];
     creds_client().await.artists(artist_uris).await.unwrap();
 }
@@ -111,27 +111,27 @@ async fn test_artist_top_tracks() {
 #[maybe_async_test]
 async fn test_audio_analysis() {
     let track = "06AKEBrKUckW0KREUWRnvT";
-    creds_client().await.audio_analysis(track).await.unwrap();
+    creds_client().await.track_analysis(track).await.unwrap();
 }
 
 #[maybe_async]
 #[maybe_async_test]
 async fn test_audio_features() {
     let track = "spotify:track:06AKEBrKUckW0KREUWRnvT";
-    creds_client().await.audio_features(track).await.unwrap();
+    creds_client().await.track_features(track).await.unwrap();
 }
 
 #[maybe_async]
 #[maybe_async_test]
 async fn test_audios_features() {
     let mut tracks_ids = vec![];
-    let track_id1 = String::from("spotify:track:4JpKVNYnVcJ8tuMKjAj50A");
+    let track_id1 = "spotify:track:4JpKVNYnVcJ8tuMKjAj50A";
     tracks_ids.push(track_id1);
-    let track_id2 = String::from("spotify:track:24JygzOLM0EmRQeGtFcIcG");
+    let track_id2 = "spotify:track:24JygzOLM0EmRQeGtFcIcG";
     tracks_ids.push(track_id2);
     creds_client()
         .await
-        .audios_features(&tracks_ids)
+        .tracks_features(tracks_ids)
         .await
         .unwrap();
 }

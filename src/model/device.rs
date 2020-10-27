@@ -1,4 +1,4 @@
-use crate::senum::DeviceType;
+use crate::model::DeviceType;
 use serde::{Deserialize, Serialize};
 
 /// All objects related to device

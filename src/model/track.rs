@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use super::album::Restrictions;
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
-use crate::senum::Type;
+use crate::model::Type;
 
 /// [Track object full](https://developer.spotify.com/web-api/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize)]
