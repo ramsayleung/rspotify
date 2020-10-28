@@ -70,8 +70,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Split single `senum.rs` file into a separate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, and move `enums` module into `model` module, which should be part of the `model` module, check [enums mod.rs file](src/model/enums/mod.rs) for details.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
-   + All enums don't have a method named `as_str()` anymore, which is placed with method `as_ref()`(powered by `strum`).
-   + By leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
+   + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
 - Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
