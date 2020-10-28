@@ -1,14 +1,23 @@
 use super::image::Image;
 use super::page::Page;
+use crate::model::CopyrightType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+/// [Copyright object](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Copyright {
+    pub text: String,
+    #[serde(rename = "type")]
+    pub _type: CopyrightType,
+}
 
 /// Show object(simplified)
 /// [Show object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedShow {
     pub available_markets: Vec<String>,
-    pub copyrights: Vec<HashMap<String, String>>,
+    pub copyrights: Vec<Copyright>,
     pub description: String,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
@@ -40,7 +49,7 @@ pub struct Show {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
-    pub copyrights: Vec<HashMap<String, String>>,
+    pub copyrights: Vec<Copyright>,
     pub description: String,
     pub explicit: bool,
     pub episodes: Page<SimplifiedEpisode>,

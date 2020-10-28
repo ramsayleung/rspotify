@@ -7,4 +7,6 @@ pub use country::Country;
 
 pub use misc::{DatePrecision, DisallowKey, IncludeExternal, RepeatState, TimeRange};
 
-pub use types::{AdditionalType, AlbumType, CurrentlyPlayingType, DeviceType, SearchType, Type};
+pub use types::{
+    AdditionalType, AlbumType, CopyrightType, CurrentlyPlayingType, DeviceType, SearchType, Type,
+};

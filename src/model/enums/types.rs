@@ -1,6 +1,18 @@
 use serde::{Deserialize, Serialize};
 use strum::ToString;
 
+/// The type of copyright: `C` = the copyright, `P` = the sound recording (performance) copyright.
+/// [Copyright type](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+pub enum CopyrightType {
+    #[strum(serialize = "P")]
+    #[serde(rename = "P")]
+    Performance,
+    #[strum(serialize = "C")]
+    #[serde(rename = "C")]
+    Copyright,
+}
+
 /// Album type - 'album', 'single', 'appears_on', 'compilation'
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 #[serde(rename_all = "snake_case")]
