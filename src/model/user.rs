@@ -15,6 +15,7 @@ pub struct PublicUser {
     pub followers: Option<HashMap<String, Option<Value>>>,
     pub href: String,
     pub id: String,
+    #[serde(default = "Vec::new")]
     pub images: Vec<Image>,
     #[serde(rename = "type")]
     pub _type: Type,
