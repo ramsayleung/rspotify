@@ -78,6 +78,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `copyrights` from `Vec<HashMap<String, String>>` to `Vec<Copyright>`
   + Add missing field `is_private_session` for `Device`
   + Change `PublicUser.images` from `Option<Vec<Image>>` to `Vec<Image>`
+  + Add three missing fields `is_playable`, `linked_from`, `restrictions` for `SimplifiedTrack`
 
 ## 0.10 (2020/07/01)
 
