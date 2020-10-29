@@ -77,6 +77,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
   + Change `copyrights` from `Vec<HashMap<String, String>>` to `Vec<Copyright>`
   + Add missing field `is_private_session` for `Device`
+  + Change `PublicUser.images` from `Option<Vec<Image>>` to `Vec<Image>`
 
 ## 0.10 (2020/07/01)
 
