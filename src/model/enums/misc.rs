@@ -62,6 +62,17 @@ pub enum DatePrecision {
     Day,
 }
 
+/// [The reason for the restriction](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
+/// Supported values: market, product, explicit
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum RestrictionReason {
+    Market,
+    Product,
+    Explict,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
