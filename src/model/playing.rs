@@ -16,7 +16,7 @@ pub struct Playing {
 }
 
 /// Playing history
-/// [play history object](https://developer.spotify.com/web-api/object-model/#play-history-object)
+/// [play history object](https://developer.spotify.com/documentation/web-api/reference/object-model/#play-history-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayHistory {
     pub track: FullTrack,

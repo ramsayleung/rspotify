@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use super::image::Image;
 use crate::model::Type;
-/// [Public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
+/// [Public user object](https://developer.spotify.com/documentation/web-api/reference/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PublicUser {
     pub display_name: Option<String>,

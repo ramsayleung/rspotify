@@ -6,7 +6,7 @@ use super::page::CursorBasedPage;
 use crate::model::Type;
 use serde_json::Value;
 use std::collections::HashMap;
-/// [artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)
+/// [artist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified)
 /// Simplified Artist Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedArtist {
@@ -19,7 +19,7 @@ pub struct SimplifiedArtist {
     pub uri: Option<String>,
 }
 
-/// [artist object full](https://developer.spotify.com/web-api/object-model/#artist-object-full)
+/// [artist object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-full)
 /// Full Artist Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullArtist {

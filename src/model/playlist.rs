@@ -10,7 +10,7 @@ use super::track::FullTrack;
 use super::user::PublicUser;
 use crate::model::Type;
 
-///[Playlist object simplified](https://developer.spotify.com/web-api/object-model/#playlist-object-simplified)
+///[Playlist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,
@@ -47,7 +47,7 @@ pub struct FullPlaylist {
     pub uri: String,
 }
 
-/// [Playlist track object](https://developer.spotify.com/web-api/object-model/#playlist-track-object)
+/// [Playlist track object](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlaylistTrack {
     pub added_at: DateTime<Utc>,

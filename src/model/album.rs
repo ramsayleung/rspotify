@@ -10,7 +10,7 @@ use super::page::Page;
 use super::track::SimplifiedTrack;
 use crate::model::{AlbumType, Copyright, DatePrecision, Type};
 
-/// [link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
+/// [link to album object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-simplified)
 /// Simplified Album Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedAlbum {
@@ -42,7 +42,7 @@ pub struct Restrictions {
     pub reason: String,
 }
 
-/// [link to album object full](https://developer.spotify.com/web-api/object-model/#album-object-full)
+/// [link to album object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
 /// Full Album Object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FullAlbum {
@@ -79,7 +79,7 @@ pub struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
-/// [link to save album object](https://developer.spotify.com/web-api/object-model/#save-album-object)
+/// [link to save album object](https://developer.spotify.com/documentation/web-api/reference/object-model/#save-album-object)
 /// Saved Album object
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SavedAlbum {
