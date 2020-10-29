@@ -77,7 +77,7 @@ pub enum SearchType {
 /// See the [Spotify developer
 /// docs](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
 /// for more information, or in case we are missing a device type here.
-#[derive(Clone, Debug, Serialize, Deserialize, ToString)]
+#[derive(Clone, Debug, Serialize, Deserialize, ToString, PartialEq, Eq)]
 #[strum(serialize_all = "snake_case")]
 pub enum DeviceType {
     Computer,

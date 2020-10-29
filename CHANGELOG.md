@@ -72,8 +72,11 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
    + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
-- Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
-- Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
+- Refactor models to make it easier to use:
+  + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
+  + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
+  + Change `copyrights` from `Vec<HashMap<String, String>>` to `Vec<Copyright>`
+  + Add missing field `is_private_session` for `Device`
 
 ## 0.10 (2020/07/01)
 
