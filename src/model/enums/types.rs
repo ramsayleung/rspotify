@@ -73,6 +73,18 @@ pub enum SearchType {
     Episode,
 }
 
+/// The user's Spotify subscription level: "premium", "free", etc.
+/// (The subscription level "open" can be considered the same as "free".)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/users-profile/get-current-users-profile/)
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum SubscriptionLevel {
+    Premium,
+    Open,
+    Free,
+}
+
 /// Device Type: computer, smartphone, speaker, TV, etc.
 /// See the [Spotify developer
 /// docs](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
