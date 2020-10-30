@@ -8,7 +8,7 @@ use super::PlayingItem;
 use crate::model::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
 /// Context object
 /// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
     pub uri: String,
     pub href: String,
@@ -19,7 +19,7 @@ pub struct Context {
 
 /// Full playing context
 /// [get information about the users current playback](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullPlayingContext {
     pub device: Device,
     pub repeat_state: RepeatState,
@@ -32,7 +32,7 @@ pub struct FullPlayingContext {
 }
 
 /// [Get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlayingContext {
     pub context: Option<Context>,
     pub timestamp: u64,
@@ -42,7 +42,7 @@ pub struct SimplifiedPlayingContext {
 }
 
 /// [Currently playing object](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
     pub timestamp: u64,
@@ -53,7 +53,7 @@ pub struct CurrentlyPlayingContext {
     pub actions: Actions,
 }
 /// [Currently Playback Context](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentPlaybackContext {
     pub device: Device,
     pub repeat_state: RepeatState,
@@ -68,7 +68,7 @@ pub struct CurrentPlaybackContext {
 }
 
 /// [Actions](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Actions {
     pub disallows: HashMap<DisallowKey, bool>,
 }

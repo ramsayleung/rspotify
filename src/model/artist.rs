@@ -8,7 +8,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 /// [artist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified)
 /// Simplified Artist Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
@@ -21,7 +21,7 @@ pub struct SimplifiedArtist {
 
 /// [artist object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-full)
 /// Full Artist Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtist {
     pub external_urls: HashMap<String, String>,
     pub followers: HashMap<String, Option<Value>>,
@@ -37,13 +37,13 @@ pub struct FullArtist {
 }
 
 /// Full artist vector
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtists {
     pub artists: Vec<FullArtist>,
 }
 
 /// Full Artists vector wrapped by cursor-based-page object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,
 }

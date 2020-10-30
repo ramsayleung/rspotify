@@ -12,7 +12,7 @@ use crate::model::{AlbumType, Copyright, DatePrecision, Type};
 
 /// [link to album object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-simplified)
 /// Simplified Album Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub album_group: Option<String>,
@@ -37,14 +37,14 @@ pub struct SimplifiedAlbum {
 }
 
 /// Restrictions object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Restrictions {
     pub reason: String,
 }
 
 /// [link to album object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
 /// Full Album Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
     pub album_type: AlbumType,
@@ -67,21 +67,21 @@ pub struct FullAlbum {
 }
 
 /// Full Albums
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
 /// [link to get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
 /// Simplified Albums wrapped by Page object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
 /// [link to save album object](https://developer.spotify.com/documentation/web-api/reference/object-model/#save-album-object)
 /// Saved Album object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,

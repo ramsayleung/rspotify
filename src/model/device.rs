@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// All objects related to device
 /// [get a users available devices](https://developer.spotify.com/web-api/get-a-users-available-devices/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Device {
     pub id: Option<String>,
     pub is_active: bool,
@@ -15,7 +15,7 @@ pub struct Device {
     pub volume_percent: Option<u32>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DevicePayload {
     pub devices: Vec<Device>,
 }

@@ -10,7 +10,7 @@ use super::artist::SimplifiedArtist;
 use crate::model::{RestrictionReason, Type};
 
 /// [Track object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
     pub artists: Vec<SimplifiedArtist>,
@@ -41,7 +41,7 @@ pub struct FullTrack {
 
 /// [Link to track link] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
 /// Track Link
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
@@ -51,12 +51,12 @@ pub struct TrackLink {
     pub uri: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTracks {
     pub tracks: Vec<FullTrack>,
 }
 /// [track object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
     pub available_markets: Option<Vec<String>>,
@@ -83,13 +83,13 @@ pub struct SimplifiedTrack {
 }
 
 /// [track restriction object](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackRestriction {
     pub reason: RestrictionReason,
 }
 
 /// [Saved track object](https://developer.spotify.com/documentation/web-api/reference/object-model/#saved-track-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,
     pub track: FullTrack,

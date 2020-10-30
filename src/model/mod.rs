@@ -20,7 +20,7 @@ pub mod user;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum PlayingItem {
     Track(track::FullTrack),

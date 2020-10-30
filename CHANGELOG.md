@@ -14,6 +14,72 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 - Mark `SimplifiedEpisode.language` as deprecated.
+- Derive `PartialEq` and `Eq` for models:
+  + `SimplifiedAlbum`
+  + `Restrictions`
+  + `FullAlbum`
+  + `SimplifiedArtist`
+  + `FullArtist`
+  + `FullArtists`
+  + `CursorPageFullArtists`
+  + `AudioFeatures`
+  + `AudioFeaturesPayload`
+  + `AudioAnalysis`
+  + `AudioAnalysisMeasure`
+  + `AudioAnalysisSection`
+  + `AudioAnalysisMeta`
+  + `AudioAnalysisSegment`
+  + `AudioAnalysisTrack`
+  + `Category`
+  + `PageCategory`
+  + `Context`
+  + `FullPlayingContext`
+  + `SimplifiedPlayingContext`
+  + `CurrentlyPlayingContext`
+  + `CurrentPlaybackContext`
+  + `Actions`
+  + `CUDResult`
+  + `Device`
+  + `DevicePayload`
+  + `Image`
+  + `PlayingItem` 
+  + `Offset`
+  + `Page`
+  + `CursorBasedPage`
+  + `Cursor`
+  + `PlayHistory`
+  + `SimplifiedPlaylist`
+  + `FullPlaylist`
+  + `PlaylistItem`
+  + `FeaturedPlaylists`
+  + `Recommendations`
+  + `RecommendationsSeed`
+  + `RecommendationsSeedType`
+  + `SearchPlaylists`
+  + `SearchAlbums`
+  + `SearchArtists`
+  + `SearchTracks`
+  + `SearchShows`
+  + `SearchEpisodes`
+  + `SearchResult`
+  + `Copyright`
+  + `SimplifiedShow`
+  + `Show`
+  + `SeversalSimplifiedShows`
+  + `FullShow`
+  + `SimplifiedEpisode`
+  + `FullEpisode`
+  + `SeveralEpisodes`
+  + `ResumePoint`
+  + `FullTrack`
+  + `TrackLink`
+  + `FullTracks`
+  + `SimplifiedTrack`
+  + `TrackRestriction`
+  + `SavedTrack`
+  + `PublicUser`
+  + `PrivateUser`
+  + `ExplicitContent`
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.

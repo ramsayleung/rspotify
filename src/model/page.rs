@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Basic page
 /// ppaging abject(https://developer.spotify.com/documentation/web-api/reference/object-model/#paging-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Page<T> {
     pub href: String,
     pub items: Vec<T>,
@@ -15,7 +15,7 @@ pub struct Page<T> {
 }
 /// Cursor based page
 /// [cursor based paging object](https://developer.spotify.com/documentation/web-api/reference/object-model/#cursor-based-paging-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CursorBasedPage<T> {
     pub href: String,
     pub items: Vec<T>,
@@ -28,7 +28,7 @@ pub struct CursorBasedPage<T> {
 }
 /// Cursor object
 /// [cursor object](https://developer.spotify.com/documentation/web-api/reference/object-model/#cursor-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Cursor {
     pub after: Option<String>,
 }

@@ -11,7 +11,7 @@ use super::user::PublicUser;
 use crate::model::Type;
 
 ///[Playlist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,
     pub external_urls: HashMap<String, String>,
@@ -28,7 +28,7 @@ pub struct SimplifiedPlaylist {
     pub uri: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullPlaylist {
     pub collaborative: bool,
     pub description: String,
@@ -48,7 +48,7 @@ pub struct FullPlaylist {
 }
 
 /// [Playlist track object](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-track-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PlaylistItem {
     pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
@@ -56,7 +56,7 @@ pub struct PlaylistItem {
     pub track: Option<FullTrack>,
 }
 /// [Get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FeaturedPlaylists {
     pub message: String,
     pub playlists: Page<SimplifiedPlaylist>,

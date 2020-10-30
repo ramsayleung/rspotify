@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// [Copyright object](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Copyright {
     pub text: String,
     #[serde(rename = "type")]
@@ -14,7 +14,7 @@ pub struct Copyright {
 
 /// Show object(simplified)
 /// [Show object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-simplified)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
     pub available_markets: Vec<String>,
     pub copyrights: Vec<Copyright>,
@@ -34,19 +34,19 @@ pub struct SimplifiedShow {
     pub uri: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SeversalSimplifiedShows {
     pub shows: Vec<SimplifiedShow>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Show {
     pub added_at: String,
     pub show: SimplifiedShow,
 }
 
 /// [Show object(full)](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-full)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
     pub copyrights: Vec<Copyright>,
@@ -68,7 +68,7 @@ pub struct FullShow {
 }
 
 /// [Episode object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-simplified)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
     pub description: String,
@@ -95,7 +95,7 @@ pub struct SimplifiedEpisode {
 }
 
 /// [Episode object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-full)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
     pub description: String,
@@ -119,13 +119,13 @@ pub struct FullEpisode {
     pub _type: String,
     pub uri: String,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SeveralEpisodes {
     pub episodes: Vec<FullEpisode>,
 }
 
 /// [Resume point object](https://developer.spotify.com/documentation/web-api/reference/object-model/#resume-point-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResumePoint {
     pub fully_played: bool,
     pub resume_position_ms: u32,
