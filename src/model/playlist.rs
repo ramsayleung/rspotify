@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-use super::image::Image;
 use super::page::Page;
 use super::track::FullTrack;
 use super::user::PublicUser;
+use super::Image;
 use crate::model::Type;
 
 ///[Playlist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
@@ -28,7 +28,7 @@ pub struct SimplifiedPlaylist {
     pub uri: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullPlaylist {
     pub collaborative: bool,
     pub description: String,
@@ -56,7 +56,7 @@ pub struct PlaylistItem {
     pub track: Option<FullTrack>,
 }
 /// [Get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FeaturedPlaylists {
     pub message: String,
     pub playlists: Page<SimplifiedPlaylist>,

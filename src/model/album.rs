@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::artist::SimplifiedArtist;
-use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
+use super::Image;
+use super::Restriction;
 use crate::model::{AlbumType, Copyright, DatePrecision, Type};
 
 /// [link to album object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-simplified)
@@ -30,21 +31,15 @@ pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub release_date_precision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub restrictions: Option<Restrictions>,
+    pub restrictions: Option<Restriction>,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: Option<String>,
 }
 
-/// Restrictions object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Restrictions {
-    pub reason: String,
-}
-
 /// [link to album object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
 /// Full Album Object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
     pub album_type: AlbumType,
@@ -67,21 +62,21 @@ pub struct FullAlbum {
 }
 
 /// Full Albums
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
 /// [link to get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
 /// Simplified Albums wrapped by Page object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
 /// [link to save album object](https://developer.spotify.com/documentation/web-api/reference/object-model/#save-album-object)
 /// Saved Album object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,

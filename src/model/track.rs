@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::album::Restrictions;
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
-use crate::model::{RestrictionReason, Type};
+use super::Restriction;
+use crate::model::Type;
 
 /// [Track object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -29,7 +29,7 @@ pub struct FullTrack {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub linked_from: Option<TrackLink>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub restrictions: Option<Restrictions>,
+    pub restrictions: Option<Restriction>,
     pub name: String,
     pub popularity: u32,
     pub preview_url: Option<String>,
@@ -72,7 +72,7 @@ pub struct SimplifiedTrack {
     //-------------------//
     pub is_playable: Option<bool>,
     pub linked_from: Option<TrackLink>,
-    pub restrictions: Option<TrackRestriction>,
+    pub restrictions: Option<Restriction>,
     //-------------------//
     pub name: String,
     pub preview_url: Option<String>,
@@ -80,12 +80,6 @@ pub struct SimplifiedTrack {
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: String,
-}
-
-/// [track restriction object](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct TrackRestriction {
-    pub reason: RestrictionReason,
 }
 
 /// [Saved track object](https://developer.spotify.com/documentation/web-api/reference/object-model/#saved-track-object)

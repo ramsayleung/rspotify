@@ -1,6 +1,6 @@
 //! All object related to category
-use super::image::Image;
 use super::page::Page;
+use super::Image;
 use serde::{Deserialize, Serialize};
 /// category object
 /// [category object](https://developer.spotify.com/web-api/get-list-categories/#categoryobject)
@@ -14,7 +14,7 @@ pub struct Category {
 
 /// Categories wrapped by page object
 /// [get list categories](https://developer.spotify.com/web-api/get-list-categories/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PageCategory {
     pub categories: Page<Category>,
 }

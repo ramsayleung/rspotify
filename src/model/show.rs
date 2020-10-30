@@ -1,5 +1,5 @@
-use super::image::Image;
 use super::page::Page;
+use super::Image;
 use crate::model::CopyrightType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -46,7 +46,7 @@ pub struct Show {
 }
 
 /// [Show object(full)](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-full)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
     pub copyrights: Vec<Copyright>,

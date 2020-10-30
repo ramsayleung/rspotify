@@ -1,8 +1,8 @@
 //! All objects related to artist defined by Spotify API
 use serde::{Deserialize, Serialize};
 
-use super::image::Image;
 use super::page::CursorBasedPage;
+use super::Image;
 use crate::model::Type;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -43,7 +43,7 @@ pub struct FullArtists {
 }
 
 /// Full Artists vector wrapped by cursor-based-page object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,
 }
