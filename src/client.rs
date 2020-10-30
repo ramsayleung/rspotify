@@ -592,7 +592,7 @@ impl Spotify {
         limit: L,
         offset: O,
         market: Option<Country>,
-    ) -> ClientResult<Page<PlaylistTrack>> {
+    ) -> ClientResult<Page<PlaylistItem>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
