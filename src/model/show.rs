@@ -81,7 +81,6 @@ pub struct SimplifiedEpisode {
     pub is_externally_hosted: bool,
     pub is_playable: bool,
     #[deprecated(
-        since = "0.11",
         note = "This `language` field is deprecated and might be removed in the future by Spotify. Please use the languages field instead"
     )]
     pub language: String,
