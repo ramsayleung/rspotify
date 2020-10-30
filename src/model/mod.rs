@@ -19,7 +19,6 @@ pub mod track;
 pub mod user;
 
 use serde::{Deserialize, Serialize};
-use RestrictionReason;
 
 /// [track restriction object](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
 /// [album restriction object](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-restriction-object)
