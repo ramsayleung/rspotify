@@ -81,7 +81,8 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `PublicUser.images` from `Option<Vec<Image>>` to `Vec<Image>`
   + Add three missing fields `is_playable`, `linked_from`, `restrictions` for `SimplifiedTrack`
   + Delete deprecated field `birthday` and Add missing fields `product` and `explicit_content` for `PrivateUser`
-  + Rename PlayingTrack to PlayingItem and change `added_at` to Option.
+  + Rename PlayingTrack to PlayingItem and change `added_at` to Option
+  + Replace `Playing` with `CurrentlyPlayingContext`, since it's the same
 
 ## 0.10 (2020/07/01)
 
