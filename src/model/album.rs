@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::artist::SimplifiedArtist;
+use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
-use super::Image;
 use super::Restriction;
 use crate::model::{AlbumType, Copyright, DatePrecision, Type};
 

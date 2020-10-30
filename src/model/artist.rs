@@ -1,8 +1,8 @@
 //! All objects related to artist defined by Spotify API
 use serde::{Deserialize, Serialize};
 
+use super::image::Image;
 use super::page::CursorBasedPage;
-use super::Image;
 use crate::model::Type;
 use serde_json::Value;
 use std::collections::HashMap;

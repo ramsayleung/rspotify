@@ -150,6 +150,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename PlayingTrack to PlayingItem and change `added_at` to Option
   + Replace `Playing` with `CurrentlyPlayingContext`, since it's the same
   + Make `Device.id` and `Device.volume_percent`, since they would be null
+  + Rename `Restrictions` to `Restriction` and move it to top level of `model` module
 
 ## 0.10 (2020/07/01)
 

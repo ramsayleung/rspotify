@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
+use super::image::Image;
 use super::page::Page;
 use super::track::FullTrack;
 use super::user::PublicUser;
-use super::Image;
 use crate::model::Type;
 
 ///[Playlist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)

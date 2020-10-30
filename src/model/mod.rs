@@ -7,6 +7,7 @@ pub mod context;
 pub mod cud_result;
 pub mod device;
 pub mod enums;
+pub mod image;
 pub mod offset;
 pub mod page;
 pub mod playing;
@@ -19,14 +20,6 @@ pub mod user;
 
 use serde::{Deserialize, Serialize};
 use RestrictionReason;
-
-/// [image object](https://developer.spotify.com/documentation/web-api/reference/object-model/#image-object)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Image {
-    pub height: Option<u32>,
-    pub url: String,
-    pub width: Option<u32>,
-}
 
 /// [track restriction object](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
 /// [album restriction object](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-restriction-object)
@@ -44,6 +37,6 @@ pub enum PlayingItem {
 
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, cud_result::*, device::*, enums::*,
-    offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*, track::*,
-    user::*,
+    image::*, offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*,
+    track::*, user::*,
 };

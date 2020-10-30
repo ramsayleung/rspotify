@@ -1,5 +1,5 @@
+use super::image::Image;
 use super::page::Page;
-use super::Image;
 use crate::model::CopyrightType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
