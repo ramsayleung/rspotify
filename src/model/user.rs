@@ -76,6 +76,7 @@ mod test {
         let user: PublicUser = serde_json::from_str(&json_str).unwrap();
         assert_eq!(user.id, "wizzler".to_string());
     }
+    #[test]
     fn test_private_user() {
         let json_str = r#"
         {

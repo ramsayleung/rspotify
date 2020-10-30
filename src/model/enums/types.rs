@@ -81,7 +81,7 @@ pub enum SearchType {
 #[strum(serialize_all = "snake_case")]
 pub enum SubscriptionLevel {
     Premium,
-    Open,
+    #[serde(alias = "open")]
     Free,
 }
 

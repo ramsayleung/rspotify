@@ -948,7 +948,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     #[maybe_async]
-    pub async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
+    pub async fn current_user_playing_track(
+        &self,
+    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .get("me/player/currently-playing", None, &Query::new())
             .await?;
