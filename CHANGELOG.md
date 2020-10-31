@@ -151,7 +151,8 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Make `Device.id` and `Device.volume_percent`, since they would be null
   + Rename `Restrictions` to `Restriction` and move it to top level of `model` module
   + Rename `AudioAnalysisMeasure` to `TimeInterval`
-  + Replace `start`, `duration`, `confidence` fields from `AudioAnalysisSection` and `AudioAnalysisSegment` to `TimeInterval` field.
+  + Replace `start`, `duration`, `confidence` fields from `AudioAnalysisSection` and `AudioAnalysisSegment` to `TimeInterval` field
+  + Remove useless `FullPlayingContext`, since it has been replaced with `CurrentPlayingContext`
 
 ## 0.10 (2020/07/01)
 
