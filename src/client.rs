@@ -699,7 +699,7 @@ impl Spotify {
         playlist_id: &str,
         track_ids: impl IntoIterator<Item = &'a str>,
         position: Option<i32>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .into_iter()
@@ -760,7 +760,7 @@ impl Spotify {
         range_length: R,
         insert_before: i32,
         snapshot_id: Option<String>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let mut params = json! ({
             "range_start": range_start,
@@ -790,7 +790,7 @@ impl Spotify {
         playlist_id: &str,
         track_ids: impl IntoIterator<Item = &'a str>,
         snapshot_id: Option<String>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .into_iter()
@@ -848,7 +848,7 @@ impl Spotify {
         playlist_id: &str,
         tracks: Vec<Map<String, Value>>,
         snapshot_id: Option<String>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         // TODO: this can be improved
         let plid = self.get_id(Type::Playlist, playlist_id);
         let mut ftracks: Vec<Map<String, Value>> = vec![];
