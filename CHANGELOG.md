@@ -13,8 +13,8 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
-- Mark `SimplifiedEpisode.language` as deprecated.
-- Derive `PartialEq` and `Eq` for models:
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Mark `SimplifiedEpisode.language` as deprecated.
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Derive `PartialEq` and `Eq` for models:
   + `SimplifiedAlbum`
   + `Restrictions`
   + `FullAlbum`
@@ -79,6 +79,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `PublicUser`
   + `PrivateUser`
   + `ExplicitContent`
+  + Fix broken model links refering to Spotify documentation
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
