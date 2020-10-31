@@ -36,18 +36,18 @@ pub struct AudioFeaturesPayload {
 /// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysis {
-    pub bars: Vec<AudioAnalysisMeasure>,
-    pub beats: Vec<AudioAnalysisMeasure>,
+    pub bars: Vec<TimeInterval>,
+    pub beats: Vec<TimeInterval>,
     pub meta: AudioAnalysisMeta,
     pub sections: Vec<AudioAnalysisSection>,
     pub segments: Vec<AudioAnalysisSegment>,
-    pub tatums: Vec<AudioAnalysisMeasure>,
+    pub tatums: Vec<TimeInterval>,
     pub track: AudioAnalysisTrack,
 }
 
-/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [Time interval](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#time-interval-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct AudioAnalysisMeasure {
+pub struct TimeInterval {
     pub start: f32,
     pub duration: f32,
     pub confidence: f32,
