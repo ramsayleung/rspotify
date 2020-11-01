@@ -155,6 +155,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Replace `start`, `duration`, `confidence` fields from `AudioAnalysisSection` and `AudioAnalysisSegment` to `TimeInterval` field
   + Remove useless `FullPlayingContext`, since it has been replaced with `CurrentPlayingContext`
   + Rename `CUDResult` to `PlaylistResult`, since this original name isn't self-explaining
+  + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
 
 ## 0.10 (2020/07/01)
 
