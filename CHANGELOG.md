@@ -157,6 +157,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename `CUDResult` to `PlaylistResult`, since this original name isn't self-explaining
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
+  + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
 
 ## 0.10 (2020/07/01)
 
