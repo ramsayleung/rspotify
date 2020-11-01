@@ -156,6 +156,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove useless `FullPlayingContext`, since it has been replaced with `CurrentPlayingContext`
   + Rename `CUDResult` to `PlaylistResult`, since this original name isn't self-explaining
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
+  + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
 
 ## 0.10 (2020/07/01)
 
