@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::image::Image;
-use crate::model::{Country, SubscriptionLevel, Type, Followers};
+use crate::model::{Country, Followers, SubscriptionLevel, Type};
 /// [Public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PublicUser {

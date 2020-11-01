@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;
-use crate::model::{Type, Followers};
+use crate::model::{Followers, Type};
 use std::collections::HashMap;
 /// [artist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified)
 /// Simplified Artist Object
@@ -48,10 +48,10 @@ pub struct CursorPageFullArtists {
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
     #[test]
-    fn test_full_artist(){
+    fn test_full_artist() {
         let json_str = r#"
         {
             "external_urls": {

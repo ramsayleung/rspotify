@@ -8,7 +8,7 @@ use super::image::Image;
 use super::page::Page;
 use super::track::FullTrack;
 use super::user::PublicUser;
-use crate::model::{Type, Followers};
+use crate::model::{Followers, Type};
 
 ///[Playlist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -27,7 +27,6 @@ pub struct SimplifiedPlaylist {
     pub _type: Type,
     pub uri: String,
 }
-
 
 /// [Full playlist object](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -173,7 +172,7 @@ mod test {
         );
     }
     #[test]
-    fn test_full_playlist(){
+    fn test_full_playlist() {
         let json_str = r#"
         {
             "collaborative": false,
@@ -323,7 +322,10 @@ mod test {
         }
         "#;
         let full_playlist: FullPlaylist = serde_json::from_str(&json_str).unwrap();
-        assert_eq!(full_playlist.uri, "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string());
+        assert_eq!(
+            full_playlist.uri,
+            "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
+        );
         assert_eq!(full_playlist.followers.total, 109);
     }
 }
