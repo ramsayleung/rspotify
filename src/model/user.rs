@@ -1,17 +1,16 @@
 //! All kinds of user object
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use std::collections::HashMap;
 
 use super::image::Image;
-use crate::model::{Country, SubscriptionLevel, Type};
+use crate::model::{Country, SubscriptionLevel, Type, Followers};
 /// [Public user object](https://developer.spotify.com/web-api/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PublicUser {
     pub display_name: Option<String>,
     pub external_urls: HashMap<String, String>,
-    pub followers: Option<HashMap<String, Option<Value>>>,
+    pub followers: Option<Followers>,
     pub href: String,
     pub id: String,
     #[serde(default = "Vec::new")]
@@ -29,7 +28,7 @@ pub struct PrivateUser {
     pub email: Option<String>,
     pub external_urls: HashMap<String, String>,
     pub explicit_content: Option<ExplicitContent>,
-    pub followers: Option<HashMap<String, Option<Value>>>,
+    pub followers: Option<Followers>,
     pub href: String,
     pub id: String,
     pub images: Option<Vec<Image>>,

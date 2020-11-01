@@ -27,6 +27,14 @@ pub struct Restriction {
     pub reason: RestrictionReason,
 }
 
+/// [Followers object](https://developer.spotify.com/documentation/web-api/reference/object-model/#followers-object)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Followers {
+    // This field will always set to null, as the Web API does not support it at the moment.
+    // pub href: Option<String>,
+    pub total: u32,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum PlayingItem {
