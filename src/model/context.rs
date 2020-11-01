@@ -1,5 +1,5 @@
 //! All objects related to context
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
 use super::device::Device;
@@ -54,7 +54,44 @@ pub struct CurrentPlaybackContext {
 }
 
 /// [Actions](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct Actions {
-    pub disallows: HashMap<DisallowKey, bool>,
+    pub disallows: Vec<DisallowKey>,
+}
+
+impl<'de> Deserialize<'de> for Actions {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct OriginalActions {
+            pub disallows: HashMap<DisallowKey, bool>,
+        }
+        let orignal_actions = OriginalActions::deserialize(deserializer)?;
+        Ok(Actions {
+            disallows: orignal_actions
+                .disallows
+                .into_iter()
+                .filter(|(_key, value)| *value == true)
+                .map(|(key, _value)| key)
+                .collect(),
+        })
+    }
+}
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_actions() {
+        let json_str = r#"
+        {
+            "disallows": {
+                "resuming": true
+            }
+        }
+        "#;
+        let actions: Actions = serde_json::from_str(&json_str).unwrap();
+        assert_eq!(actions.disallows[0], DisallowKey::Resuming);
+    }
 }
