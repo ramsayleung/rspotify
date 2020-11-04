@@ -73,8 +73,8 @@ impl<'de> Deserialize<'de> for Actions {
             disallows: orignal_actions
                 .disallows
                 .into_iter()
-                .filter(|(_key, value)| *value)
-                .map(|(key, _value)| key)
+                .filter(|(_, value)| *value)
+                .map(|(key, _)| key)
                 .collect(),
         })
     }
