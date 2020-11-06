@@ -7,7 +7,7 @@ use super::track::FullTrack;
 use super::PlayingItem;
 use crate::model::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
 /// Context object
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
@@ -19,7 +19,7 @@ pub struct Context {
 }
 
 /// Simplified playing context
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlayingContext {
@@ -31,7 +31,7 @@ pub struct SimplifiedPlayingContext {
 }
 
 /// Currently playing object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
@@ -59,7 +59,7 @@ pub struct CurrentPlaybackContext {
 }
 
 /// Actions object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct Actions {

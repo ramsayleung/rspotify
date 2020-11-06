@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Offset object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Offset {

@@ -3,7 +3,7 @@ use super::image::Image;
 use super::page::Page;
 use serde::{Deserialize, Serialize};
 /// Category object
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-list-categories/#categoryobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Category {
@@ -14,7 +14,7 @@ pub struct Category {
 }
 
 /// Categories wrapped by page object
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-list-categories/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PageCategory {

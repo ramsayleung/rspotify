@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Paging object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#paging-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Page<T> {
@@ -15,7 +15,7 @@ pub struct Page<T> {
     pub total: u32,
 }
 /// Cursor-based paging object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#cursor-based-paging-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CursorBasedPage<T> {
@@ -29,7 +29,7 @@ pub struct CursorBasedPage<T> {
     pub total: Option<u32>,
 }
 /// Cursor object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#cursor-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Cursor {

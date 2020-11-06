@@ -11,7 +11,7 @@ use super::user::PublicUser;
 use crate::model::{Followers, Type};
 
 /// Playlist result object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/playlists/add-tracks-to-playlist/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PlaylistResult {
