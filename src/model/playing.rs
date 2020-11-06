@@ -6,7 +6,7 @@ use super::context::Context;
 use super::track::FullTrack;
 
 /// Playing history object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#play-history-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PlayHistory {

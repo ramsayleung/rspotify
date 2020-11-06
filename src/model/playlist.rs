@@ -18,8 +18,8 @@ pub struct PlaylistResult {
     pub snapshot_id: String,
 }
 
-/// Simplified playlist object 
-/// 
+/// Simplified playlist object
+///
 ///[Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlaylist {
@@ -39,7 +39,7 @@ pub struct SimplifiedPlaylist {
 }
 
 /// Full playlist object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullPlaylist {
@@ -61,7 +61,7 @@ pub struct FullPlaylist {
 }
 
 /// Playlist track object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PlaylistItem {

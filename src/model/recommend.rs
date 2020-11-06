@@ -1,10 +1,10 @@
 //! All objects related to recommendation
 use super::track::SimplifiedTrack;
-use serde::{Deserialize, Serialize};
 use crate::model::RecommendationsSeedType;
+use serde::{Deserialize, Serialize};
 
 /// Recommendations object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Recommendations {
@@ -13,7 +13,7 @@ pub struct Recommendations {
 }
 
 /// Recommendations seed object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-seed-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RecommendationsSeed {
@@ -30,10 +30,10 @@ pub struct RecommendationsSeed {
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
     #[test]
-    fn test_recommendations_seed(){
+    fn test_recommendations_seed() {
         let json_str = r#"
         {
             "initialPoolSize": 500,

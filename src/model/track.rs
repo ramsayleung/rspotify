@@ -10,7 +10,7 @@ use super::Restriction;
 use crate::model::Type;
 
 /// Full track object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTrack {
@@ -42,7 +42,7 @@ pub struct FullTrack {
 }
 
 /// Track link object
-/// 
+///
 /// [Reference] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {

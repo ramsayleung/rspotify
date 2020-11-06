@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Copyright object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Copyright {
@@ -15,7 +15,7 @@ pub struct Copyright {
 }
 
 /// Simplified show object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
@@ -38,7 +38,7 @@ pub struct SimplifiedShow {
 }
 
 /// SimplifiedShows wrapped by `Vec`
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
 // TODO: Reduce such wrapper object to `Vec<SimplifiedShow>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -56,7 +56,7 @@ pub struct Show {
 }
 
 /// Full show object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullShow {
@@ -79,8 +79,8 @@ pub struct FullShow {
     pub uri: String,
 }
 
-/// Simplified episode object 
-/// 
+/// Simplified episode object
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedEpisode {
@@ -141,7 +141,7 @@ pub struct SeveralEpisodes {
 }
 
 /// Resume point object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#resume-point-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResumePoint {

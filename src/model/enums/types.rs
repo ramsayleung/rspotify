@@ -118,10 +118,10 @@ pub enum DeviceType {
 }
 
 /// Recommendations seed type
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-seed-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all="snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum RecommendationsSeedType {
     Artist,
     Track,
