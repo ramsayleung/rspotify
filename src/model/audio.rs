@@ -1,8 +1,9 @@
 //! All objects related to artist defined by Spotify API
 use serde::{Deserialize, Serialize};
 
-/// [audio feature object](https://developer.spotify.com/documentation/web-api/reference/object-model/#audio-features-object)
-/// Audio Feature object
+/// Audio Feature Object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#audio-features-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioFeatures {
     pub acousticness: f32,
@@ -26,14 +27,18 @@ pub struct AudioFeatures {
     pub valence: f32,
 }
 
-/// Audio Feature Vector
+/// Audio feature object wrapped by `Vec`
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-audio-features/)
+// TODO: Reduce wrapper object to `Vec<AudioFeatures>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
 }
 
-/// Audio Analysis Object
-/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// Audio analysis object
+/// 
+/// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysis {
     pub bars: Vec<TimeInterval>,
@@ -45,7 +50,8 @@ pub struct AudioAnalysis {
     pub track: AudioAnalysisTrack,
 }
 
-/// [Time interval](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#time-interval-object)
+/// Time interval object
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#time-interval-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct TimeInterval {
     pub start: f32,
@@ -53,7 +59,9 @@ pub struct TimeInterval {
     pub confidence: f32,
 }
 
-/// [Audio section](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
+/// Audio analysis section object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisSection {
     #[serde(flatten)]
@@ -69,7 +77,9 @@ pub struct AudioAnalysisSection {
     pub time_signature_confidence: f32,
 }
 
-/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// Audio analysis meta object
+/// 
+/// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisMeta {
     pub analyzer_version: String,
@@ -80,7 +90,9 @@ pub struct AudioAnalysisMeta {
     pub analysis_time: f32,
     pub input_process: String,
 }
-///[Audio segment](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#segment-object)
+/// Audio analysis segment object
+/// 
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#segment-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisSegment {
     #[serde(flatten)]
@@ -93,7 +105,9 @@ pub struct AudioAnalysisSegment {
     pub timbre: Vec<f32>,
 }
 
-/// [audio analysis](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// Audio analysis track object
+/// 
+/// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisTrack {
     pub num_samples: u32,
