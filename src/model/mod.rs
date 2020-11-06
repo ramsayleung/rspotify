@@ -4,7 +4,6 @@ pub mod artist;
 pub mod audio;
 pub mod category;
 pub mod context;
-pub mod cud_result;
 pub mod device;
 pub mod enums;
 pub mod image;
@@ -43,7 +42,7 @@ pub enum PlayingItem {
 }
 
 pub use {
-    album::*, artist::*, audio::*, category::*, context::*, cud_result::*, device::*, enums::*,
+    album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*,
     image::*, offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*,
     track::*, user::*,
 };
