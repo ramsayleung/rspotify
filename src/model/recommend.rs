@@ -1,14 +1,20 @@
 //! All objects related to recommendation
 use super::track::SimplifiedTrack;
 use serde::{Deserialize, Serialize};
+use crate::model::RecommendationsSeedType;
 
-/// [Recommendations object](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-object)
+/// Recommendations object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Recommendations {
     pub seeds: Vec<RecommendationsSeed>,
     pub tracks: Vec<SimplifiedTrack>,
 }
-/// [Recommendations seed object](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-seed-object)
+
+/// Recommendations seed object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-seed-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RecommendationsSeed {
     #[serde(rename = "afterFilteringSize")]
@@ -23,12 +29,22 @@ pub struct RecommendationsSeed {
     pub _type: RecommendationsSeedType,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum RecommendationsSeedType {
-    #[serde(rename = "ARTIST")]
-    Artist,
-    #[serde(rename = "TRACK")]
-    Track,
-    #[serde(rename = "GENRE")]
-    Genre,
+#[cfg(test)]
+mod test{
+    use super::*;
+    #[test]
+    fn test_recommendations_seed(){
+        let json_str = r#"
+        {
+            "initialPoolSize": 500,
+            "afterFilteringSize": 380,
+            "afterRelinkingSize": 365,
+            "href": "https://api.spotify.com/v1/artists/4NHQUGzhtTLFvgF5SZesLK",
+            "id": "4NHQUGzhtTLFvgF5SZesLK",
+            "type": "artist"
+        }        
+        "#;
+        let seed: RecommendationsSeed = serde_json::from_str(&json_str).unwrap();
+        assert_eq!(seed._type, RecommendationsSeedType::Artist);
+    }
 }

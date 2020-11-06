@@ -9,7 +9,9 @@ use super::artist::SimplifiedArtist;
 use super::Restriction;
 use crate::model::Type;
 
-/// [Track object full](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
+/// Full track object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
@@ -39,8 +41,9 @@ pub struct FullTrack {
     pub uri: String,
 }
 
-/// [Link to track link] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
-/// Track Link
+/// Track link object
+/// 
+/// [Reference] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
@@ -51,11 +54,18 @@ pub struct TrackLink {
     pub uri: String,
 }
 
+/// Full track wrapped by `Vec`
+///
+/// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
+// TODO: Reduce wrapper object to `Vec<FullTrack>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTracks {
     pub tracks: Vec<FullTrack>,
 }
-/// [track object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified)
+
+/// Simplified track object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
@@ -82,7 +92,9 @@ pub struct SimplifiedTrack {
     pub uri: String,
 }
 
-/// [Saved track object](https://developer.spotify.com/documentation/web-api/reference/object-model/#saved-track-object)
+/// Saved track object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#saved-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,

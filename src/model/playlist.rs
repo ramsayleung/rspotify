@@ -18,7 +18,9 @@ pub struct PlaylistResult {
     pub snapshot_id: String,
 }
 
-///[Playlist object simplified](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
+/// Simplified playlist object 
+/// 
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,
@@ -36,7 +38,9 @@ pub struct SimplifiedPlaylist {
     pub uri: String,
 }
 
-/// [Full playlist object](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-full)
+/// Full playlist object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullPlaylist {
     pub collaborative: bool,
@@ -56,7 +60,9 @@ pub struct FullPlaylist {
     pub uri: String,
 }
 
-/// [Playlist track object](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-track-object)
+/// Playlist track object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-track-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PlaylistItem {
     pub added_at: Option<DateTime<Utc>>,
@@ -64,7 +70,8 @@ pub struct PlaylistItem {
     pub is_local: bool,
     pub track: Option<FullTrack>,
 }
-/// [Get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
+/// Featured playlists object
+/// [Reference](https://developer.spotify.com/web-api/get-list-featured-playlists/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FeaturedPlaylists {
     pub message: String,

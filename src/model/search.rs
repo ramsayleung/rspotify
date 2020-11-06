@@ -7,18 +7,25 @@ use super::show::{SimplifiedEpisode, SimplifiedShow};
 use super::track::FullTrack;
 use serde::{Deserialize, Serialize};
 
-///[Search item](https://developer.spotify.com/web-api/search-item/);
+/// Search for playlists
+/// 
+///[Reference](https://developer.spotify.com/web-api/search-item/);
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchPlaylists {
     pub playlists: Page<SimplifiedPlaylist>,
 }
-///[Search item](https://developer.spotify.com/web-api/search-item/)
+
+/// Search for albums
+/// 
+///[Reference](https://developer.spotify.com/web-api/search-item/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
-///[Search item](https://developer.spotify.com/web-api/search-item/)
+/// Search for artists
+/// 
+///[Reference](https://developer.spotify.com/web-api/search-item/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchArtists {
     pub artists: Page<FullArtist>,
@@ -29,17 +36,25 @@ pub struct SearchTracks {
     pub tracks: Page<FullTrack>,
 }
 
-/// [Search item](https://developer.spotify.com/web-api/search-item/)
+/// Search for shows
+/// 
+/// [Reference](https://developer.spotify.com/web-api/search-item/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchShows {
     pub shows: Page<SimplifiedShow>,
 }
-/// [Search item](https://developer.spotify.com/web-api/search-item/)
+
+/// Search for episodes
+/// 
+/// [Reference](https://developer.spotify.com/web-api/search-item/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchEpisodes {
     pub episodes: Page<SimplifiedEpisode>,
 }
 
+/// Search result
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SearchResult {
     #[serde(rename = "playlists")]
