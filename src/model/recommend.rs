@@ -28,23 +28,3 @@ pub struct RecommendationsSeed {
     #[serde(rename = "type")]
     pub _type: RecommendationsSeedType,
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_recommendations_seed() {
-        let json_str = r#"
-        {
-            "initialPoolSize": 500,
-            "afterFilteringSize": 380,
-            "afterRelinkingSize": 365,
-            "href": "https://api.spotify.com/v1/artists/4NHQUGzhtTLFvgF5SZesLK",
-            "id": "4NHQUGzhtTLFvgF5SZesLK",
-            "type": "artist"
-        }        
-        "#;
-        let seed: RecommendationsSeed = serde_json::from_str(&json_str).unwrap();
-        assert_eq!(seed._type, RecommendationsSeedType::Artist);
-    }
-}

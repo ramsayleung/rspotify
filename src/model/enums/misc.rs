@@ -79,36 +79,3 @@ pub enum RestrictionReason {
     Product,
     Explict,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_include_external() {
-        let audio = IncludeExternal::Audio;
-        assert_eq!("audio".to_string(), audio.to_string());
-    }
-    #[test]
-    fn test_repeat_state() {
-        let context = RepeatState::Context;
-        assert_eq!(context.to_string(), "context".to_string());
-    }
-
-    #[test]
-    fn test_disallow_key() {
-        let toggling_shuffle = DisallowKey::TogglingShuffle;
-        assert_eq!(toggling_shuffle.to_string(), "toggling_shuffle".to_string());
-    }
-
-    #[test]
-    fn test_time_range() {
-        let medium_range = TimeRange::MediumTerm;
-        assert_eq!(medium_range.to_string(), "medium_term".to_string());
-    }
-    #[test]
-    fn test_date_precision() {
-        let month = DatePrecision::Month;
-        assert_eq!(month.to_string(), "month".to_string());
-    }
-}

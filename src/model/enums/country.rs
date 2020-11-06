@@ -754,14 +754,3 @@ pub enum Country {
     #[serde(rename = "ZW")]
     Zimbabwe,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_convert_country_from_str() {
-        let zimbabwe = Country::Zimbabwe;
-        assert_eq!(zimbabwe.to_string(), "ZW".to_string());
-    }
-}

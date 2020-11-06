@@ -86,19 +86,3 @@ impl<'de> Deserialize<'de> for Actions {
         })
     }
 }
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_actions() {
-        let json_str = r#"
-        {
-            "disallows": {
-                "resuming": true
-            }
-        }
-        "#;
-        let actions: Actions = serde_json::from_str(&json_str).unwrap();
-        assert_eq!(actions.disallows[0], DisallowKey::Resuming);
-    }
-}
