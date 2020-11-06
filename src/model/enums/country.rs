@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use strum::ToString;
 
 /// ISO 3166-1 alpha-2 country code, from [country-list](https://datahub.io/core/country-list)
-/// 
+///
 /// [Reference](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 pub enum Country {

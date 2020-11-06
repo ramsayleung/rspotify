@@ -6,7 +6,7 @@ use super::page::CursorBasedPage;
 use crate::model::{Followers, Type};
 use std::collections::HashMap;
 /// Simplified Artist Object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedArtist {
@@ -20,7 +20,7 @@ pub struct SimplifiedArtist {
 }
 
 /// Full Artist Object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-full)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtist {
@@ -38,7 +38,7 @@ pub struct FullArtist {
 }
 
 /// Full artist object wrapped by `Vec`
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/artists/get-several-artists/)
 // TODO: Reduce this wrapper object to `Vec<FullArtist>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -47,7 +47,7 @@ pub struct FullArtists {
 }
 
 /// Full Artists vector wrapped by cursor-based-page object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/get-followed/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CursorPageFullArtists {

@@ -7,7 +7,7 @@ use super::image::Image;
 use crate::model::{Country, Followers, SubscriptionLevel, Type};
 
 /// Public user object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#user-object-public)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PublicUser {
@@ -24,7 +24,7 @@ pub struct PublicUser {
 }
 
 /// Private user object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#user-object-private)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PrivateUser {
@@ -44,7 +44,7 @@ pub struct PrivateUser {
 }
 
 /// Explicit content setting object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#explicit-content-settings-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ExplicitContent {

@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Audio Feature Object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#audio-features-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioFeatures {
@@ -28,7 +28,7 @@ pub struct AudioFeatures {
 }
 
 /// Audio feature object wrapped by `Vec`
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-audio-features/)
 // TODO: Reduce wrapper object to `Vec<AudioFeatures>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -37,7 +37,7 @@ pub struct AudioFeaturesPayload {
 }
 
 /// Audio analysis object
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysis {
@@ -60,7 +60,7 @@ pub struct TimeInterval {
 }
 
 /// Audio analysis section object
-/// 
+///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisSection {
@@ -78,7 +78,7 @@ pub struct AudioAnalysisSection {
 }
 
 /// Audio analysis meta object
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisMeta {
@@ -91,7 +91,7 @@ pub struct AudioAnalysisMeta {
     pub input_process: String,
 }
 /// Audio analysis segment object
-/// 
+///
 ///[Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#segment-object)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisSegment {
@@ -106,7 +106,7 @@ pub struct AudioAnalysisSegment {
 }
 
 /// Audio analysis track object
-/// 
+///
 /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisTrack {
