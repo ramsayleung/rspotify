@@ -7,7 +7,8 @@ use super::track::FullTrack;
 use super::PlayingItem;
 use crate::model::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
 /// Context object
-/// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+/// 
+/// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
     pub uri: String,
@@ -17,7 +18,9 @@ pub struct Context {
     pub _type: Type,
 }
 
-/// [Get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+/// Simplified playing context
+/// 
+/// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlayingContext {
     pub context: Option<Context>,
@@ -27,7 +30,9 @@ pub struct SimplifiedPlayingContext {
     pub item: Option<FullTrack>,
 }
 
-/// [Currently playing object](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// Currently playing object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
@@ -53,7 +58,9 @@ pub struct CurrentPlaybackContext {
     pub actions: Actions,
 }
 
-/// [Actions](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// Actions object
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct Actions {
     pub disallows: Vec<DisallowKey>,
