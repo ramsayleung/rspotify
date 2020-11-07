@@ -19,30 +19,9 @@ pub struct Device {
 /// Device payload object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/)
+// TODO: Reduce this wrapper object to `Vec<Device>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DevicePayload {
     pub devices: Vec<Device>,
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test_devices() {
-        let json_str = r#"
-        {
-            "devices" : [ {
-                "id" : "5fbb3ba6aa454b5534c4ba43a8c7e8e45a63ad0e",
-                "is_active" : false,
-                "is_private_session": true,
-                "is_restricted" : false,
-                "name" : "My fridge",
-                "type" : "Computer",
-                "volume_percent" : 100
-            } ]
-        }
-"#;
-        let payload: DevicePayload = serde_json::from_str(&json_str).unwrap();
-        assert_eq!(payload.devices[0]._type, DeviceType::Computer)
-    }
-}

@@ -16,6 +16,7 @@ pub struct Category {
 /// Categories wrapped by page object
 ///
 /// [Reference](https://developer.spotify.com/web-api/get-list-categories/)
+// TODO: Reduce this wrapper object to `Page<Category>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PageCategory {
     pub categories: Page<Category>,

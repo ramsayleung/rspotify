@@ -40,7 +40,7 @@ pub struct SimplifiedShow {
 /// SimplifiedShows wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
-// TODO: Reduce such wrapper object to `Vec<SimplifiedShow>`
+// TODO: Reduce this wrapper object to `Vec<SimplifiedShow>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SeversalSimplifiedShows {
     pub shows: Vec<SimplifiedShow>,

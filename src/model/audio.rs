@@ -30,7 +30,7 @@ pub struct AudioFeatures {
 /// Audio feature object wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-audio-features/)
-// TODO: Reduce wrapper object to `Vec<AudioFeatures>`
+// TODO: Reduce this wrapper object to `Vec<AudioFeatures>`
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
