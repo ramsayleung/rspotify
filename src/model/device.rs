@@ -24,4 +24,3 @@ pub struct Device {
 pub struct DevicePayload {
     pub devices: Vec<Device>,
 }
-
