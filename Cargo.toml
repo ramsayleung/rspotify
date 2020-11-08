@@ -78,6 +78,11 @@ required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/oauth_tokens.rs"
 
 [[example]]
+name = "pkce_oauth_tokens"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/pkce_oauth_tokens.rs"
+
+[[example]]
 name = "track"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/track.rs"
@@ -106,7 +111,7 @@ path = "examples/ureq/me.rs"
 name = "search"
 required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/search.rs"
-            
+
 [[example]]
 name = "seek_track"
 required-features = ["env-file", "cli", "client-ureq"]
