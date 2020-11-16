@@ -1440,6 +1440,36 @@ impl Spotify {
         self.convert_result(&result)
     }
 
+    /// Get a list of playlists in a category in Spotify
+    ///
+    /// Parameters:
+    /// - category_id - The category id to get playlists from.
+    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - limit - The maximum number of items to return. Default: 20.
+    ///   Minimum: 1. Maximum: 50
+    /// - offset - The index of the first item to return. Default: 0 (the first
+    ///   object). Use with limit to get the next set of items.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/browse/get-categorys-playlists/)
+    #[maybe_async]
+    pub async fn category_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+        category_id: &str,
+        country: Option<Country>,
+        limit: L,
+        offset: O,
+    ) -> ClientResult<CategoryPlaylists> {
+        let mut params = Query::with_capacity(2);
+        params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
+        params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
+        if let Some(country) = country {
+            params.insert("country".to_owned(), country.to_string());
+        }
+        let url = format!("browse/categories/{}/playlists", category_id);
+        let result = self.get(&url, None, &params).await?;
+        self.convert_result(&result)
+    }
+
     /// Get Recommendations Based on Seeds
     ///
     /// Parameters:
