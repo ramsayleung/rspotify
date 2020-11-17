@@ -8,10 +8,20 @@ use super::image::Image;
 use super::page::Page;
 use super::track::FullTrack;
 use super::user::PublicUser;
-use crate::model::Type;
+use crate::model::{Followers, Type};
 
-///[Playlist object simplified](https://developer.spotify.com/web-api/object-model/#playlist-object-simplified)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Playlist result object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/playlists/add-tracks-to-playlist/)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PlaylistResult {
+    pub snapshot_id: String,
+}
+
+/// Simplified playlist object
+///
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,
     pub external_urls: HashMap<String, String>,
@@ -28,12 +38,15 @@ pub struct SimplifiedPlaylist {
     pub uri: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Full playlist object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-full)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullPlaylist {
     pub collaborative: bool,
     pub description: String,
     pub external_urls: HashMap<String, String>,
-    pub followers: Option<HashMap<String, Value>>,
+    pub followers: Followers,
     pub href: String,
     pub id: String,
     pub images: Vec<Image>,
@@ -41,22 +54,25 @@ pub struct FullPlaylist {
     pub owner: PublicUser,
     pub public: Option<bool>,
     pub snapshot_id: String,
-    pub tracks: Page<PlaylistTrack>,
+    pub tracks: Page<PlaylistItem>,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: String,
 }
 
-/// [Playlist track object](https://developer.spotify.com/web-api/object-model/#playlist-track-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PlaylistTrack {
-    pub added_at: DateTime<Utc>,
+/// Playlist track object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-track-object)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PlaylistItem {
+    pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
     pub is_local: bool,
     pub track: Option<FullTrack>,
 }
-/// [Get list featured playlists](https://developer.spotify.com/web-api/get-list-featured-playlists/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Featured playlists object
+/// [Reference](https://developer.spotify.com/web-api/get-list-featured-playlists/)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FeaturedPlaylists {
     pub message: String,
     pub playlists: Page<SimplifiedPlaylist>,

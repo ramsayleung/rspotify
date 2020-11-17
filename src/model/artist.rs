@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;
-use crate::model::Type;
-use serde_json::Value;
+use crate::model::{Followers, Type};
 use std::collections::HashMap;
-/// [artist object simplified](https://developer.spotify.com/web-api/object-model/#artist-object-simplified)
 /// Simplified Artist Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
@@ -19,12 +19,13 @@ pub struct SimplifiedArtist {
     pub uri: Option<String>,
 }
 
-/// [artist object full](https://developer.spotify.com/web-api/object-model/#artist-object-full)
 /// Full Artist Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-full)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtist {
     pub external_urls: HashMap<String, String>,
-    pub followers: HashMap<String, Option<Value>>,
+    pub followers: Followers,
     pub genres: Vec<String>,
     pub href: String,
     pub id: String,
@@ -36,14 +37,20 @@ pub struct FullArtist {
     pub uri: String,
 }
 
-/// Full artist vector
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Full artist object wrapped by `Vec`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/artists/get-several-artists/)
+// TODO: Reduce this wrapper object to `Vec<FullArtist>`
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtists {
     pub artists: Vec<FullArtist>,
 }
 
 /// Full Artists vector wrapped by cursor-based-page object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/get-followed/)
+// TODO: Reduce this wrapper object to `CursorBasedPage<FullArtist>`
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,
 }

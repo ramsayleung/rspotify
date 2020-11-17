@@ -8,11 +8,13 @@ use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
-use crate::model::{AlbumType, DatePrecision, Type};
+use super::Restriction;
+use crate::model::{AlbumType, Copyright, DatePrecision, Type};
 
-/// [link to album object simplified](https://developer.spotify.com/web-api/object-model/#album-object-simplified)
 /// Simplified Album Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-simplified)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub album_group: Option<String>,
@@ -30,26 +32,21 @@ pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub release_date_precision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub restrictions: Option<Restrictions>,
+    pub restrictions: Option<Restriction>,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: Option<String>,
 }
 
-/// Restrictions object
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Restrictions {
-    pub reason: String,
-}
-
-/// [link to album object full](https://developer.spotify.com/web-api/object-model/#album-object-full)
 /// Full Album Object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
     pub album_type: AlbumType,
     pub available_markets: Vec<String>,
-    pub copyrights: Vec<HashMap<String, String>>,
+    pub copyrights: Vec<Copyright>,
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub genres: Vec<String>,
@@ -66,22 +63,28 @@ pub struct FullAlbum {
     pub uri: String,
 }
 
-/// Full Albums
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Full Albums wrapped by Vec object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/albums/get-several-albums/)
+// TODO: Reduce this wrapper object to `Vec<FullAlbum>`
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
-/// [link to get list new releases](https://developer.spotify.com/web-api/get-list-new-releases/)
 /// Simplified Albums wrapped by Page object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/web-api/get-list-new-releases/)
+// TODO: Reduce this wrapper object to `Page<SimplifiedAlbum>`
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
-/// [link to save album object](https://developer.spotify.com/web-api/object-model/#save-album-object)
 /// Saved Album object
-#[derive(Clone, Debug, Serialize, Deserialize)]
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#save-album-object)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,

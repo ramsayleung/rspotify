@@ -4,20 +4,11 @@ use serde::{Deserialize, Serialize};
 
 use super::context::Context;
 use super::track::FullTrack;
-/// Current playing track
-/// [get the users currently playing track](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Playing {
-    pub context: Option<Context>,
-    pub timestamp: u64,
-    pub progress_ms: Option<u32>,
-    pub is_playing: bool,
-    pub item: Option<FullTrack>,
-}
 
-/// Playing history
-/// [play history object](https://developer.spotify.com/web-api/object-model/#play-history-object)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Playing history object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#play-history-object)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PlayHistory {
     pub track: FullTrack,
     pub played_at: DateTime<Utc>,

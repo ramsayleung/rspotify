@@ -592,7 +592,7 @@ impl Spotify {
         limit: L,
         offset: O,
         market: Option<Country>,
-    ) -> ClientResult<Page<PlaylistTrack>> {
+    ) -> ClientResult<Page<PlaylistItem>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -699,7 +699,7 @@ impl Spotify {
         playlist_id: &str,
         track_ids: impl IntoIterator<Item = &'a str>,
         position: Option<i32>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .into_iter()
@@ -760,7 +760,7 @@ impl Spotify {
         range_length: R,
         insert_before: i32,
         snapshot_id: Option<String>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let mut params = json! ({
             "range_start": range_start,
@@ -790,7 +790,7 @@ impl Spotify {
         playlist_id: &str,
         track_ids: impl IntoIterator<Item = &'a str>,
         snapshot_id: Option<String>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         let plid = self.get_id(Type::Playlist, playlist_id);
         let uris: Vec<String> = track_ids
             .into_iter()
@@ -848,7 +848,7 @@ impl Spotify {
         playlist_id: &str,
         tracks: Vec<Map<String, Value>>,
         snapshot_id: Option<String>,
-    ) -> ClientResult<CUDResult> {
+    ) -> ClientResult<PlaylistResult> {
         // TODO: this can be improved
         let plid = self.get_id(Type::Playlist, playlist_id);
         let mut ftracks: Vec<Map<String, Value>> = vec![];
@@ -948,7 +948,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
     #[maybe_async]
-    pub async fn current_user_playing_track(&self) -> ClientResult<Option<Playing>> {
+    pub async fn current_user_playing_track(
+        &self,
+    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .get("me/player/currently-playing", None, &Query::new())
             .await?;

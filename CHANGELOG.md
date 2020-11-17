@@ -13,6 +13,73 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Mark `SimplifiedEpisode.language` as deprecated.
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Derive `PartialEq` and `Eq` for models:
+  + `SimplifiedAlbum`
+  + `Restrictions`
+  + `FullAlbum`
+  + `SimplifiedArtist`
+  + `FullArtist`
+  + `FullArtists`
+  + `CursorPageFullArtists`
+  + `AudioFeatures`
+  + `AudioFeaturesPayload`
+  + `AudioAnalysis`
+  + `AudioAnalysisSection`
+  + `AudioAnalysisMeta`
+  + `AudioAnalysisSegment`
+  + `AudioAnalysisTrack`
+  + `Category`
+  + `PageCategory`
+  + `Context`
+  + `FullPlayingContext`
+  + `SimplifiedPlayingContext`
+  + `CurrentlyPlayingContext`
+  + `CurrentPlaybackContext`
+  + `Actions`
+  + `PlaylistResult`
+  + `Device`
+  + `DevicePayload`
+  + `Image`
+  + `PlayingItem` 
+  + `Offset`
+  + `Page`
+  + `CursorBasedPage`
+  + `Cursor`
+  + `PlayHistory`
+  + `SimplifiedPlaylist`
+  + `FullPlaylist`
+  + `PlaylistItem`
+  + `FeaturedPlaylists`
+  + `Recommendations`
+  + `RecommendationsSeed`
+  + `RecommendationsSeedType`
+  + `SearchPlaylists`
+  + `SearchAlbums`
+  + `SearchArtists`
+  + `SearchTracks`
+  + `SearchShows`
+  + `SearchEpisodes`
+  + `SearchResult`
+  + `Copyright`
+  + `SimplifiedShow`
+  + `Show`
+  + `SeversalSimplifiedShows`
+  + `FullShow`
+  + `SimplifiedEpisode`
+  + `FullEpisode`
+  + `SeveralEpisodes`
+  + `ResumePoint`
+  + `FullTrack`
+  + `TrackLink`
+  + `FullTracks`
+  + `SimplifiedTrack`
+  + `TrackRestriction`
+  + `SavedTrack`
+  + `PublicUser`
+  + `PrivateUser`
+  + `ExplicitContent`
+  + Fix broken model links refering to Spotify documentation
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
@@ -72,8 +139,25 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
    + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
-- Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
-- Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145))Refactor models to make it easier to use:
+  + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
+  + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
+  + Change `copyrights` from `Vec<HashMap<String, String>>` to `Vec<Copyright>`
+  + Add missing field `is_private_session` for `Device`
+  + Change `PublicUser.images` from `Option<Vec<Image>>` to `Vec<Image>`
+  + Add three missing fields `is_playable`, `linked_from`, `restrictions` for `SimplifiedTrack`
+  + Delete deprecated field `birthday` and Add missing fields `product` and `explicit_content` for `PrivateUser`
+  + Rename PlayingTrack to PlayingItem and change `added_at` to Option
+  + Replace `Playing` with `CurrentlyPlayingContext`, since it's the same
+  + Make `Device.id` and `Device.volume_percent`, since they would be null
+  + Rename `Restrictions` to `Restriction` and move it to top level of `model` module
+  + Rename `AudioAnalysisMeasure` to `TimeInterval`
+  + Replace `start`, `duration`, `confidence` fields from `AudioAnalysisSection` and `AudioAnalysisSegment` to `TimeInterval` field
+  + Remove useless `FullPlayingContext`, since it has been replaced with `CurrentPlayingContext`
+  + Rename `CUDResult` to `PlaylistResult`, since this original name isn't self-explaining
+  + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
+  + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
+  + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
 
 ## 0.10 (2020/07/01)
 

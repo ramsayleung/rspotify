@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 use strum::ToString;
 
-/// [Disallows object](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object):
-/// interrupting_playback, pausing, resuming, seeking, skipping_next,
-/// skipping_prev, toggling_repeat_context, toggling_shuffle, toggling_repeat_track, transferring_playback
+/// Disallows object:
+/// `interrupting_playback`, `pausing`, `resuming`, `seeking`, `skipping_next`,
+/// `skipping_prev`, `toggling_repeat_context`, `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, ToString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -20,7 +22,9 @@ pub enum DisallowKey {
     TransferringPlayback,
 }
 
-/// Time range: long-term, medium-term, short-term
+/// Time range: `long-term`, `medium-term`, `short-term`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/personalization/get-users-top-artists-and-tracks/)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -30,10 +34,9 @@ pub enum TimeRange {
     ShortTerm,
 }
 
-/// Repeat state: track, context or off.
-/// - track will repeat the current track.
-/// - context will repeat the current context.
-/// - off will turn repeat off.
+/// Repeat state: `track`, `context` or `off`.
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/set-repeat-mode-on-users-playback/)
 #[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, ToString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -43,7 +46,9 @@ pub enum RepeatState {
     Context,
 }
 
-/// Type for include_external: audio
+/// Type for include_external: `audio`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -51,8 +56,9 @@ pub enum IncludeExternal {
     Audio,
 }
 
-/// [Date precision](https://developer.spotify.com/documentation/web-api/reference/object-model/):
-/// year, month, day.
+/// Date precision: `year`, `month`, `day`.
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/):
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -62,35 +68,14 @@ pub enum DatePrecision {
     Day,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_include_external() {
-        let audio = IncludeExternal::Audio;
-        assert_eq!("audio".to_string(), audio.to_string());
-    }
-    #[test]
-    fn test_repeat_state() {
-        let context = RepeatState::Context;
-        assert_eq!(context.to_string(), "context".to_string());
-    }
-
-    #[test]
-    fn test_disallow_key() {
-        let toggling_shuffle = DisallowKey::TogglingShuffle;
-        assert_eq!(toggling_shuffle.to_string(), "toggling_shuffle".to_string());
-    }
-
-    #[test]
-    fn test_time_range() {
-        let medium_range = TimeRange::MediumTerm;
-        assert_eq!(medium_range.to_string(), "medium_term".to_string());
-    }
-    #[test]
-    fn test_date_precision() {
-        let month = DatePrecision::Month;
-        assert_eq!(month.to_string(), "month".to_string());
-    }
+/// The reason for the restriction: `market`, `product`, `explicit`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum RestrictionReason {
+    Market,
+    Product,
+    Explict,
 }
