@@ -54,15 +54,6 @@ pub struct TrackLink {
     pub uri: String,
 }
 
-/// Full track wrapped by `Vec`
-///
-/// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
-// TODO: Reduce wrapper object to `Vec<FullTrack>`
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct FullTracks {
-    pub tracks: Vec<FullTrack>,
-}
-
 /// Simplified track object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified)

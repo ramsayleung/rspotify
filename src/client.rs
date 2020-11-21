@@ -220,7 +220,7 @@ impl Spotify {
         &self,
         track_ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
-    ) -> ClientResult<FullTracks> {
+    ) -> ClientResult<Vec<FullTrack>> {
         // TODO: this can be improved
         let mut ids: Vec<String> = vec![];
         for track_id in track_ids {
@@ -232,9 +232,14 @@ impl Spotify {
             params.insert("market".to_owned(), market.to_string());
         }
 
+        #[derive(Deserialize)]
+        struct FullTracks {
+            tracks: Vec<FullTrack>,
+        }
+
         let url = format!("tracks/?ids={}", ids.join(","));
         let result = self.get(&url, None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
     /// Returns a single artist given the artist's ID, URI or URL.
@@ -328,7 +333,7 @@ impl Spotify {
         &self,
         artist_id: &str,
         country: T,
-    ) -> ClientResult<FullTracks> {
+    ) -> ClientResult<Vec<FullTrack>> {
         let mut params = Query::with_capacity(1);
         params.insert(
             "country".to_owned(),
@@ -337,8 +342,14 @@ impl Spotify {
 
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
+
+        #[derive(Deserialize)]
+        struct FullTracks {
+            tracks: Vec<FullTrack>,
+        }
+
         let result = self.get(&url, None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
     /// Get Spotify catalog information about artists similar to an identified
