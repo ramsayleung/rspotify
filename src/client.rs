@@ -1568,7 +1568,7 @@ impl Spotify {
     pub async fn tracks_features<'a>(
         &self,
         tracks: impl IntoIterator<Item = &'a str>,
-    ) -> ClientResult<Option<AudioFeaturesPayload>> {
+    ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let ids: Vec<String> = tracks
             .into_iter()
             .map(|track| self.get_id(Type::Track, track))
@@ -1579,7 +1579,12 @@ impl Spotify {
         if result.is_empty() {
             Ok(None)
         } else {
-            self.convert_result(&result)
+            #[derive(Deserialize)]
+            struct AudioFeaturesPayload {
+                audio_features: Vec<AudioFeatures>,
+            }
+            self.convert_result::<Option<AudioFeaturesPayload>>(&result)
+                .map(|option_payload| option_payload.map(|x| x.audio_features))
         }
     }
 
