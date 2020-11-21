@@ -261,14 +261,20 @@ impl Spotify {
     pub async fn artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = &'a str>,
-    ) -> ClientResult<FullArtists> {
+    ) -> ClientResult<Vec<FullArtist>> {
         let mut ids: Vec<String> = vec![];
         for artist_id in artist_ids {
             ids.push(self.get_id(Type::Artist, artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
-        self.convert_result(&result)
+
+        #[derive(Deserialize)]
+        struct FullArtists {
+            artists: Vec<FullArtist>,
+        }
+        self.convert_result::<FullArtists>(&result)
+            .map(|x| x.artists)
     }
 
     /// Get Spotify catalog information about an artist's albums.
@@ -344,11 +350,16 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-related-artists/)
     #[maybe_async]
-    pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
+    pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<Vec<FullArtist>> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
         let result = self.get(&url, None, &Query::new()).await?;
-        self.convert_result(&result)
+        #[derive(Deserialize)]
+        struct FullArtists {
+            artists: Vec<FullArtist>,
+        }
+        self.convert_result::<FullArtists>(&result)
+            .map(|x| x.artists)
     }
 
     /// Returns a single album given the album's ID, URIs or URL.

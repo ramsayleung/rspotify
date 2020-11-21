@@ -37,15 +37,6 @@ pub struct FullArtist {
     pub uri: String,
 }
 
-/// Full artist object wrapped by `Vec`
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/artists/get-several-artists/)
-// TODO: Reduce this wrapper object to `Vec<FullArtist>`
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct FullArtists {
-    pub artists: Vec<FullArtist>,
-}
-
 /// Full Artists vector wrapped by cursor-based-page object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/get-followed/)
