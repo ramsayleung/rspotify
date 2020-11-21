@@ -71,7 +71,6 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `ResumePoint`
   + `FullTrack`
   + `TrackLink`
-  + `FullTracks`
   + `SimplifiedTrack`
   + `TrackRestriction`
   + `SavedTrack`
@@ -159,6 +158,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
 - ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
   + Remove `FullArtists` struct, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
+  + Remove `FullTracks` struct, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
 
 ## 0.10 (2020/07/01)
 
