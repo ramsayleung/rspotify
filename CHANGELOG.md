@@ -159,6 +159,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
   + Remove `FullArtists` struct, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
   + Remove `FullTracks` struct, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
+  + Remove `AudioFeaturesPayload` struct, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
 
 ## 0.10 (2020/07/01)
 
