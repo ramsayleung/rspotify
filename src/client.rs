@@ -1458,16 +1458,23 @@ impl Spotify {
         country: Option<Country>,
         limit: L,
         offset: O,
-    ) -> ClientResult<CategoryPlaylists> {
+    ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(country) = country {
             params.insert("country".to_owned(), country.to_string());
         }
+
+        #[derive(Deserialize)]
+        pub struct CategoryPlaylists {
+            pub playlists: Page<SimplifiedPlaylist>,
+        }
+
         let url = format!("browse/categories/{}/playlists", category_id);
         let result = self.get(&url, None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<CategoryPlaylists>(&result)
+            .map(|x| x.playlists)
     }
 
     /// Get Recommendations Based on Seeds
