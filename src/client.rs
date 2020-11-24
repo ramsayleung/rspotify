@@ -1466,11 +1466,6 @@ impl Spotify {
             params.insert("country".to_owned(), country.to_string());
         }
 
-        #[derive(Deserialize)]
-        pub struct CategoryPlaylists {
-            pub playlists: Page<SimplifiedPlaylist>,
-        }
-
         let url = format!("browse/categories/{}/playlists", category_id);
         let result = self.get(&url, None, &params).await?;
         self.convert_result::<CategoryPlaylists>(&result)
