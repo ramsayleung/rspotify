@@ -379,14 +379,14 @@ impl Spotify {
     pub async fn albums<'a>(
         &self,
         album_ids: impl IntoIterator<Item = &'a str>,
-    ) -> ClientResult<FullAlbums> {
+    ) -> ClientResult<Vec<FullAlbum>> {
         let mut ids: Vec<String> = vec![];
         for album_id in album_ids {
             ids.push(self.get_id(Type::Album, album_id));
         }
         let url = format!("albums/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
 
     /// Search for an Item. Get Spotify catalog information about artists,
