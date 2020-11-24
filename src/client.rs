@@ -232,11 +232,6 @@ impl Spotify {
             params.insert("market".to_owned(), market.to_string());
         }
 
-        #[derive(Deserialize)]
-        struct FullTracks {
-            tracks: Vec<FullTrack>,
-        }
-
         let url = format!("tracks/?ids={}", ids.join(","));
         let result = self.get(&url, None, &params).await?;
         self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
@@ -274,10 +269,6 @@ impl Spotify {
         let url = format!("artists/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
 
-        #[derive(Deserialize)]
-        struct FullArtists {
-            artists: Vec<FullArtist>,
-        }
         self.convert_result::<FullArtists>(&result)
             .map(|x| x.artists)
     }
@@ -342,12 +333,6 @@ impl Spotify {
 
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
-
-        #[derive(Deserialize)]
-        struct FullTracks {
-            tracks: Vec<FullTrack>,
-        }
-
         let result = self.get(&url, None, &params).await?;
         self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
@@ -365,10 +350,6 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
         let result = self.get(&url, None, &Query::new()).await?;
-        #[derive(Deserialize)]
-        struct FullArtists {
-            artists: Vec<FullArtist>,
-        }
         self.convert_result::<FullArtists>(&result)
             .map(|x| x.artists)
     }
@@ -1579,10 +1560,6 @@ impl Spotify {
         if result.is_empty() {
             Ok(None)
         } else {
-            #[derive(Deserialize)]
-            struct AudioFeaturesPayload {
-                audio_features: Vec<AudioFeatures>,
-            }
             self.convert_result::<Option<AudioFeaturesPayload>>(&result)
                 .map(|option_payload| option_payload.map(|x| x.audio_features))
         }
