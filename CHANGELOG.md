@@ -157,9 +157,9 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
 - ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
-  + Remove `FullArtists` struct, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
-  + Remove `FullTracks` struct, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
-  + Remove `AudioFeaturesPayload` struct, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
+  + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
+  + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
+  + Constrain visibility of  `AudioFeaturesPayload` struct with `pub (in crate)`, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
 
 ## 0.10 (2020/07/01)
 

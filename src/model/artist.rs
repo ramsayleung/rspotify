@@ -40,7 +40,7 @@ pub struct FullArtist {
 /// Full artist object wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/artists/get-several-artists/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Deserialize)]
 pub(in crate) struct FullArtists {
     pub artists: Vec<FullArtist>,
 }

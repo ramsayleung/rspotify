@@ -57,7 +57,7 @@ pub struct TrackLink {
 /// Full track wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Deserialize)]
 pub(in crate) struct FullTracks {
     pub tracks: Vec<FullTrack>,
 }
