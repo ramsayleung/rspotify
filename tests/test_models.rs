@@ -411,6 +411,7 @@ fn test_full_playlist() {
     assert_eq!(full_playlist.followers.total, 109);
 }
 
+#[test]
 fn test_devices() {
     let json_str = r#"
         {
