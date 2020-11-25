@@ -77,3 +77,11 @@ pub struct FeaturedPlaylists {
     pub message: String,
     pub playlists: Page<SimplifiedPlaylist>,
 }
+
+/// Category playlists object wrapped by `Page`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/browse/get-categorys-playlists/)
+#[derive(Deserialize)]
+pub(in crate) struct CategoryPlaylists {
+    pub playlists: Page<SimplifiedPlaylist>,
+}

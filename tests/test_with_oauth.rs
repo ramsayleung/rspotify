@@ -89,6 +89,17 @@ async fn test_categories() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
+async fn test_category_playlists() {
+    oauth_client()
+        .await
+        .category_playlists("pop", Some(Country::UnitedStates), 10, 0)
+        .await
+        .unwrap();
+}
+
+#[maybe_async]
+#[maybe_async_test]
+#[ignore]
 async fn test_current_playback() {
     oauth_client()
         .await
