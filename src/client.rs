@@ -1433,7 +1433,7 @@ impl Spotify {
         country: Option<Country>,
         limit: L,
         offset: O,
-    ) -> ClientResult<PageCategory> {
+    ) -> ClientResult<Page<Category>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -1444,7 +1444,8 @@ impl Spotify {
             params.insert("country".to_owned(), country.to_string());
         }
         let result = self.get("browse/categories", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<PageCategory>(&result)
+            .map(|x| x.categories)
     }
 
     /// Get Recommendations Based on Seeds

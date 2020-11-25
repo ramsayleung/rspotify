@@ -49,6 +49,6 @@ pub(in crate) struct FullArtists {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/get-followed/)
 #[derive(Deserialize)]
-pub (in crate) struct CursorPageFullArtists {
+pub(in crate) struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,
 }

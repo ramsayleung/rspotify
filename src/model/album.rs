@@ -75,7 +75,7 @@ pub(in crate) struct FullAlbums {
 ///
 /// [Reference](https://developer.spotify.com/web-api/get-list-new-releases/)
 #[derive(Deserialize)]
-pub (in crate) struct PageSimpliedAlbums {
+pub(in crate) struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
