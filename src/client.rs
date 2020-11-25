@@ -1400,7 +1400,7 @@ impl Spotify {
         country: Option<Country>,
         limit: L,
         offset: O,
-    ) -> ClientResult<PageSimpliedAlbums> {
+    ) -> ClientResult<Page<SimplifiedAlbum>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -1409,7 +1409,7 @@ impl Spotify {
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<PageSimpliedAlbums>(&result).map(|x|x.albums)
     }
 
     /// Get a list of new album releases featured in Spotify
