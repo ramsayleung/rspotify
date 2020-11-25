@@ -48,8 +48,7 @@ pub(in crate) struct FullArtists {
 /// Full Artists vector wrapped by cursor-based-page object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/get-followed/)
-// TODO: Reduce this wrapper object to `CursorBasedPage<FullArtist>`
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct CursorPageFullArtists {
+#[derive(Deserialize)]
+pub (in crate) struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,
 }

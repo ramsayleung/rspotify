@@ -1021,7 +1021,7 @@ impl Spotify {
         &self,
         limit: L,
         after: Option<String>,
-    ) -> ClientResult<CursorPageFullArtists> {
+    ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("type".to_owned(), Type::Artist.to_string());
@@ -1030,7 +1030,8 @@ impl Spotify {
         }
 
         let result = self.get("me/following", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<CursorPageFullArtists>(&result)
+            .map(|x| x.artists)
     }
 
     /// Remove one or more tracks from the current user's "Your Music" library.
@@ -1409,7 +1410,8 @@ impl Spotify {
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
-        self.convert_result::<PageSimpliedAlbums>(&result).map(|x|x.albums)
+        self.convert_result::<PageSimpliedAlbums>(&result)
+            .map(|x| x.albums)
     }
 
     /// Get a list of new album releases featured in Spotify

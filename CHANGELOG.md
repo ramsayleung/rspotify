@@ -162,6 +162,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Constrain visibility of `AudioFeaturesPayload` struct with `pub (in crate)`, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
   + Constrain visibility of `FullAlbums` struct with `pub (in crate)`, make `albums` endpoints return a `Vec<FullAlbum>` instead.
   + Constrain visibility of `PageSimpliedAlbums` struct with `pub (in crate)`, make `new_releases` endpoints return a `Page<SimplifiedAlbum>` instead.
+  + Constrain visibility of `CursorPageFullArtists` struct with `pub (in crate)`, make `current_user_followed_artists` endpoints return a `CursorBasedPage<FullArtist>` instead.
 
 ## 0.10 (2020/07/01)
 
