@@ -19,7 +19,6 @@ pub struct Device {
 /// Device payload object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/)
-// TODO: Reduce this wrapper object to `Vec<Device>`
 #[derive(Deserialize)]
 pub(in crate) struct DevicePayload {
     pub devices: Vec<Device>,

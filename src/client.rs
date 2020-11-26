@@ -1957,7 +1957,7 @@ impl Spotify {
         &self,
         ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
-    ) -> ClientResult<SeversalSimplifiedShows> {
+    ) -> ClientResult<Vec<SimplifiedShow>> {
         // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
         params.insert(
@@ -1968,7 +1968,8 @@ impl Spotify {
             params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("shows", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<SeversalSimplifiedShows>(&result)
+            .map(|x| x.shows)
     }
 
     /// Get Spotify catalog information about an show’s episodes. Optional

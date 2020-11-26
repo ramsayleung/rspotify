@@ -165,6 +165,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Constrain visibility of `CursorPageFullArtists` struct with `pub (in crate)`, make `current_user_followed_artists` endpoints return a `CursorBasedPage<FullArtist>` instead.
   + Constrain visibility of `PageCategory` struct with `pub (in crate)`, make `categories` endpoints return a `Page<Category>` instead.
   + Constrain visibility of `DevicePayload` struct with `pub (in crate)`, make `device` endpoints return a `Vec<Device>` instead.
+  + Constrain visibility of `SeversalSimplifiedShows` struct with `pub (in crate)`, make `get_several_shows` endpoints return a `Vec<SimplifiedShow>` instead.
 
 ## 0.10 (2020/07/01)
 
