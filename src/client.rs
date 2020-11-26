@@ -1586,9 +1586,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     #[maybe_async]
-    pub async fn device(&self) -> ClientResult<DevicePayload> {
+    pub async fn device(&self) -> ClientResult<Vec<Device>> {
         let result = self.get("me/player/devices", None, &Query::new()).await?;
-        self.convert_result(&result)
+        self.convert_result::<DevicePayload>(&result)
+            .map(|x| x.devices)
     }
 
     /// Get Information About The User’s Current Playback
