@@ -28,7 +28,7 @@ thiserror = "1.0.20"
 ureq = { version = "1.4.1", default-features = false, features = ["json", "cookies"], optional = true }
 url = "2.1.1"
 webbrowser = { version = "0.5.5", optional = true }
-strum = { version = "0.19", features = ["derive"] }
+strum = { version = "0.20", features = ["derive"] }
 
 [dev-dependencies]
 env_logger = "0.8.1"
