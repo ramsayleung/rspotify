@@ -74,6 +74,12 @@ impl std::fmt::Display for Id<'_> {
     }
 }
 
+impl AsRef<str> for Id<'_> {
+    fn as_ref(&self) -> &str {
+        self.id
+    }
+}
+
 impl Id<'_> {
     pub fn _type(&self) -> Type {
         self._type
