@@ -15,6 +15,7 @@ use super::http::{BaseClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
+use itertools::Itertools;
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -53,6 +54,15 @@ pub enum ClientError {
 
     #[error("cache file error: {0}")]
     CacheFile(String),
+
+    #[error("id parse error: {0:?}")]
+    InvalidId(IdError),
+}
+
+impl From<IdError> for ClientError {
+    fn from(error: IdError) -> Self {
+        ClientError::InvalidId(error)
+    }
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
@@ -136,49 +146,9 @@ impl Spotify {
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
     }
 
-    /// TODO: should be moved into a custom type
-    fn get_uri(&self, _type: Type, _id: &str) -> String {
-        format!("spotify:{}:{}", _type.to_string(), self.get_id(_type, _id))
-    }
-
     /// Converts a JSON response from Spotify into its model.
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> ClientResult<T> {
         serde_json::from_str::<T>(input).map_err(Into::into)
-    }
-
-    /// Get spotify id by type and id
-    /// TODO: should be rewritten and moved into a separate type for IDs
-    fn get_id(&self, _type: Type, id: &str) -> String {
-        let mut _id = id.to_owned();
-        let fields: Vec<&str> = _id.split(':').collect();
-        let len = fields.len();
-        if len >= 3 {
-            if _type.to_string() != fields[len - 2] {
-                error!(
-                    "expected id of type {:?} but found type {:?} {:?}",
-                    _type,
-                    fields[len - 2],
-                    _id
-                );
-            } else {
-                return fields[len - 1].to_owned();
-            }
-        }
-        let sfields: Vec<&str> = _id.split('/').collect();
-        let len: usize = sfields.len();
-        if len >= 3 {
-            if _type.to_string() != sfields[len - 2] {
-                error!(
-                    "expected id of type {:?} but found type {:?} {:?}",
-                    _type,
-                    sfields[len - 2],
-                    _id
-                );
-            } else {
-                return sfields[len - 1].to_owned();
-            }
-        }
-        _id.to_owned()
     }
 
     /// Append device ID to an API path.
@@ -202,8 +172,8 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-track/)
     #[maybe_async]
     pub async fn track(&self, track_id: &str) -> ClientResult<FullTrack> {
-        let trid = self.get_id(Type::Track, track_id);
-        let url = format!("tracks/{}", trid);
+        let trid = Id::from_id_or_uri(Type::Track, track_id)?;
+        let url = format!("tracks/{}", trid.id());
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -222,17 +192,21 @@ impl Spotify {
         market: Option<Country>,
     ) -> ClientResult<FullTracks> {
         // TODO: this can be improved
-        let mut ids: Vec<String> = vec![];
-        for track_id in track_ids {
-            ids.push(self.get_id(Type::Track, track_id));
-        }
+        let ids = track_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Track, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
 
         let mut params = Query::new();
         if let Some(market) = market {
             params.insert("market".to_owned(), market.to_string());
         }
 
-        let url = format!("tracks/?ids={}", ids.join(","));
+        let url = format!("tracks/?ids={}", ids);
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -245,8 +219,8 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-artist/)
     #[maybe_async]
     pub async fn artist(&self, artist_id: &str) -> ClientResult<FullArtist> {
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}", trid);
+        let trid = Id::from_id_or_uri(Type::Artist, artist_id)?;
+        let url = format!("artists/{}", trid.id());
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -262,11 +236,15 @@ impl Spotify {
         &self,
         artist_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<FullArtists> {
-        let mut ids: Vec<String> = vec![];
-        for artist_id in artist_ids {
-            ids.push(self.get_id(Type::Artist, artist_id));
-        }
-        let url = format!("artists/?ids={}", ids.join(","));
+        let ids = artist_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Artist, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("artists/?ids={}", ids);
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -303,8 +281,8 @@ impl Spotify {
         if let Some(country) = country {
             params.insert("country".to_owned(), country.to_string());
         }
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/albums", trid);
+        let trid = Id::from_id_or_uri(Type::Artist, artist_id)?;
+        let url = format!("artists/{}/albums", trid.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -329,8 +307,8 @@ impl Spotify {
             country.into().unwrap_or(Country::UnitedStates).to_string(),
         );
 
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/top-tracks", trid);
+        let trid = Id::from_id_or_uri(Type::Artist, artist_id)?;
+        let url = format!("artists/{}/top-tracks", trid.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -345,8 +323,8 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-related-artists/)
     #[maybe_async]
     pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/related-artists", trid);
+        let trid = Id::from_id_or_uri(Type::Artist, artist_id)?;
+        let url = format!("artists/{}/related-artists", trid.id());
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -359,8 +337,8 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-album/)
     #[maybe_async]
     pub async fn album(&self, album_id: &str) -> ClientResult<FullAlbum> {
-        let trid = self.get_id(Type::Album, album_id);
-        let url = format!("albums/{}", trid);
+        let trid = Id::from_id_or_uri(Type::Album, album_id)?;
+        let url = format!("albums/{}", trid.id());
 
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
@@ -377,11 +355,15 @@ impl Spotify {
         &self,
         album_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<FullAlbums> {
-        let mut ids: Vec<String> = vec![];
-        for album_id in album_ids {
-            ids.push(self.get_id(Type::Album, album_id));
-        }
-        let url = format!("albums/?ids={}", ids.join(","));
+        let ids = album_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Album, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("albums/?ids={}", ids);
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -445,8 +427,8 @@ impl Spotify {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let trid = self.get_id(Type::Album, album_id);
-        let url = format!("albums/{}/tracks", trid);
+        let trid = Id::from_id_or_uri(Type::Album, album_id)?;
+        let url = format!("albums/{}/tracks", trid.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -486,8 +468,8 @@ impl Spotify {
             params.insert("market".to_owned(), market.to_string());
         }
 
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("playlists/{}", plid);
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
+        let url = format!("playlists/{}", plid.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -548,7 +530,7 @@ impl Spotify {
     pub async fn user_playlist(
         &self,
         user_id: &str,
-        playlist_id: Option<&mut str>,
+        playlist_id: Option<&str>,
         fields: Option<&str>,
         market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
@@ -561,8 +543,8 @@ impl Spotify {
         }
         match playlist_id {
             Some(playlist_id) => {
-                let plid = self.get_id(Type::Playlist, playlist_id);
-                let url = format!("users/{}/playlists/{}", user_id, plid);
+                let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
+                let url = format!("users/{}/playlists/{}", user_id, plid.id());
                 let result = self.get(&url, None, &params).await?;
                 self.convert_result(&result)
             }
@@ -602,8 +584,8 @@ impl Spotify {
         if let Some(fields) = fields {
             params.insert("fields".to_owned(), fields.to_owned());
         }
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("playlists/{}/tracks", plid);
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
+        let url = format!("playlists/{}/tracks", plid.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -700,16 +682,18 @@ impl Spotify {
         track_ids: impl IntoIterator<Item = &'a str>,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
+
+        let uris = track_ids
             .into_iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
+            .map(|id| Id::from_id_or_uri(Type::Track, id).map(|id| id.uri()))
+            .collect::<Result<Vec<_>, _>>()?;
+
         let mut params = json!({ "uris": uris });
         if let Some(position) = position {
             json_insert!(params, "position", position);
         }
-        let url = format!("playlists/{}/tracks", plid);
+        let url = format!("playlists/{}/tracks", plid.id());
         let result = self.post(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -728,15 +712,14 @@ impl Spotify {
         playlist_id: &str,
         track_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
+        let uris = track_ids
             .into_iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
-        // let mut params = Map::new();
-        // params.insert("uris".to_owned(), uris.into());
+            .map(|id| Id::from_id_or_uri(Type::Track, id).map(|id| id.uri()))
+            .collect::<Result<Vec<_>, _>>()?;
+
         let params = json!({ "uris": uris });
-        let url = format!("playlists/{}/tracks", plid);
+        let url = format!("playlists/{}/tracks", plid.id());
         self.put(&url, None, &params).await?;
 
         Ok(())
@@ -761,7 +744,7 @@ impl Spotify {
         insert_before: i32,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
         let mut params = json! ({
             "range_start": range_start,
             "range_length": range_length.into().unwrap_or(1),
@@ -771,7 +754,7 @@ impl Spotify {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
 
-        let url = format!("playlists/{}/tracks", plid);
+        let url = format!("playlists/{}/tracks", plid.id());
         let result = self.put(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -791,24 +774,25 @@ impl Spotify {
         track_ids: impl IntoIterator<Item = &'a str>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
-            .into_iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
 
-        // TODO: this can be improved
-        let mut tracks: Vec<Map<String, Value>> = vec![];
-        for uri in uris {
+        let tracks = track_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Track, id).map(|id| id.uri()))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let mut params = json!({ "tracks": tracks.into_iter().map(|uri| {
             let mut map = Map::new();
             map.insert("uri".to_owned(), uri.into());
-            tracks.push(map);
-        }
-        let mut params = json!({ "tracks": tracks });
+            map
+        }).collect::<Vec<_>>()
+        });
+
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("playlists/{}/tracks", plid);
+
+        let url = format!("playlists/{}/tracks", plid.id());
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -850,12 +834,14 @@ impl Spotify {
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
         // TODO: this can be improved
-        let plid = self.get_id(Type::Playlist, playlist_id);
+        let plid = Id::from_id_or_uri(Type::Playlist, playlist_id)?;
+
         let mut ftracks: Vec<Map<String, Value>> = vec![];
         for track in tracks {
             let mut map = Map::new();
             if let Some(_uri) = track.get("uri") {
-                let uri = self.get_uri(Type::Track, &_uri.as_str().unwrap().to_owned());
+                let uri =
+                    Id::from_id_or_uri(Type::Track, &_uri.as_str().unwrap().to_owned())?.uri();
                 map.insert("uri".to_owned(), uri.into());
             }
             if let Some(_position) = track.get("position") {
@@ -868,7 +854,7 @@ impl Spotify {
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("playlists/{}/tracks", plid);
+        let url = format!("playlists/{}/tracks", plid.id());
         let result = self.delete(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -1041,11 +1027,15 @@ impl Spotify {
         &self,
         track_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = track_ids
+        let ids = track_ids
             .into_iter()
-            .map(|id| self.get_id(Type::Track, id))
-            .collect();
-        let url = format!("me/tracks/?ids={}", uris.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Track, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/tracks/?ids={}", ids);
         self.delete(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1063,11 +1053,15 @@ impl Spotify {
         &self,
         track_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Vec<bool>> {
-        let uris: Vec<String> = track_ids
+        let ids = track_ids
             .into_iter()
-            .map(|id| self.get_id(Type::Track, id))
-            .collect();
-        let url = format!("me/tracks/contains/?ids={}", uris.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Track, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/tracks/contains/?ids={}", ids);
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -1083,11 +1077,15 @@ impl Spotify {
         &self,
         track_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = track_ids
+        let ids = track_ids
             .into_iter()
-            .map(|id| self.get_id(Type::Track, id))
-            .collect();
-        let url = format!("me/tracks/?ids={}", uris.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Track, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/tracks/?ids={}", ids);
         self.put(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1187,11 +1185,15 @@ impl Spotify {
         &self,
         album_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = album_ids
+        let ids = album_ids
             .into_iter()
-            .map(|id| self.get_id(Type::Album, id))
-            .collect();
-        let url = format!("me/albums/?ids={}", uris.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Album, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/albums/?ids={}", ids);
         self.put(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1208,11 +1210,15 @@ impl Spotify {
         &self,
         album_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = album_ids
+        let ids = album_ids
             .into_iter()
-            .map(|id| self.get_id(Type::Album, id))
-            .collect();
-        let url = format!("me/albums/?ids={}", uris.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Album, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/albums/?ids={}", ids);
         self.delete(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1230,11 +1236,15 @@ impl Spotify {
         &self,
         album_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Vec<bool>> {
-        let uris: Vec<String> = album_ids
+        let ids = album_ids
             .into_iter()
-            .map(|id| self.get_id(Type::Album, id))
-            .collect();
-        let url = format!("me/albums/contains/?ids={}", uris.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Album, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/albums/contains/?ids={}", ids);
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -1250,10 +1260,15 @@ impl Spotify {
         &self,
         artist_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=artist&ids={}",
-            artist_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
+        let ids = artist_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Artist, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/following?type=artist&ids={}", ids);
         self.put(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1270,10 +1285,15 @@ impl Spotify {
         &self,
         artist_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=artist&ids={}",
-            artist_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
+        let ids = artist_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Artist, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/following?type=artist&ids={}", ids);
         self.delete(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1289,12 +1309,17 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_artist_check_follow<'a>(
         &self,
-        artsit_ids: impl IntoIterator<Item = &'a str>,
+        artist_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Vec<bool>> {
-        let url = format!(
-            "me/following/contains?type=artist&ids={}",
-            artsit_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
+        let ids = artist_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::Artist, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/following/contains?type=artist&ids={}", ids);
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -1310,10 +1335,15 @@ impl Spotify {
         &self,
         user_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=user&ids={}",
-            user_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
+        let ids = user_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::User, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/following?type=user&ids={}", ids);
         self.put(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1330,10 +1360,15 @@ impl Spotify {
         &self,
         user_ids: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=user&ids={}",
-            user_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
+        let ids = user_ids
+            .into_iter()
+            .map(|id| Id::from_id_or_uri(Type::User, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("me/following?type=user&ids={}", ids);
         self.delete(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1533,23 +1568,35 @@ impl Spotify {
         if let Some(seed_artists) = seed_artists {
             let seed_artists_ids = seed_artists
                 .iter()
-                .map(|id| self.get_id(Type::Artist, id))
-                .collect::<Vec<_>>();
-            params.insert("seed_artists".to_owned(), seed_artists_ids.join(","));
+                .map(|id| Id::from_id_or_uri(Type::Artist, &id))
+                .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+                .map(|mut ids| {
+                    ids.pop();
+                    ids
+                })?;
+            params.insert("seed_artists".to_owned(), seed_artists_ids);
         }
+
         if let Some(seed_genres) = seed_genres {
             params.insert("seed_genres".to_owned(), seed_genres.join(","));
         }
+
         if let Some(seed_tracks) = seed_tracks {
             let seed_tracks_ids = seed_tracks
                 .iter()
-                .map(|id| self.get_id(Type::Track, id))
-                .collect::<Vec<_>>();
-            params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
+                .map(|id| Id::from_id_or_uri(Type::Track, id))
+                .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+                .map(|mut ids| {
+                    ids.pop();
+                    ids
+                })?;
+            params.insert("seed_tracks".to_owned(), seed_tracks_ids);
         }
+
         if let Some(country) = country {
             params.insert("market".to_owned(), country.to_string());
         }
+
         let result = self.get("recommendations", None, &params).await?;
         self.convert_result(&result)
     }
@@ -1562,8 +1609,8 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-audio-features/)
     #[maybe_async]
     pub async fn track_features(&self, track: &str) -> ClientResult<AudioFeatures> {
-        let track_id = self.get_id(Type::Track, track);
-        let url = format!("audio-features/{}", track_id);
+        let track_id = Id::from_id_or_uri(Type::Track, track)?;
+        let url = format!("audio-features/{}", track_id.id());
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -1579,11 +1626,15 @@ impl Spotify {
         &self,
         tracks: impl IntoIterator<Item = &'a str>,
     ) -> ClientResult<Option<AudioFeaturesPayload>> {
-        let ids: Vec<String> = tracks
+        let ids = tracks
             .into_iter()
-            .map(|track| self.get_id(Type::Track, track))
-            .collect();
-        let url = format!("audio-features/?ids={}", ids.join(","));
+            .map(|id| Id::from_id_or_uri(Type::Track, id))
+            .fold_results(String::new(), |ids, id| ids + id.id() + ",")
+            .map(|mut ids| {
+                ids.pop();
+                ids
+            })?;
+        let url = format!("audio-features/?ids={}", ids);
 
         let result = self.get(&url, None, &Query::new()).await?;
         if result.is_empty() {
@@ -1601,8 +1652,8 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
     #[maybe_async]
     pub async fn track_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
-        let trid = self.get_id(Type::Track, track);
-        let url = format!("audio-analysis/{}", trid);
+        let trid = Id::from_id_or_uri(Type::Track, track)?;
+        let url = format!("audio-analysis/{}", trid.id());
         let result = self.get(&url, None, &Query::new()).await?;
         self.convert_result(&result)
     }
@@ -2132,52 +2183,5 @@ mod tests {
         let spotify = SpotifyBuilder::default().build().unwrap();
         let code = spotify.parse_response_code(url).unwrap();
         assert_eq!(code, "AQD0yXvFEOvw");
-    }
-
-    #[test]
-    fn test_get_id() {
-        // Assert artist
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let artist_id = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
-        let id = spotify.get_id(Type::Artist, artist_id);
-        assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
-
-        // Assert album
-        let artist_id_a = "spotify/album/2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Album, artist_id_a)
-        );
-
-        // Mismatch type
-        let artist_id_b = "spotify:album:2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "spotify:album:2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, artist_id_b)
-        );
-
-        // Could not split
-        let artist_id_c = "spotify-album-2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "spotify-album-2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, artist_id_c)
-        );
-
-        let playlist_id = "spotify:playlist:59ZbFPES4DQwEjBpWHzrtC";
-        assert_eq!(
-            "59ZbFPES4DQwEjBpWHzrtC",
-            &spotify.get_id(Type::Playlist, playlist_id)
-        );
-    }
-
-    #[test]
-    fn test_get_uri() {
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
-        let track_id2 = "1301WleyT98MSxVHPZCA6M";
-        let uri1 = spotify.get_uri(Type::Track, track_id1);
-        let uri2 = spotify.get_uri(Type::Track, track_id2);
-        assert_eq!(track_id1, uri1);
-        assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M", &uri2);
     }
 }
