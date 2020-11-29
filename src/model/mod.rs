@@ -105,10 +105,10 @@ impl Id<'_> {
     }
 
     pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<Id<'a>, IdError> {
-        if let Some((tpe, id)) = if uri.starts_with("spotify:") {
-            uri[8..].rfind(':').map(|mid| uri[8..].split_at(mid))
-        } else if uri.starts_with("spotify/") {
-            uri[8..].rfind('/').map(|mid| uri[8..].split_at(mid))
+        if let Some((tpe, id)) = if let Some(uri) = uri.strip_prefix("spotify:") {
+            uri.rfind(':').map(|mid| uri.split_at(mid))
+        } else if let Some(uri) = uri.strip_prefix("spotify/") {
+            uri.rfind('/').map(|mid| uri.split_at(mid))
         } else {
             return Err(IdError::InvalidPrefix);
         } {
