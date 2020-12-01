@@ -15,9 +15,8 @@ use super::http::{BaseClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
-use itertools::Itertools;
 
-pub trait TryJoin: Itertools {
+pub trait TryJoin: Iterator {
     fn try_join<T, E>(&mut self, sep: &str) -> Result<String, E>
     where
         Self: Iterator<Item = Result<T, E>>,
@@ -43,9 +42,23 @@ pub trait TryJoin: Itertools {
     {
         self.map(func).try_join(sep)
     }
+
+    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
+    where
+        Self: Iterator<Item = Result<A, E>>,
+        F: FnMut(B, A) -> B,
+    {
+        for elt in self {
+            match elt {
+                Ok(v) => start = f(start, v),
+                Err(u) => return Err(u),
+            }
+        }
+        Ok(start)
+    }
 }
 
-impl<T> TryJoin for T where T: Itertools {}
+impl<T> TryJoin for T where T: Iterator {}
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
