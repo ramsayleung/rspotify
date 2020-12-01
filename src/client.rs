@@ -40,7 +40,25 @@ pub trait TryJoin: Iterator {
         F: Fn(T) -> Result<R, E>,
         R: AsRef<str>,
     {
-        self.map(func).try_join(sep)
+        if let Some(item) = self.next() {
+            let item = func(item)?;
+            let value = item.as_ref();
+            let (size, _) = self.size_hint();
+            let cap = size * (sep.len() + value.len());
+
+            let mut output = String::with_capacity(cap);
+            output.push_str(value);
+
+            for item in self {
+                let item = func(item)?;
+                output.push_str(sep);
+                output.push_str(item.as_ref());
+            }
+
+            Ok(output)
+        } else {
+            Ok(String::new())
+        }
     }
 
     fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
