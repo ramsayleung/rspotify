@@ -86,13 +86,7 @@ pub enum ClientError {
     CacheFile(String),
 
     #[error("id parse error: {0:?}")]
-    InvalidId(IdError),
-}
-
-impl From<IdError> for ClientError {
-    fn from(error: IdError) -> Self {
-        ClientError::InvalidId(error)
-    }
+    InvalidId(#[from] IdError),
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
