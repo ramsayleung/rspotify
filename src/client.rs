@@ -17,23 +17,6 @@ use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
 
 pub trait TryJoin: Iterator {
-    fn try_join<T, E>(&mut self, sep: &str) -> Result<String, E>
-    where
-        Self: Iterator<Item = Result<T, E>>,
-        T: AsRef<str>,
-    {
-        let (size, _) = self.size_hint();
-        let cap = size * sep.len();
-
-        self.fold_results(String::with_capacity(cap), |ids, id| {
-            ids + id.as_ref() + sep
-        })
-        .map(|mut ids| {
-            ids.pop();
-            ids
-        })
-    }
-
     fn map_try_join<T, E, R, F>(&mut self, sep: &str, func: F) -> Result<String, E>
     where
         Self: Iterator<Item = T>,
@@ -59,20 +42,6 @@ pub trait TryJoin: Iterator {
         } else {
             Ok(String::new())
         }
-    }
-
-    fn fold_results<A, E, B, F>(&mut self, mut start: B, mut f: F) -> Result<B, E>
-    where
-        Self: Iterator<Item = Result<A, E>>,
-        F: FnMut(B, A) -> B,
-    {
-        for elt in self {
-            match elt {
-                Ok(v) => start = f(start, v),
-                Err(u) => return Err(u),
-            }
-        }
-        Ok(start)
     }
 }
 
