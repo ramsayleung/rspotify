@@ -17,14 +17,13 @@ use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
 
 pub trait TryJoin: Iterator {
-    fn map_try_join<T, E, R, F>(&mut self, sep: &str, func: F) -> Result<String, E>
+    fn try_join<T, E>(&mut self, sep: &str) -> Result<String, E>
     where
-        Self: Iterator<Item = T>,
-        F: Fn(T) -> Result<R, E>,
-        R: AsRef<str>,
+        Self: Iterator<Item = Result<T, E>>,
+        T: AsRef<str>,
     {
         if let Some(item) = self.next() {
-            let item = func(item)?;
+            let item = item?;
             let value = item.as_ref();
             let (size, _) = self.size_hint();
             let cap = size * (sep.len() + value.len());
@@ -33,7 +32,7 @@ pub trait TryJoin: Iterator {
             output.push_str(value);
 
             for item in self {
-                let item = func(item)?;
+                let item = item?;
                 output.push_str(sep);
                 output.push_str(item.as_ref());
             }
@@ -42,6 +41,15 @@ pub trait TryJoin: Iterator {
         } else {
             Ok(String::new())
         }
+    }
+
+    fn map_try_join<T, E, R, F>(&mut self, sep: &str, func: F) -> Result<String, E>
+    where
+        Self: Iterator<Item = T>,
+        F: Fn(T) -> Result<R, E>,
+        R: AsRef<str>,
+    {
+        self.map(func).try_join(sep)
     }
 }
 
