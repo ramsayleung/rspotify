@@ -1964,12 +1964,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
     #[maybe_async]
-    pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
+    pub async fn get_a_show(&self, id: &str, market: Option<Country>) -> ClientResult<FullShow> {
         let mut params = Query::new();
         if let Some(market) = market {
             params.insert("country".to_owned(), market.to_string());
         }
-        let url = format!("shows/{}", id);
+        let url = format!("shows/{}", Id::from_id_or_uri(Type::Show, id)?.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -2016,7 +2016,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        id: String,
+        id: &str,
         limit: L,
         offset: O,
         market: Option<Country>,
@@ -2027,7 +2027,10 @@ impl Spotify {
         if let Some(market) = market {
             params.insert("country".to_owned(), market.to_string());
         }
-        let url = format!("shows/{}/episodes", id);
+        let url = format!(
+            "shows/{}/episodes",
+            Id::from_id_or_uri(Type::Show, id)?.id()
+        );
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -2044,10 +2047,10 @@ impl Spotify {
     #[maybe_async]
     pub async fn get_an_episode(
         &self,
-        id: String,
+        id: &str,
         market: Option<Country>,
     ) -> ClientResult<FullEpisode> {
-        let url = format!("episodes/{}", id);
+        let url = format!("episodes/{}", Id::from_id_or_uri(Type::Episode, id)?.id());
         let mut params = Query::new();
         if let Some(market) = market {
             params.insert("country".to_owned(), market.to_string());
