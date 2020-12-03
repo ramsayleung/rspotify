@@ -13,6 +13,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
+  + Added internal zero-copy type for Spotify ids, reduced number of allocations/clones ([#161](https://github.com/ramsayleung/rspotify/pull/161)).
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Mark `SimplifiedEpisode.language` as deprecated.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Derive `PartialEq` and `Eq` for models:
@@ -131,6 +132,10 @@ If we missed any change or there's something you'd like to discuss about this ve
 	- `user_follow_users`
 	- `user_unfollow_users`
 	- `audios_features`
+  + The endpoints which changes parameter from `String` to `&str`:
+        - `get_a_show`
+        - `get_an_episode`
+        - `get_shows_episodes`
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Rename endpoints with more fitting name:
   + `audio_analysis` -> `track_analysis`
   + `audio_features` -> `track_features`
@@ -159,6 +164,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
+  + Added more strict validation for URI and id parameters everywhere, new error variant `ClientError::InvalidId(IdError)` for invalid input ids and URIs.
 
 ## 0.10 (2020/07/01)
 
