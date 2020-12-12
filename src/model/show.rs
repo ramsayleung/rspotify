@@ -1,8 +1,9 @@
 use super::image::Image;
 use super::page::Page;
-use crate::model::{CopyrightType, DatePrecision};
+use crate::model::{from_duration_ms, to_duration_ms, CopyrightType, DatePrecision};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::time::Duration;
 
 /// Copyright object
 ///
@@ -85,7 +86,12 @@ pub struct FullShow {
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
     pub description: String,
-    pub duration_ms: u32,
+    #[serde(
+        deserialize_with = "from_duration_ms",
+        serialize_with = "to_duration_ms",
+        rename = "duration_ms"
+    )]
+    pub duration: Duration,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,

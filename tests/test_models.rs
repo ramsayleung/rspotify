@@ -1,5 +1,4 @@
 use rspotify::model::*;
-use serde::Deserialize;
 use std::time::Duration;
 #[test]
 fn test_simplified_track() {
@@ -175,18 +174,70 @@ fn test_simplified_episode() {
 
 #[test]
 fn test_full_episode() {
-    #[derive(Deserialize)]
-    struct TestStruct {
-        pub release_date_precision: DatePrecision,
-    }
     let json_str = r#"
-     
-        {
-            "release_date_precision": "day"
-        }
+    {
+        "audio_preview_url": "https://p.scdn.co/mp3-preview/566fcc94708f39bcddc09e4ce84a8e5db8f07d4d",
+        "description": "En ny tysk ",
+        "duration_ms": 1502795,
+        "explicit": false,
+        "external_urls": {
+            "spotify": "https://open.spotify.com/episode/512ojhOuo1ktJprKbVcKyQ"
+        },
+        "href": "https://api.spotify.com/v1/episodes/512ojhOuo1ktJprKbVcKyQ",
+        "id": "512ojhOuo1ktJprKbVcKyQ",
+        "images": [
+            {
+                "height": 64,
+                "url": "https://i.scdn.co/image/e29c75799cad73927fad713011edad574868d8da",
+                "width": 64
+            }
+        ],
+        "is_externally_hosted": false,
+        "is_playable": true,
+        "language": "sv",
+        "languages": [
+            "sv"
+        ],
+        "name": "Tredje rikets knarkande granskas",
+        "release_date": "2015-10-01",
+        "release_date_precision": "day",
+        "show": {
+            "available_markets": [
+                "ZA"
+            ],
+            "copyrights": [],
+            "description": "Vi är där historien är. Ansvarig utgivare: Nina Glans",
+            "explicit": false,
+            "external_urls": {
+                "spotify": "https://open.spotify.com/show/38bS44xjbVVZ3No3ByF1dJ"
+            },
+            "href": "https://api.spotify.com/v1/shows/38bS44xjbVVZ3No3ByF1dJ",
+            "id": "38bS44xjbVVZ3No3ByF1dJ",
+            "images": [
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/3dc007829bc0663c24089e46743a9f4ae15e65f8",
+                    "width": 64
+                }
+            ],
+            "is_externally_hosted": false,
+            "languages": [
+                "sv"
+            ],
+            "media_type": "audio",
+            "name": "Vetenskapsradion Historia",
+            "publisher": "Sveriges Radio",
+            "type": "show",
+            "uri": "spotify:show:38bS44xjbVVZ3No3ByF1dJ"
+        },
+        "type": "episode",
+        "uri": "spotify:episode:512ojhOuo1ktJprKbVcKyQ"
+    }
         "#;
-    let test_struct: TestStruct = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(test_struct.release_date_precision, DatePrecision::Day);
+    let full_episode: FullEpisode = serde_json::from_str(&json_str).unwrap();
+    assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
+    let duration = Duration::from_millis(1502795);
+    assert_eq!(full_episode.duration, duration);
 }
 
 #[test]
