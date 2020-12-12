@@ -48,15 +48,6 @@ where
 {
     s.serialize_u64(x.as_millis() as u64)
 }
-#[derive(Deserialize, Serialize, Debug)]
-struct Track {
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
-    duration: Duration,
-}
 /// Restriction object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
