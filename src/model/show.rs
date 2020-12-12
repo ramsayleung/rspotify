@@ -120,7 +120,12 @@ pub struct SimplifiedEpisode {
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
     pub description: String,
-    pub duration_ms: u32,
+    #[serde(
+        deserialize_with = "from_duration_ms",
+        serialize_with = "to_duration_ms",
+        rename = "duration_ms"
+    )]
+    pub duration: Duration,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,

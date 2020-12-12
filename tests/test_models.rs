@@ -170,6 +170,8 @@ fn test_simplified_episode() {
         simplified_episode.release_date_precision,
         DatePrecision::Day
     );
+    let duration = Duration::from_millis(2685023);
+    assert_eq!(simplified_episode.duration, duration);
 }
 
 #[test]
