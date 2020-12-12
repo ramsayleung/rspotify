@@ -17,6 +17,7 @@ pub mod show;
 pub mod track;
 pub mod user;
 
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{de, Deserialize, Serialize, Serializer};
 use std::{fmt, time::Duration};
 struct DurationVisitor;
@@ -47,6 +48,47 @@ where
     S: Serializer,
 {
     s.serialize_u64(x.as_millis() as u64)
+}
+
+struct DateTimeVisitor;
+
+impl<'de> de::Visitor<'de> for DateTimeVisitor {
+    type Value = DateTime<Utc>;
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "an unix millisecond timestamp represents DataTime<UTC>"
+        )
+    }
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        let second = (v - v % 1000) / 1000;
+        let nanosecond = ((v % 1000) * 1000000) as u32;
+        // The maximum value of i64 is large enough to hold millisecond, so it would be safe to convert it i64
+        let dt = DateTime::<Utc>::from_utc(
+            NaiveDateTime::from_timestamp(second as i64, nanosecond),
+            Utc,
+        );
+        Ok(dt)
+    }
+}
+
+/// Deserialize Unix millisecond timestamp to `DateTime<Utc>`
+pub(in crate) fn from_millisecond_timestamp<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    d.deserialize_u64(DateTimeVisitor)
+}
+
+/// Serialize DateTime<Utc>  to Unix millisecond timestamp
+pub(in crate) fn to_millisecond_timestamp<S>(x: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_i64(x.timestamp_millis())
 }
 /// Restriction object
 ///

@@ -1,11 +1,14 @@
 //! All objects related to context
-use serde::{Deserialize, Deserializer, Serialize};
-use std::collections::HashMap;
-
 use super::device::Device;
 use super::track::FullTrack;
 use super::PlayingItem;
-use crate::model::{CurrentlyPlayingType, DisallowKey, RepeatState, Type};
+use crate::model::{
+    from_millisecond_timestamp, to_millisecond_timestamp, CurrentlyPlayingType, DisallowKey,
+    RepeatState, Type,
+};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Deserializer, Serialize};
+use std::collections::HashMap;
 /// Context object
 ///
 /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
@@ -36,7 +39,11 @@ pub struct SimplifiedPlayingContext {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
-    pub timestamp: u64,
+    #[serde(
+        deserialize_with = "from_millisecond_timestamp",
+        serialize_with = "to_millisecond_timestamp"
+    )]
+    pub timestamp: DateTime<Utc>,
     pub progress_ms: Option<u32>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,

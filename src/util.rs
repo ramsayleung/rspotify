@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use getrandom::getrandom;
 
-/// Convert datetime to unix timestampe
+/// Convert datetime to unix timestamp
 pub(in crate) fn datetime_to_timestamp(elapsed: u32) -> i64 {
     let utc: DateTime<Utc> = Utc::now();
     utc.timestamp() + i64::from(elapsed)

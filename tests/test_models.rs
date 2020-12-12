@@ -1,3 +1,4 @@
+use chrono::{DateTime, NaiveDateTime, Utc};
 use rspotify::model::*;
 use std::time::Duration;
 #[test]
@@ -585,4 +586,115 @@ fn test_resume_point() {
     let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
     let duration = Duration::from_millis(423432);
     assert_eq!(resume_point.resume_position, duration);
+}
+
+#[test]
+fn test_currently_playing_context() {
+    let json = r#"
+{
+  "timestamp": 1607769168429,
+  "context": {
+    "external_urls": {
+      "spotify": "https://open.spotify.com/album/2lgOc40hhHqjUGAKMWqGxO"
+    },
+    "href": "https://api.spotify.com/v1/albums/2lgOc40hhHqjUGAKMWqGxO",
+    "type": "album",
+    "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
+  },
+  "progress_ms": 22270,
+  "item": {
+    "album": {
+      "album_type": "single",
+      "artists": [
+        {
+          "external_urls": {
+            "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+          },
+          "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+          "id": "0cGUm45nv7Z6M6qdXYQGTX",
+          "name": "Kehlani",
+          "type": "artist",
+          "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
+        }
+      ],
+      "external_urls": {
+        "spotify": "https://open.spotify.com/album/2lgOc40hhHqjUGAKMWqGxO"
+      },
+      "href": "https://api.spotify.com/v1/albums/2lgOc40hhHqjUGAKMWqGxO",
+      "id": "2lgOc40hhHqjUGAKMWqGxO",
+      "images": [
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/ab67616d00004851fa7b2b60e85950ee93dcdc04",
+          "width": 64
+        }
+      ],
+      "name": "Playinwitme (feat. Kehlani)",
+      "release_date": "2018-03-20",
+      "release_date_precision": "day",
+      "total_tracks": 1,
+      "type": "album",
+      "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
+    },
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+        },
+        "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+        "id": "0cGUm45nv7Z6M6qdXYQGTX",
+        "name": "Kehlani",
+        "type": "artist",
+        "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
+      }
+    ],
+    "available_markets": [],
+    "disc_number": 1,
+    "duration_ms": 191680,
+    "explicit": false,
+    "external_ids": {
+      "isrc": "USAT21801141"
+    },
+    "external_urls": {
+      "spotify": "https://open.spotify.com/track/4F1yvJfQ7gJkrcgFJQDjOr"
+    },
+    "href": "https://api.spotify.com/v1/tracks/4F1yvJfQ7gJkrcgFJQDjOr",
+    "id": "4F1yvJfQ7gJkrcgFJQDjOr",
+    "is_local": false,
+    "is_playable": true,
+    "linked_from": {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/track/43cFjTTCD9Cni4aSL0sORz"
+      },
+      "href": "https://api.spotify.com/v1/tracks/43cFjTTCD9Cni4aSL0sORz",
+      "id": "43cFjTTCD9Cni4aSL0sORz",
+      "type": "track",
+      "uri": "spotify:track:43cFjTTCD9Cni4aSL0sORz"
+    },
+    "name": "Playinwitme (feat. Kehlani)",
+    "popularity": 70,
+    "preview_url": "https://p.scdn.co/mp3-preview/05e8881d5c896a8d147d2e79150fb5480a4fb186?cid=774b29d4f13844c495f206cafdad9c86",
+    "track_number": 9,
+    "type": "track",
+    "uri": "spotify:track:4F1yvJfQ7gJkrcgFJQDjOr"
+  },
+  "currently_playing_type": "track",
+  "actions": {
+    "disallows": {
+      "resuming": true,
+      "skipping_prev": true
+    }
+  },
+  "is_playing": true
+}
+    "#;
+    let currently_playing_context: CurrentlyPlayingContext = serde_json::from_str(&json).unwrap();
+    let timestamp = 1607769168429;
+    let second: i64 = (timestamp - timestamp % 1000) / 1000;
+    let nanosecond = (timestamp % 1000) * 1000000;
+    let dt = DateTime::<Utc>::from_utc(
+        NaiveDateTime::from_timestamp(second, nanosecond as u32),
+        Utc,
+    );
+    assert_eq!(currently_playing_context.timestamp, dt);
 }
