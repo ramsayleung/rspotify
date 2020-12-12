@@ -174,6 +174,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename `ResumePoint.resume_position_ms` to `resume_position`, and change its type from `u32` to `std::time::Duration`.
   + Change `CurrentlyPlayingContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
   + Change `CurrentPlaybackContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
+  + Remove `SimplifiedPlayingContext`, since it's useless.
 
 ## 0.10 (2020/07/01)
 

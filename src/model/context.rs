@@ -21,18 +21,6 @@ pub struct Context {
     pub _type: Type,
 }
 
-/// Simplified playing context
-///
-/// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SimplifiedPlayingContext {
-    pub context: Option<Context>,
-    pub timestamp: u64,
-    pub progress_ms: Option<u32>,
-    pub is_playing: bool,
-    pub item: Option<FullTrack>,
-}
-
 /// Currently playing object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
