@@ -573,3 +573,16 @@ fn test_full_track() {
     let duration = Duration::from_millis(207959);
     assert_eq!(full_track.duration, duration);
 }
+
+#[test]
+fn test_resume_point() {
+    let json = r#"
+    {
+        "fully_played": false,
+        "resume_position_ms": 423432
+    }   
+    "#;
+    let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
+    let duration = Duration::from_millis(423432);
+    assert_eq!(resume_point.resume_position, duration);
+}

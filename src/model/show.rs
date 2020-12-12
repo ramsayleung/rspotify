@@ -156,5 +156,10 @@ pub struct SeveralEpisodes {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResumePoint {
     pub fully_played: bool,
-    pub resume_position_ms: u32,
+    #[serde(
+        deserialize_with = "from_duration_ms",
+        serialize_with = "to_duration_ms",
+        rename = "resume_position_ms"
+    )]
+    pub resume_position: Duration,
 }
