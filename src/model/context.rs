@@ -1,6 +1,5 @@
 //! All objects related to context
 use super::device::Device;
-use super::track::FullTrack;
 use super::PlayingItem;
 use crate::model::{
     from_millisecond_timestamp, to_millisecond_timestamp, CurrentlyPlayingType, DisallowKey,
