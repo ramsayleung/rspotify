@@ -57,7 +57,11 @@ pub struct CurrentPlaybackContext {
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
     pub context: Option<Context>,
-    pub timestamp: u64,
+    #[serde(
+        deserialize_with = "from_millisecond_timestamp",
+        serialize_with = "to_millisecond_timestamp"
+    )]
+    pub timestamp: DateTime<Utc>,
     pub progress_ms: Option<u32>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
