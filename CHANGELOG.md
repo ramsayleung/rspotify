@@ -172,6 +172,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename `FullTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `SimplifiedTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `ResumePoint.resume_position_ms` to `resume_position`, and change its type from `u32` to `std::time::Duration`.
+  + Change `CurrentlyPlayingContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
 
 ## 0.10 (2020/07/01)
 
