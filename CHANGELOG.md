@@ -166,11 +166,12 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Constrain visibility of `PageCategory` struct with `pub (in crate)`, make `categories` endpoints return a `Page<Category>` instead.
   + Constrain visibility of `DevicePayload` struct with `pub (in crate)`, make `device` endpoints return a `Vec<Device>` instead.
   + Constrain visibility of `SeversalSimplifiedShows` struct with `pub (in crate)`, make `get_several_shows` endpoints return a `Vec<SimplifiedShow>` instead.
-  + Rename `AudioFeatures.duration_ms` to duration, and change its type from `u32` to `std::time::Duration`.
-  + Rename `FullEpisode.duration_ms` to duration, and change its type from `u32` to `std::time::Duration`.
-  + Rename `SimplifiedEpisode.duration_ms` to duration, and change its type from `u32` to `std::time::Duration`.
-  + Rename `FullTrack.duration_ms` to duration, and change its type from `u32` to `std::time::Duration`.
-  + Rename `SimplifiedTrack.duration_ms` to duration, and change its type from `u32` to `std::time::Duration`.
+  + Rename `AudioFeatures.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `FullEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `SimplifiedEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `FullTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `SimplifiedTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `ResumePoint.resume_position_ms` to `resume_position`, and change its type from `u32` to `std::time::Duration`.
 
 ## 0.10 (2020/07/01)
 
