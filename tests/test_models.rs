@@ -33,7 +33,8 @@ fn test_simplified_track() {
 
 "#;
     let track: SimplifiedTrack = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(track.duration_ms, 276773);
+    let duration = Duration::from_millis(276773);
+    assert_eq!(track.duration, duration);
 }
 
 #[test]
