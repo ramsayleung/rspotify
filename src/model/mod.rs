@@ -17,8 +17,46 @@ pub mod show;
 pub mod track;
 pub mod user;
 
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize, Serializer};
+use std::{fmt, time::Duration};
+struct DurationVisitor;
+impl<'de> de::Visitor<'de> for DurationVisitor {
+    type Value = Duration;
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "a milliseconds represents std::time::Duration")
+    }
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(Duration::from_millis(v))
+    }
+}
 
+/// Deserialize `std::time::Duration` from millisecond(represented as u64)
+pub(in crate) fn from_duration_ms<'de, D>(d: D) -> Result<Duration, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    d.deserialize_u64(DurationVisitor)
+}
+
+/// Serialize `std::time::Duration` to millisecond(represented as u64)
+pub(in crate) fn to_duration_ms<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_u64(x.as_millis() as u64)
+}
+#[derive(Deserialize, Serialize, Debug)]
+struct Track {
+    #[serde(
+        deserialize_with = "from_duration_ms",
+        serialize_with = "to_duration_ms",
+        rename = "duration_ms"
+    )]
+    duration: Duration,
+}
 /// Restriction object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)

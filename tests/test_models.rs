@@ -1,5 +1,6 @@
 use rspotify::model::*;
 use serde::Deserialize;
+use std::time::Duration;
 #[test]
 fn test_simplified_track() {
     let json_str = r#"
@@ -409,4 +410,33 @@ fn test_full_playlist() {
         "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
     );
     assert_eq!(full_playlist.followers.total, 109);
+}
+
+#[test]
+fn test_audio_features() {
+    let json = r#"
+    {
+        "duration_ms" : 255349,
+        "key" : 5,
+        "mode" : 0,
+        "time_signature" : 4,
+        "acousticness" : 0.514,
+        "danceability" : 0.735,
+        "energy" : 0.578,
+        "instrumentalness" : 0.0902,
+        "liveness" : 0.159,
+        "loudness" : -11.840,
+        "speechiness" : 0.0461,
+        "valence" : 0.624,
+        "tempo" : 98.002,
+        "id" : "06AKEBrKUckW0KREUWRnvT",
+        "uri" : "spotify:track:06AKEBrKUckW0KREUWRnvT",
+        "track_href" : "https://api.spotify.com/v1/tracks/06AKEBrKUckW0KREUWRnvT",
+        "analysis_url" : "https://api.spotify.com/v1/audio-analysis/06AKEBrKUckW0KREUWRnvT",
+        "type" : "audio_features"
+    }
+    "#;
+    let audio_features: AudioFeatures = serde_json::from_str(json).unwrap();
+    let duration = Duration::from_millis(255349);
+    assert_eq!(audio_features.duration, duration);
 }
