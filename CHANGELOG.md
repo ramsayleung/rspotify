@@ -176,6 +176,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename `CurrentPlaybackContext.progress_ms` to `progress`, and change its type from `Option<u32>` to `Option<std::time::Duration>`.
   + Change `CurrentlyPlayingContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
   + Change `CurrentPlaybackContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
+  + Change `Offset.position`'s type from `Option<u32>` to `Option<std::time::Duration>`
   + Remove `SimplifiedPlayingContext`, since it's useless.
 
 ## 0.10 (2020/07/01)
