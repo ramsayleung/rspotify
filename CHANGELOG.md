@@ -173,6 +173,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename `SimplifiedTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `ResumePoint.resume_position_ms` to `resume_position`, and change its type from `u32` to `std::time::Duration`.
   + Rename `CurrentlyPlayingContext.progress_ms` to `progress`, and change its type from `Option<u32>` to `Option<std::time::Duration>`.
+  + Rename `CurrentPlaybackContext.progress_ms` to `progress`, and change its type from `Option<u32>` to `Option<std::time::Duration>`.
   + Change `CurrentlyPlayingContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
   + Change `CurrentPlaybackContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
   + Remove `SimplifiedPlayingContext`, since it's useless.

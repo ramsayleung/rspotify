@@ -3,7 +3,7 @@ use rspotify::model::*;
 use std::time::Duration;
 #[test]
 fn test_simplified_track() {
-    let json_str = r#"
+  let json_str = r#"
 {
     "artists": [ {
       "external_urls": {
@@ -33,14 +33,14 @@ fn test_simplified_track() {
   }
 
 "#;
-    let track: SimplifiedTrack = serde_json::from_str(&json_str).unwrap();
-    let duration = Duration::from_millis(276773);
-    assert_eq!(track.duration, duration);
+  let track: SimplifiedTrack = serde_json::from_str(&json_str).unwrap();
+  let duration = Duration::from_millis(276773);
+  assert_eq!(track.duration, duration);
 }
 
 #[test]
 fn test_public_user() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "display_name": "Ronald Pompa",
             "external_urls": {
@@ -63,12 +63,12 @@ fn test_public_user() {
             "uri": "spotify:user:wizzler"
         }
         "#;
-    let user: PublicUser = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(user.id, "wizzler".to_string());
+  let user: PublicUser = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(user.id, "wizzler".to_string());
 }
 #[test]
 fn test_private_user() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "country": "US",
             "display_name": "Sergey",
@@ -92,13 +92,13 @@ fn test_private_user() {
             "uri": "spotify:user:waq5aexykhm6nlv0cnwdieng0"
           } 
         "#;
-    let private_user: PrivateUser = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(private_user.country.unwrap(), Country::UnitedStates);
+  let private_user: PrivateUser = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(private_user.country.unwrap(), Country::UnitedStates);
 }
 
 #[test]
 fn test_full_artist() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "external_urls": {
                 "spotify": "https://open.spotify.com/artist/0OdUWJ0sBjDrqHygGUXeCF"
@@ -125,14 +125,14 @@ fn test_full_artist() {
             "uri": "spotify:artist:0OdUWJ0sBjDrqHygGUXeCF"
         }
         "#;
-    let full_artist: FullArtist = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(full_artist.name, "Band of Horses");
-    assert_eq!(full_artist.followers.total, 833247);
+  let full_artist: FullArtist = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(full_artist.name, "Band of Horses");
+  assert_eq!(full_artist.followers.total, 833247);
 }
 
 #[test]
 fn test_simplified_episode() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "audio_preview_url": "https://p.scdn.co/mp3-preview/d8b916e1872de2bb0285d8c7bfe2b4b57011c85c",
             "description": "En unik barockträdgård från 1600-talet gömmer sig på Södermalm i Stockholm och nu gräver arkeologerna ut parken och kvarteret där Bellman lekte som barn.  Nu grävs Carl Michael Bellmans kvarter fram på Södermalm i Stockholm. Under dagens jordyta döljer sig en rik barockträdgård, men också tunga industrier från en tid då Söder var stockholmarnas sommarnöje. Dessutom om hur arkeologer ska kunna bli bättre att hitta de fattigas kulturarv. För vid sidan av slott, borgar och hallar finns torpen och backstugorna som utgör ett fortfarande okänt kulturarv som angår oss alla. Programledare Tobias Svanelid.",
@@ -167,18 +167,18 @@ fn test_simplified_episode() {
             "uri": "spotify:episode:3brfPv3PaUhspkm1T9ZVl8"
         }
         "#;
-    let simplified_episode: SimplifiedEpisode = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(
-        simplified_episode.release_date_precision,
-        DatePrecision::Day
-    );
-    let duration = Duration::from_millis(2685023);
-    assert_eq!(simplified_episode.duration, duration);
+  let simplified_episode: SimplifiedEpisode = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(
+    simplified_episode.release_date_precision,
+    DatePrecision::Day
+  );
+  let duration = Duration::from_millis(2685023);
+  assert_eq!(simplified_episode.duration, duration);
 }
 
 #[test]
 fn test_full_episode() {
-    let json_str = r#"
+  let json_str = r#"
     {
         "audio_preview_url": "https://p.scdn.co/mp3-preview/566fcc94708f39bcddc09e4ce84a8e5db8f07d4d",
         "description": "En ny tysk ",
@@ -238,28 +238,28 @@ fn test_full_episode() {
         "uri": "spotify:episode:512ojhOuo1ktJprKbVcKyQ"
     }
         "#;
-    let full_episode: FullEpisode = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
-    let duration = Duration::from_millis(1502795);
-    assert_eq!(full_episode.duration, duration);
+  let full_episode: FullEpisode = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
+  let duration = Duration::from_millis(1502795);
+  assert_eq!(full_episode.duration, duration);
 }
 
 #[test]
 fn test_copyright() {
-    let json_str = r#"
+  let json_str = r#"
 	[ {
 	    "text" : "(P) 2000 Sony Music Entertainment Inc.",
 	    "type" : "P"
 	} ]
 
 "#;
-    let copyrights: Vec<Copyright> = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(copyrights[0]._type, CopyrightType::Performance);
+  let copyrights: Vec<Copyright> = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(copyrights[0]._type, CopyrightType::Performance);
 }
 
 #[test]
 fn test_audio_analysis_section() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "start": 237.02356,
             "duration": 18.32542,
@@ -275,12 +275,12 @@ fn test_audio_analysis_section() {
             "time_signature_confidence": 1
         }
         "#;
-    let session: AudioAnalysisSection = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(session.time_interval.duration, 18.32542);
+  let session: AudioAnalysisSection = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(session.time_interval.duration, 18.32542);
 }
 #[test]
 fn test_audio_analysis_segments() {
-    let json_str = r#"
+  let json_str = r#"
          {
             "start": 252.15601,
             "duration": 3.19297,
@@ -297,26 +297,26 @@ fn test_audio_analysis_segments() {
             ]
             }
             "#;
-    let segment: AudioAnalysisSegment = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(segment.time_interval.start, 252.15601);
+  let segment: AudioAnalysisSegment = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(segment.time_interval.start, 252.15601);
 }
 
 #[test]
 fn test_actions() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "disallows": {
                 "resuming": true
             }
         }
         "#;
-    let actions: Actions = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(actions.disallows[0], DisallowKey::Resuming);
+  let actions: Actions = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(actions.disallows[0], DisallowKey::Resuming);
 }
 
 #[test]
 fn test_recommendations_seed() {
-    let json_str = r#"
+  let json_str = r#"
         {
             "initialPoolSize": 500,
             "afterFilteringSize": 380,
@@ -326,13 +326,13 @@ fn test_recommendations_seed() {
             "type": "artist"
         }        
         "#;
-    let seed: RecommendationsSeed = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(seed._type, RecommendationsSeedType::Artist);
+  let seed: RecommendationsSeed = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(seed._type, RecommendationsSeedType::Artist);
 }
 
 #[test]
 fn test_full_playlist() {
-    let json_str_images = r#"
+  let json_str_images = r#"
 [
     {
 	"height": null,
@@ -341,7 +341,7 @@ fn test_full_playlist() {
     }
 ]
 "#;
-    let json_str_simplified_artists = r#"
+  let json_str_simplified_artists = r#"
 [
     {
 	"external_urls": {
@@ -355,7 +355,7 @@ fn test_full_playlist() {
     }
 ]
 "#;
-    let json_str = r#"
+  let json_str = r#"
         {
             "collaborative": false,
             "description": "A playlist for testing pourposes",
@@ -459,17 +459,17 @@ fn test_full_playlist() {
             "uri": "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n"
         }
         "#.replace("json_str_images", json_str_images).replace("json_str_simplified_artists", json_str_simplified_artists);
-    let full_playlist: FullPlaylist = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(
-        full_playlist.uri,
-        "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
-    );
-    assert_eq!(full_playlist.followers.total, 109);
+  let full_playlist: FullPlaylist = serde_json::from_str(&json_str).unwrap();
+  assert_eq!(
+    full_playlist.uri,
+    "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
+  );
+  assert_eq!(full_playlist.followers.total, 109);
 }
 
 #[test]
 fn test_audio_features() {
-    let json = r#"
+  let json = r#"
     {
         "duration_ms" : 255349,
         "key" : 5,
@@ -491,14 +491,14 @@ fn test_audio_features() {
         "type" : "audio_features"
     }
     "#;
-    let audio_features: AudioFeatures = serde_json::from_str(json).unwrap();
-    let duration = Duration::from_millis(255349);
-    assert_eq!(audio_features.duration, duration);
+  let audio_features: AudioFeatures = serde_json::from_str(json).unwrap();
+  let duration = Duration::from_millis(255349);
+  assert_eq!(audio_features.duration, duration);
 }
 
 #[test]
 fn test_full_track() {
-    let json = r#"
+  let json = r#"
     {
   "album": {
     "album_type": "single",
@@ -570,27 +570,27 @@ fn test_full_track() {
   "uri": "spotify:track:11dFghVXANMlKmJXsNCbNl"
 }
     "#;
-    let full_track: FullTrack = serde_json::from_str(&json).unwrap();
-    let duration = Duration::from_millis(207959);
-    assert_eq!(full_track.duration, duration);
+  let full_track: FullTrack = serde_json::from_str(&json).unwrap();
+  let duration = Duration::from_millis(207959);
+  assert_eq!(full_track.duration, duration);
 }
 
 #[test]
 fn test_resume_point() {
-    let json = r#"
+  let json = r#"
     {
         "fully_played": false,
         "resume_position_ms": 423432
     }   
     "#;
-    let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
-    let duration = Duration::from_millis(423432);
-    assert_eq!(resume_point.resume_position, duration);
+  let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
+  let duration = Duration::from_millis(423432);
+  assert_eq!(resume_point.resume_position, duration);
 }
 
 #[test]
 fn test_currently_playing_context() {
-    let json = r#"
+  let json = r#"
 {
   "timestamp": 1607769168429,
   "context": {
@@ -688,23 +688,23 @@ fn test_currently_playing_context() {
   "is_playing": true
 }
     "#;
-    let currently_playing_context: CurrentlyPlayingContext = serde_json::from_str(&json).unwrap();
-    let timestamp = 1607769168429;
-    let second: i64 = (timestamp - timestamp % 1000) / 1000;
-    let nanosecond = (timestamp % 1000) * 1000000;
-    let dt = DateTime::<Utc>::from_utc(
-        NaiveDateTime::from_timestamp(second, nanosecond as u32),
-        Utc,
-    );
-    assert_eq!(currently_playing_context.timestamp, dt);
+  let currently_playing_context: CurrentlyPlayingContext = serde_json::from_str(&json).unwrap();
+  let timestamp = 1607769168429;
+  let second: i64 = (timestamp - timestamp % 1000) / 1000;
+  let nanosecond = (timestamp % 1000) * 1000000;
+  let dt = DateTime::<Utc>::from_utc(
+    NaiveDateTime::from_timestamp(second, nanosecond as u32),
+    Utc,
+  );
+  assert_eq!(currently_playing_context.timestamp, dt);
 
-    let duration = Duration::from_millis(22270);
-    assert_eq!(currently_playing_context.progress, Some(duration));
+  let duration = Duration::from_millis(22270);
+  assert_eq!(currently_playing_context.progress, Some(duration));
 }
 
 #[test]
 fn test_current_playback_context() {
-    let json = r#"
+  let json = r#"
 {
   "device": {
     "id": "28d0f845293d03a2713392905c6d30b6442719b5",
@@ -726,7 +726,6 @@ fn test_current_playback_context() {
     "type": "album",
     "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
   },
-  "progress_ms": 137847,
   "item": {
     "album": {
       "album_type": "single",
@@ -804,13 +803,14 @@ fn test_current_playback_context() {
   "is_playing": true
 }
     "#;
-    let current_playback_context: CurrentPlaybackContext = serde_json::from_str(&json).unwrap();
-    let timestamp = 1607774342714;
-    let second: i64 = (timestamp - timestamp % 1000) / 1000;
-    let nanosecond = (timestamp % 1000) * 1000000;
-    let dt = DateTime::<Utc>::from_utc(
-        NaiveDateTime::from_timestamp(second, nanosecond as u32),
-        Utc,
-    );
-    assert_eq!(current_playback_context.timestamp, dt);
+  let current_playback_context: CurrentPlaybackContext = serde_json::from_str(&json).unwrap();
+  let timestamp = 1607774342714;
+  let second: i64 = (timestamp - timestamp % 1000) / 1000;
+  let nanosecond = (timestamp % 1000) * 1000000;
+  let dt = DateTime::<Utc>::from_utc(
+    NaiveDateTime::from_timestamp(second, nanosecond as u32),
+    Utc,
+  );
+  assert_eq!(current_playback_context.timestamp, dt);
+  assert!(current_playback_context.progress.is_none());
 }

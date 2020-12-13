@@ -56,7 +56,13 @@ pub struct CurrentPlaybackContext {
         serialize_with = "to_millisecond_timestamp"
     )]
     pub timestamp: DateTime<Utc>,
-    pub progress_ms: Option<u32>,
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "from_option_duration_ms",
+        serialize_with = "to_option_duration_ms",
+        rename = "progress_ms"
+    )]
+    pub progress: Option<Duration>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
     pub currently_playing_type: CurrentlyPlayingType,
