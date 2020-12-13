@@ -2,12 +2,13 @@
 use super::device::Device;
 use super::PlayingItem;
 use crate::model::{
-    from_millisecond_timestamp, to_millisecond_timestamp, CurrentlyPlayingType, DisallowKey,
-    RepeatState, Type,
+    from_millisecond_timestamp, from_option_duration_ms, to_millisecond_timestamp,
+    to_option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
+use std::time::Duration;
 /// Context object
 ///
 /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
@@ -31,7 +32,13 @@ pub struct CurrentlyPlayingContext {
         serialize_with = "to_millisecond_timestamp"
     )]
     pub timestamp: DateTime<Utc>,
-    pub progress_ms: Option<u32>,
+    #[serde(default)]
+    #[serde(
+        deserialize_with = "from_option_duration_ms",
+        serialize_with = "to_option_duration_ms",
+        rename = "progress_ms"
+    )]
+    pub progress: Option<Duration>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
     pub currently_playing_type: CurrentlyPlayingType,

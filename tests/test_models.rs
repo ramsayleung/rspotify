@@ -697,6 +697,9 @@ fn test_currently_playing_context() {
         Utc,
     );
     assert_eq!(currently_playing_context.timestamp, dt);
+
+    let duration = Duration::from_millis(22270);
+    assert_eq!(currently_playing_context.progress, Some(duration));
 }
 
 #[test]

@@ -20,6 +20,8 @@ pub mod user;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{de, Deserialize, Serialize, Serializer};
 use std::{fmt, time::Duration};
+
+/// Vistor to help deserialize duration represented as millisecond to `std::time::Duration`
 struct DurationVisitor;
 impl<'de> de::Visitor<'de> for DurationVisitor {
     type Value = Duration;
@@ -50,6 +52,7 @@ where
     s.serialize_u64(x.as_millis() as u64)
 }
 
+/// Vistor to help deserialize unix millisecond timestamp to `chrono::DateTime`
 struct DateTimeVisitor;
 
 impl<'de> de::Visitor<'de> for DateTimeVisitor {
@@ -90,6 +93,52 @@ where
 {
     s.serialize_i64(x.timestamp_millis())
 }
+
+/// Vistor to help deserialize duration represented as millisecond to `Option<std::time::Duration>`
+struct OptionDurationVisitor;
+
+impl<'de> de::Visitor<'de> for OptionDurationVisitor {
+    type Value = Option<Duration>;
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "a optional milliseconds represents std::time::Duration"
+        )
+    }
+    fn visit_none<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(None)
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        Ok(Some(deserializer.deserialize_u64(DurationVisitor)?))
+    }
+}
+
+/// Deserialize `Option<std::time::Duration>` from millisecond(represented as u64)
+pub(in crate) fn from_option_duration_ms<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    d.deserialize_option(OptionDurationVisitor)
+}
+
+/// Serialize `Option<std::time::Duration>` to millisecond(represented as u64)
+pub(in crate) fn to_option_duration_ms<S>(x: &Option<Duration>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match *x {
+        Some(duration) => s.serialize_u64(duration.as_millis() as u64),
+        None => s.serialize_none(),
+    }
+}
+
 /// Restriction object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
