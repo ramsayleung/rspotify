@@ -36,7 +36,7 @@ impl<'de> de::Visitor<'de> for DurationVisitor {
     }
 }
 
-/// Deserialize `std::time::Duration` from millisecond(represented as u64)
+/// Deserialize `std::time::Duration` from milliseconds (represented as u64)
 pub(in crate) fn from_duration_ms<'de, D>(d: D) -> Result<Duration, D::Error>
 where
     D: de::Deserializer<'de>,
@@ -44,7 +44,7 @@ where
     d.deserialize_u64(DurationVisitor)
 }
 
-/// Serialize `std::time::Duration` to millisecond(represented as u64)
+/// Serialize `std::time::Duration` to milliseconds (represented as u64)
 pub(in crate) fn to_duration_ms<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
@@ -86,7 +86,7 @@ where
     d.deserialize_u64(DateTimeVisitor)
 }
 
-/// Serialize DateTime<Utc>  to Unix millisecond timestamp
+/// Serialize DateTime<Utc> to Unix millisecond timestamp
 pub(in crate) fn to_millisecond_timestamp<S>(x: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
@@ -120,7 +120,7 @@ impl<'de> de::Visitor<'de> for OptionDurationVisitor {
     }
 }
 
-/// Deserialize `Option<std::time::Duration>` from millisecond(represented as u64)
+/// Deserialize `Option<std::time::Duration>` from milliseconds (represented as u64)
 pub(in crate) fn from_option_duration_ms<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
 where
     D: de::Deserializer<'de>,
@@ -128,7 +128,7 @@ where
     d.deserialize_option(OptionDurationVisitor)
 }
 
-/// Serialize `Option<std::time::Duration>` to millisecond(represented as u64)
+/// Serialize `Option<std::time::Duration>` to milliseconds (represented as u64)
 pub(in crate) fn to_option_duration_ms<S>(x: &Option<Duration>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
