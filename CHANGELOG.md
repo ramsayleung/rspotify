@@ -21,7 +21,6 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `FullAlbum`
   + `SimplifiedArtist`
   + `FullArtist`
-  + `FullArtists`
   + `CursorPageFullArtists`
   + `AudioFeatures`
   + `AudioFeaturesPayload`
@@ -73,7 +72,6 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `ResumePoint`
   + `FullTrack`
   + `TrackLink`
-  + `FullTracks`
   + `SimplifiedTrack`
   + `TrackRestriction`
   + `SavedTrack`
@@ -159,6 +157,28 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
+- ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
+  + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
+  + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
+  + Constrain visibility of `AudioFeaturesPayload` struct with `pub (in crate)`, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
+  + Constrain visibility of `FullAlbums` struct with `pub (in crate)`, make `albums` endpoints return a `Vec<FullAlbum>` instead.
+  + Constrain visibility of `PageSimpliedAlbums` struct with `pub (in crate)`, make `new_releases` endpoints return a `Page<SimplifiedAlbum>` instead.
+  + Constrain visibility of `CursorPageFullArtists` struct with `pub (in crate)`, make `current_user_followed_artists` endpoints return a `CursorBasedPage<FullArtist>` instead.
+  + Constrain visibility of `PageCategory` struct with `pub (in crate)`, make `categories` endpoints return a `Page<Category>` instead.
+  + Constrain visibility of `DevicePayload` struct with `pub (in crate)`, make `device` endpoints return a `Vec<Device>` instead.
+  + Constrain visibility of `SeversalSimplifiedShows` struct with `pub (in crate)`, make `get_several_shows` endpoints return a `Vec<SimplifiedShow>` instead.
+  + Rename `AudioFeatures.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `FullEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `SimplifiedEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `FullTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `SimplifiedTrack.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `ResumePoint.resume_position_ms` to `resume_position`, and change its type from `u32` to `std::time::Duration`.
+  + Rename `CurrentlyPlayingContext.progress_ms` to `progress`, and change its type from `Option<u32>` to `Option<std::time::Duration>`.
+  + Rename `CurrentPlaybackContext.progress_ms` to `progress`, and change its type from `Option<u32>` to `Option<std::time::Duration>`.
+  + Change `CurrentlyPlayingContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
+  + Change `CurrentPlaybackContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
+  + Change `Offset.position`'s type from `Option<u32>` to `Option<std::time::Duration>`
+  + Remove `SimplifiedPlayingContext`, since it's useless.
 
 ## 0.10 (2020/07/01)
 

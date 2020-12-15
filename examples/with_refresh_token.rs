@@ -39,7 +39,7 @@ async fn do_things(spotify: Spotify) {
         .expect("couldn't get user followed artists");
     println!(
         "User currently follows at least {} artists.",
-        followed.artists.items.len()
+        followed.items.len()
     );
 
     spotify

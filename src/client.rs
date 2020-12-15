@@ -220,7 +220,7 @@ impl Spotify {
         &self,
         track_ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
-    ) -> ClientResult<FullTracks> {
+    ) -> ClientResult<Vec<FullTrack>> {
         // TODO: this can be improved
         let mut ids: Vec<String> = vec![];
         for track_id in track_ids {
@@ -234,7 +234,7 @@ impl Spotify {
 
         let url = format!("tracks/?ids={}", ids.join(","));
         let result = self.get(&url, None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
     /// Returns a single artist given the artist's ID, URI or URL.
@@ -261,14 +261,16 @@ impl Spotify {
     pub async fn artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = &'a str>,
-    ) -> ClientResult<FullArtists> {
+    ) -> ClientResult<Vec<FullArtist>> {
         let mut ids: Vec<String> = vec![];
         for artist_id in artist_ids {
             ids.push(self.get_id(Type::Artist, artist_id));
         }
         let url = format!("artists/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
-        self.convert_result(&result)
+
+        self.convert_result::<FullArtists>(&result)
+            .map(|x| x.artists)
     }
 
     /// Get Spotify catalog information about an artist's albums.
@@ -322,7 +324,7 @@ impl Spotify {
         &self,
         artist_id: &str,
         country: T,
-    ) -> ClientResult<FullTracks> {
+    ) -> ClientResult<Vec<FullTrack>> {
         let mut params = Query::with_capacity(1);
         params.insert(
             "country".to_owned(),
@@ -332,7 +334,7 @@ impl Spotify {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
         let result = self.get(&url, None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
     /// Get Spotify catalog information about artists similar to an identified
@@ -344,11 +346,12 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-related-artists/)
     #[maybe_async]
-    pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<FullArtists> {
+    pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<Vec<FullArtist>> {
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/related-artists", trid);
         let result = self.get(&url, None, &Query::new()).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullArtists>(&result)
+            .map(|x| x.artists)
     }
 
     /// Returns a single album given the album's ID, URIs or URL.
@@ -376,14 +379,14 @@ impl Spotify {
     pub async fn albums<'a>(
         &self,
         album_ids: impl IntoIterator<Item = &'a str>,
-    ) -> ClientResult<FullAlbums> {
+    ) -> ClientResult<Vec<FullAlbum>> {
         let mut ids: Vec<String> = vec![];
         for album_id in album_ids {
             ids.push(self.get_id(Type::Album, album_id));
         }
         let url = format!("albums/?ids={}", ids.join(","));
         let result = self.get(&url, None, &Query::new()).await?;
-        self.convert_result(&result)
+        self.convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
 
     /// Search for an Item. Get Spotify catalog information about artists,
@@ -1018,7 +1021,7 @@ impl Spotify {
         &self,
         limit: L,
         after: Option<String>,
-    ) -> ClientResult<CursorPageFullArtists> {
+    ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("type".to_owned(), Type::Artist.to_string());
@@ -1027,7 +1030,8 @@ impl Spotify {
         }
 
         let result = self.get("me/following", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<CursorPageFullArtists>(&result)
+            .map(|x| x.artists)
     }
 
     /// Remove one or more tracks from the current user's "Your Music" library.
@@ -1397,7 +1401,7 @@ impl Spotify {
         country: Option<Country>,
         limit: L,
         offset: O,
-    ) -> ClientResult<PageSimpliedAlbums> {
+    ) -> ClientResult<Page<SimplifiedAlbum>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -1406,7 +1410,8 @@ impl Spotify {
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<PageSimpliedAlbums>(&result)
+            .map(|x| x.albums)
     }
 
     /// Get a list of new album releases featured in Spotify
@@ -1428,7 +1433,7 @@ impl Spotify {
         country: Option<Country>,
         limit: L,
         offset: O,
-    ) -> ClientResult<PageCategory> {
+    ) -> ClientResult<Page<Category>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
@@ -1439,7 +1444,8 @@ impl Spotify {
             params.insert("country".to_owned(), country.to_string());
         }
         let result = self.get("browse/categories", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<PageCategory>(&result)
+            .map(|x| x.categories)
     }
 
     /// Get a list of playlists in a category in Spotify
@@ -1578,7 +1584,7 @@ impl Spotify {
     pub async fn tracks_features<'a>(
         &self,
         tracks: impl IntoIterator<Item = &'a str>,
-    ) -> ClientResult<Option<AudioFeaturesPayload>> {
+    ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let ids: Vec<String> = tracks
             .into_iter()
             .map(|track| self.get_id(Type::Track, track))
@@ -1589,7 +1595,8 @@ impl Spotify {
         if result.is_empty() {
             Ok(None)
         } else {
-            self.convert_result(&result)
+            self.convert_result::<Option<AudioFeaturesPayload>>(&result)
+                .map(|option_payload| option_payload.map(|x| x.audio_features))
         }
     }
 
@@ -1611,9 +1618,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-a-users-available-devices/)
     #[maybe_async]
-    pub async fn device(&self) -> ClientResult<DevicePayload> {
+    pub async fn device(&self) -> ClientResult<Vec<Device>> {
         let result = self.get("me/player/devices", None, &Query::new()).await?;
-        self.convert_result(&result)
+        self.convert_result::<DevicePayload>(&result)
+            .map(|x| x.devices)
     }
 
     /// Get Information About The User’s Current Playback
@@ -1981,7 +1989,7 @@ impl Spotify {
         &self,
         ids: impl IntoIterator<Item = &'a str>,
         market: Option<Country>,
-    ) -> ClientResult<SeversalSimplifiedShows> {
+    ) -> ClientResult<Vec<SimplifiedShow>> {
         // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
         params.insert(
@@ -1992,7 +2000,8 @@ impl Spotify {
             params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("shows", None, &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<SeversalSimplifiedShows>(&result)
+            .map(|x| x.shows)
     }
 
     /// Get Spotify catalog information about an show’s episodes. Optional

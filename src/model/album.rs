@@ -66,18 +66,16 @@ pub struct FullAlbum {
 /// Full Albums wrapped by Vec object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/albums/get-several-albums/)
-// TODO: Reduce this wrapper object to `Vec<FullAlbum>`
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct FullAlbums {
+#[derive(Deserialize)]
+pub(in crate) struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
 /// Simplified Albums wrapped by Page object
 ///
 /// [Reference](https://developer.spotify.com/web-api/get-list-new-releases/)
-// TODO: Reduce this wrapper object to `Page<SimplifiedAlbum>`
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct PageSimpliedAlbums {
+#[derive(Deserialize)]
+pub(in crate) struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 

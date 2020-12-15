@@ -1,5 +1,7 @@
 //! All objects related to artist defined by Spotify API
+use crate::model::{from_duration_ms, to_duration_ms};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 /// Audio Feature Object
 ///
@@ -9,7 +11,12 @@ pub struct AudioFeatures {
     pub acousticness: f32,
     pub analysis_url: String,
     pub danceability: f32,
-    pub duration_ms: u32,
+    #[serde(
+        deserialize_with = "from_duration_ms",
+        serialize_with = "to_duration_ms",
+        rename = "duration_ms"
+    )]
+    pub duration: Duration,
     pub energy: f32,
     pub id: String,
     pub instrumentalness: f32,
@@ -30,9 +37,8 @@ pub struct AudioFeatures {
 /// Audio feature object wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-audio-features/)
-// TODO: Reduce this wrapper object to `Vec<AudioFeatures>`
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct AudioFeaturesPayload {
+#[derive(Deserialize)]
+pub(in crate) struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
 }
 
