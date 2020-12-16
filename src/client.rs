@@ -1008,6 +1008,17 @@ impl Spotify {
         self.convert_result(&result)
     }
 
+    /// Get a list of the songs saved in the current Spotify user's "Your Music"
+    /// library.
+    ///
+    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
+    #[cfg(feature = "__async")]
+    pub fn current_user_saved_tracks_stream<'a>(
+        &'a self,
+    ) -> impl futures_util::stream::Stream<Item = ClientResult<SavedTrack>> + 'a {
+        crate::util::page_stream(move |limit, offset| self.current_user_saved_tracks(limit, offset))
+    }
+
     /// Gets a list of the artists followed by the current authorized user.
     ///
     /// Parameters:
