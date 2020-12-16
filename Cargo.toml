@@ -20,6 +20,7 @@ chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
 derive_builder = "0.9.0"
 dotenv = { version = "0.15.0", optional = true }
 getrandom = "0.2.0"
+itertools = { version = "0.9.0", optional = true }
 log = "0.4.11"
 maybe-async = "0.2.1"
 reqwest = { version = "0.10.7", default-features = false, features = ["json", "socks"], optional = true }
@@ -58,7 +59,7 @@ ureq-native-tls = ["ureq/native-tls"]
 
 # Internal features for checking async or sync compilation
 __async = ["async-trait", "async-stream", "futures-util"]
-__sync = ["maybe-async/is_sync"]
+__sync = ["maybe-async/is_sync", "itertools"]
 
 [package.metadata.docs.rs]
 # Also documenting the CLI methods
@@ -73,6 +74,11 @@ path = "examples/album.rs"
 name = "current_user_recently_played"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/current_user_recently_played.rs"
+
+[[example]]
+name = "current_user_saved_tracks_async"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/current_user_saved_tracks_async.rs"
 
 [[example]]
 name = "oauth_tokens"
@@ -113,3 +119,8 @@ path = "examples/ureq/search.rs"
 name = "seek_track"
 required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/seek_track.rs"
+
+[[example]]
+name = "current_user_saved_tracks_sync"
+required-features = ["env-file", "cli", "client-ureq"]
+path = "examples/current_user_saved_tracks_sync.rs"

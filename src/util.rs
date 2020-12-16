@@ -47,3 +47,63 @@ where
         }
     }
 }
+
+#[cfg(feature = "__sync")]
+pub(in crate) fn page_iterator<'a, T, E, Function>(
+    f: Function,
+) -> impl Iterator<Item = Result<T, E>> + 'a
+where
+    T: Unpin + 'static,
+    E: Error + Unpin + 'static,
+    Function: 'a + Fn(u32, u32) -> Result<Page<T>, E>,
+{
+    use itertools::Either;
+    use std::iter::once;
+
+    let pages = PageIterator {
+        f,
+        offset: 0,
+        done: false,
+    };
+    pages.flat_map(|result| match result {
+        Ok(page) => Either::Left(page.items.into_iter().map(Ok)),
+        Err(e) => Either::Right(once(Err(e))),
+    })
+}
+
+struct PageIterator<T, E, Function>
+where
+    T: Unpin + 'static,
+    E: Error + Unpin + 'static,
+    Function: Fn(u32, u32) -> Result<Page<T>, E>,
+{
+    f: Function,
+    offset: u32,
+    done: bool,
+}
+
+impl<T, E, Function> Iterator for PageIterator<T, E, Function>
+where
+    T: Unpin + 'static,
+    E: Error + Unpin + 'static,
+    Function: Fn(u32, u32) -> Result<Page<T>, E>,
+{
+    type Item = Result<Page<T>, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            None
+        } else {
+            let result = match (self.f)(50, self.offset) {
+                Ok(page) if page.items.is_empty() => {
+                    self.done = true;
+                    None
+                }
+                Ok(page) => Some(Ok(page)),
+                Err(e) => Some(Err(e)),
+            };
+            self.offset += 50;
+            result
+        }
+    }
+}
