@@ -25,11 +25,11 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 #[cfg(feature = "__async")]
 pub(in crate) fn page_stream<'a, T, E, Fut, Function>(
     f: Function,
-) -> impl futures_util::stream::Stream<Item = Result<T, E>> + 'a
+) -> impl futures::stream::Stream<Item = Result<T, E>> + 'a
 where
     T: Unpin + 'static,
     E: Error + Unpin + 'static,
-    Fut: futures_util::future::Future<Output = Result<Page<T>, E>>,
+    Fut: futures::future::Future<Output = Result<Page<T>, E>>,
     Function: 'a + Fn(u32, u32) -> Fut,
 {
     use async_stream::stream;

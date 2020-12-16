@@ -1015,7 +1015,7 @@ impl Spotify {
     #[cfg(feature = "__async")]
     pub fn current_user_saved_tracks_stream<'a>(
         &'a self,
-    ) -> impl futures_util::stream::Stream<Item = ClientResult<SavedTrack>> + 'a {
+    ) -> impl futures::stream::Stream<Item = ClientResult<SavedTrack>> + 'a {
         crate::util::page_stream(move |limit, offset| self.current_user_saved_tracks(limit, offset))
     }
 
