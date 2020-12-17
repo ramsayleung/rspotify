@@ -107,13 +107,14 @@ impl Id<'_> {
     }
 
     pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<Id<'a>, IdError> {
-        if let Some((tpe, id)) = if let Some(uri) = uri.strip_prefix("spotify:") {
-            uri.rfind(':').map(|mid| uri.split_at(mid))
-        } else if let Some(uri) = uri.strip_prefix("spotify/") {
-            uri.rfind('/').map(|mid| uri.split_at(mid))
-        } else {
-            return Err(IdError::InvalidPrefix);
-        } {
+        let rest = uri.strip_prefix("spotify").ok_or(IdError::InvalidPrefix)?;
+        let sep = match rest.chars().next() {
+            Some(ch) if ch == '/' || ch == ':' => ch,
+            _ => return Err(IdError::InvalidPrefix),
+        };
+        let rest = &rest[1..];
+
+        if let Some((tpe, id)) = rest.rfind(sep).map(|mid| rest.split_at(mid)) {
             let _type = tpe.parse().map_err(|_| IdError::InvalidType)?;
             Self::from_id(_type, &id[1..])
         } else {

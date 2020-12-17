@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{Display, ToString, EnumString};
+use strum::{Display, EnumString, ToString};
 
 /// Copyright type: `C` = the copyright, `P` = the sound recording (performance) copyright.
 ///
