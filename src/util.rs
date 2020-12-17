@@ -25,6 +25,7 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 #[cfg(feature = "__async")]
 pub(in crate) fn page_stream<'a, T, E, Fut, Function>(
     f: Function,
+    page_size: u32,
 ) -> impl futures::stream::Stream<Item = Result<T, E>> + 'a
 where
     T: Unpin + 'static,
@@ -36,7 +37,7 @@ where
     let mut offset = 0;
     stream! {
         loop {
-            let page = f(50, offset).await?;
+            let page = f(page_size, offset).await?;
             offset += page.items.len() as u32;
             for item in page.items {
                 yield Ok(item);
@@ -51,6 +52,7 @@ where
 #[cfg(feature = "__sync")]
 pub(in crate) fn page_iterator<'a, T, E, Function>(
     f: Function,
+    page_size: u32,
 ) -> impl Iterator<Item = Result<T, E>> + 'a
 where
     T: Unpin + 'static,
@@ -61,6 +63,7 @@ where
         f,
         offset: 0,
         done: false,
+        page_size,
     };
     pages.flat_map(|result| ResultIter::new(result.map(|page| page.items.into_iter())))
 }
@@ -75,6 +78,7 @@ where
     f: Function,
     offset: u32,
     done: bool,
+    page_size: u32,
 }
 
 impl<T, E, Function> Iterator for PageIterator<T, E, Function>
@@ -89,7 +93,7 @@ where
         if self.done {
             None
         } else {
-            let result = match (self.f)(50, self.offset) {
+            let result = match (self.f)(self.page_size, self.offset) {
                 Ok(page) if page.items.is_empty() => {
                     self.done = true;
                     None

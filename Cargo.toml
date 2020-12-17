@@ -79,7 +79,7 @@ path = "examples/current_user_recently_played.rs"
 [[example]]
 name = "current_user_saved_tracks_async"
 required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/current_user_saved_tracks_async.rs"
+path = "examples/current_user_saved_tracks.rs"
 
 [[example]]
 name = "oauth_tokens"
@@ -124,4 +124,4 @@ path = "examples/ureq/seek_track.rs"
 [[example]]
 name = "current_user_saved_tracks_sync"
 required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/current_user_saved_tracks_sync.rs"
+path = "examples/ureq/current_user_saved_tracks.rs"

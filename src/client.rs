@@ -1016,7 +1016,10 @@ impl Spotify {
     pub fn current_user_saved_tracks_stream<'a>(
         &'a self,
     ) -> impl futures::stream::Stream<Item = ClientResult<SavedTrack>> + 'a {
-        crate::util::page_stream(move |limit, offset| self.current_user_saved_tracks(limit, offset))
+        crate::util::page_stream(
+            move |limit, offset| self.current_user_saved_tracks(limit, offset),
+            50,
+        )
     }
 
     /// Get a list of the songs saved in the current Spotify user's "Your Music"
@@ -1027,9 +1030,10 @@ impl Spotify {
     pub fn current_user_saved_tracks_stream<'a>(
         &'a self,
     ) -> impl Iterator<Item = ClientResult<SavedTrack>> + 'a {
-        crate::util::page_iterator(move |limit, offset| {
-            self.current_user_saved_tracks(limit, offset)
-        })
+        crate::util::page_iterator(
+            move |limit, offset| self.current_user_saved_tracks(limit, offset),
+            50,
+        )
     }
 
     /// Gets a list of the artists followed by the current authorized user.
