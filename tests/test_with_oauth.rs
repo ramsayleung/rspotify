@@ -716,7 +716,7 @@ async fn test_playlist_replace_tracks() {
 #[ignore]
 async fn test_user_playlist() {
     let user_id = "spotify";
-    let mut playlist_id = Id::from_id(Type::Playlist, "59ZbFPES4DQwEjBpWHzrtC").unwrap();
+    let playlist_id = Id::from_id(Type::Playlist, "59ZbFPES4DQwEjBpWHzrtC").unwrap();
     oauth_client()
         .await
         .user_playlist(user_id, Some(playlist_id), None, None)

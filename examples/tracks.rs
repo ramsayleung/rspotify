@@ -1,4 +1,5 @@
 use rspotify::client::SpotifyBuilder;
+use rspotify::model::Id;
 use rspotify::oauth2::CredentialsBuilder;
 
 #[tokio::main]
@@ -33,8 +34,8 @@ async fn main() {
     // so `...` is used instead of `prompt_for_user_token`.
     spotify.request_client_token().await.unwrap();
 
-    let birdy_uri1 = "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp";
-    let birdy_uri2 = "spotify:track:3twNvmDtFQtAd5gMKedhLD";
+    let birdy_uri1 = Id::from_uri("spotify:track:3n3Ppam7vgaVa1iaRUc9Lp").unwrap();
+    let birdy_uri2 = Id::from_uri("spotify:track:3twNvmDtFQtAd5gMKedhLD").unwrap();
     let track_uris = vec![birdy_uri1, birdy_uri2];
     let tracks = spotify.tracks(track_uris, None).await;
     println!("Response: {:?}", tracks);

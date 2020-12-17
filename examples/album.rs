@@ -1,4 +1,5 @@
 use rspotify::client::SpotifyBuilder;
+use rspotify::model::Id;
 use rspotify::oauth2::CredentialsBuilder;
 
 #[tokio::main]
@@ -34,7 +35,7 @@ async fn main() {
     spotify.request_client_token().await.unwrap();
 
     // Running the requests
-    let birdy_uri = "spotify:album:0sNOF9WDwhWunNAHPD3Baj";
+    let birdy_uri = Id::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
     let albums = spotify.album(birdy_uri).await;
 
     println!("Response: {:#?}", albums);
