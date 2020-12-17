@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, ToString};
+use strum::{Display, ToString, EnumString};
 
 /// Copyright type: `C` = the copyright, `P` = the sound recording (performance) copyright.
 ///
@@ -28,7 +28,7 @@ pub enum AlbumType {
 }
 
 /// Type: `artist`, `album`, `track`, `playlist`, `show` or `episode`
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Display, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Type {

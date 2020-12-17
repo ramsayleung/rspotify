@@ -66,11 +66,7 @@ pub enum IdError {
 
 impl std::fmt::Display for Id<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.write_str("spotify:")?;
-        f.write_str(self._type.as_ref())?;
-        f.write_str(":")?;
-        f.write_str(self.id)?;
-        Ok(())
+        write!(f, "spotify:{}:{}", self._type, self.id)
     }
 }
 
@@ -90,7 +86,7 @@ impl Id<'_> {
     }
 
     pub fn uri(&self) -> String {
-        format!("spotify:{}:{}", self._type.as_ref(), self.id)
+        format!("spotify:{}:{}", self._type, self.id)
     }
 
     pub fn from_id_or_uri<'a, 'b: 'a>(_type: Type, id_or_uri: &'b str) -> Result<Id<'a>, IdError> {
@@ -118,17 +114,7 @@ impl Id<'_> {
         } else {
             return Err(IdError::InvalidPrefix);
         } {
-            let _type = match tpe {
-                "artist" => Type::Artist,
-                "album" => Type::Album,
-                "track" => Type::Track,
-                "user" => Type::User,
-                "playlist" => Type::Playlist,
-                "show" => Type::Show,
-                "episode" => Type::Episode,
-                _ => return Err(IdError::InvalidType),
-            };
-
+            let _type = tpe.parse().map_err(|_| IdError::InvalidType)?;
             Self::from_id(_type, &id[1..])
         } else {
             Err(IdError::InvalidFormat)
