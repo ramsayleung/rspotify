@@ -37,10 +37,10 @@ where
     stream! {
         loop {
             let page = f(50, offset).await?;
+            offset += page.items.len() as u32;
             for item in page.items {
                 yield Ok(item);
             }
-            offset += 50;
             if page.next.is_none() {
                 break;
             }
@@ -57,20 +57,15 @@ where
     E: Error + Unpin + 'static,
     Function: 'a + Fn(u32, u32) -> Result<Page<T>, E>,
 {
-    use itertools::Either;
-    use std::iter::once;
-
     let pages = PageIterator {
         f,
         offset: 0,
         done: false,
     };
-    pages.flat_map(|result| match result {
-        Ok(page) => Either::Left(page.items.into_iter().map(Ok)),
-        Err(e) => Either::Right(once(Err(e))),
-    })
+    pages.flat_map(|result| ResultIter::new(result.map(|page| page.items.into_iter())))
 }
 
+/// Iterator that repeatedly calls a function that returns a page until an empty page is returned
 struct PageIterator<T, E, Function>
 where
     T: Unpin + 'static,
@@ -99,11 +94,46 @@ where
                     self.done = true;
                     None
                 }
-                Ok(page) => Some(Ok(page)),
+                Ok(page) => {
+                    self.offset += page.items.len() as u32;
+                    Some(Ok(page))
+                }
                 Err(e) => Some(Err(e)),
             };
-            self.offset += 50;
             result
+        }
+    }
+}
+
+/// Helper to transform a Result<Iterator<Item = T>, E> into an Iterator<Item = Result<T, E>>
+struct ResultIter<T, E, I: Iterator<Item = T>> {
+    inner: Option<I>,
+    err: Option<E>,
+}
+
+impl<T, E, I: Iterator<Item = T>> ResultIter<T, E, I> {
+    pub fn new(res: Result<I, E>) -> Self {
+        match res {
+            Ok(inner) => ResultIter {
+                inner: Some(inner),
+                err: None,
+            },
+            Err(err) => ResultIter {
+                inner: None,
+                err: Some(err),
+            },
+        }
+    }
+}
+
+impl<T, E, I: Iterator<Item = T>> Iterator for ResultIter<T, E, I> {
+    type Item = Result<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match (self.err.take(), &mut self.inner) {
+            (Some(err), _) => Some(Err(err)),
+            (None, Some(inner)) => inner.next().map(Ok),
+            _ => None, // Error already taken
         }
     }
 }
