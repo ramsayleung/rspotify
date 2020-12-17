@@ -15,6 +15,7 @@ use super::http::{BaseClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
+use super::util::stream::{page_stream, StreamOrIterator};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -1012,25 +1013,10 @@ impl Spotify {
     /// library.
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
-    #[cfg(feature = "__async")]
     pub fn current_user_saved_tracks_stream<'a>(
         &'a self,
-    ) -> impl futures::stream::Stream<Item = ClientResult<SavedTrack>> + 'a {
-        crate::util::page_stream(
-            move |limit, offset| self.current_user_saved_tracks(limit, offset),
-            50,
-        )
-    }
-
-    /// Get a list of the songs saved in the current Spotify user's "Your Music"
-    /// library.
-    ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
-    #[cfg(feature = "__sync")]
-    pub fn current_user_saved_tracks_stream<'a>(
-        &'a self,
-    ) -> impl Iterator<Item = ClientResult<SavedTrack>> + 'a {
-        crate::util::page_iterator(
+    ) -> impl StreamOrIterator<ClientResult<SavedTrack>> + 'a {
+        page_stream(
             move |limit, offset| self.current_user_saved_tracks(limit, offset),
             50,
         )
