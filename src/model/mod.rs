@@ -83,6 +83,14 @@ impl Id<'_> {
         self._type
     }
 
+    pub(in crate) fn check_type(self, _type: Type) -> Result<Self, IdError> {
+        if self._type == _type {
+            Ok(self)
+        } else {
+            Err(IdError::InvalidType)
+        }
+    }
+
     /// Spotify object id (guaranteed to be a string of alphanumeric characters)
     pub fn id(&self) -> &str {
         &self.id
