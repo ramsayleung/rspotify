@@ -125,9 +125,9 @@ async fn test_audio_features() {
 #[maybe_async_test]
 async fn test_audios_features() {
     let mut tracks_ids = vec![];
-    let track_id1 = "spotify:track:4JpKVNYnVcJ8tuMKjAj50A";
+    let track_id1 = Id::from_uri("spotify:track:4JpKVNYnVcJ8tuMKjAj50A").unwrap();
     tracks_ids.push(track_id1);
-    let track_id2 = "spotify:track:24JygzOLM0EmRQeGtFcIcG";
+    let track_id2 = Id::from_uri("spotify:track:24JygzOLM0EmRQeGtFcIcG").unwrap();
     tracks_ids.push(track_id2);
     creds_client()
         .await
@@ -139,8 +139,8 @@ async fn test_audios_features() {
 #[maybe_async]
 #[maybe_async_test]
 async fn test_user() {
-    let birdy_uri = String::from("tuggareutangranser");
-    creds_client().await.user(&birdy_uri).await.unwrap();
+    let birdy_uri = Id::from_id(Type::User, "tuggareutangranser").unwrap();
+    creds_client().await.user(birdy_uri).await.unwrap();
 }
 
 #[maybe_async]

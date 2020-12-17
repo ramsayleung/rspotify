@@ -1,5 +1,6 @@
+use chrono::{DateTime, NaiveDateTime, Utc};
 use rspotify::model::*;
-use serde::Deserialize;
+use std::time::Duration;
 #[test]
 fn test_simplified_track() {
     let json_str = r#"
@@ -33,7 +34,8 @@ fn test_simplified_track() {
 
 "#;
     let track: SimplifiedTrack = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(track.duration_ms, 276773);
+    let duration = Duration::from_millis(276773);
+    assert_eq!(track.duration, duration);
 }
 
 #[test]
@@ -170,22 +172,76 @@ fn test_simplified_episode() {
         simplified_episode.release_date_precision,
         DatePrecision::Day
     );
+    let duration = Duration::from_millis(2685023);
+    assert_eq!(simplified_episode.duration, duration);
 }
 
 #[test]
 fn test_full_episode() {
-    #[derive(Deserialize)]
-    struct TestStruct {
-        pub release_date_precision: DatePrecision,
-    }
     let json_str = r#"
-     
-        {
-            "release_date_precision": "day"
-        }
+    {
+        "audio_preview_url": "https://p.scdn.co/mp3-preview/566fcc94708f39bcddc09e4ce84a8e5db8f07d4d",
+        "description": "En ny tysk ",
+        "duration_ms": 1502795,
+        "explicit": false,
+        "external_urls": {
+            "spotify": "https://open.spotify.com/episode/512ojhOuo1ktJprKbVcKyQ"
+        },
+        "href": "https://api.spotify.com/v1/episodes/512ojhOuo1ktJprKbVcKyQ",
+        "id": "512ojhOuo1ktJprKbVcKyQ",
+        "images": [
+            {
+                "height": 64,
+                "url": "https://i.scdn.co/image/e29c75799cad73927fad713011edad574868d8da",
+                "width": 64
+            }
+        ],
+        "is_externally_hosted": false,
+        "is_playable": true,
+        "language": "sv",
+        "languages": [
+            "sv"
+        ],
+        "name": "Tredje rikets knarkande granskas",
+        "release_date": "2015-10-01",
+        "release_date_precision": "day",
+        "show": {
+            "available_markets": [
+                "ZA"
+            ],
+            "copyrights": [],
+            "description": "Vi är där historien är. Ansvarig utgivare: Nina Glans",
+            "explicit": false,
+            "external_urls": {
+                "spotify": "https://open.spotify.com/show/38bS44xjbVVZ3No3ByF1dJ"
+            },
+            "href": "https://api.spotify.com/v1/shows/38bS44xjbVVZ3No3ByF1dJ",
+            "id": "38bS44xjbVVZ3No3ByF1dJ",
+            "images": [
+                {
+                    "height": 64,
+                    "url": "https://i.scdn.co/image/3dc007829bc0663c24089e46743a9f4ae15e65f8",
+                    "width": 64
+                }
+            ],
+            "is_externally_hosted": false,
+            "languages": [
+                "sv"
+            ],
+            "media_type": "audio",
+            "name": "Vetenskapsradion Historia",
+            "publisher": "Sveriges Radio",
+            "type": "show",
+            "uri": "spotify:show:38bS44xjbVVZ3No3ByF1dJ"
+        },
+        "type": "episode",
+        "uri": "spotify:episode:512ojhOuo1ktJprKbVcKyQ"
+    }
         "#;
-    let test_struct: TestStruct = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(test_struct.release_date_precision, DatePrecision::Day);
+    let full_episode: FullEpisode = serde_json::from_str(&json_str).unwrap();
+    assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
+    let duration = Duration::from_millis(1502795);
+    assert_eq!(full_episode.duration, duration);
 }
 
 #[test]
@@ -411,20 +467,371 @@ fn test_full_playlist() {
     assert_eq!(full_playlist.followers.total, 109);
 }
 
-fn test_devices() {
-    let json_str = r#"
+#[test]
+fn test_audio_features() {
+    let json = r#"
+    {
+        "duration_ms" : 255349,
+        "key" : 5,
+        "mode" : 0,
+        "time_signature" : 4,
+        "acousticness" : 0.514,
+        "danceability" : 0.735,
+        "energy" : 0.578,
+        "instrumentalness" : 0.0902,
+        "liveness" : 0.159,
+        "loudness" : -11.840,
+        "speechiness" : 0.0461,
+        "valence" : 0.624,
+        "tempo" : 98.002,
+        "id" : "06AKEBrKUckW0KREUWRnvT",
+        "uri" : "spotify:track:06AKEBrKUckW0KREUWRnvT",
+        "track_href" : "https://api.spotify.com/v1/tracks/06AKEBrKUckW0KREUWRnvT",
+        "analysis_url" : "https://api.spotify.com/v1/audio-analysis/06AKEBrKUckW0KREUWRnvT",
+        "type" : "audio_features"
+    }
+    "#;
+    let audio_features: AudioFeatures = serde_json::from_str(json).unwrap();
+    let duration = Duration::from_millis(255349);
+    assert_eq!(audio_features.duration, duration);
+}
+
+#[test]
+fn test_full_track() {
+    let json = r#"
+    {
+  "album": {
+    "album_type": "single",
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/6sFIWsNpZYqfjUpaCgueju"
+        },
+        "href": "https://api.spotify.com/v1/artists/6sFIWsNpZYqfjUpaCgueju",
+        "id": "6sFIWsNpZYqfjUpaCgueju",
+        "name": "Carly Rae Jepsen",
+        "type": "artist",
+        "uri": "spotify:artist:6sFIWsNpZYqfjUpaCgueju"
+      }
+    ],
+    "available_markets": [
+      "ZA"
+    ],
+    "external_urls": {
+      "spotify": "https://open.spotify.com/album/0tGPJ0bkWOUmH7MEOR77qc"
+    },
+    "href": "https://api.spotify.com/v1/albums/0tGPJ0bkWOUmH7MEOR77qc",
+    "id": "0tGPJ0bkWOUmH7MEOR77qc",
+    "images": [
+      {
+        "height": 64,
+        "url": "https://i.scdn.co/image/5a73a056d0af707b4119a883d87285feda543fbb",
+        "width": 64
+      }
+    ],
+    "name": "Cut To The Feeling",
+    "release_date": "2017-05-26",
+    "release_date_precision": "day",
+    "type": "album",
+    "uri": "spotify:album:0tGPJ0bkWOUmH7MEOR77qc"
+  },
+  "artists": [
+    {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/artist/6sFIWsNpZYqfjUpaCgueju"
+      },
+      "href": "https://api.spotify.com/v1/artists/6sFIWsNpZYqfjUpaCgueju",
+      "id": "6sFIWsNpZYqfjUpaCgueju",
+      "name": "Carly Rae Jepsen",
+      "type": "artist",
+      "uri": "spotify:artist:6sFIWsNpZYqfjUpaCgueju"
+    }
+  ],
+  "available_markets": [
+    "ZA"
+  ],
+  "disc_number": 1,
+  "duration_ms": 207959,
+  "explicit": false,
+  "external_ids": {
+    "isrc": "USUM71703861"
+  },
+  "external_urls": {
+    "spotify": "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl"
+  },
+  "href": "https://api.spotify.com/v1/tracks/11dFghVXANMlKmJXsNCbNl",
+  "id": "11dFghVXANMlKmJXsNCbNl",
+  "is_local": false,
+  "name": "Cut To The Feeling",
+  "popularity": 63,
+  "preview_url": "https://p.scdn.co/mp3-preview/3eb16018c2a700240e9dfb8817b6f2d041f15eb1?cid=774b29d4f13844c495f206cafdad9c86",
+  "track_number": 1,
+  "type": "track",
+  "uri": "spotify:track:11dFghVXANMlKmJXsNCbNl"
+}
+    "#;
+    let full_track: FullTrack = serde_json::from_str(&json).unwrap();
+    let duration = Duration::from_millis(207959);
+    assert_eq!(full_track.duration, duration);
+}
+
+#[test]
+fn test_resume_point() {
+    let json = r#"
+    {
+        "fully_played": false,
+        "resume_position_ms": 423432
+    }   
+    "#;
+    let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
+    let duration = Duration::from_millis(423432);
+    assert_eq!(resume_point.resume_position, duration);
+}
+
+#[test]
+fn test_currently_playing_context() {
+    let json = r#"
+{
+  "timestamp": 1607769168429,
+  "context": {
+    "external_urls": {
+      "spotify": "https://open.spotify.com/album/2lgOc40hhHqjUGAKMWqGxO"
+    },
+    "href": "https://api.spotify.com/v1/albums/2lgOc40hhHqjUGAKMWqGxO",
+    "type": "album",
+    "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
+  },
+  "progress_ms": 22270,
+  "item": {
+    "album": {
+      "album_type": "single",
+      "artists": [
         {
-            "devices" : [ {
-                "id" : "5fbb3ba6aa454b5534c4ba43a8c7e8e45a63ad0e",
-                "is_active" : false,
-                "is_private_session": true,
-                "is_restricted" : false,
-                "name" : "My fridge",
-                "type" : "Computer",
-                "volume_percent" : 100
-            } ]
+          "external_urls": {
+            "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+          },
+          "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+          "id": "0cGUm45nv7Z6M6qdXYQGTX",
+          "name": "Kehlani",
+          "type": "artist",
+          "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
         }
-"#;
-    let payload: DevicePayload = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(payload.devices[0]._type, DeviceType::Computer)
+      ],
+      "external_urls": {
+        "spotify": "https://open.spotify.com/album/2lgOc40hhHqjUGAKMWqGxO"
+      },
+      "href": "https://api.spotify.com/v1/albums/2lgOc40hhHqjUGAKMWqGxO",
+      "id": "2lgOc40hhHqjUGAKMWqGxO",
+      "images": [
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/ab67616d00004851fa7b2b60e85950ee93dcdc04",
+          "width": 64
+        }
+      ],
+      "name": "Playinwitme (feat. Kehlani)",
+      "release_date": "2018-03-20",
+      "release_date_precision": "day",
+      "total_tracks": 1,
+      "type": "album",
+      "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
+    },
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+        },
+        "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+        "id": "0cGUm45nv7Z6M6qdXYQGTX",
+        "name": "Kehlani",
+        "type": "artist",
+        "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
+      }
+    ],
+    "available_markets": [],
+    "disc_number": 1,
+    "duration_ms": 191680,
+    "explicit": false,
+    "external_ids": {
+      "isrc": "USAT21801141"
+    },
+    "external_urls": {
+      "spotify": "https://open.spotify.com/track/4F1yvJfQ7gJkrcgFJQDjOr"
+    },
+    "href": "https://api.spotify.com/v1/tracks/4F1yvJfQ7gJkrcgFJQDjOr",
+    "id": "4F1yvJfQ7gJkrcgFJQDjOr",
+    "is_local": false,
+    "is_playable": true,
+    "linked_from": {
+      "external_urls": {
+        "spotify": "https://open.spotify.com/track/43cFjTTCD9Cni4aSL0sORz"
+      },
+      "href": "https://api.spotify.com/v1/tracks/43cFjTTCD9Cni4aSL0sORz",
+      "id": "43cFjTTCD9Cni4aSL0sORz",
+      "type": "track",
+      "uri": "spotify:track:43cFjTTCD9Cni4aSL0sORz"
+    },
+    "name": "Playinwitme (feat. Kehlani)",
+    "popularity": 70,
+    "preview_url": "https://p.scdn.co/mp3-preview/05e8881d5c896a8d147d2e79150fb5480a4fb186?cid=774b29d4f13844c495f206cafdad9c86",
+    "track_number": 9,
+    "type": "track",
+    "uri": "spotify:track:4F1yvJfQ7gJkrcgFJQDjOr"
+  },
+  "currently_playing_type": "track",
+  "actions": {
+    "disallows": {
+      "resuming": true,
+      "skipping_prev": true
+    }
+  },
+  "is_playing": true
+}
+    "#;
+    let currently_playing_context: CurrentlyPlayingContext = serde_json::from_str(&json).unwrap();
+    let timestamp = 1607769168429;
+    let second: i64 = (timestamp - timestamp % 1000) / 1000;
+    let nanosecond = (timestamp % 1000) * 1000000;
+    let dt = DateTime::<Utc>::from_utc(
+        NaiveDateTime::from_timestamp(second, nanosecond as u32),
+        Utc,
+    );
+    assert_eq!(currently_playing_context.timestamp, dt);
+
+    let duration = Duration::from_millis(22270);
+    assert_eq!(currently_playing_context.progress, Some(duration));
+}
+
+#[test]
+fn test_current_playback_context() {
+    let json = r#"
+{
+  "device": {
+    "id": "28d0f845293d03a2713392905c6d30b6442719b5",
+    "is_active": true,
+    "is_private_session": false,
+    "is_restricted": false,
+    "name": "Web Player (Firefox)",
+    "type": "Computer",
+    "volume_percent": 100
+  },
+  "shuffle_state": false,
+  "repeat_state": "off",
+  "timestamp": 1607774342714,
+  "context": {
+    "external_urls": {
+      "spotify": "https://open.spotify.com/album/2lgOc40hhHqjUGAKMWqGxO"
+    },
+    "href": "https://api.spotify.com/v1/albums/2lgOc40hhHqjUGAKMWqGxO",
+    "type": "album",
+    "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
+  },
+  "item": {
+    "album": {
+      "album_type": "single",
+      "artists": [
+        {
+          "external_urls": {
+            "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+          },
+          "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+          "id": "0cGUm45nv7Z6M6qdXYQGTX",
+          "name": "Kehlani",
+          "type": "artist",
+          "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
+        }
+      ],
+      "available_markets": [],
+      "external_urls": {
+        "spotify": "https://open.spotify.com/album/2lgOc40hhHqjUGAKMWqGxO"
+      },
+      "href": "https://api.spotify.com/v1/albums/2lgOc40hhHqjUGAKMWqGxO",
+      "id": "2lgOc40hhHqjUGAKMWqGxO",
+      "images": [
+        {
+          "height": 64,
+          "url": "https://i.scdn.co/image/ab67616d00004851fa7b2b60e85950ee93dcdc04",
+          "width": 64
+        }
+      ],
+      "name": "Playinwitme (feat. Kehlani)",
+      "release_date": "2018-03-20",
+      "release_date_precision": "day",
+      "total_tracks": 1,
+      "type": "album",
+      "uri": "spotify:album:2lgOc40hhHqjUGAKMWqGxO"
+    },
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/0cGUm45nv7Z6M6qdXYQGTX"
+        },
+        "href": "https://api.spotify.com/v1/artists/0cGUm45nv7Z6M6qdXYQGTX",
+        "id": "0cGUm45nv7Z6M6qdXYQGTX",
+        "name": "Kehlani",
+        "type": "artist",
+        "uri": "spotify:artist:0cGUm45nv7Z6M6qdXYQGTX"
+      }
+    ],
+    "available_markets": [],
+    "disc_number": 1,
+    "duration_ms": 193093,
+    "explicit": false,
+    "external_ids": {
+      "isrc": "USAT21801141"
+    },
+    "external_urls": {
+      "spotify": "https://open.spotify.com/track/43cFjTTCD9Cni4aSL0sORz"
+    },
+    "href": "https://api.spotify.com/v1/tracks/43cFjTTCD9Cni4aSL0sORz",
+    "id": "43cFjTTCD9Cni4aSL0sORz",
+    "is_local": false,
+    "name": "Playinwitme (feat. Kehlani)",
+    "popularity": 0,
+    "preview_url": null,
+    "track_number": 1,
+    "type": "track",
+    "uri": "spotify:track:43cFjTTCD9Cni4aSL0sORz"
+  },
+  "currently_playing_type": "track",
+  "actions": {
+    "disallows": {
+      "resuming": true,
+      "skipping_prev": true
+    }
+  },
+  "is_playing": true
+}
+    "#;
+    let current_playback_context: CurrentPlaybackContext = serde_json::from_str(&json).unwrap();
+    let timestamp = 1607774342714;
+    let second: i64 = (timestamp - timestamp % 1000) / 1000;
+    let nanosecond = (timestamp % 1000) * 1000000;
+    let dt = DateTime::<Utc>::from_utc(
+        NaiveDateTime::from_timestamp(second, nanosecond as u32),
+        Utc,
+    );
+    assert_eq!(current_playback_context.timestamp, dt);
+    assert!(current_playback_context.progress.is_none());
+}
+
+#[test]
+fn test_offset() {
+    let json = r#"
+  {
+    "position": 5,
+    "uri": "spotify:track:1301WleyT98MSxVHPZCA6M"
+  }
+  "#;
+    let offset: Offset = serde_json::from_str(&json).unwrap();
+    let duration = Duration::from_millis(5);
+    assert_eq!(offset.position, Some(duration));
+
+    let empty_json = r#"
+  {
+
+  }
+  "#;
+    let empty_offset: Offset = serde_json::from_str(&empty_json).unwrap();
+    assert!(empty_offset.position.is_none());
 }

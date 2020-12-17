@@ -778,3 +778,17 @@ async fn test_add_queue() {
         .await
         .unwrap();
 }
+
+#[maybe_async]
+#[maybe_async_test]
+#[ignore]
+async fn test_get_several_shows() {
+    oauth_client()
+        .await
+        .get_several_shows(
+            vec!["5CfCWKI5pZ28U0uOzXkDHe", "5as3aKmN2k11yfDDDSrvaZ"],
+            None,
+        )
+        .await
+        .unwrap();
+}
