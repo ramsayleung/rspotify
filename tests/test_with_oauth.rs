@@ -19,7 +19,7 @@ mod common;
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
-use rspotify::model::{Country, RepeatState, SearchType, TimeRange};
+use rspotify::model::{Country, Id, RepeatState, SearchType, TimeRange, Type};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 
 use std::env;
@@ -170,8 +170,8 @@ async fn test_current_user_saved_albums_add() {
     let mut album_ids = vec![];
     let album_id1 = "6akEvsycLGftJxYudPjmqK";
     let album_id2 = "628oezqK2qfmCjC6eXNors";
-    album_ids.push(album_id2);
-    album_ids.push(album_id1);
+    album_ids.push(Id::from_id(Type::Album, album_id2).unwrap());
+    album_ids.push(Id::from_id(Type::Album, album_id1).unwrap());
     oauth_client()
         .await
         .current_user_saved_albums_add(album_ids)
@@ -186,8 +186,8 @@ async fn test_current_user_saved_albums_delete() {
     let mut album_ids = vec![];
     let album_id1 = "6akEvsycLGftJxYudPjmqK";
     let album_id2 = "628oezqK2qfmCjC6eXNors";
-    album_ids.push(album_id2);
-    album_ids.push(album_id1);
+    album_ids.push(Id::from_id(Type::Album, album_id2).unwrap());
+    album_ids.push(Id::from_id(Type::Album, album_id1).unwrap());
     oauth_client()
         .await
         .current_user_saved_albums_delete(album_ids)
@@ -213,8 +213,8 @@ async fn test_current_user_saved_tracks_add() {
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
     let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
-    tracks_ids.push(track_id2);
-    tracks_ids.push(track_id1);
+    tracks_ids.push(Id::from_uri(track_id2).unwrap());
+    tracks_ids.push(Id::from_uri(track_id1).unwrap());
     oauth_client()
         .await
         .current_user_saved_tracks_add(tracks_ids)
@@ -229,8 +229,8 @@ async fn test_current_user_saved_tracks_contains() {
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
     let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
-    tracks_ids.push(track_id2);
-    tracks_ids.push(track_id1);
+    tracks_ids.push(Id::from_uri(track_id2).unwrap());
+    tracks_ids.push(Id::from_uri(track_id1).unwrap());
     oauth_client()
         .await
         .current_user_saved_tracks_contains(tracks_ids)
@@ -245,8 +245,8 @@ async fn test_current_user_saved_tracks_delete() {
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
     let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
-    tracks_ids.push(track_id2);
-    tracks_ids.push(track_id1);
+    tracks_ids.push(Id::from_uri(track_id2).unwrap());
+    tracks_ids.push(Id::from_uri(track_id1).unwrap());
     oauth_client()
         .await
         .current_user_saved_tracks_delete(tracks_ids)
@@ -365,8 +365,8 @@ async fn test_previous_playback() {
 #[ignore]
 async fn test_recommendations() {
     let mut payload = Map::new();
-    let seed_artists = vec!["4NHQUGzhtTLFvgF5SZesLK".to_owned()];
-    let seed_tracks = vec!["0c6xIDDpzE81m2q797ordA".to_owned()];
+    let seed_artists = vec![Id::from_id(Type::Artist, "4NHQUGzhtTLFvgF5SZesLK").unwrap()];
+    let seed_tracks = vec![Id::from_id(Type::Track, "0c6xIDDpzE81m2q797ordA").unwrap()];
     payload.insert("min_energy".to_owned(), 0.4.into());
     payload.insert("min_popularity".to_owned(), 50.into());
     oauth_client()
@@ -509,8 +509,8 @@ async fn test_user_follow_artist() {
     let mut artists = vec![];
     let artist_id1 = "74ASZWbe4lXaubB36ztrGX";
     let artist_id2 = "08td7MxkoHQkXnWAYD8d6Q";
-    artists.push(artist_id2);
-    artists.push(artist_id1);
+    artists.push(Id::from_id(Type::Artist, artist_id2).unwrap());
+    artists.push(Id::from_id(Type::Artist, artist_id1).unwrap());
     oauth_client()
         .await
         .user_follow_artists(artists)
@@ -525,8 +525,8 @@ async fn test_user_unfollow_artist() {
     let mut artists = vec![];
     let artist_id1 = "74ASZWbe4lXaubB36ztrGX";
     let artist_id2 = "08td7MxkoHQkXnWAYD8d6Q";
-    artists.push(artist_id2);
-    artists.push(artist_id1);
+    artists.push(Id::from_id(Type::Artist, artist_id2).unwrap());
+    artists.push(Id::from_id(Type::Artist, artist_id1).unwrap());
     oauth_client()
         .await
         .user_unfollow_artists(artists)
@@ -539,7 +539,7 @@ async fn test_user_unfollow_artist() {
 #[ignore]
 async fn test_user_follow_users() {
     let mut users = vec![];
-    let user_id1 = "exampleuser01";
+    let user_id1 = Id::from_id(Type::User, "exampleuser01").unwrap();
     users.push(user_id1);
     oauth_client().await.user_follow_users(users).await.unwrap();
 }
@@ -549,7 +549,7 @@ async fn test_user_follow_users() {
 #[ignore]
 async fn test_user_unfollow_users() {
     let mut users = vec![];
-    let user_id1 = "exampleuser01";
+    let user_id1 = Id::from_id(Type::User, "exampleuser01").unwrap();
     users.push(user_id1);
     oauth_client()
         .await
@@ -562,11 +562,11 @@ async fn test_user_unfollow_users() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_add_tracks() {
-    let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+    let playlist_id = Id::from_id(Type::Playlist, "5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let mut tracks_ids = vec![];
-    let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
+    let track_id1 = Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap();
     tracks_ids.push(track_id1);
-    let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
+    let track_id2 = Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap();
     tracks_ids.push(track_id2);
     oauth_client()
         .await
@@ -634,7 +634,7 @@ async fn test_playlist_follow_playlist() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_recorder_tracks() {
-    let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+    let playlist_id = Id::from_id(Type::Playlist, "5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let range_start = 0;
     let insert_before = 1;
     let range_length = 1;
@@ -649,10 +649,10 @@ async fn test_playlist_recorder_tracks() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_remove_all_occurrences_of_tracks() {
-    let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+    let playlist_id = Id::from_id(Type::Playlist, "5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let mut tracks_ids = vec![];
-    let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
-    let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
+    let track_id1 = Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap();
+    let track_id2 = Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap();
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
     oauth_client()
@@ -666,7 +666,7 @@ async fn test_playlist_remove_all_occurrences_of_tracks() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_remove_specific_occurrences_of_tracks() {
-    let playlist_id = String::from("5jAOgWXCBKuinsGiZxjDQ5");
+    let playlist_id = Id::from_id(Type::Playlist, "5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let mut tracks = vec![];
     let mut map1 = Map::new();
     let mut position1 = vec![];
@@ -689,7 +689,7 @@ async fn test_playlist_remove_specific_occurrences_of_tracks() {
     tracks.push(map2);
     oauth_client()
         .await
-        .playlist_remove_specific_occurrences_of_tracks(&playlist_id, tracks, None)
+        .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks, None)
         .await
         .unwrap();
 }
@@ -698,10 +698,10 @@ async fn test_playlist_remove_specific_occurrences_of_tracks() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_replace_tracks() {
-    let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
+    let playlist_id = Id::from_id(Type::Playlist, "5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let mut tracks_ids = vec![];
-    let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
-    let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
+    let track_id1 = Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap();
+    let track_id2 = Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap();
     tracks_ids.push(track_id2);
     tracks_ids.push(track_id1);
     oauth_client()
@@ -716,10 +716,10 @@ async fn test_playlist_replace_tracks() {
 #[ignore]
 async fn test_user_playlist() {
     let user_id = "spotify";
-    let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
+    let mut playlist_id = Id::from_id(Type::Playlist, "59ZbFPES4DQwEjBpWHzrtC").unwrap();
     oauth_client()
         .await
-        .user_playlist(user_id, Some(&mut playlist_id), None, None)
+        .user_playlist(user_id, Some(playlist_id), None, None)
         .await
         .unwrap();
 }
@@ -740,10 +740,10 @@ async fn test_user_playlists() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_tracks() {
-    let playlist_id = String::from("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC");
+    let playlist_id = Id::from_uri("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC").unwrap();
     oauth_client()
         .await
-        .playlist_tracks(&playlist_id, None, Some(2), None, None)
+        .playlist_tracks(playlist_id, None, Some(2), None, None)
         .await
         .unwrap();
 }
