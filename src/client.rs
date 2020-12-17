@@ -698,7 +698,7 @@ impl Spotify {
     pub async fn playlist_add_tracks<'a>(
         &self,
         playlist_id: Id<'_>,
-        track_ids: impl IntoIterator<Item = Id<'_>>,
+        track_ids: impl IntoIterator<Item = Id<'a>>,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = track_ids
@@ -730,7 +730,7 @@ impl Spotify {
     pub async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: Id<'_>,
-        track_ids: impl IntoIterator<Item = Id<'_>>,
+        track_ids: impl IntoIterator<Item = Id<'a>>,
     ) -> ClientResult<()> {
         let uris = track_ids
             .into_iter()
@@ -1051,7 +1051,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_user_saved_tracks_delete<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = Id<'_>>,
+        track_ids: impl IntoIterator<Item = Id<'a>>,
     ) -> ClientResult<()> {
         let ids = track_ids
             .into_iter()
