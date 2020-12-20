@@ -154,8 +154,9 @@
 //! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool.
 
-// disable all modules when both client features are enabled, this way only the compile error below gets
-// show instead of showing a whole list of confusing errors
+// disable all modules when both client features are enabled,
+// this way only the compile error below gets show
+// instead of showing a whole list of confusing errors
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod client;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
@@ -168,7 +169,10 @@ pub mod oauth2;
 pub mod util;
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
-compile_error!("`client-reqwest` and `client-ureq` features cannot be both enabled at the same time, if you want to use `client-ureq` you need to set `default-features = false`");
+compile_error!(
+    "`client-reqwest` and `client-ureq` features cannot both be enabled at the same time, \
+  if you want to use `client-ureq` you need to set `default-features = false`"
+);
 
 #[doc(hidden)]
 mod macros {
