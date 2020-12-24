@@ -238,16 +238,17 @@ impl<T: IdType> Id<'_, T> {
             Some(ch) if ch == '/' || ch == ':' => ch,
             _ => return Err(IdError::InvalidPrefix),
         };
-        let rest = &rest[1..];
+        // It's safe to do .get_unchecked() because we checked the first char above
+        let rest = unsafe { rest.get_unchecked(1..) };
 
-        if let Some((tpe, id)) = rest.rfind(sep).map(|mid| rest.split_at(mid)) {
-            let _type: Type = tpe.parse().map_err(|_| IdError::InvalidType)?;
-            if _type != T::TYPE {
-                return Err(IdError::InvalidType);
-            }
-            Id::<T>::from_id(&id[1..])
-        } else {
-            Err(IdError::InvalidFormat)
+        let (tpe, id) = rest
+            .rfind(sep)
+            .map(|mid| rest.split_at(mid))
+            .ok_or(IdError::InvalidFormat)?;
+
+        match tpe.parse::<Type>() {
+            Ok(tpe) if tpe == T::TYPE => Id::<T>::from_id(&id[1..]),
+            _ => Err(IdError::InvalidType),
         }
     }
 }
