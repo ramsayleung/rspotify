@@ -134,7 +134,7 @@ If we missed any change or there's something you'd like to discuss about this ve
         - `get_a_show`
         - `get_an_episode`
         - `get_shows_episodes`
-  + The endpoint which changes parameter from `Vec<Map<String, Value>>` to `Vec<TrackIdOrPos>`:
+  + The endpoint which changes parameter from `Vec<Map<String, Value>>` to `Vec<TrackPositions>`:
         - `playlist_remove_specific_occurrences_of_tracks`
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Rename endpoints with more fitting name:
   + `audio_analysis` -> `track_analysis`

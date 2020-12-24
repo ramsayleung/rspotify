@@ -812,18 +812,14 @@ impl Spotify {
     pub async fn playlist_remove_specific_occurrences_of_tracks(
         &self,
         playlist_id: Id<'_, idtypes::Playlist>,
-        tracks: Vec<TrackIdOrPos>,
+        tracks: Vec<TrackPositions<'_>>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
         let mut ftracks: Vec<Map<String, Value>> = Vec::with_capacity(tracks.len());
         for track in tracks {
             let mut map = Map::new();
-            if let Some(id) = track.id {
-                map.insert("uri".to_owned(), id.uri().into());
-            }
-            if let Some(pos) = track.pos {
-                map.insert("position".to_owned(), pos.into());
-            }
+            map.insert("uri".to_owned(), track.id.uri().into());
+            map.insert("positions".to_owned(), track.positions.into());
             ftracks.push(map);
         }
 

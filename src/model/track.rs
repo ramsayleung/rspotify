@@ -110,28 +110,15 @@ pub struct SavedTrack {
     pub track: FullTrack,
 }
 
-/// Track id or position to point to a concrete track in a playlist
-pub struct TrackIdOrPos<'id> {
-    pub id: Option<Id<'id, idtypes::Track>>,
-    pub pos: Option<u32>,
+/// Track id with specific positions track in a playlist
+pub struct TrackPositions<'id> {
+    pub id: Id<'id, idtypes::Track>,
+    pub positions: Vec<u32>,
 }
 
-impl TrackIdOrPos<'static> {
-    /// Track in a playlist by a position
-    fn from_pos(pos: u32) -> Self {
-        TrackIdOrPos {
-            id: None,
-            pos: Some(pos),
-        }
-    }
-}
-
-impl<'id> TrackIdOrPos<'id> {
+impl<'id> TrackPositions<'id> {
     /// Track in a playlist by an id
-    fn from_id(id: Id<'id, idtypes::Track>) -> Self {
-        TrackIdOrPos {
-            id: Some(id),
-            pos: None,
-        }
+    pub fn new(id: Id<'id, idtypes::Track>, positions: Vec<u32>) -> Self {
+        Self { id, positions }
     }
 }

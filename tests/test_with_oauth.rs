@@ -19,7 +19,7 @@ mod common;
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
-use rspotify::model::{Country, Id, RepeatState, SearchType, TimeRange};
+use rspotify::model::{Country, Id, RepeatState, SearchType, TimeRange, TrackPositions};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 
 use std::env;
@@ -667,26 +667,16 @@ async fn test_playlist_remove_all_occurrences_of_tracks() {
 #[ignore]
 async fn test_playlist_remove_specific_occurrences_of_tracks() {
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
-    let mut tracks = vec![];
-    let mut map1 = Map::new();
-    let mut position1 = vec![];
-    position1.push(0);
-    position1.push(3);
-    map1.insert(
-        "uri".to_string(),
-        "spotify:track:4iV5W9uYEdYUVa79Axb7Rh".into(),
-    );
-    map1.insert("position".to_string(), position1.into());
-    tracks.push(map1);
-    let mut map2 = Map::new();
-    let mut position2 = vec![];
-    position2.push(7);
-    map2.insert(
-        "uri".to_string(),
-        "spotify:track:1301WleyT98MSxVHPZCA6M".into(),
-    );
-    map2.insert("position".to_string(), position2.into());
-    tracks.push(map2);
+    let tracks = vec![
+        TrackPositions::new(
+            Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+            vec![0, 3],
+        ),
+        TrackPositions::new(
+            Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
+            vec![7],
+        ),
+    ];
     oauth_client()
         .await
         .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks, None)
