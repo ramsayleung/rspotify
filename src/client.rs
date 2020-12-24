@@ -812,13 +812,15 @@ impl Spotify {
         tracks: Vec<TrackPositions<'_>>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        let mut ftracks: Vec<Map<String, Value>> = Vec::with_capacity(tracks.len());
-        for track in tracks {
-            let mut map = Map::new();
-            map.insert("uri".to_owned(), track.id.uri().into());
-            map.insert("positions".to_owned(), track.positions.into());
-            ftracks.push(map);
-        }
+        let ftracks = tracks
+            .into_iter()
+            .map(|track| {
+                let mut map = Map::new();
+                map.insert("uri".to_owned(), track.id.uri().into());
+                map.insert("positions".to_owned(), track.positions.into());
+                map
+            })
+            .collect::<Vec<_>>();
 
         let mut params = json!({ "tracks": ftracks });
         if let Some(snapshot_id) = snapshot_id {
