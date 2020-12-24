@@ -41,6 +41,51 @@ pub enum Type {
     Episode,
 }
 
+pub mod idtypes {
+    use super::Type;
+
+    pub trait IdType: PartialEq {
+        const TYPE: Type;
+    }
+
+    impl IdType for Artist {
+        const TYPE: Type = Type::Artist;
+    }
+    impl IdType for Album {
+        const TYPE: Type = Type::Album;
+    }
+    impl IdType for Track {
+        const TYPE: Type = Type::Track;
+    }
+    impl IdType for Playlist {
+        const TYPE: Type = Type::Playlist;
+    }
+    impl IdType for User {
+        const TYPE: Type = Type::User;
+    }
+    impl IdType for Show {
+        const TYPE: Type = Type::Show;
+    }
+    impl IdType for Episode {
+        const TYPE: Type = Type::Episode;
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Artist {}
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Album {}
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Track {}
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Playlist {}
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum User {}
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Show {}
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Episode {}
+}
+
 /// Additional typs: `track`, `episode`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)

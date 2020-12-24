@@ -171,10 +171,48 @@ pub enum PlayingItem {
 }
 
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Id<'id> {
-    _type: Type,
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct Id<'id, T> {
+    _type: PhantomData<T>,
     id: &'id str,
+}
+
+impl<'id, T> Id<'id, T> {
+    pub fn to_owned(&self) -> IdBuf<T> {
+        IdBuf {
+            _type: PhantomData,
+            id: self.id.to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct IdBuf<T> {
+    _type: PhantomData<T>,
+    id: String,
+}
+
+impl<'id, T> Into<Id<'id, T>> for &'id IdBuf<T> {
+    fn into(self) -> Id<'id, T> {
+        Id {
+            _type: PhantomData,
+            id: self.id(),
+        }
+    }
+}
+
+impl<T: IdType> IdBuf<T> {
+    pub fn as_ref(&self) -> Id<'_, T> {
+        self.into()
+    }
+
+    pub fn _type(&self) -> Type {
+        T::TYPE
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
 }
 
 /// Spotify id or URI parsing error
@@ -193,49 +231,41 @@ pub enum IdError {
     InvalidId,
 }
 
-impl std::fmt::Display for Id<'_> {
+impl<T: IdType> std::fmt::Display for Id<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "spotify:{}:{}", self._type, self.id)
+        write!(f, "spotify:{}:{}", T::TYPE, self.id)
     }
 }
 
-impl AsRef<str> for Id<'_> {
+impl<T> AsRef<str> for Id<'_, T> {
     fn as_ref(&self) -> &str {
-        self.id
+        &self.id
     }
 }
 
-impl Id<'_> {
+impl<T: IdType> Id<'_, T> {
     /// Spotify object type
     pub fn _type(&self) -> Type {
-        self._type
-    }
-
-    pub(in crate) fn check_type(self, _type: Type) -> Result<Self, IdError> {
-        if self._type == _type {
-            Ok(self)
-        } else {
-            Err(IdError::InvalidType)
-        }
+        T::TYPE
     }
 
     /// Spotify object id (guaranteed to be a string of alphanumeric characters)
     pub fn id(&self) -> &str {
-        &self.id
+        self.id
     }
 
     /// Spotify object URI in a well-known format: spotify:type:id
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`, `spotify:track:4y4VO05kYgUTo2bzbox1an`.
     pub fn uri(&self) -> String {
-        format!("spotify:{}:{}", self._type, self.id)
+        format!("spotify:{}:{}", T::TYPE, &self.id)
     }
 
     /// Full Spotify object URL, can be opened in a browser
     ///
     /// Examples: https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an, https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI
     pub fn url(&self) -> String {
-        format!("https://open.spotify.com/{}/{}", self._type, self.id)
+        format!("https://open.spotify.com/{}/{}", T::TYPE, &self.id)
     }
 
     /// Parse Spotify id or URI from string slice
@@ -256,11 +286,10 @@ impl Id<'_> {
     /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id part, or it's an invalid id
     ///    (id is invalid if it contains non-alphanumeric characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be split into type and id parts.
-    pub fn from_id_or_uri<'a, 'b: 'a>(_type: Type, id_or_uri: &'b str) -> Result<Id<'a>, IdError> {
-        match Self::from_uri(id_or_uri) {
-            Ok(id) if id._type == _type => Ok(id),
-            Ok(_) => Err(IdError::InvalidType),
-            Err(IdError::InvalidPrefix) => Self::from_id(_type, id_or_uri),
+    pub fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<Id<'a, T>, IdError> {
+        match Id::<T>::from_uri(id_or_uri) {
+            Ok(id) => Ok(id),
+            Err(IdError::InvalidPrefix) => Id::<T>::from_id(id_or_uri),
             Err(error) => Err(error),
         }
     }
@@ -272,9 +301,12 @@ impl Id<'_> {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
-    pub fn from_id<'a, 'b: 'a>(_type: Type, id: &'b str) -> Result<Id<'a>, IdError> {
+    pub fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<Id<'a, T>, IdError> {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
-            Ok(Id { _type, id })
+            Ok(Id {
+                _type: PhantomData,
+                id,
+            })
         } else {
             Err(IdError::InvalidId)
         }
@@ -294,7 +326,7 @@ impl Id<'_> {
     /// - `IdError::InvalidType` - if type part of an `uri` is not a valid Spotify type,
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and id parts.
-    pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<Id<'a>, IdError> {
+    pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<Id<'a, T>, IdError> {
         let rest = uri.strip_prefix("spotify").ok_or(IdError::InvalidPrefix)?;
         let sep = match rest.chars().next() {
             Some(ch) if ch == '/' || ch == ':' => ch,
@@ -303,14 +335,19 @@ impl Id<'_> {
         let rest = &rest[1..];
 
         if let Some((tpe, id)) = rest.rfind(sep).map(|mid| rest.split_at(mid)) {
-            let _type = tpe.parse().map_err(|_| IdError::InvalidType)?;
-            Self::from_id(_type, &id[1..])
+            let _type: Type = tpe.parse().map_err(|_| IdError::InvalidType)?;
+            if _type != T::TYPE {
+                return Err(IdError::InvalidType);
+            }
+            Id::<T>::from_id(&id[1..])
         } else {
             Err(IdError::InvalidFormat)
         }
     }
 }
 
+use crate::model::enums::types::idtypes::IdType;
+use std::marker::PhantomData;
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, image::*,
     offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*, track::*,
@@ -325,33 +362,35 @@ mod tests {
     fn test_get_id() {
         // Assert artist
         let artist_id = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
-        let id = Id::from_id_or_uri(Type::Artist, artist_id).unwrap();
+        let id = Id::<idtypes::Artist>::from_id_or_uri(artist_id).unwrap();
         assert_eq!("2WX2uTcsvV5OnS0inACecP", id.id());
 
         // Assert album
         let album_id_a = "spotify/album/2WX2uTcsvV5OnS0inACecP";
         assert_eq!(
             "2WX2uTcsvV5OnS0inACecP",
-            Id::from_id_or_uri(Type::Album, album_id_a).unwrap().id()
+            Id::<idtypes::Album>::from_id_or_uri(album_id_a)
+                .unwrap()
+                .id()
         );
 
         // Mismatch type
         assert_eq!(
             Err(IdError::InvalidType),
-            Id::from_id_or_uri(Type::Artist, album_id_a)
+            Id::<idtypes::Artist>::from_id_or_uri(album_id_a)
         );
 
         // Could not split
         let artist_id_c = "spotify-album-2WX2uTcsvV5OnS0inACecP";
         assert_eq!(
             Err(IdError::InvalidId),
-            Id::from_id_or_uri(Type::Artist, artist_id_c)
+            Id::<idtypes::Artist>::from_id_or_uri(artist_id_c)
         );
 
         let playlist_id = "spotify:playlist:59ZbFPES4DQwEjBpWHzrtC";
         assert_eq!(
             "59ZbFPES4DQwEjBpWHzrtC",
-            Id::from_id_or_uri(Type::Playlist, playlist_id)
+            Id::<idtypes::Playlist>::from_id_or_uri(playlist_id)
                 .unwrap()
                 .id()
         );
@@ -361,8 +400,8 @@ mod tests {
     fn test_get_uri() {
         let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
         let track_id2 = "1301WleyT98MSxVHPZCA6M";
-        let id1 = Id::from_id_or_uri(Type::Track, track_id1).unwrap();
-        let id2 = Id::from_id_or_uri(Type::Track, track_id2).unwrap();
+        let id1 = Id::<idtypes::Track>::from_id_or_uri(track_id1).unwrap();
+        let id2 = Id::<idtypes::Track>::from_id_or_uri(track_id2).unwrap();
         assert_eq!(track_id1, &id1.uri());
         assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M", &id2.uri());
     }

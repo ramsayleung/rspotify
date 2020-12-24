@@ -2,7 +2,7 @@ mod common;
 
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
-use rspotify::model::{AlbumType, Country, Id, Type};
+use rspotify::model::{AlbumType, Country, Id};
 use rspotify::oauth2::CredentialsBuilder;
 
 use maybe_async::maybe_async;
@@ -110,7 +110,7 @@ async fn test_artist_top_tracks() {
 #[maybe_async]
 #[maybe_async_test]
 async fn test_audio_analysis() {
-    let track = Id::from_id(Type::Track, "06AKEBrKUckW0KREUWRnvT").unwrap();
+    let track = Id::from_id("06AKEBrKUckW0KREUWRnvT").unwrap();
     creds_client().await.track_analysis(track).await.unwrap();
 }
 
@@ -139,7 +139,7 @@ async fn test_audios_features() {
 #[maybe_async]
 #[maybe_async_test]
 async fn test_user() {
-    let birdy_uri = Id::from_id(Type::User, "tuggareutangranser").unwrap();
+    let birdy_uri = Id::from_id("tuggareutangranser").unwrap();
     creds_client().await.user(birdy_uri).await.unwrap();
 }
 
@@ -164,11 +164,7 @@ async fn test_tracks() {
 async fn test_existing_playlist() {
     creds_client()
         .await
-        .playlist(
-            Id::from_id(Type::Playlist, "37i9dQZF1DZ06evO45P0Eo").unwrap(),
-            None,
-            None,
-        )
+        .playlist(Id::from_id("37i9dQZF1DZ06evO45P0Eo").unwrap(), None, None)
         .await
         .unwrap();
 }
@@ -178,7 +174,7 @@ async fn test_existing_playlist() {
 async fn test_fake_playlist() {
     let playlist = creds_client()
         .await
-        .playlist(Id::from_id(Type::Playlist, "fakeid").unwrap(), None, None)
+        .playlist(Id::from_id("fakeid").unwrap(), None, None)
         .await;
     assert!(!playlist.is_ok());
 }
