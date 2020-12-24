@@ -33,6 +33,14 @@ impl IdType for Episode {
     const TYPE: Type = Type::Episode;
 }
 
+pub type ArtistId<'a> = Id<'a, Artist>;
+pub type AlbumId<'a> = Id<'a, Album>;
+pub type TrackId<'a> = Id<'a, Track>;
+pub type PlaylistId<'a> = Id<'a, Playlist>;
+pub type UserId<'a> = Id<'a, User>;
+pub type ShowId<'a> = Id<'a, Show>;
+pub type EpisodeId<'a> = Id<'a, Episode>;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Artist {}
 impl private::Sealed for Artist {}
