@@ -9,6 +9,7 @@ use super::artist::SimplifiedArtist;
 use super::Restriction;
 use crate::model::{from_duration_ms, to_duration_ms};
 use crate::model::{idtypes, Id, Type};
+
 /// Full track object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
