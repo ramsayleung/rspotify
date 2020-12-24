@@ -759,14 +759,16 @@ impl Spotify {
         track_ids: impl IntoIterator<Item = Id<'a, idtypes::Track>>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        let tracks = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+        let tracks = track_ids
+            .into_iter()
+            .map(|id| {
+                let mut map = Map::with_capacity(1);
+                map.insert("uri".to_owned(), id.uri().into());
+                map
+            })
+            .collect::<Vec<_>>();
 
-        let mut params = json!({ "tracks": tracks.into_iter().map(|uri| {
-            let mut map = Map::new();
-            map.insert("uri".to_owned(), uri.into());
-            map
-        }).collect::<Vec<_>>()
-        });
+        let mut params = json!({ "tracks": tracks });
 
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
