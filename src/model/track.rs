@@ -7,8 +7,8 @@ use std::{collections::HashMap, time::Duration};
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
 use super::Restriction;
-use crate::model::Type;
 use crate::model::{from_duration_ms, to_duration_ms};
+use crate::model::{idtypes, Id, Type};
 /// Full track object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
@@ -108,4 +108,30 @@ pub struct SimplifiedTrack {
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,
     pub track: FullTrack,
+}
+
+/// Track id or position to point to a concrete track in a playlist
+pub struct TrackIdOrPos<'id> {
+    pub id: Option<Id<'id, idtypes::Track>>,
+    pub pos: Option<u32>,
+}
+
+impl TrackIdOrPos<'static> {
+    /// Track in a playlist by a position
+    fn from_pos(pos: u32) -> Self {
+        TrackIdOrPos {
+            id: None,
+            pos: Some(pos),
+        }
+    }
+}
+
+impl<'id> TrackIdOrPos<'id> {
+    /// Track in a playlist by an id
+    fn from_id(id: Id<'id, idtypes::Track>) -> Self {
+        TrackIdOrPos {
+            id: Some(id),
+            pos: None,
+        }
+    }
 }
