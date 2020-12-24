@@ -7,8 +7,7 @@ use std::{collections::HashMap, time::Duration};
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
 use super::Restriction;
-use crate::model::{from_duration_ms, to_duration_ms};
-use crate::model::{idtypes, Id, Type};
+use crate::model::{from_duration_ms, to_duration_ms, TrackId, Type};
 
 /// Full track object
 ///
@@ -113,13 +112,13 @@ pub struct SavedTrack {
 
 /// Track id with specific positions track in a playlist
 pub struct TrackPositions<'id> {
-    pub id: Id<'id, idtypes::Track>,
+    pub id: TrackId<'id>,
     pub positions: Vec<u32>,
 }
 
 impl<'id> TrackPositions<'id> {
     /// Track in a playlist by an id
-    pub fn new(id: Id<'id, idtypes::Track>, positions: Vec<u32>) -> Self {
+    pub fn new(id: TrackId<'id>, positions: Vec<u32>) -> Self {
         Self { id, positions }
     }
 }
