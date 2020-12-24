@@ -81,9 +81,6 @@ pub enum ClientError {
 
     #[error("cache file error: {0}")]
     CacheFile(String),
-
-    #[error("id parse error: {0:?}")]
-    InvalidId(#[from] IdError),
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
