@@ -1,5 +1,6 @@
 //! All Enums for Rspotify
 pub mod country;
+pub mod idtypes;
 pub mod misc;
 pub mod types;
 

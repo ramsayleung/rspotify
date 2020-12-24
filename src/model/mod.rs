@@ -23,6 +23,8 @@ use std::{fmt, time::Duration};
 use strum::Display;
 use thiserror::Error;
 
+use self::enums::idtypes::IdType;
+
 /// Vistor to help deserialize duration represented as millisecond to `std::time::Duration`
 struct DurationVisitor;
 impl<'de> de::Visitor<'de> for DurationVisitor {
@@ -171,6 +173,9 @@ pub enum PlayingItem {
 }
 
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
+///
+/// This is a not-owning type, it stores a &str only.
+/// See [IdBuf](crate::model::IdBuf) for owned version of the type.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Id<'id, T> {
     _type: PhantomData<T>,
@@ -186,6 +191,13 @@ impl<'id, T> Id<'id, T> {
     }
 }
 
+/// A Spotify object id of given [type](crate::model::enums::types::Type)
+///
+/// This is an owning type, it stores a String.
+/// See [IdBuf](crate::model::Id) for light-weight non-owning type.
+///
+/// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned` or `Id::from_id_or_uri(val).to_owned()`
+/// to construct an instance of this type.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct IdBuf<T> {
     _type: PhantomData<T>,
@@ -196,20 +208,23 @@ impl<'id, T> Into<Id<'id, T>> for &'id IdBuf<T> {
     fn into(self) -> Id<'id, T> {
         Id {
             _type: PhantomData,
-            id: self.id(),
+            id: &self.id,
         }
     }
 }
 
 impl<T: IdType> IdBuf<T> {
+    /// Get a non-owning [`Id`] representation of the id
     pub fn as_ref(&self) -> Id<'_, T> {
         self.into()
     }
 
+    /// Get a [`Type`](crate::model::enums::types::Type) of the id
     pub fn _type(&self) -> Type {
         T::TYPE
     }
 
+    /// Get id value as a &str
     pub fn id(&self) -> &str {
         &self.id
     }
@@ -243,6 +258,14 @@ impl<T> AsRef<str> for Id<'_, T> {
     }
 }
 
+impl<T: IdType> std::str::FromStr for IdBuf<T> {
+    type Err = IdError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Id::from_id_or_uri(s).map(|id| id.to_owned())
+    }
+}
+
 impl<T: IdType> Id<'_, T> {
     /// Spotify object type
     pub fn _type(&self) -> Type {
@@ -273,7 +296,7 @@ impl<T: IdType> Id<'_, T> {
     /// Spotify URI must be in one of the following formats: `spotify:{type}:{id}` or `spotify/{type}/{id}`.
     /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`, `show`, or `episode`,
     /// and `{id}` is a non-empty alphanumeric string.
-    /// The URI must be of given `_type`, otherwise `IdError::InvalidType` error is returned.
+    /// The URI must be of given `T`ype, otherwise `IdError::InvalidType` error is returned.
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`, `spotify/track/4y4VO05kYgUTo2bzbox1an`.
     ///
@@ -323,7 +346,7 @@ impl<T: IdType> Id<'_, T> {
     /// # Errors:
     ///
     /// - `IdError::InvalidPrefix` - if `uri` is not started with `spotify:` or `spotify/`,
-    /// - `IdError::InvalidType` - if type part of an `uri` is not a valid Spotify type,
+    /// - `IdError::InvalidType` - if type part of an `uri` is not a valid Spotify type `T`,
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and id parts.
     pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<Id<'a, T>, IdError> {
@@ -346,7 +369,6 @@ impl<T: IdType> Id<'_, T> {
     }
 }
 
-use crate::model::enums::types::idtypes::IdType;
 use std::marker::PhantomData;
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, image::*,
