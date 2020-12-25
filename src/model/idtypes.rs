@@ -41,6 +41,14 @@ pub type UserId<'a> = Id<'a, User>;
 pub type ShowId<'a> = Id<'a, Show>;
 pub type EpisodeId<'a> = Id<'a, Episode>;
 
+pub type ArtistIdBuf = IdBuf<Artist>;
+pub type AlbumIdBuf = IdBuf<Album>;
+pub type TrackIdBuf = IdBuf<Track>;
+pub type PlaylistIdBuf = IdBuf<Playlist>;
+pub type UserIdBuf = IdBuf<User>;
+pub type ShowIdBuf = IdBuf<Show>;
+pub type EpisodeIdBuf = IdBuf<Episode>;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Artist {}
 impl private::Sealed for Artist {}
