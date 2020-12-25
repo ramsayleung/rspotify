@@ -83,7 +83,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features --features=cli,env-file,${{ matrix.client }}
+          args: --no-default-features --features=env-file,${{ matrix.client }}
 
   lints:
     name: Lints
