@@ -17,6 +17,8 @@ Please see the [changelog](./CHANGELOG.md) for a release history and indications
 
 If you find any problems or have suggestions about this crate, please submit an issue. Moreover, any pull request, code review and feedback are welcome.
 
+### Code Guide
+
 We use GitHub Actions to make sure the codebase is consistent (`cargo fmt`) and continuously tested (`cargo test`). We try to keep comments at a maximum of 80 characters of length (which isn't automatically checked by `cargo fmt`) and code at 120.
 
 ## Building
