@@ -81,15 +81,6 @@ pub struct Id<'id, T> {
     id: &'id str,
 }
 
-impl<'id, T> Id<'id, T> {
-    pub fn to_owned(&self) -> IdBuf<T> {
-        IdBuf {
-            _type: PhantomData,
-            id: self.id.to_owned(),
-        }
-    }
-}
-
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
 ///
 /// This is an owning type, it stores a String.
@@ -123,9 +114,19 @@ impl<T: IdType> IdBuf<T> {
         T::TYPE
     }
 
-    /// Get id value as a &str
+    /// Spotify object id (guaranteed to be a string of alphanumeric characters)
     pub fn id(&self) -> &str {
         &self.id
+    }
+
+    /// Spotify object URI in a well-known format: spotify:type:id
+    pub fn uri(&self) -> String {
+        self.as_ref().uri()
+    }
+
+    /// Full Spotify object URL, can be opened in a browser
+    pub fn url(&self) -> String {
+        self.as_ref().url()
     }
 }
 
@@ -157,6 +158,15 @@ impl<T> AsRef<str> for Id<'_, T> {
     }
 }
 
+impl<T> Into<IdBuf<T>> for &Id<'_, T> {
+    fn into(self) -> IdBuf<T> {
+        IdBuf {
+            _type: PhantomData,
+            id: self.id.to_owned(),
+        }
+    }
+}
+
 impl<T: IdType> std::str::FromStr for IdBuf<T> {
     type Err = IdError;
 
@@ -166,6 +176,11 @@ impl<T: IdType> std::str::FromStr for IdBuf<T> {
 }
 
 impl<T: IdType> Id<'_, T> {
+    /// Owned version of the id [`IdBuf`](crate::model::idtypes::IdBuf)
+    pub fn to_owned(&self) -> IdBuf<T> {
+        self.into()
+    }
+
     /// Spotify object type
     pub fn _type(&self) -> Type {
         T::TYPE
