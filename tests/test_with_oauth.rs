@@ -41,7 +41,13 @@ pub async fn oauth_client() -> Spotify {
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
-        let creds = CredentialsBuilder::from_env().build().unwrap();
+        let creds = CredentialsBuilder::from_env().build().unwrap_or_else(|_| {
+            panic!(
+                "No credentials configured. Make sure that the required \
+                environment variables are exported (`RSPOTIFY_CLIENT_ID`, \
+                `RSPOTIFY_CLIENT_SECRET`)"
+            )
+        });
 
         // Using every possible scope
         let oauth = OAuthBuilder::from_env()
