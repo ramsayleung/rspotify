@@ -1,7 +1,7 @@
-//! In this example, the token is saved into a cache file. If you are building a real-world web
-//! app, it's easy to save token into database, by calling the function
-//! `util::get_token_without_cache()`, instead of `util::get_token()`, which saves token by
-//! default.
+//! In this example, the token is saved into a cache file. If you are building a
+//! real-world web app, you should store it in a database instead. In that case
+//! you can use `Spotify::request_user_token_without_cache` and
+//! `Spotify::refresh_user_token_without_cache` to avoid creating cache files.
 
 #![feature(proc_macro_hygiene, decl_macro)]
 

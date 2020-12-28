@@ -20,7 +20,7 @@ pub struct PlaylistResult {
 
 /// Simplified playlist object
 ///
-///[Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,

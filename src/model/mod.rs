@@ -69,7 +69,8 @@ impl<'de> de::Visitor<'de> for DateTimeVisitor {
     {
         let second = (v - v % 1000) / 1000;
         let nanosecond = ((v % 1000) * 1000000) as u32;
-        // The maximum value of i64 is large enough to hold millisecond, so it would be safe to convert it i64
+        // The maximum value of i64 is large enough to hold millisecond, so it
+        // would be safe to convert it i64.
         let dt = DateTime::<Utc>::from_utc(
             NaiveDateTime::from_timestamp(second as i64, nanosecond),
             Utc,
@@ -94,7 +95,8 @@ where
     s.serialize_i64(x.timestamp_millis())
 }
 
-/// Vistor to help deserialize duration represented as millisecond to `Option<std::time::Duration>`
+/// Vistor to help deserialize duration represented as milliseconds to
+/// `Option<std::time::Duration>`.
 struct OptionDurationVisitor;
 
 impl<'de> de::Visitor<'de> for OptionDurationVisitor {
@@ -120,7 +122,8 @@ impl<'de> de::Visitor<'de> for OptionDurationVisitor {
     }
 }
 
-/// Deserialize `Option<std::time::Duration>` from milliseconds (represented as u64)
+/// Deserialize `Option<std::time::Duration>` from milliseconds (represented as
+/// u64)
 pub(in crate) fn from_option_duration_ms<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
 where
     D: de::Deserializer<'de>,
