@@ -1634,28 +1634,45 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/start-a-users-playback/)
     #[maybe_async]
-    pub async fn start_playback<T: PlayableIdType, C: PlayContextIdType>(
+    pub async fn start_context_playback<T: PlayContextIdType>(
         &self,
+        context_uri: Id<'_, T>,
         device_id: Option<String>,
-        context_uri: Option<Id<'_, C>>,
-        uris: Option<&[Id<'_, T>]>,
         offset: Option<super::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
-        if context_uri.is_some() && uris.is_some() {
-            error!("specify either context uri or uris, not both");
-        }
         let mut params = json!({});
-        if let Some(context_uri) = context_uri {
-            json_insert!(params, "context_uri", context_uri.uri());
+        json_insert!(params, "context_uri", context_uri.uri());
+        if let Some(offset) = offset {
+            if let Some(position) = offset.position {
+                json_insert!(params, "offset", json!({ "position": position }));
+            } else if let Some(uri) = offset.uri {
+                json_insert!(params, "offset", json!({ "uri": uri }));
+            }
         }
-        if let Some(uris) = uris {
-            json_insert!(
-                params,
-                "uris",
-                uris.iter().map(|id| id.uri()).collect::<Vec<_>>()
-            );
-        }
+        if let Some(position_ms) = position_ms {
+            json_insert!(params, "position_ms", position_ms);
+        };
+        let url = self.append_device_id("me/player/play", device_id);
+        self.put(&url, None, &params).await?;
+
+        Ok(())
+    }
+
+    #[maybe_async]
+    pub async fn start_uris_playback<T: PlayableIdType>(
+        &self,
+        uris: &[Id<'_, T>],
+        device_id: Option<String>,
+        offset: Option<super::model::Offset>,
+        position_ms: Option<u32>,
+    ) -> ClientResult<()> {
+        let mut params = json!({});
+        json_insert!(
+            params,
+            "uris",
+            uris.iter().map(|id| id.uri()).collect::<Vec<_>>()
+        );
         if let Some(offset) = offset {
             if let Some(position) = offset.position {
                 json_insert!(params, "offset", json!({ "position": position }));
