@@ -283,3 +283,28 @@ impl<T: IdType> Id<'_, T> {
         }
     }
 }
+
+pub enum PlayableId<'id> {
+    Episode(EpisodeId<'id>),
+    Track(TrackId<'id>),
+}
+
+impl<'id> From<EpisodeId<'id>> for PlayableId<'id> {
+    fn from(id: EpisodeId<'id>) -> Self {
+        PlayableId::Episode(id)
+    }
+}
+impl<'id> From<TrackId<'id>> for PlayableId<'id> {
+    fn from(id: TrackId<'id>) -> Self {
+        PlayableId::Track(id)
+    }
+}
+
+impl<'id> std::fmt::Display for PlayableId<'id> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            PlayableId::Episode(id) => id.fmt(f),
+            PlayableId::Track(id) => id.fmt(f),
+        }
+    }
+}

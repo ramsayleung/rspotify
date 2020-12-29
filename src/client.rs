@@ -1831,10 +1831,10 @@ impl Spotify {
     #[maybe_async]
     pub async fn add_item_to_queue(
         &self,
-        item: String,
+        item: impl Into<PlayableId<'_>>,
         device_id: Option<String>,
     ) -> ClientResult<()> {
-        let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
+        let url = self.append_device_id(&format!("me/player/queue?uri={}", item.into()), device_id);
         self.post(&url, None, &json!({})).await?;
 
         Ok(())
@@ -1847,8 +1847,11 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/console/put-current-user-saved-shows)
     #[maybe_async]
-    pub async fn save_shows<'a>(&self, ids: impl IntoIterator<Item = &'a str>) -> ClientResult<()> {
-        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
+    pub async fn save_shows<'a>(
+        &self,
+        ids: impl IntoIterator<Item = ShowId<'a>>,
+    ) -> ClientResult<()> {
+        let joined_ids = ids.into_iter().join(",");
         let url = format!("me/shows/?ids={}", joined_ids);
         self.put(&url, None, &json!({})).await?;
 
@@ -1911,15 +1914,11 @@ impl Spotify {
     #[maybe_async]
     pub async fn get_several_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
+        ids: impl IntoIterator<Item = ShowId<'a>>,
         market: Option<Country>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
-        // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "ids".to_owned(),
-            ids.into_iter().collect::<Vec<_>>().join(","),
-        );
+        params.insert("ids".to_owned(), ids.into_iter().join(","));
         if let Some(market) = market {
             params.insert("country".to_owned(), market.to_string());
         }
@@ -1994,14 +1993,11 @@ impl Spotify {
     #[maybe_async]
     pub async fn get_several_episodes<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
+        ids: impl IntoIterator<Item = EpisodeId<'a>>,
         market: Option<Country>,
     ) -> ClientResult<SeveralEpisodes> {
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "ids".to_owned(),
-            ids.into_iter().collect::<Vec<_>>().join(","),
-        );
+        params.insert("ids".to_owned(), ids.into_iter().join(","));
         if let Some(market) = market {
             params.insert("country".to_owned(), market.to_string());
         }
@@ -2018,13 +2014,10 @@ impl Spotify {
     #[maybe_async]
     pub async fn check_users_saved_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
+        ids: impl IntoIterator<Item = ShowId<'a>>,
     ) -> ClientResult<Vec<bool>> {
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "ids".to_owned(),
-            ids.into_iter().collect::<Vec<_>>().join(","),
-        );
+        params.insert("ids".to_owned(), ids.into_iter().join(","));
         let result = self.get("me/shows/contains", None, &params).await?;
         self.convert_result(&result)
     }
@@ -2040,10 +2033,10 @@ impl Spotify {
     #[maybe_async]
     pub async fn remove_users_saved_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
+        ids: impl IntoIterator<Item = ShowId<'a>>,
         market: Option<Country>,
     ) -> ClientResult<()> {
-        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
+        let joined_ids = ids.into_iter().join(",");
         let url = format!("me/shows?ids={}", joined_ids);
         let mut params = json!({});
         if let Some(market) = market {

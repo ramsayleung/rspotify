@@ -171,7 +171,8 @@ pub enum PlayingItem {
 
 pub use idtypes::{
     AlbumId, AlbumIdBuf, ArtistId, ArtistIdBuf, EpisodeId, EpisodeIdBuf, Id, IdBuf, IdError,
-    PlaylistId, PlaylistIdBuf, ShowId, ShowIdBuf, TrackId, TrackIdBuf, UserId, UserIdBuf,
+    PlayableId, PlaylistId, PlaylistIdBuf, ShowId, ShowIdBuf, TrackId, TrackIdBuf, UserId,
+    UserIdBuf,
 };
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, image::*,

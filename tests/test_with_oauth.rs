@@ -19,7 +19,9 @@ mod common;
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
-use rspotify::model::{Country, Id, RepeatState, SearchType, TimeRange, TrackPositions};
+use rspotify::model::{
+    Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
+};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 
 use std::env;
@@ -761,7 +763,7 @@ async fn test_volume() {
 #[maybe_async_test]
 #[ignore]
 async fn test_add_queue() {
-    let birdy_uri = String::from("spotify:track:6rqhFgbbKwnb9MLmUQDhG6");
+    let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
     oauth_client()
         .await
         .add_item_to_queue(birdy_uri, None)
@@ -776,7 +778,10 @@ async fn test_get_several_shows() {
     oauth_client()
         .await
         .get_several_shows(
-            vec!["5CfCWKI5pZ28U0uOzXkDHe", "5as3aKmN2k11yfDDDSrvaZ"],
+            vec![
+                ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
+                ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
+            ],
             None,
         )
         .await
