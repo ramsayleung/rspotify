@@ -10,6 +10,7 @@ mod private {
 pub trait IdType: private::Sealed {
     const TYPE: Type;
 }
+pub trait PlayableIdType: IdType {}
 
 impl IdType for Artist {
     const TYPE: Type = Type::Artist;
@@ -20,6 +21,7 @@ impl IdType for Album {
 impl IdType for Track {
     const TYPE: Type = Type::Track;
 }
+impl PlayableIdType for Track {}
 impl IdType for Playlist {
     const TYPE: Type = Type::Playlist;
 }
@@ -32,6 +34,7 @@ impl IdType for Show {
 impl IdType for Episode {
     const TYPE: Type = Type::Episode;
 }
+impl PlayableIdType for Episode {}
 
 pub type ArtistId<'a> = Id<'a, Artist>;
 pub type AlbumId<'a> = Id<'a, Album>;
@@ -280,31 +283,6 @@ impl<T: IdType> Id<'_, T> {
         match tpe.parse::<Type>() {
             Ok(tpe) if tpe == T::TYPE => Id::<T>::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
-        }
-    }
-}
-
-pub enum PlayableId<'id> {
-    Episode(EpisodeId<'id>),
-    Track(TrackId<'id>),
-}
-
-impl<'id> From<EpisodeId<'id>> for PlayableId<'id> {
-    fn from(id: EpisodeId<'id>) -> Self {
-        PlayableId::Episode(id)
-    }
-}
-impl<'id> From<TrackId<'id>> for PlayableId<'id> {
-    fn from(id: TrackId<'id>) -> Self {
-        PlayableId::Track(id)
-    }
-}
-
-impl<'id> std::fmt::Display for PlayableId<'id> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            PlayableId::Episode(id) => id.fmt(f),
-            PlayableId::Track(id) => id.fmt(f),
         }
     }
 }

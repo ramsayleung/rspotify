@@ -594,11 +594,11 @@ async fn test_playlist_change_detail() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_check_follow() {
-    let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
-    let mut user_ids: Vec<String> = vec![];
-    let user_id1 = String::from("possan");
+    let playlist_id = Id::from_id("2v3iNvBX8Ay1Gt2uXtUKUT").unwrap();
+    let mut user_ids: Vec<_> = vec![];
+    let user_id1 = Id::from_id("possan").unwrap();
     user_ids.push(user_id1);
-    let user_id2 = String::from("elogain");
+    let user_id2 = Id::from_id("elogain").unwrap();
     user_ids.push(user_id2);
     oauth_client()
         .await
@@ -611,7 +611,7 @@ async fn test_playlist_check_follow() {
 #[maybe_async_test]
 #[ignore]
 async fn test_user_playlist_create() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+    let user_id = Id::from_id("2257tjys2e2u2ygfke42niy2q").unwrap();
     let playlist_name = "A New Playlist";
     oauth_client()
         .await
@@ -624,7 +624,7 @@ async fn test_user_playlist_create() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_follow_playlist() {
-    let playlist_id = "2v3iNvBX8Ay1Gt2uXtUKUT";
+    let playlist_id = Id::from_id("2v3iNvBX8Ay1Gt2uXtUKUT").unwrap();
     oauth_client()
         .await
         .playlist_follow(playlist_id, true)
@@ -707,7 +707,7 @@ async fn test_playlist_replace_tracks() {
 #[maybe_async_test]
 #[ignore]
 async fn test_user_playlist() {
-    let user_id = "spotify";
+    let user_id = Id::from_id("spotify").unwrap();
     let playlist_id = Id::from_id("59ZbFPES4DQwEjBpWHzrtC").unwrap();
     oauth_client()
         .await
@@ -720,7 +720,7 @@ async fn test_user_playlist() {
 #[maybe_async_test]
 #[ignore]
 async fn test_user_playlists() {
-    let user_id = "2257tjys2e2u2ygfke42niy2q";
+    let user_id = Id::from_id("2257tjys2e2u2ygfke42niy2q").unwrap();
     oauth_client()
         .await
         .user_playlists(user_id, Some(10), None)
