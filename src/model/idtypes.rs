@@ -11,13 +11,16 @@ pub trait IdType: private::Sealed {
     const TYPE: Type;
 }
 pub trait PlayableIdType: IdType {}
+pub trait PlayContextIdType: IdType {}
 
 impl IdType for Artist {
     const TYPE: Type = Type::Artist;
 }
+impl PlayContextIdType for Artist {}
 impl IdType for Album {
     const TYPE: Type = Type::Album;
 }
+impl PlayContextIdType for Album {}
 impl IdType for Track {
     const TYPE: Type = Type::Track;
 }
@@ -25,12 +28,14 @@ impl PlayableIdType for Track {}
 impl IdType for Playlist {
     const TYPE: Type = Type::Playlist;
 }
+impl PlayContextIdType for Playlist {}
 impl IdType for User {
     const TYPE: Type = Type::User;
 }
 impl IdType for Show {
     const TYPE: Type = Type::Show;
 }
+impl PlayContextIdType for Show {}
 impl IdType for Episode {
     const TYPE: Type = Type::Episode;
 }

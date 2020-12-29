@@ -15,7 +15,7 @@ use super::http::{BaseClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
-use crate::model::idtypes::IdType;
+use crate::model::idtypes::{IdType, PlayContextIdType};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -1634,23 +1634,27 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/start-a-users-playback/)
     #[maybe_async]
-    pub async fn start_playback(
+    pub async fn start_playback<T: PlayableIdType, C: PlayContextIdType>(
         &self,
         device_id: Option<String>,
-        context_uri: Option<String>,
-        uris: Option<Vec<String>>,
+        context_uri: Option<Id<'_, C>>,
+        uris: Option<&[Id<'_, T>]>,
         offset: Option<super::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         if context_uri.is_some() && uris.is_some() {
-            error!("specify either contexxt uri or uris, not both");
+            error!("specify either context uri or uris, not both");
         }
         let mut params = json!({});
         if let Some(context_uri) = context_uri {
-            json_insert!(params, "context_uri", context_uri);
+            json_insert!(params, "context_uri", context_uri.uri());
         }
         if let Some(uris) = uris {
-            json_insert!(params, "uris", uris);
+            json_insert!(
+                params,
+                "uris",
+                uris.iter().map(|id| id.uri()).collect::<Vec<_>>()
+            );
         }
         if let Some(offset) = offset {
             if let Some(position) = offset.position {

@@ -20,7 +20,7 @@ use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
 use rspotify::model::{
-    Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
+    idtypes, Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
 };
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 
@@ -484,10 +484,16 @@ async fn test_shuffle() {
 #[ignore]
 async fn test_start_playback() {
     let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
-    let uris = vec!["spotify:track:4iV5W9uYEdYUVa79Axb7Rh".to_owned()];
+    let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
     oauth_client()
         .await
-        .start_playback(Some(device_id), None, Some(uris), for_position(0), None)
+        .start_playback::<_, idtypes::Playlist>(
+            Some(device_id),
+            None,
+            Some(&*uris),
+            for_position(0),
+            None,
+        )
         .await
         .unwrap();
 }
