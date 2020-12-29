@@ -842,7 +842,7 @@ impl Spotify {
     pub async fn playlist_check_follow<'a>(
         &self,
         playlist_id: PlaylistId<'_>,
-        user_ids: &[UserId<'_>],
+        user_ids: &'a [UserId<'a>],
     ) -> ClientResult<Vec<bool>> {
         if user_ids.len() > 5 {
             error!("The maximum length of user ids is limited to 5 :-)");
