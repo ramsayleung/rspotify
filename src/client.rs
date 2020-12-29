@@ -500,14 +500,14 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        user_id: &str,
+        user_id: UserId<'_>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let url = format!("users/{}/playlists", user_id);
+        let url = format!("users/{}/playlists", user_id.id());
         let result = self.get(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -523,7 +523,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_playlist(
         &self,
-        user_id: &str,
+        user_id: UserId<'_>,
         playlist_id: Option<PlaylistId<'_>>,
         fields: Option<&str>,
         market: Option<Country>,
@@ -537,12 +537,12 @@ impl Spotify {
         }
         match playlist_id {
             Some(playlist_id) => {
-                let url = format!("users/{}/playlists/{}", user_id, playlist_id.id());
+                let url = format!("users/{}/playlists/{}", user_id.id(), playlist_id.id());
                 let result = self.get(&url, None, &params).await?;
                 self.convert_result(&result)
             }
             None => {
-                let url = format!("users/{}/starred", user_id);
+                let url = format!("users/{}/starred", user_id.id());
                 let result = self.get(&url, None, &params).await?;
                 self.convert_result(&result)
             }
@@ -594,7 +594,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
         &self,
-        user_id: &str,
+        user_id: UserId<'_>,
         name: &str,
         public: P,
         description: D,
@@ -606,7 +606,7 @@ impl Spotify {
             "public": public,
             "description": description
         });
-        let url = format!("users/{}/playlists", user_id);
+        let url = format!("users/{}/playlists", user_id.id());
         let result = self.post(&url, None, &params).await?;
         self.convert_result(&result)
     }
@@ -866,10 +866,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/check-user-following-playlist/)
     #[maybe_async]
-    pub async fn playlist_check_follow(
+    pub async fn playlist_check_follow<'a>(
         &self,
-        playlist_id: &str,
-        user_ids: &[String],
+        playlist_id: PlaylistId<'_>,
+        user_ids: impl IntoIterator<Item = UserId<'_>>,
     ) -> ClientResult<Vec<bool>> {
         if user_ids.len() > 5 {
             error!("The maximum length of user ids is limited to 5 :-)");
