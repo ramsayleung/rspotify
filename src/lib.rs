@@ -11,14 +11,13 @@
 //! asynchronous HTTP client with its default TLS, but you can customize both
 //! the HTTP client and the TLS with the following features:
 //!
-//! - `client-reqwest` (default), TLS available:
-//!     + `reqwest-default-tls` (default)
+//! - `client-reqwest`, TLS available:
+//!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
 //! - `client-ureq`, TLS available:
-//!     + `ureq-rustls-tls` (what `ureq` uses by default)
-//!     + `ureq-native-tls`
+//!     + `ureq-rustls-tls` (ureq's default)
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
 //! have to disable the default features and enable whichever you want. For
