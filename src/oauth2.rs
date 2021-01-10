@@ -233,10 +233,27 @@ impl Spotify {
     pub async fn read_token_cache(&mut self) -> Option<Token> {
         let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
 
-        if !self.get_oauth().ok()?.scope.is_subset(&tok.scope) || tok.is_expired() {
+        if !self.get_oauth().ok()?.scope.is_subset(&tok.scope) {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             None
+        } else if tok.is_expired() {
+            if let Some(refresh_token) = tok.refresh_token {
+                let mut data = Form::new();
+                data.insert(headers::REFRESH_TOKEN.to_owned(), refresh_token.to_owned());
+                data.insert(
+                    headers::GRANT_TYPE.to_owned(),
+                    headers::GRANT_REFRESH_TOKEN.to_owned(),
+                );
+
+                let mut new_tok = self.fetch_access_token(&data).await.ok()?;
+                new_tok.refresh_token = Some(refresh_token);
+                self.token = Some(new_tok.clone());
+                new_tok.write_cache(&self.cache_path).ok()?;
+                Some(new_tok)
+            } else {
+                None
+            }
         } else {
             Some(tok)
         }
@@ -389,7 +406,6 @@ impl Spotify {
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
-        // TODO: shouldn't this also refresh the obtained token?
         self.token = self.read_token_cache().await;
 
         // Otherwise following the usual procedure to get the token.
