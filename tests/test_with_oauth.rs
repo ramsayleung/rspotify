@@ -18,7 +18,7 @@ mod common;
 
 use common::maybe_async_test;
 use rspotify::client::{Spotify, SpotifyBuilder};
-use rspotify::model::offset::for_position;
+use rspotify::model::offset::Offset;
 use rspotify::model::{
     Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
 };
@@ -487,7 +487,12 @@ async fn test_start_playback() {
     let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
     oauth_client()
         .await
-        .start_uris_playback(&uris, Some(device_id), for_position(0), None)
+        .start_uris_playback(
+            &uris,
+            Some(device_id),
+            Some(Offset::<()>::for_position(0)),
+            None,
+        )
         .await
         .unwrap();
 }

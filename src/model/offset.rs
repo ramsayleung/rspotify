@@ -1,32 +1,25 @@
 //! Offset object
-use crate::model::{from_option_duration_ms, to_option_duration_ms};
-use serde::{Deserialize, Serialize};
+use crate::model::{idtypes, Id, IdBuf, PlayableIdType};
 use std::time::Duration;
 
 /// Offset object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Offset {
-    #[serde(default)]
-    #[serde(
-        deserialize_with = "from_option_duration_ms",
-        serialize_with = "to_option_duration_ms"
-    )]
-    pub position: Option<Duration>,
-    pub uri: Option<String>,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Offset<T> {
+    Position(Duration),
+    Uri(IdBuf<T>),
 }
 
-pub fn for_position(position: u64) -> Option<Offset> {
-    Some(Offset {
-        position: Some(Duration::from_millis(position)),
-        uri: None,
-    })
-}
+impl<T> Offset<T> {
+    pub fn for_position(position: u64) -> Offset<idtypes::Track> {
+        Offset::Position(Duration::from_millis(position))
+    }
 
-pub fn for_uri(uri: String) -> Option<Offset> {
-    Some(Offset {
-        position: None,
-        uri: Some(uri),
-    })
+    pub fn for_uri(uri: Id<'_, T>) -> Offset<T>
+    where
+        T: PlayableIdType,
+    {
+        Offset::Uri(uri.to_owned())
+    }
 }

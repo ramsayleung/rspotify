@@ -1634,20 +1634,29 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/start-a-users-playback/)
     #[maybe_async]
-    pub async fn start_context_playback<T: PlayContextIdType>(
+    pub async fn start_context_playback<T: PlayContextIdType, U: PlayableIdType>(
         &self,
         context_uri: Id<'_, T>,
         device_id: Option<String>,
-        offset: Option<super::model::Offset>,
-        position_ms: Option<u32>,
+        offset: Option<super::model::Offset<U>>,
+        position_ms: Option<std::time::Duration>,
     ) -> ClientResult<()> {
+        use super::model::Offset;
+
         let mut params = json!({});
         json_insert!(params, "context_uri", context_uri.uri());
         if let Some(offset) = offset {
-            if let Some(position) = offset.position {
-                json_insert!(params, "offset", json!({ "position": position }));
-            } else if let Some(uri) = offset.uri {
-                json_insert!(params, "offset", json!({ "uri": uri }));
+            match offset {
+                Offset::Position(position) => {
+                    json_insert!(
+                        params,
+                        "offset",
+                        json!({ "position": position.as_millis() })
+                    );
+                }
+                Offset::Uri(uri) => {
+                    json_insert!(params, "offset", json!({ "uri": uri.uri() }));
+                }
             }
         }
         if let Some(position_ms) = position_ms {
@@ -1660,13 +1669,15 @@ impl Spotify {
     }
 
     #[maybe_async]
-    pub async fn start_uris_playback<T: PlayableIdType>(
+    pub async fn start_uris_playback<T: PlayableIdType, U: PlayableIdType>(
         &self,
         uris: &[Id<'_, T>],
         device_id: Option<String>,
-        offset: Option<super::model::Offset>,
+        offset: Option<super::model::Offset<U>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
+        use super::model::Offset;
+
         let mut params = json!({});
         json_insert!(
             params,
@@ -1674,10 +1685,17 @@ impl Spotify {
             uris.iter().map(|id| id.uri()).collect::<Vec<_>>()
         );
         if let Some(offset) = offset {
-            if let Some(position) = offset.position {
-                json_insert!(params, "offset", json!({ "position": position }));
-            } else if let Some(uri) = offset.uri {
-                json_insert!(params, "offset", json!({ "uri": uri }));
+            match offset {
+                Offset::Position(position) => {
+                    json_insert!(
+                        params,
+                        "offset",
+                        json!({ "position": position.as_millis() })
+                    );
+                }
+                Offset::Uri(uri) => {
+                    json_insert!(params, "offset", json!({ "uri": uri.uri() }));
+                }
             }
         }
         if let Some(position_ms) = position_ms {
