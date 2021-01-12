@@ -2051,16 +2051,9 @@ impl Spotify {
     }
 }
 
+#[inline]
 fn join_ids<'a, T: IdType>(ids: impl IntoIterator<Item = Id<'a, T>>) -> String {
-    let mut out = String::new();
-    let mut iter = ids.into_iter();
-    if let Some(first) = iter.next() {
-        out += first.id();
-        for id in iter {
-            out = out + "," + id.id();
-        }
-    }
-    out
+    ids.into_iter().collect::<Vec<_>>().join(",")
 }
 
 #[cfg(test)]

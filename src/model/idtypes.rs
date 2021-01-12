@@ -1,5 +1,6 @@
 use crate::model::Type;
 use serde::{Deserialize, Serialize};
+use std::borrow::Borrow;
 use std::marker::PhantomData;
 use strum::Display;
 use thiserror::Error;
@@ -180,6 +181,12 @@ impl<T> Into<IdBuf<T>> for &Id<'_, T> {
             _type: PhantomData,
             id: self.id.to_owned(),
         }
+    }
+}
+
+impl<T> Borrow<str> for Id<'_, T> {
+    fn borrow(&self) -> &str {
+        self.id
     }
 }
 
