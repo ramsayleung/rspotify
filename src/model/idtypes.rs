@@ -1,8 +1,12 @@
 use crate::model::Type;
-use serde::export::PhantomData;
+use serde::{Deserialize, Serialize};
+use std::marker::PhantomData;
 use strum::Display;
 use thiserror::Error;
 
+// This is a sealed trait pattern implementation, it stops external code from implementing the `IdType` trait.
+// The `Sealed` trait must be in a private mod, so external code can not see and implement it.
+// See also: https://rust-lang.github.io/api-guidelines/future-proofing.html
 mod private {
     pub trait Sealed {}
 }
@@ -83,9 +87,11 @@ impl private::Sealed for Episode {}
 ///
 /// This is a not-owning type, it stores a &str only.
 /// See [IdBuf](crate::model::idtypes::IdBuf) for owned version of the type.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub struct Id<'id, T> {
+    #[serde(default)]
     _type: PhantomData<T>,
+    #[serde(flatten)]
     id: &'id str,
 }
 
@@ -96,9 +102,11 @@ pub struct Id<'id, T> {
 ///
 /// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or `Id::from_id_or_uri(val).to_owned()`
 /// to construct an instance of this type.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct IdBuf<T> {
+    #[serde(default)]
     _type: PhantomData<T>,
+    #[serde(flatten)]
     id: String,
 }
 
