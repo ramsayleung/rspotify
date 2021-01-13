@@ -112,13 +112,13 @@ pub struct SavedTrack {
 
 /// Track id with specific positions track in a playlist
 pub struct TrackPositions<'id> {
-    pub id: TrackId<'id>,
+    pub id: &'id TrackId,
     pub positions: Vec<u32>,
 }
 
 impl<'id> TrackPositions<'id> {
     /// Track in a playlist by an id
-    pub fn new(id: TrackId<'id>, positions: Vec<u32>) -> Self {
+    pub fn new(id: &'id TrackId, positions: Vec<u32>) -> Self {
         Self { id, positions }
     }
 }

@@ -16,7 +16,7 @@ impl<T> Offset<T> {
         Offset::Position(Duration::from_millis(position))
     }
 
-    pub fn for_uri(uri: Id<'_, T>) -> Offset<T>
+    pub fn for_uri(uri: &Id<T>) -> Offset<T>
     where
         T: PlayableIdType,
     {
