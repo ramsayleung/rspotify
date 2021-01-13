@@ -79,3 +79,15 @@ pub enum RestrictionReason {
     Product,
     Explict,
 }
+
+/// Indicates the modality (major or minor) of a track
+/// This field will contain a 0 for `minor`, a 1 for `major` or
+/// a -1 for `no result`
+/// 
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+pub enum Modality {
+    Minor,
+    Major,
+    NoResult,
+}
