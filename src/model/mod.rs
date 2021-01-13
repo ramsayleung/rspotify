@@ -139,6 +139,7 @@ where
     }
 }
 
+/// Deserialize/Serialize `Modality` to integer(0, 1, -1).
 pub(in crate) mod modality {
     use super::enums::Modality;
     use serde::{de, Deserialize, Serializer};
