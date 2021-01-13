@@ -114,14 +114,14 @@ pub struct IdBuf<T> {
 impl<T> AsRef<Id<T>> for IdBuf<T> {
     fn as_ref(&self) -> &Id<T> {
         // Safe, b/c of the same T between types, IdBuf can't be constructed from invalid id, and Id is just a wrapped str with ZST type tag
-        unsafe { std::mem::transmute(&*self.id) }
+        unsafe { &*(&*self.id as *const str as *const Id<T>) }
     }
 }
 
 impl<T> Borrow<Id<T>> for IdBuf<T> {
     fn borrow(&self) -> &Id<T> {
         // Safe, b/c of the same T between types, IdBuf can't be constructed from invalid id, and Id is just a wrapped str with ZST type tag
-        unsafe { std::mem::transmute(&*self.id) }
+        unsafe { &*(&*self.id as *const str as *const Id<T>) }
     }
 }
 
@@ -258,7 +258,7 @@ impl<T: IdType> Id<T> {
     pub fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Id<T>, IdError> {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
             // Safe, b/c Id is just a str with ZST type tag, and id is proved to be a valid id at this point
-            Ok(unsafe { std::mem::transmute(id) })
+            Ok(unsafe { &*(id as *const str as *const Id<T>) })
         } else {
             Err(IdError::InvalidId)
         }
