@@ -1,5 +1,5 @@
 //! All objects related to artist defined by Spotify API
-use crate::model::{from_duration_ms, to_duration_ms};
+use crate::model::{enums::Modality, from_duration_ms, modality, to_duration_ms};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -23,7 +23,8 @@ pub struct AudioFeatures {
     pub key: i32,
     pub liveness: f32,
     pub loudness: f32,
-    pub mode: f32,
+    #[serde(with = "modality")]
+    pub mode: Modality,
     pub speechiness: f32,
     pub tempo: f32,
     pub time_signature: i32,
@@ -77,7 +78,8 @@ pub struct AudioAnalysisSection {
     pub tempo_confidence: f32,
     pub key: i32,
     pub key_confidence: f32,
-    pub mode: f32,
+    #[serde(with = "modality")]
+    pub mode: Modality,
     pub mode_confidence: f32,
     pub time_signature: i32,
     pub time_signature_confidence: f32,
@@ -132,7 +134,8 @@ pub struct AudioAnalysisTrack {
     pub time_signature_confidence: f32,
     pub key: u32,
     pub key_confidence: f32,
-    pub mode: f32,
+    #[serde(with = "modality")]
+    pub mode: Modality,
     pub mode_confidence: f32,
     pub codestring: String,
     pub code_version: f32,

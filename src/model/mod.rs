@@ -139,6 +139,38 @@ where
     }
 }
 
+pub(in crate) mod modality {
+    use super::enums::Modality;
+    use serde::{de, Deserialize, Serializer};
+
+    pub fn deserialize<'de, D>(d: D) -> Result<Modality, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let v = i8::deserialize(d)?;
+        match v {
+            0 => Ok(Modality::Minor),
+            1 => Ok(Modality::Major),
+            -1 => Ok(Modality::NoResult),
+            _ => Err(de::Error::invalid_value(
+                de::Unexpected::Signed(v.into()),
+                &"valid value: 0, 1, -1",
+            )),
+        }
+    }
+
+    pub fn serialize<S>(x: &Modality, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match x {
+            Modality::Minor => s.serialize_i8(0),
+            Modality::Major => s.serialize_i8(1),
+            Modality::NoResult => s.serialize_i8(-1),
+        }
+    }
+}
+
 /// Restriction object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
