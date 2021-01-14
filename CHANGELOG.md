@@ -181,6 +181,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `SimplifiedPlayingContext`, since it's useless.
 - ([#177](https://github.com/ramsayleung/rspotify/pull/157)) Change `mode` from `f32` to `enum Modality`:
   + Change `AudioAnalysisSection::mode`, `AudioAnalysisTrack::mode` and `AudioFeatures::mode` from `f32` to `enum Modality`.
+
 ## 0.10 (2020/07/01)
 
 - Add `get_access_token_without_cache` and `refresh_access_token_without_cache` to get and refresh access token without caching it.
