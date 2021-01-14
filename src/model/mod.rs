@@ -16,9 +16,7 @@ pub mod search;
 pub mod show;
 pub mod track;
 pub mod user;
-
-use serde::{de, Deserialize, Serialize, Serializer};
-use std::{fmt, time::Duration};
+use serde::{Deserialize, Serialize};
 
 pub(in crate) mod duration_ms {
     use serde::{de, Serializer};
@@ -100,53 +98,57 @@ pub(in crate) mod millisecond_timestamp {
         s.serialize_i64(x.timestamp_millis())
     }
 }
-/// Vistor to help deserialize duration represented as millisecond to `Option<std::time::Duration>`
-struct OptionDurationVisitor;
+pub(in crate) mod option_duration_ms {
+    use super::duration_ms;
+    use serde::{de, Serializer};
+    use std::{fmt, time::Duration};
+    /// Vistor to help deserialize duration represented as millisecond to `Option<std::time::Duration>`
+    struct OptionDurationVisitor;
 
-impl<'de> de::Visitor<'de> for OptionDurationVisitor {
-    type Value = Option<Duration>;
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "a optional milliseconds represents std::time::Duration"
-        )
-    }
-    fn visit_none<E>(self) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        Ok(None)
+    impl<'de> de::Visitor<'de> for OptionDurationVisitor {
+        type Value = Option<Duration>;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            write!(
+                formatter,
+                "a optional milliseconds represents std::time::Duration"
+            )
+        }
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+
+        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        where
+            D: de::Deserializer<'de>,
+        {
+            Ok(Some(
+                deserializer.deserialize_u64(duration_ms::DurationVisitor)?,
+            ))
+        }
     }
 
-    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    /// Deserialize `Option<std::time::Duration>` from milliseconds (represented as u64)
+    pub(in crate) fn deserialize<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        Ok(Some(
-            deserializer.deserialize_u64(duration_ms::DurationVisitor)?,
-        ))
+        d.deserialize_option(OptionDurationVisitor)
+    }
+
+    /// Serialize `Option<std::time::Duration>` to milliseconds (represented as u64)
+    pub(in crate) fn serialize<S>(x: &Option<Duration>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *x {
+            Some(duration) => s.serialize_u64(duration.as_millis() as u64),
+            None => s.serialize_none(),
+        }
     }
 }
-
-/// Deserialize `Option<std::time::Duration>` from milliseconds (represented as u64)
-pub(in crate) fn from_option_duration_ms<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
-where
-    D: de::Deserializer<'de>,
-{
-    d.deserialize_option(OptionDurationVisitor)
-}
-
-/// Serialize `Option<std::time::Duration>` to milliseconds (represented as u64)
-pub(in crate) fn to_option_duration_ms<S>(x: &Option<Duration>, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    match *x {
-        Some(duration) => s.serialize_u64(duration.as_millis() as u64),
-        None => s.serialize_none(),
-    }
-}
-
 /// Deserialize/Serialize `Modality` to integer(0, 1, -1).
 pub(in crate) mod modality {
     use super::enums::Modality;
