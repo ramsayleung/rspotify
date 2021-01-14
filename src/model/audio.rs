@@ -1,5 +1,5 @@
 //! All objects related to artist defined by Spotify API
-use crate::model::{enums::Modality, from_duration_ms, modality, to_duration_ms};
+use crate::model::{duration_ms, enums::Modality, modality};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -11,11 +11,7 @@ pub struct AudioFeatures {
     pub acousticness: f32,
     pub analysis_url: String,
     pub danceability: f32,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub energy: f32,
     pub id: String,

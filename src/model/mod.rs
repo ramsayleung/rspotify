@@ -21,35 +21,39 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{de, Deserialize, Serialize, Serializer};
 use std::{fmt, time::Duration};
 
-/// Vistor to help deserialize duration represented as millisecond to `std::time::Duration`
-struct DurationVisitor;
-impl<'de> de::Visitor<'de> for DurationVisitor {
-    type Value = Duration;
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "a milliseconds represents std::time::Duration")
+pub(in crate) mod duration_ms {
+    use serde::{de, Serializer};
+    use std::{fmt, time::Duration};
+    /// Vistor to help deserialize duration represented as millisecond to `std::time::Duration`
+    pub(in crate) struct DurationVisitor;
+    impl<'de> de::Visitor<'de> for DurationVisitor {
+        type Value = Duration;
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            write!(formatter, "a milliseconds represents std::time::Duration")
+        }
+        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Duration::from_millis(v))
+        }
     }
-    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+
+    /// Deserialize `std::time::Duration` from milliseconds (represented as u64)
+    pub(in crate) fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
     where
-        E: de::Error,
+        D: de::Deserializer<'de>,
     {
-        Ok(Duration::from_millis(v))
+        d.deserialize_u64(DurationVisitor)
     }
-}
 
-/// Deserialize `std::time::Duration` from milliseconds (represented as u64)
-pub(in crate) fn from_duration_ms<'de, D>(d: D) -> Result<Duration, D::Error>
-where
-    D: de::Deserializer<'de>,
-{
-    d.deserialize_u64(DurationVisitor)
-}
-
-/// Serialize `std::time::Duration` to milliseconds (represented as u64)
-pub(in crate) fn to_duration_ms<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    s.serialize_u64(x.as_millis() as u64)
+    /// Serialize `std::time::Duration` to milliseconds (represented as u64)
+    pub(in crate) fn serialize<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        s.serialize_u64(x.as_millis() as u64)
+    }
 }
 
 /// Vistor to help deserialize unix millisecond timestamp to `chrono::DateTime`
@@ -116,7 +120,9 @@ impl<'de> de::Visitor<'de> for OptionDurationVisitor {
     where
         D: de::Deserializer<'de>,
     {
-        Ok(Some(deserializer.deserialize_u64(DurationVisitor)?))
+        Ok(Some(
+            deserializer.deserialize_u64(duration_ms::DurationVisitor)?,
+        ))
     }
 }
 

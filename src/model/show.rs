@@ -1,6 +1,6 @@
 use super::image::Image;
 use super::page::Page;
-use crate::model::{from_duration_ms, to_duration_ms, CopyrightType, DatePrecision};
+use crate::model::{duration_ms, CopyrightType, DatePrecision};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;
@@ -86,11 +86,7 @@ pub struct FullShow {
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
     pub description: String,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
@@ -120,11 +116,7 @@ pub struct SimplifiedEpisode {
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
     pub description: String,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
@@ -156,10 +148,6 @@ pub struct SeveralEpisodes {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResumePoint {
     pub fully_played: bool,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "resume_position_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "resume_position_ms")]
     pub resume_position: Duration,
 }
