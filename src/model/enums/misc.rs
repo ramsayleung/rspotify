@@ -87,7 +87,7 @@ pub enum RestrictionReason {
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 pub enum Modality {
-    Minor,
-    Major,
-    NoResult,
+    Minor = 0,
+    Major = 1,
+    NoResult = -1,
 }
