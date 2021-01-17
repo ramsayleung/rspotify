@@ -8,10 +8,9 @@ use url::Url;
 
 use std::collections::{HashMap, HashSet};
 use std::env;
-use std::fs;
-use std::io::{Read, Write};
 use std::iter::FromIterator;
-use std::path::Path;
+#[cfg(feature = "cache_file")]
+use std::{fs, io::{Read, Write}, path::Path};
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, Form, Headers};
@@ -24,6 +23,7 @@ mod auth_urls {
 
 // TODO this should be removed after making a custom type for scopes
 // or handling them as a vector of strings.
+#[cfg(feature = "cache_file")]
 fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
     let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
     let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
@@ -49,6 +49,7 @@ pub struct Token {
 
 impl TokenBuilder {
     /// Tries to initialize the token from a cache file.
+    #[cfg(feature = "cache_file")]
     pub fn from_cache<T: AsRef<Path>>(path: T) -> Self {
         if let Ok(mut file) = fs::File::open(path) {
             let mut tok_str = String::new();
@@ -71,6 +72,7 @@ impl TokenBuilder {
 
 impl Token {
     /// Saves the token information into its cache file.
+    #[cfg(feature = "cache_file")]
     pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> ClientResult<()> {
         let token_info = serde_json::to_string(&self)?;
 
@@ -156,6 +158,7 @@ impl OAuthBuilder {
 /// Authorization-related methods for the client.
 impl Spotify {
     /// Updates the cache file at the internal cache path.
+    #[cfg(feature = "cache_file")]
     pub fn write_token_cache(&self) -> ClientResult<()> {
         if let Some(tok) = self.token.as_ref() {
             tok.write_cache(&self.cache_path)?;
@@ -186,14 +189,21 @@ impl Spotify {
     /// Tries to read the cache file's token, which may not exist.
     #[maybe_async]
     pub async fn read_token_cache(&mut self) -> Option<Token> {
-        let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
+        #[cfg(feature = "cache_file")]
+        {
+            let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
 
-        if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
-            // Invalid token, since it doesn't have at least the currently
-            // required scopes or it's expired.
+            if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
+                // Invalid token, since it doesn't have at least the currently
+                // required scopes or it's expired.
+                None
+            } else {
+                Some(tok)
+            }
+        }
+        #[cfg(not(feature = "cache_file"))]
+        {
             None
-        } else {
-            Some(tok)
         }
     }
 
@@ -267,8 +277,15 @@ impl Spotify {
     /// into the cache file if possible.
     #[maybe_async]
     pub async fn request_client_token(&mut self) -> ClientResult<()> {
-        self.request_client_token_without_cache().await?;
-        self.write_token_cache()
+        #[cfg(not(feature = "cache_file"))]
+        {
+            self.request_client_token_without_cache().await
+        }
+        #[cfg(feature = "cache_file")]
+        {
+            self.request_client_token_without_cache().await?;
+            self.write_token_cache()
+        }
     }
 
     /// Parse the response code in the given response url. If the URL cannot be
@@ -310,8 +327,16 @@ impl Spotify {
     /// the cache file if possible.
     #[maybe_async]
     pub async fn request_user_token(&mut self, code: &str) -> ClientResult<()> {
-        self.request_user_token_without_cache(code).await?;
-        self.write_token_cache()
+        #[cfg(not(feature = "cache_file"))]
+        {
+            self.request_user_token_without_cache(code).await
+        }
+
+        #[cfg(feature = "cache_file")]
+        {
+            self.request_user_token_without_cache(code).await?;
+            self.write_token_cache()
+        }
     }
 
     /// Opens up the authorization URL in the user's browser so that it can
