@@ -2,8 +2,7 @@
 use super::device::Device;
 use super::PlayingItem;
 use crate::model::{
-    from_millisecond_timestamp, from_option_duration_ms, to_millisecond_timestamp,
-    to_option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
+    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -27,17 +26,10 @@ pub struct Context {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
-    #[serde(
-        deserialize_with = "from_millisecond_timestamp",
-        serialize_with = "to_millisecond_timestamp"
-    )]
+    #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
-    #[serde(
-        deserialize_with = "from_option_duration_ms",
-        serialize_with = "to_option_duration_ms",
-        rename = "progress_ms"
-    )]
+    #[serde(with = "option_duration_ms", rename = "progress_ms")]
     pub progress: Option<Duration>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
@@ -51,17 +43,10 @@ pub struct CurrentPlaybackContext {
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
     pub context: Option<Context>,
-    #[serde(
-        deserialize_with = "from_millisecond_timestamp",
-        serialize_with = "to_millisecond_timestamp"
-    )]
+    #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
-    #[serde(
-        deserialize_with = "from_option_duration_ms",
-        serialize_with = "to_option_duration_ms",
-        rename = "progress_ms"
-    )]
+    #[serde(with = "option_duration_ms", rename = "progress_ms")]
     pub progress: Option<Duration>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
