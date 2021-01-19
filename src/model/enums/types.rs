@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use strum::ToString;
 
-/// Copyright type: `C` = the copyright, `P` = the sound recording (performance) copyright.
+/// Copyright type: `C` = the copyright, `P` = the sound recording (performance)
+/// copyright.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]

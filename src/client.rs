@@ -750,7 +750,8 @@ impl Spotify {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     /// - range_start - the position of the first track to be reordered
-    /// - range_length - optional the number of tracks to be reordered (default: 1)
+    /// - range_length - optional the number of tracks to be reordered (default:
+    ///   1)
     /// - insert_before - the position where the tracks should be inserted
     /// - snapshot_id - optional playlist's snapshot ID
     ///
@@ -820,8 +821,8 @@ impl Spotify {
     ///
     /// Parameters:
     /// - playlist_id: the id of the playlist
-    /// - tracks: an array of map containing Spotify URIs of the tracks to remove
-    /// with their current positions in the playlist. For example:
+    /// - tracks: an array of map containing Spotify URIs of the tracks to
+    ///   remove with their current positions in the playlist. For example:
     ///
     /// ```json
     /// {
@@ -1013,7 +1014,6 @@ impl Spotify {
     /// Parameters:
     /// - limit - the number of tracks to return
     /// - after - the last artist ID retrieved from the previous request
-    ///
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-followed-artists/)
     #[maybe_async]
@@ -1903,9 +1903,10 @@ impl Spotify {
     /// Add an item to the end of the user's playback queue.
     ///
     /// Parameters:
-    /// - uri - THe uri of the item to add, Track or Episode
+    /// - uri - The uri of the item to add, Track or Episode
     /// - device id - The id of the device targeting
-    /// - If no device ID provided the user's currently active device is targeted
+    /// - If no device ID provided the user's currently active device is
+    ///   targeted
     ///
     /// [Reference](https://developer.spotify.com/console/post-queue/)
     #[maybe_async]
@@ -1923,7 +1924,8 @@ impl Spotify {
     /// Add a show or a list of shows to a user’s library.
     ///
     /// Parameters:
-    /// - ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    /// - ids(Required) A comma-separated list of Spotify IDs for the shows to
+    ///   be added to the user’s library.
     ///
     /// [Reference](https://developer.spotify.com/console/put-current-user-saved-shows)
     #[maybe_async]
@@ -1939,8 +1941,10 @@ impl Spotify {
     /// Optional parameters can be used to limit the number of shows returned.
     ///
     /// Parameters:
-    /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
-    /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    /// - limit(Optional). The maximum number of shows to return. Default: 20.
+    ///   Minimum: 1. Maximum: 50.
+    /// - offset(Optional). The index of the first show to return. Default: 0
+    ///   (the first object). Use with limit to get the next set of shows.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
     #[maybe_async]

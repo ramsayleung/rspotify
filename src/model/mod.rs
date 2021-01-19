@@ -21,7 +21,9 @@ use serde::{Deserialize, Serialize};
 pub(in crate) mod duration_ms {
     use serde::{de, Serializer};
     use std::{fmt, time::Duration};
-    /// Vistor to help deserialize duration represented as millisecond to `std::time::Duration`
+
+    /// Vistor to help deserialize duration represented as millisecond to
+    /// `std::time::Duration`.
     pub(in crate) struct DurationVisitor;
     impl<'de> de::Visitor<'de> for DurationVisitor {
         type Value = Duration;
@@ -56,7 +58,9 @@ pub(in crate) mod millisecond_timestamp {
     use chrono::{DateTime, NaiveDateTime, Utc};
     use serde::{de, Serializer};
     use std::fmt;
-    /// Vistor to help deserialize unix millisecond timestamp to `chrono::DateTime`
+
+    /// Vistor to help deserialize unix millisecond timestamp to
+    /// `chrono::DateTime`.
     struct DateTimeVisitor;
 
     impl<'de> de::Visitor<'de> for DateTimeVisitor {
@@ -73,7 +77,8 @@ pub(in crate) mod millisecond_timestamp {
         {
             let second = (v - v % 1000) / 1000;
             let nanosecond = ((v % 1000) * 1000000) as u32;
-            // The maximum value of i64 is large enough to hold millisecond, so it would be safe to convert it i64
+            // The maximum value of i64 is large enough to hold milliseconds,
+            // so it would be safe to convert it i64.
             let dt = DateTime::<Utc>::from_utc(
                 NaiveDateTime::from_timestamp(second as i64, nanosecond),
                 Utc,
@@ -102,7 +107,9 @@ pub(in crate) mod option_duration_ms {
     use super::duration_ms;
     use serde::{de, Serializer};
     use std::{fmt, time::Duration};
-    /// Vistor to help deserialize duration represented as millisecond to `Option<std::time::Duration>`
+
+    /// Vistor to help deserialize duration represented as milliseconds to
+    /// `Option<std::time::Duration>`
     struct OptionDurationVisitor;
 
     impl<'de> de::Visitor<'de> for OptionDurationVisitor {
@@ -130,7 +137,8 @@ pub(in crate) mod option_duration_ms {
         }
     }
 
-    /// Deserialize `Option<std::time::Duration>` from milliseconds (represented as u64)
+    /// Deserialize `Option<std::time::Duration>` from milliseconds
+    /// (represented as u64)
     pub(in crate) fn deserialize<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -138,7 +146,8 @@ pub(in crate) mod option_duration_ms {
         d.deserialize_option(OptionDurationVisitor)
     }
 
-    /// Serialize `Option<std::time::Duration>` to milliseconds (represented as u64)
+    /// Serialize `Option<std::time::Duration>` to milliseconds (represented as
+    /// u64)
     pub(in crate) fn serialize<S>(x: &Option<Duration>, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
