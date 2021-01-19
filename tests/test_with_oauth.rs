@@ -43,9 +43,10 @@ pub async fn oauth_client() -> Spotify {
         // `env-file` in order to read them from an `.env` file.
         let creds = CredentialsBuilder::from_env().build().unwrap_or_else(|_| {
             panic!(
-                "No credentials configured. Make sure that the required \
+                "No credentials configured. Make sure that either the \
+                `env-file` feature is enabled, or that the required \
                 environment variables are exported (`RSPOTIFY_CLIENT_ID`, \
-                `RSPOTIFY_CLIENT_SECRET`)"
+                `RSPOTIFY_CLIENT_SECRET`)."
             )
         });
 
