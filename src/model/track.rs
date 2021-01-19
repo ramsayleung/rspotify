@@ -7,8 +7,8 @@ use std::{collections::HashMap, time::Duration};
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
 use super::Restriction;
+use crate::model::duration_ms;
 use crate::model::Type;
-use crate::model::{from_duration_ms, to_duration_ms};
 
 /// Full track object
 ///
@@ -20,11 +20,7 @@ pub struct FullTrack {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub available_markets: Vec<String>,
     pub disc_number: i32,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub explicit: bool,
     pub external_ids: HashMap<String, String>,
@@ -79,11 +75,7 @@ pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
     pub available_markets: Option<Vec<String>>,
     pub disc_number: i32,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,

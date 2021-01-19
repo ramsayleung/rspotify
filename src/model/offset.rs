@@ -1,5 +1,5 @@
 //! Offset object
-use crate::model::{from_option_duration_ms, to_option_duration_ms};
+use crate::model::option_duration_ms;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -9,10 +9,7 @@ use std::time::Duration;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Offset {
     #[serde(default)]
-    #[serde(
-        deserialize_with = "from_option_duration_ms",
-        serialize_with = "to_option_duration_ms"
-    )]
+    #[serde(with = "option_duration_ms")]
     pub position: Option<Duration>,
     pub uri: Option<String>,
 }

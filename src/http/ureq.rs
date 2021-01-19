@@ -14,35 +14,44 @@ impl ClientError {
 }
 
 impl Spotify {
+    /// The request handling in ureq is split in three parts:
+    ///
+    /// * The initial request (POST, GET, ...) is given as the `request`
+    ///   parameter.
+    /// * This method will add whichever headers and additional data is needed
+    ///   for all requests.
+    /// * The request is finished and performed with the `send_request` function
+    ///   (JSON, a form...).
     fn request<D>(
         &self,
-        request: &mut Request,
+        mut request: Request,
         headers: Option<&Headers>,
         send_request: D,
     ) -> ClientResult<String>
     where
-        D: Fn(&mut Request) -> Response,
+        D: Fn(Request) -> Result<Response, ureq::Error>,
     {
         // Setting the headers, which will be the token auth if unspecified.
         match headers {
             Some(headers) => {
                 for (key, val) in headers.iter() {
-                    request.set(&key, &val);
+                    request = request.set(&key, &val);
                 }
             }
             None => {
                 let (key, val) = headers::bearer_auth(self.get_token()?);
-                request.set(&key, &val);
+                request = request.set(&key, &val);
             }
         }
 
         log::info!("Making request {:?}", request);
-        let response = send_request(request);
-
-        if response.ok() {
-            response.into_string().map_err(Into::into)
-        } else {
-            Err(ClientError::from_response(response))
+        match send_request(request) {
+            Ok(response) => response.into_string().map_err(Into::into),
+            Err(ureq::Error::Status(_, response)) => Err(ClientError::from_response(response)),
+            Err(err) => {
+                // Some kind of IO/transport error
+                Err(ClientError::Request(err.to_string()))
+            }
         }
     }
 }
@@ -51,23 +60,21 @@ impl Spotify {
 impl BaseClient for Spotify {
     #[inline]
     fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> ClientResult<String> {
-        self.request(
-            &mut ureq::get(&self.endpoint_url(url)),
-            headers,
-            |mut req| {
-                for (key, val) in payload.iter() {
-                    req = req.query(&key, &val)
-                }
-                req.call()
-            },
-        )
+        let request = ureq::get(&self.endpoint_url(url));
+        let sender = |mut req: Request| {
+            for (key, val) in payload.iter() {
+                req = req.query(&key, &val)
+            }
+            req.call()
+        };
+        self.request(request, headers, sender)
     }
 
     #[inline]
     fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
-        self.request(&mut ureq::post(&self.endpoint_url(url)), headers, |req| {
-            req.send_json(payload.clone())
-        })
+        let request = ureq::post(&self.endpoint_url(url));
+        let sender = |req: Request| req.send_json(payload.clone());
+        self.request(request, headers, sender)
     }
 
     #[inline]
@@ -77,21 +84,24 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Form,
     ) -> ClientResult<String> {
-        let payload = payload
-            .iter()
-            .map(|(key, val)| (key.as_str(), val.as_str()))
-            .collect::<Vec<_>>();
+        let request = ureq::post(&self.endpoint_url(url));
+        let sender = |req: Request| {
+            let payload = payload
+                .iter()
+                .map(|(key, val)| (key.as_str(), val.as_str()))
+                .collect::<Vec<_>>();
 
-        self.request(&mut ureq::post(&self.endpoint_url(url)), headers, |req| {
             req.send_form(&payload)
-        })
+        };
+
+        self.request(request, headers, sender)
     }
 
     #[inline]
     fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
-        self.request(&mut ureq::put(&self.endpoint_url(url)), headers, |req| {
-            req.send_json(payload.clone())
-        })
+        let request = ureq::put(&self.endpoint_url(url));
+        let sender = |req: Request| req.send_json(payload.clone());
+        self.request(request, headers, sender)
     }
 
     #[inline]
@@ -101,8 +111,8 @@ impl BaseClient for Spotify {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> ClientResult<String> {
-        self.request(&mut ureq::delete(&self.endpoint_url(url)), headers, |req| {
-            req.send_json(payload.clone())
-        })
+        let request = ureq::delete(&self.endpoint_url(url));
+        let sender = |req: Request| req.send_json(payload.clone());
+        self.request(request, headers, sender)
     }
 }

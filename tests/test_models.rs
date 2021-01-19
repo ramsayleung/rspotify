@@ -835,3 +835,39 @@ fn test_offset() {
     let empty_offset: Offset = serde_json::from_str(&empty_json).unwrap();
     assert!(empty_offset.position.is_none());
 }
+
+#[test]
+fn test_audio_analysis_track() {
+    let json = r#"
+  {
+    "num_samples": 5630445,
+    "duration": 255.34898,
+    "sample_md5": "",
+    "offset_seconds": 0,
+    "window_seconds": 0,
+    "analysis_sample_rate": 22050,
+    "analysis_channels": 1,
+    "end_of_fade_in": 0,
+    "start_of_fade_out": 251.73334,
+    "loudness": -11.84,
+    "tempo": 98.002,
+    "tempo_confidence": 0.423,
+    "time_signature": 4,
+    "time_signature_confidence": 1,
+    "key": 5,
+    "key_confidence": 0.36,
+    "mode": 0,
+    "mode_confidence": 0.414,
+    "codestring": "e",
+    "code_version": 3.15,
+    "echoprintstring": "e",
+    "echoprint_version": 4.12,
+    "synchstring": "eJ",
+    "synch_version": 1,
+    "rhythmstring": "e",
+    "rhythm_version": 1
+  }
+  "#;
+    let audio_analysis_track: AudioAnalysisTrack = serde_json::from_str(&json).unwrap();
+    assert_eq!(audio_analysis_track.mode, Modality::Minor);
+}
