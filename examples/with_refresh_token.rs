@@ -70,7 +70,7 @@ async fn main() {
     // refresh token. We can also do some requests here.
     println!(">>> Session one, obtaining refresh token and running some requests:");
     spotify
-        .prompt_for_user_token_without_cache()
+        .prompt_for_user_token()
         .await
         .expect("couldn't authenticate successfully");
     let refresh_token = spotify
