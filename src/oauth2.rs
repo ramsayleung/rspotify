@@ -10,7 +10,11 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::iter::FromIterator;
 #[cfg(feature = "cache_file")]
-use std::{fs, io::{Read, Write}, path::Path};
+use std::{
+    fs,
+    io::{Read, Write},
+    path::Path,
+};
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, Form, Headers};
@@ -23,7 +27,6 @@ mod auth_urls {
 
 // TODO this should be removed after making a custom type for scopes
 // or handling them as a vector of strings.
-#[cfg(feature = "cache_file")]
 fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
     let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
     let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
@@ -410,8 +413,8 @@ mod tests {
     use super::*;
     use crate::client::SpotifyBuilder;
 
-    use std::fs;
-    use std::io::Read;
+    #[cfg(feature = "cache_file")]
+    use std::{fs, io::Read};
 
     #[test]
     fn test_is_scope_subset() {
@@ -423,6 +426,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "cache_file")]
     fn test_write_token() {
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
