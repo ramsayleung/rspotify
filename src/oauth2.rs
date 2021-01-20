@@ -6,13 +6,14 @@ use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::env;
-use std::iter::FromIterator;
 #[cfg(feature = "cache_file")]
 use std::{
+    collections::HashSet,
     fs,
     io::{Read, Write},
+    iter::FromIterator,
     path::Path,
 };
 
@@ -27,6 +28,7 @@ mod auth_urls {
 
 // TODO this should be removed after making a custom type for scopes
 // or handling them as a vector of strings.
+#[cfg(feature = "cache_file")]
 fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
     let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
     let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
@@ -415,6 +417,7 @@ mod tests {
     use std::{fs, io::Read};
 
     #[test]
+    #[cfg(feature = "cache_file")]
     fn test_is_scope_subset() {
         let mut needle_scope = String::from("1 2 3");
         let mut haystack_scope = String::from("1 2 3 4");
