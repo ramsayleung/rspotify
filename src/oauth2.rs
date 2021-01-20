@@ -234,10 +234,7 @@ impl Spotify {
     ///
     /// The obtained token will be saved internally.
     #[maybe_async]
-    pub async fn refresh_user_token_without_cache(
-        &mut self,
-        refresh_token: &str,
-    ) -> ClientResult<()> {
+    async fn refresh_user_token_without_cache(&mut self, refresh_token: &str) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN.to_owned(), refresh_token.to_owned());
         data.insert(
@@ -252,8 +249,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// The same as `refresh_user_token_without_cache`, but saves the token
-    /// into the cache file if possible.
+    /// Refreshes the access token with the refresh token provided by the
+    /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow),
+    /// without saving it into the cache file.
+    ///
+    /// The obtained token will be saved internally.
+    /// The token will be saved into the cache file if `cache_file` feature is
+    /// enabled.
     #[maybe_async]
     pub async fn refresh_user_token(&mut self, refresh_token: &str) -> ClientResult<()> {
         self.refresh_user_token_without_cache(refresh_token).await?;
@@ -264,7 +266,7 @@ impl Spotify {
     /// Obtains the client access token for the app without saving it into the
     /// cache file. The resulting token is saved internally.
     #[maybe_async]
-    pub async fn request_client_token_without_cache(&mut self) -> ClientResult<()> {
+    async fn request_client_token_without_cache(&mut self) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(
             headers::GRANT_TYPE.to_owned(),
@@ -276,8 +278,10 @@ impl Spotify {
         Ok(())
     }
 
-    /// The same as `request_client_token_without_cache`, but saves the token
-    /// into the cache file if possible.
+    /// Obtains the client access token for the app without saving it into the
+    /// cache file. The resulting token is saved internally.
+    /// The token will be saved into the cache file if `cache_file` feature is
+    /// enabled.
     #[maybe_async]
     pub async fn request_client_token(&mut self) -> ClientResult<()> {
         #[cfg(not(feature = "cache_file"))]
@@ -309,7 +313,7 @@ impl Spotify {
     ///
     /// Step 3 of the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
     #[maybe_async]
-    pub async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
+    async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
         let oauth = self.get_oauth()?;
         let mut data = Form::new();
         data.insert(
@@ -326,8 +330,13 @@ impl Spotify {
         Ok(())
     }
 
-    /// The same as `request_user_token_without_cache`, but saves the token into
-    /// the cache file if possible.
+    /// Obtains the user access token for the app with the given code without
+    /// saving it into the cache file, as part of the OAuth authentication.
+    /// The access token will be saved inside the Spotify instance.
+    ///
+    /// Step 3 of the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
+    /// The token will be saved into the cache file if `cache_file` feature is
+    /// enabled.
     #[maybe_async]
     pub async fn request_user_token(&mut self, code: &str) -> ClientResult<()> {
         #[cfg(not(feature = "cache_file"))]
@@ -347,19 +356,8 @@ impl Spotify {
     /// in order to obtain the access token information. The resulting access
     /// token will be saved internally once the operation is successful.
     ///
-    /// Note: this method requires the `cli` feature.
-    #[cfg(feature = "cli")]
-    #[maybe_async]
-    pub async fn prompt_for_user_token_without_cache(&mut self) -> ClientResult<()> {
-        let code = self.get_code_from_user()?;
-        self.request_user_token_without_cache(&code).await?;
-
-        Ok(())
-    }
-
-    /// The same as the `prompt_for_user_token_without_cache` method, but it
-    /// will try to use the user token into the cache file, and save it in
-    /// case it didn't exist/was invalid.
+    /// It will try to use the user token into the cache file, and save it if
+    /// `cache_file` feature is enabled.
     ///
     /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
