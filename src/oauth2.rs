@@ -8,7 +8,7 @@ use url::Url;
 
 use std::collections::HashMap;
 use std::env;
-#[cfg(feature = "cache_file")]
+#[cfg(feature = "cache-file")]
 use std::{
     collections::HashSet,
     fs,
@@ -28,7 +28,7 @@ mod auth_urls {
 
 // TODO this should be removed after making a custom type for scopes
 // or handling them as a vector of strings.
-#[cfg(feature = "cache_file")]
+#[cfg(feature = "cache-file")]
 fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
     let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
     let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
@@ -54,7 +54,7 @@ pub struct Token {
 
 impl TokenBuilder {
     /// Tries to initialize the token from a cache file.
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     pub fn from_cache<T: AsRef<Path>>(path: T) -> Self {
         if let Ok(mut file) = fs::File::open(path) {
             let mut tok_str = String::new();
@@ -77,10 +77,9 @@ impl TokenBuilder {
 
 impl Token {
     /// Saves the token information into its cache file.
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> ClientResult<()> {
         let token_info = serde_json::to_string(&self)?;
-
         let mut file = fs::OpenOptions::new().write(true).create(true).open(path)?;
         file.set_len(0)?;
         file.write_all(token_info.as_bytes())?;
@@ -163,7 +162,7 @@ impl OAuthBuilder {
 /// Authorization-related methods for the client.
 impl Spotify {
     /// Updates the cache file at the internal cache path.
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     pub fn write_token_cache(&self) -> ClientResult<()> {
         if let Some(tok) = self.token.as_ref() {
             tok.write_cache(&self.cache_path)?;
@@ -256,7 +255,7 @@ impl Spotify {
     /// without saving it into the cache file.
     ///
     /// The obtained token will be saved internally.
-    /// The token will be saved into the cache file if `cache_file` feature is
+    /// The token will be saved into the cache file if `cache-file` feature is
     /// enabled.
     #[maybe_async]
     pub async fn refresh_user_token(&mut self, refresh_token: &str) -> ClientResult<()> {
@@ -282,15 +281,15 @@ impl Spotify {
 
     /// Obtains the client access token for the app without saving it into the
     /// cache file. The resulting token is saved internally.
-    /// The token will be saved into the cache file if `cache_file` feature is
+    /// The token will be saved into the cache file if `cache-file` feature is
     /// enabled.
     #[maybe_async]
     pub async fn request_client_token(&mut self) -> ClientResult<()> {
-        #[cfg(not(feature = "cache_file"))]
+        #[cfg(not(feature = "cache-file"))]
         {
             self.request_client_token_without_cache().await
         }
-        #[cfg(feature = "cache_file")]
+        #[cfg(feature = "cache-file")]
         {
             self.request_client_token_without_cache().await?;
             self.write_token_cache()
@@ -337,16 +336,16 @@ impl Spotify {
     /// The access token will be saved inside the Spotify instance.
     ///
     /// Step 3 of the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
-    /// The token will be saved into the cache file if `cache_file` feature is
+    /// The token will be saved into the cache file if `cache-file` feature is
     /// enabled.
     #[maybe_async]
     pub async fn request_user_token(&mut self, code: &str) -> ClientResult<()> {
-        #[cfg(not(feature = "cache_file"))]
+        #[cfg(not(feature = "cache-file"))]
         {
             self.request_user_token_without_cache(code).await
         }
 
-        #[cfg(feature = "cache_file")]
+        #[cfg(feature = "cache-file")]
         {
             self.request_user_token_without_cache(code).await?;
             self.write_token_cache()
@@ -359,14 +358,17 @@ impl Spotify {
     /// token will be saved internally once the operation is successful.
     ///
     /// It will try to use the user token into the cache file, and save it if
-    /// `cache_file` feature is enabled.
+    /// `cache-file` feature is enabled.
     ///
     /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
         // TODO: shouldn't this also refresh the obtained token?
-        self.token = self.read_token_cache().await;
+        #[cfg(feature = "cache-file")]
+        {
+            self.token = self.read_token_cache().await;
+        }
 
         // Otherwise following the usual procedure to get the token.
         if self.token.is_none() {
@@ -413,11 +415,11 @@ mod tests {
     use super::*;
     use crate::client::SpotifyBuilder;
 
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     use std::{fs, io::Read};
 
     #[test]
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     fn test_is_scope_subset() {
         let mut needle_scope = String::from("1 2 3");
         let mut haystack_scope = String::from("1 2 3 4");
@@ -427,7 +429,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     fn test_write_token() {
         let tok = TokenBuilder::default()
             .access_token("test-access_token")

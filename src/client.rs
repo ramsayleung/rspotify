@@ -9,7 +9,7 @@ use serde_json::map::Map;
 use serde_json::{json, Value};
 use thiserror::Error;
 
-#[cfg(feature = "cache_file")]
+#[cfg(feature = "cache-file")]
 use std::path::PathBuf;
 
 use super::http::{BaseClient, Query};
@@ -52,7 +52,7 @@ pub enum ClientError {
     #[error("cli error: {0}")]
     CLI(String),
 
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     #[error("cache file error: {0}")]
     CacheFile(String),
 }
@@ -111,7 +111,7 @@ pub struct Spotify {
 
     /// The cache file path, in case it's used. By default it's
     /// [`DEFAULT_CACHE_PATH`](constant.DEFAULT_API_PREFIX.html).
-    #[cfg(feature = "cache_file")]
+    #[cfg(feature = "cache-file")]
     #[builder(default = r#"PathBuf::from(DEFAULT_CACHE_PATH)"#)]
     pub cache_path: PathBuf,
 }
