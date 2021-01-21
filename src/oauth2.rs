@@ -192,22 +192,16 @@ impl Spotify {
 
     /// Tries to read the cache file's token, which may not exist.
     #[maybe_async]
+    #[cfg(feature = "cache-file")]
     pub async fn read_token_cache(&mut self) -> Option<Token> {
-        #[cfg(feature = "cache_file")]
-        {
-            let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
+        let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
 
-            if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
-                // Invalid token, since it doesn't have at least the currently
-                // required scopes or it's expired.
-                None
-            } else {
-                Some(tok)
-            }
-        }
-        #[cfg(not(feature = "cache_file"))]
-        {
+        if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
+            // Invalid token, since it doesn't have at least the currently
+            // required scopes or it's expired.
             None
+        } else {
+            Some(tok)
         }
     }
 
