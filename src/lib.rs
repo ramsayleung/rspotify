@@ -103,16 +103,12 @@
 //!    ](client/struct.Spotify.html#method.parse_response_code).
 //! 3. The code is sent to Spotify in order to obtain an access token with
 //!    [`Spotify::request_user_token`
-//!    ](client/struct.Spotify.html#method.request_user_token) or
-//!    [`Spotify::request_user_token_without_cache`
-//!    ](client/struct.Spotify.html#method.prompt_for_user_token_without_cache).
+//!    ](client/struct.Spotify.html#method.request_user_token)
 //! 4. Finally, this access token can be used internally for the requests.
 //!    This access token may expire relatively soon, so it can be refreshed
 //!    with the refresh token (obtained in the third step as well) using
 //!    [`Spotify::refresh_user_token`
-//!    ](client/struct.Spotify.html#method.refresh_user_token) or
-//!    [`Spotify::refresh_user_token_without_cache`
-//!    ](client/struct.Spotify.html#method.refresh_user_token_without_cache).
+//!    ](client/struct.Spotify.html#method.refresh_user_token).
 //!    Otherwise, a new access token may be generated from scratch by repeating
 //!    these steps, but the advantage of refreshing it is that this doesn't
 //!    require the user to log in, and that it's a simpler procedure.
