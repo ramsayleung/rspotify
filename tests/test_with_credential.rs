@@ -1,9 +1,12 @@
 mod common;
 
 use common::maybe_async_test;
-use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::{AlbumType, Country};
 use rspotify::oauth2::CredentialsBuilder;
+use rspotify::{
+    client::{Spotify, SpotifyBuilder},
+    model::Market,
+};
 
 use maybe_async::maybe_async;
 
@@ -84,7 +87,7 @@ async fn test_artists_albums() {
         .artist_albums(
             birdy_uri,
             Some(AlbumType::Album),
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -107,7 +110,7 @@ async fn test_artist_top_tracks() {
     let birdy_uri = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
     creds_client()
         .await
-        .artist_top_tracks(birdy_uri, Country::UnitedStates)
+        .artist_top_tracks(birdy_uri, Market::Country(Country::UnitedStates))
         .await
         .unwrap();
 }
