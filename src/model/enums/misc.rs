@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use strum::ToString;
 
+use super::Country;
+
 /// Disallows object: `interrupting_playback`, `pausing`, `resuming`, `seeking`,
 /// `skipping_next`, `skipping_prev`, `toggling_repeat_context`,
 /// `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`.
@@ -90,4 +92,21 @@ pub enum Modality {
     Minor = 0,
     Major = 1,
     NoResult = -1,
+}
+/// Limit the response to a particular market
+///
+/// FromToken is the same thing as setting the market parameter to the user's country.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Market {
+    Country(Country),
+    FromToken,
+}
+
+impl Into<String> for Market {
+    fn into(self) -> String {
+        match self {
+            Market::Country(c) => c.to_string(),
+            Market::FromToken => "from_token".to_string(),
+        }
+    }
 }
