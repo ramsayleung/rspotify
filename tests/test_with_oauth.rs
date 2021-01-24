@@ -337,6 +337,17 @@ async fn test_new_releases() {
 #[maybe_async]
 #[maybe_async_test]
 #[ignore]
+async fn test_new_releases_with_from_token() {
+    oauth_client()
+        .await
+        .new_releases(Some(Market::FromToken), 10, 0)
+        .await
+        .unwrap();
+}
+
+#[maybe_async]
+#[maybe_async_test]
+#[ignore]
 async fn test_next_playback() {
     let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
     oauth_client()
