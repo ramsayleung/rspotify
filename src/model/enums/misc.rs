@@ -103,8 +103,8 @@ pub enum Market {
     FromToken,
 }
 
-impl Into<String> for Market {
-    fn into(self) -> String {
+impl ToString for Market {
+    fn to_string(&self) -> String {
         match self {
             Market::Country(c) => c.to_string(),
             Market::FromToken => "from_token".to_string(),
