@@ -93,6 +93,7 @@ pub enum Modality {
     Major = 1,
     NoResult = -1,
 }
+
 /// Limit the response to a particular market
 ///
 /// FromToken is the same thing as setting the market parameter to the user's country.
