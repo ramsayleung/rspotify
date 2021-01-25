@@ -320,14 +320,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-artists-top-tracks/)
     #[maybe_async]
-    pub async fn artist_top_tracks<T: Into<Market>>(
+    pub async fn artist_top_tracks(
         &self,
         artist_id: &str,
-        market: T,
+        market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let mut params = Query::with_capacity(1);
 
-        params.insert("market".to_owned(), market.into().into());
+        params.insert("market".to_owned(), market.into());
 
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
