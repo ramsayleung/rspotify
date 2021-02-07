@@ -212,14 +212,14 @@ impl Spotify {
     ///
     /// Parameters:
     /// - track_ids - a list of spotify URIs, URLs or IDs
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
     #[maybe_async]
     pub async fn tracks<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         // TODO: this can be improved
         let mut ids: Vec<String> = vec![];
@@ -278,7 +278,7 @@ impl Spotify {
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
     /// - album_type - 'album', 'single', 'appears_on', 'compilation'
-    /// - country - limit the response to one particular country.
+    /// - market - limit the response to one particular country.
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
     ///
@@ -288,7 +288,7 @@ impl Spotify {
         &self,
         artist_id: &str,
         album_type: Option<AlbumType>,
-        country: Option<Country>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
@@ -302,8 +302,8 @@ impl Spotify {
         if let Some(offset) = offset {
             params.insert("offset".to_owned(), offset.to_string());
         }
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = market {
+            params.insert("market".to_owned(), market.to_string());
         }
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/albums", trid);
@@ -316,20 +316,18 @@ impl Spotify {
     ///
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
-    /// - country - limit the response to one particular country.
+    /// - market - limit the response to one particular country.
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-artists-top-tracks/)
     #[maybe_async]
-    pub async fn artist_top_tracks<T: Into<Option<Country>>>(
+    pub async fn artist_top_tracks(
         &self,
         artist_id: &str,
-        country: T,
+        market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "country".to_owned(),
-            country.into().unwrap_or(Country::UnitedStates).to_string(),
-        );
+
+        params.insert("market".to_owned(), market.to_string());
 
         let trid = self.get_id(Type::Artist, artist_id);
         let url = format!("artists/{}/top-tracks", trid);
@@ -411,7 +409,7 @@ impl Spotify {
         _type: SearchType,
         limit: L,
         offset: O,
-        market: Option<Country>,
+        market: Option<Market>,
         include_external: Option<IncludeExternal>,
     ) -> ClientResult<SearchResult> {
         let mut params = Query::with_capacity(4);
@@ -471,7 +469,7 @@ impl Spotify {
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
     #[maybe_async]
@@ -479,7 +477,7 @@ impl Spotify {
         &self,
         playlist_id: &str,
         fields: Option<&str>,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<FullPlaylist> {
         let mut params = Query::new();
         if let Some(fields) = fields {
@@ -553,14 +551,10 @@ impl Spotify {
         user_id: &str,
         playlist_id: Option<&mut str>,
         fields: Option<&str>,
-        market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
         let mut params = Query::new();
         if let Some(fields) = fields {
             params.insert("fields".to_owned(), fields.to_string());
-        }
-        if let Some(market) = market {
-            params.insert("market".to_owned(), market.to_string());
         }
         match playlist_id {
             Some(playlist_id) => {
@@ -584,7 +578,7 @@ impl Spotify {
     /// - fields - which fields to return
     /// - limit - the maximum number of tracks to return
     /// - offset - the index of the first track to return
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/web-api/get-playlists-tracks/)
     #[maybe_async]
@@ -594,7 +588,7 @@ impl Spotify {
         fields: Option<&str>,
         limit: L,
         offset: O,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<Page<PlaylistItem>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
@@ -1349,7 +1343,7 @@ impl Spotify {
     /// - locale - The desired language, consisting of a lowercase ISO 639
     ///   language code and an uppercase ISO 3166-1 alpha-2 country code,
     ///   joined by an underscore.
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or the string from_token.
     /// - timestamp - A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use
     ///   this parameter to specify the user's local time to get results
     ///   tailored for that specific date and time in the day
@@ -1364,7 +1358,7 @@ impl Spotify {
     pub async fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         locale: Option<String>,
-        country: Option<Country>,
+        country: Option<Market>,
         timestamp: Option<DateTime<Utc>>,
         limit: L,
         offset: O,
@@ -1375,8 +1369,8 @@ impl Spotify {
         if let Some(locale) = locale {
             params.insert("locale".to_owned(), locale);
         }
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
         if let Some(timestamp) = timestamp {
             params.insert("timestamp".to_owned(), timestamp.to_rfc3339());
@@ -1388,7 +1382,7 @@ impl Spotify {
     /// Get a list of new album releases featured in Spotify.
     ///
     /// Parameters:
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or string from_token.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 50
     /// - offset - The index of the first item to return. Default: 0 (the first
@@ -1398,15 +1392,15 @@ impl Spotify {
     #[maybe_async]
     pub async fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        country: Option<Country>,
+        country: Option<Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
 
         let result = self.get("browse/new-releases", None, &params).await?;
@@ -1417,7 +1411,7 @@ impl Spotify {
     /// Get a list of new album releases featured in Spotify
     ///
     /// Parameters:
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or string from_token.
     /// - locale - The desired language, consisting of an ISO 639 language code
     ///   and an ISO 3166-1 alpha-2 country code, joined by an underscore.
     /// - limit - The maximum number of items to return. Default: 20.
@@ -1430,7 +1424,7 @@ impl Spotify {
     pub async fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         locale: Option<String>,
-        country: Option<Country>,
+        country: Option<Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<Category>> {
@@ -1440,8 +1434,8 @@ impl Spotify {
         if let Some(locale) = locale {
             params.insert("locale".to_owned(), locale);
         }
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
         let result = self.get("browse/categories", None, &params).await?;
         self.convert_result::<PageCategory>(&result)
@@ -1452,7 +1446,7 @@ impl Spotify {
     ///
     /// Parameters:
     /// - category_id - The category id to get playlists from.
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or the string from_token.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 50
     /// - offset - The index of the first item to return. Default: 0 (the first
@@ -1463,15 +1457,15 @@ impl Spotify {
     pub async fn category_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         category_id: &str,
-        country: Option<Country>,
+        country: Option<Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
 
         let url = format!("browse/categories/{}/playlists", category_id);
@@ -1486,7 +1480,7 @@ impl Spotify {
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
     /// - seed_genres - a list of genre names. Available genres for
-    /// - country - An ISO 3166-1 alpha-2 country code. If provided, all
+    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token. If provided, all
     ///   results will be playable in this country.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 100
@@ -1502,7 +1496,7 @@ impl Spotify {
         seed_genres: Option<Vec<String>>,
         seed_tracks: Option<Vec<String>>,
         limit: L,
-        country: Option<Country>,
+        market: Option<Market>,
         payload: &Map<String, Value>,
     ) -> ClientResult<Recommendations> {
         let mut params = Query::with_capacity(payload.len() + 1);
@@ -1553,8 +1547,8 @@ impl Spotify {
                 .collect::<Vec<_>>();
             params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
         }
-        if let Some(country) = country {
-            params.insert("market".to_owned(), country.to_string());
+        if let Some(market) = market {
+            params.insert("market".to_owned(), market.to_string());
         }
         let result = self.get("recommendations", None, &params).await?;
         self.convert_result(&result)
@@ -1627,7 +1621,7 @@ impl Spotify {
     /// Get Information About The User’s Current Playback
     ///
     /// Parameters:
-    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code or the string from_token.
     /// - additional_types: Optional. A comma-separated list of item types that
     ///   your client supports besides the default track type. Valid types are:
     ///   `track` and `episode`.
@@ -1636,7 +1630,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_playback(
         &self,
-        market: Option<Country>,
+        market: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let mut params = Query::new();
@@ -1665,7 +1659,7 @@ impl Spotify {
     /// Get the User’s Currently Playing Track
     ///
     /// Parameters:
-    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code or the string from_token.
     /// - additional_types: Optional. A comma-separated list of item types that
     ///   your client supports besides the default track type. Valid types are:
     ///   `track` and `episode`.
@@ -1674,12 +1668,12 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_playing(
         &self,
-        market: Option<Country>,
+        market: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
         if let Some(additional_types) = additional_types {
             params.insert(
@@ -1966,14 +1960,14 @@ impl Spotify {
     /// - id: The Spotify ID for the show.
     ///
     /// Query Parameters
-    /// - market(Optional): An ISO 3166-1 alpha-2 country code.
+    /// - market(Optional): An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
     #[maybe_async]
-    pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
+    pub async fn get_a_show(&self, id: String, market: Option<Market>) -> ClientResult<FullShow> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
         let url = format!("shows/{}", id);
         let result = self.get(&url, None, &params).await?;
@@ -1985,14 +1979,14 @@ impl Spotify {
     ///
     /// Query Parameters
     /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
-    /// - market(Optional) An ISO 3166-1 alpha-2 country code.
+    /// - market(Optional) An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
     #[maybe_async]
     pub async fn get_several_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
@@ -2001,7 +1995,7 @@ impl Spotify {
             ids.into_iter().collect::<Vec<_>>().join(","),
         );
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
         let result = self.get("shows", None, &params).await?;
         self.convert_result::<SeversalSimplifiedShows>(&result)
@@ -2017,7 +2011,7 @@ impl Spotify {
     /// Query Parameters
     /// - limit: Optional. The maximum number of episodes to return. Default: 20. Minimum: 1. Maximum: 50.
     /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
     #[maybe_async]
@@ -2026,13 +2020,13 @@ impl Spotify {
         id: String,
         limit: L,
         offset: O,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
         let url = format!("shows/{}/episodes", id);
         let result = self.get(&url, None, &params).await?;
@@ -2045,19 +2039,19 @@ impl Spotify {
     /// - id: The Spotify ID for the episode.
     ///
     /// Query Parameters
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
     #[maybe_async]
     pub async fn get_an_episode(
         &self,
         id: String,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id);
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
 
         let result = self.get(&url, None, &params).await?;
@@ -2068,14 +2062,14 @@ impl Spotify {
     ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the episodes. Maximum: 50 IDs.
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-several-episodes/)
     #[maybe_async]
     pub async fn get_several_episodes<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<SeveralEpisodes> {
         let mut params = Query::with_capacity(1);
         params.insert(
@@ -2083,7 +2077,7 @@ impl Spotify {
             ids.into_iter().collect::<Vec<_>>().join(","),
         );
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
         let result = self.get("episodes", None, &params).await?;
         self.convert_result(&result)
@@ -2114,14 +2108,14 @@ impl Spotify {
     ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of Spotify IDs for the shows to be deleted from the user’s library.
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
     #[maybe_async]
     pub async fn remove_users_saved_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<()> {
         let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
         let url = format!("me/shows?ids={}", joined_ids);

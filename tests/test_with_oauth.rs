@@ -17,10 +17,13 @@
 mod common;
 
 use common::maybe_async_test;
-use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::for_position;
 use rspotify::model::{Country, RepeatState, SearchType, TimeRange};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
+use rspotify::{
+    client::{Spotify, SpotifyBuilder},
+    model::Market,
+};
 
 use std::env;
 
@@ -88,7 +91,7 @@ pub async fn oauth_client() -> Spotify {
 async fn test_categories() {
     oauth_client()
         .await
-        .categories(None, Some(Country::UnitedStates), 10, 0)
+        .categories(None, Some(Market::Country(Country::UnitedStates)), 10, 0)
         .await
         .unwrap();
 }
@@ -99,7 +102,7 @@ async fn test_categories() {
 async fn test_category_playlists() {
     oauth_client()
         .await
-        .category_playlists("pop", Some(Country::UnitedStates), 10, 0)
+        .category_playlists("pop", Some(Market::Country(Country::UnitedStates)), 10, 0)
         .await
         .unwrap();
 }
@@ -326,7 +329,18 @@ async fn test_me() {
 async fn test_new_releases() {
     oauth_client()
         .await
-        .new_releases(Some(Country::Sweden), 10, 0)
+        .new_releases(Some(Market::Country(Country::Sweden)), 10, 0)
+        .await
+        .unwrap();
+}
+
+#[maybe_async]
+#[maybe_async_test]
+#[ignore]
+async fn test_new_releases_with_from_token() {
+    oauth_client()
+        .await
+        .new_releases(Some(Market::FromToken), 10, 0)
         .await
         .unwrap();
 }
@@ -383,7 +397,7 @@ async fn test_recommendations() {
             None,
             Some(seed_tracks),
             10,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             &payload,
         )
         .await
@@ -425,7 +439,7 @@ async fn test_search_artist() {
             SearchType::Artist,
             10,
             0,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             None,
         )
         .await
@@ -444,7 +458,7 @@ async fn test_search_playlist() {
             SearchType::Playlist,
             10,
             0,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             None,
         )
         .await
@@ -463,7 +477,7 @@ async fn test_search_track() {
             SearchType::Track,
             10,
             0,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             None,
         )
         .await
@@ -726,7 +740,7 @@ async fn test_user_playlist() {
     let mut playlist_id = String::from("59ZbFPES4DQwEjBpWHzrtC");
     oauth_client()
         .await
-        .user_playlist(user_id, Some(&mut playlist_id), None, None)
+        .user_playlist(user_id, Some(&mut playlist_id), None)
         .await
         .unwrap();
 }
