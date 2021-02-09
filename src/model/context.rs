@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 /// Context object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
     pub uri: String,
@@ -22,7 +22,7 @@ pub struct Context {
 
 /// Currently playing object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
@@ -36,7 +36,7 @@ pub struct CurrentlyPlayingContext {
     pub currently_playing_type: CurrentlyPlayingType,
     pub actions: Actions,
 }
-/// [Currently Playback Context](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentPlaybackContext {
     pub device: Device,
@@ -56,7 +56,7 @@ pub struct CurrentPlaybackContext {
 
 /// Actions object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct Actions {
     pub disallows: Vec<DisallowKey>,
