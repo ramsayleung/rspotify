@@ -7,7 +7,7 @@ use std::time::Duration;
 
 /// Copyright object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-copyrightobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Copyright {
     pub text: String,
@@ -17,7 +17,7 @@ pub struct Copyright {
 
 /// Simplified show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-simplified)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedshowobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
     pub available_markets: Vec<String>,
@@ -40,7 +40,7 @@ pub struct SimplifiedShow {
 
 /// SimplifiedShows wrapped by `Vec`
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
 #[derive(Deserialize)]
 pub(in crate) struct SeversalSimplifiedShows {
     pub shows: Vec<SimplifiedShow>,
@@ -48,7 +48,7 @@ pub(in crate) struct SeversalSimplifiedShows {
 
 /// Saved show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#saved-show-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedshowobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Show {
     pub added_at: String,
@@ -57,7 +57,7 @@ pub struct Show {
 
 /// Full show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#show-object-full)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
@@ -81,7 +81,7 @@ pub struct FullShow {
 
 /// Simplified episode object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-simplified)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedepisodeobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
@@ -111,7 +111,7 @@ pub struct SimplifiedEpisode {
 
 /// Full episode object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-full)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodeobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
@@ -145,7 +145,7 @@ pub struct SeveralEpisodes {
 
 /// Resume point object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#resume-point-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-resumepointobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResumePoint {
     pub fully_played: bool,

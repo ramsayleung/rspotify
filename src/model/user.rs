@@ -8,7 +8,7 @@ use crate::model::{Country, Followers, SubscriptionLevel, Type};
 
 /// Public user object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#user-object-public)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-publicuserobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PublicUser {
     pub display_name: Option<String>,
@@ -25,7 +25,7 @@ pub struct PublicUser {
 
 /// Private user object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#user-object-private)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-privateuserobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PrivateUser {
     pub country: Option<Country>,
@@ -45,7 +45,7 @@ pub struct PrivateUser {
 
 /// Explicit content setting object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#explicit-content-settings-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-explicitcontentsettingsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ExplicitContent {
     pub filter_enabled: bool,

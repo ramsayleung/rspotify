@@ -12,7 +12,7 @@ use crate::model::Type;
 
 /// Full track object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-trackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
@@ -45,7 +45,7 @@ pub struct FullTrack {
 
 /// Track link object
 ///
-/// [Reference] https://developer.spotify.com/documentation/web-api/reference/object-model/#track-link
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-linkedtrackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
@@ -58,7 +58,7 @@ pub struct TrackLink {
 
 /// Full track wrapped by `Vec`
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
 #[derive(Deserialize)]
 pub(in crate) struct FullTracks {
     pub tracks: Vec<FullTrack>,
@@ -69,7 +69,7 @@ pub(in crate) struct FullTracks {
 /// `is_playable`, `linked_from` and `restrictions` will only be present when
 /// relinking is applied.
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedtrackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
@@ -96,7 +96,7 @@ pub struct SimplifiedTrack {
 
 /// Saved track object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#saved-track-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedtrackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,
