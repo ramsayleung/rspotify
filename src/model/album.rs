@@ -13,7 +13,7 @@ use crate::model::{AlbumType, Copyright, DatePrecision, Type};
 
 /// Simplified Album Object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-simplified)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedalbumobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,7 +40,7 @@ pub struct SimplifiedAlbum {
 
 /// Full Album Object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
@@ -65,7 +65,7 @@ pub struct FullAlbum {
 
 /// Full Albums wrapped by Vec object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/albums/get-several-albums/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
 #[derive(Deserialize)]
 pub(in crate) struct FullAlbums {
     pub albums: Vec<FullAlbum>,
@@ -73,7 +73,7 @@ pub(in crate) struct FullAlbums {
 
 /// Simplified Albums wrapped by Page object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-list-new-releases/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
 #[derive(Deserialize)]
 pub(in crate) struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
@@ -81,7 +81,7 @@ pub(in crate) struct PageSimpliedAlbums {
 
 /// Saved Album object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#save-album-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedalbumobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
