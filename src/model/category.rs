@@ -4,7 +4,7 @@ use super::page::Page;
 use serde::{Deserialize, Serialize};
 /// Category object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-list-categories/#categoryobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Category {
     pub href: String,
@@ -15,7 +15,7 @@ pub struct Category {
 
 /// Categories wrapped by page object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-list-categories/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
 #[derive(Deserialize)]
 pub(in crate) struct PageCategory {
     pub categories: Page<Category>,
