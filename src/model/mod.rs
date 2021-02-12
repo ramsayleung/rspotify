@@ -193,7 +193,7 @@ pub(in crate) mod modality {
 
 /// Restriction object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Restriction {
     pub reason: RestrictionReason,
@@ -201,7 +201,7 @@ pub struct Restriction {
 
 /// Followers object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#followers-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-followersobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Followers {
     // This field will always set to null, as the Web API does not support it at the moment.
@@ -211,8 +211,8 @@ pub struct Followers {
 
 /// A full track object or a full episode object
 ///
-/// + [Reference to full track](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-full)
-/// + [Reference to full episode](https://developer.spotify.com/documentation/web-api/reference/object-model/#episode-object-full)
+/// + [Reference to full track](https://developer.spotify.com/documentation/web-api/reference/#object-trackobject)
+/// + [Reference to full episode](https://developer.spotify.com/documentation/web-api/reference/#object-episodeobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum PlayingItem {

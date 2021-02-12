@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Device object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-a-users-available-devices/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-users-available-devices)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Device {
     pub id: Option<String>,
@@ -18,7 +18,7 @@ pub struct Device {
 
 /// Device payload object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-users-available-devices)
 #[derive(Deserialize)]
 pub(in crate) struct DevicePayload {
     pub devices: Vec<Device>,
