@@ -92,6 +92,7 @@ impl Token {
         Ok(())
     }
 
+    /// Check if the token is expired
     pub fn is_expired(&self) -> bool {
         self.expires_at
             .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
@@ -391,6 +392,8 @@ mod tests {
 
     use std::fs;
     use std::io::Read;
+    use std::thread::sleep;
+    use std::time::Duration;
 
     #[test]
     fn test_is_scope_subset() {
@@ -425,6 +428,21 @@ mod tests {
         file.read_to_string(&mut tok_str_file).unwrap();
 
         assert_eq!(tok_str, tok_str_file);
+    }
+
+    #[test]
+    fn test_token_is_expired() {
+        let tok = TokenBuilder::default()
+            .access_token("test-access_token")
+            .expires_in(Duration::from_secs(1))
+            .expires_at(Utc::now())
+            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
+            .refresh_token("...")
+            .build()
+            .unwrap();
+        assert!(!tok.is_expired());
+        sleep(Duration::from_secs(2));
+        assert!(tok.is_expired());
     }
 
     #[test]
