@@ -7,11 +7,13 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use std::collections::{HashMap, HashSet};
-use std::env;
-use std::fs;
-use std::io::{Read, Write};
-use std::iter::FromIterator;
-use std::path::Path;
+use std::time::Duration;
+use std::{
+    env, fs,
+    io::{Read, Write},
+    iter::FromIterator,
+    path::Path,
+};
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, Form, Headers};
@@ -41,7 +43,8 @@ pub struct Token {
     #[builder(setter(into))]
     pub access_token: String,
     /// The time period (in seconds) for which the access token is valid.
-    pub expires_in: u32,
+    #[builder(default = "Duration::from_secs(0)")]
+    pub expires_in: Duration,
     /// The valid time for which the access token is available represented
     /// in ISO 8601 combined date and time.
     #[builder(setter(strip_option), default = "Some(Utc::now())")]
@@ -211,9 +214,8 @@ impl Spotify {
             .post_form(auth_urls::TOKEN, Some(&head), payload)
             .await?;
         let mut tok = serde_json::from_str::<Token>(&response)?;
-        tok.expires_at =
-            Utc::now().checked_add_signed(chrono::Duration::seconds(i64::from(tok.expires_in)));
-
+        tok.expires_at = Utc::now()
+            .checked_add_signed(chrono::Duration::seconds(tok.expires_in.as_secs() as i64));
         Ok(tok)
     }
 
@@ -403,7 +405,7 @@ mod tests {
     fn test_write_token() {
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
-            .expires_in(3600)
+            .expires_in(Duration::from_secs(3600))
             .expires_at(Utc::now())
             .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
             .refresh_token("...")
