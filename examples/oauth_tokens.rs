@@ -28,10 +28,7 @@ async fn main() {
     playlist-modify-private ugc-image-upload";
     let oauth = OAuthBuilder::from_env()
         .scope(HashSet::from_iter(
-            scope
-                .split_whitespace()
-                .map(|x| x.to_owned())
-                .collect::<Vec<String>>(),
+            scope.split_whitespace().map(|x| x.to_owned()),
         ))
         .build()
         .unwrap();
