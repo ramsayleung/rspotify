@@ -49,6 +49,7 @@ mod space_separated_scope {
     use serde::{de, Deserialize, Serializer};
     use std::collections::HashSet;
     use std::iter::FromIterator;
+
     pub(crate) fn deserialize<'de, D>(d: D) -> Result<HashSet<String>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -58,7 +59,6 @@ mod space_separated_scope {
             scope
                 .split_whitespace()
                 .map(|x| x.to_owned())
-                .collect::<Vec<String>>(),
         ))
     }
 
@@ -66,16 +66,10 @@ mod space_separated_scope {
     where
         S: Serializer,
     {
-        s.serialize_str(
-            scope
-                .iter()
-                .map(|x| x.to_owned())
-                .collect::<Vec<String>>()
-                .join(" ")
-                .as_ref(),
-        )
+        s.serialize_str(&Vec::from_iter(scope.clone()).join(" "))
     }
 }
+
 /// Spotify access token information
 /// [Reference](https://developer.spotify.com/documentation/general/guides/authorization-guide/)
 #[derive(Builder, Clone, Debug, Serialize, Deserialize)]
