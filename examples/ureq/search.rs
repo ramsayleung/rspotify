@@ -1,7 +1,8 @@
 use rspotify::client::SpotifyBuilder;
-use rspotify::model::{Country, SearchType};
+use rspotify::model::{Country, Market, SearchType};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
+use std::{collections::HashSet, iter::FromIterator};
 fn main() {
     // You can use any logger for debugging.
     env_logger::init();
@@ -29,8 +30,14 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build()
     //     .unwrap();
+    let scope = "user-read-playback-state";
     let oauth = OAuthBuilder::from_env()
-        .scope("user-read-playback-state")
+        .scope(HashSet::from_iter(
+            scope
+                .split_whitespace()
+                .map(|x| x.to_owned())
+                .collect::<Vec<String>>(),
+        ))
         .build()
         .unwrap();
 
@@ -56,7 +63,7 @@ fn main() {
         SearchType::Artist,
         10,
         0,
-        Some(Country::UnitedStates),
+        Some(Market::Country(Country::UnitedStates)),
         None,
     );
     match result {
@@ -70,7 +77,7 @@ fn main() {
         SearchType::Playlist,
         10,
         0,
-        Some(Country::UnitedStates),
+        Some(Market::Country(Country::UnitedStates)),
         None,
     );
     match result {
@@ -84,7 +91,7 @@ fn main() {
         SearchType::Track,
         10,
         0,
-        Some(Country::UnitedStates),
+        Some(Market::Country(Country::UnitedStates)),
         None,
     );
     match result {

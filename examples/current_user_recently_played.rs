@@ -1,6 +1,7 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
+use std::{collections::HashSet, iter::FromIterator};
 #[tokio::main]
 async fn main() {
     // You can use any logger for debugging.
@@ -29,8 +30,14 @@ async fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build()
     //     .unwrap();
+    let scope = "user-read-recently-played";
     let oauth = OAuthBuilder::from_env()
-        .scope("user-read-recently-played")
+        .scope(HashSet::from_iter(
+            scope
+                .split_whitespace()
+                .map(|x| x.to_owned())
+                .collect::<Vec<String>>(),
+        ))
         .build()
         .unwrap();
 
