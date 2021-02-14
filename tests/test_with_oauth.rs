@@ -25,7 +25,9 @@ use rspotify::{
     model::Market,
 };
 
+use std::collections::HashSet;
 use std::env;
+use std::iter::FromIterator;
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
@@ -53,19 +55,20 @@ pub async fn oauth_client() -> Spotify {
             )
         });
 
+        let scope = HashSet::from_iter(
+            "user-read-email user-read-private user-top-read \
+        user-read-recently-played user-follow-read user-library-read \
+        user-read-currently-playing user-read-playback-state \
+        user-read-playback-position playlist-read-collaborative \
+        playlist-read-private user-follow-modify user-library-modify \
+        user-modify-playback-state playlist-modify-public \
+        playlist-modify-private ugc-image-upload"
+                .split_whitespace()
+                .map(|x| x.to_owned())
+                .collect::<Vec<String>>(),
+        );
         // Using every possible scope
-        let oauth = OAuthBuilder::from_env()
-            .scope(
-                "user-read-email user-read-private user-top-read \
-                 user-read-recently-played user-follow-read user-library-read \
-                 user-read-currently-playing user-read-playback-state \
-                 user-read-playback-position playlist-read-collaborative \
-                 playlist-read-private user-follow-modify user-library-modify \
-                 user-modify-playback-state playlist-modify-public \
-                 playlist-modify-private ugc-image-upload",
-            )
-            .build()
-            .unwrap();
+        let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
 
         let mut spotify = SpotifyBuilder::default()
             .credentials(creds)

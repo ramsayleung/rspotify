@@ -11,7 +11,6 @@ use std::time::Duration;
 use std::{
     env, fs,
     io::{Read, Write},
-    iter::FromIterator,
     path::Path,
 };
 
@@ -24,17 +23,37 @@ mod auth_urls {
     pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
 }
 
-// TODO this should be removed after making a custom type for scopes
-// or handling them as a vector of strings.
-fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
-    let needle_vec: Vec<&str> = needle_scope.split_whitespace().collect();
-    let haystack_vec: Vec<&str> = haystack_scope.split_whitespace().collect();
-    let needle_set: HashSet<&str> = HashSet::from_iter(needle_vec);
-    let haystack_set: HashSet<&str> = HashSet::from_iter(haystack_vec);
-    // needle_set - haystack_set
-    needle_set.is_subset(&haystack_set)
-}
+mod space_separated_scope {
+    use serde::{de, Deserialize, Serializer};
+    use std::collections::HashSet;
+    use std::iter::FromIterator;
+    pub(crate) fn deserialize<'de, D>(d: D) -> Result<HashSet<String>, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let scope: &str = Deserialize::deserialize(d)?;
+        Ok(HashSet::from_iter(
+            scope
+                .split_whitespace()
+                .map(|x| x.to_owned())
+                .collect::<Vec<String>>(),
+        ))
+    }
 
+    pub(crate) fn serialize<S>(scope: &HashSet<String>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        s.serialize_str(
+            scope
+                .into_iter()
+                .map(|x| x.to_owned())
+                .collect::<Vec<String>>()
+                .join(" ")
+                .as_ref(),
+        )
+    }
+}
 /// Spotify access token information
 /// [Reference](https://developer.spotify.com/documentation/general/guides/authorization-guide/)
 #[derive(Builder, Clone, Debug, Serialize, Deserialize)]
@@ -53,9 +72,10 @@ pub struct Token {
     /// in place of an authorization code
     #[builder(setter(into, strip_option), default)]
     pub refresh_token: Option<String>,
-    /// A space-separated list of scopes which have been granted for this `access_token`
-    #[builder(setter(into))]
-    pub scope: String,
+    /// A list of scopes which have been granted for this `access_token`
+    #[builder(default = "HashSet::new()")]
+    #[serde(with = "space_separated_scope")]
+    pub scope: HashSet<String>,
 }
 
 impl TokenBuilder {
@@ -135,8 +155,8 @@ pub struct OAuth {
     /// https://tools.ietf.org/html/rfc6749#section-10.12
     #[builder(setter(into), default = "generate_random_string(16)")]
     pub state: String,
-    #[builder(setter(into))]
-    pub scope: String,
+    #[builder(default = "HashSet::new()")]
+    pub scope: HashSet<String>,
     #[builder(setter(into, strip_option), default)]
     pub proxies: Option<String>,
 }
@@ -174,10 +194,16 @@ impl Spotify {
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let oauth = self.get_oauth()?;
         let mut payload: HashMap<&str, &str> = HashMap::new();
+        let scope = oauth
+            .scope
+            .clone()
+            .into_iter()
+            .collect::<Vec<String>>()
+            .join(" ");
         payload.insert(headers::CLIENT_ID, &self.get_creds()?.id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
-        payload.insert(headers::SCOPE, &oauth.scope);
+        payload.insert(headers::SCOPE, &scope);
         payload.insert(headers::STATE, &oauth.state);
 
         if show_dialog {
@@ -193,7 +219,7 @@ impl Spotify {
     pub async fn read_token_cache(&mut self) -> Option<Token> {
         let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
 
-        if !is_scope_subset(&self.get_oauth().ok()?.scope, &tok.scope) || tok.is_expired() {
+        if !self.get_oauth().ok()?.scope.is_subset(&tok.scope) || tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             None
@@ -303,7 +329,15 @@ impl Spotify {
         );
         data.insert(headers::REDIRECT_URI.to_owned(), oauth.redirect_uri.clone());
         data.insert(headers::CODE.to_owned(), code.to_owned());
-        data.insert(headers::SCOPE.to_owned(), oauth.scope.clone());
+        data.insert(
+            headers::SCOPE.to_owned(),
+            oauth
+                .scope
+                .clone()
+                .into_iter()
+                .collect::<Vec<String>>()
+                .join(" "),
+        );
         data.insert(headers::STATE.to_owned(), oauth.state.clone());
 
         self.token = Some(self.fetch_access_token(&data).await?);
@@ -390,27 +424,21 @@ mod tests {
     use super::*;
     use crate::client::SpotifyBuilder;
 
+    use std::collections::HashSet;
     use std::fs;
     use std::io::Read;
+    use std::iter::FromIterator;
     use std::thread::sleep;
     use std::time::Duration;
 
     #[test]
-    fn test_is_scope_subset() {
-        let mut needle_scope = String::from("1 2 3");
-        let mut haystack_scope = String::from("1 2 3 4");
-        let mut broken_scope = String::from("5 2 4");
-        assert!(is_scope_subset(&mut needle_scope, &mut haystack_scope));
-        assert!(!is_scope_subset(&mut broken_scope, &mut haystack_scope));
-    }
-
-    #[test]
     fn test_write_token() {
+        let scope: HashSet<String>  = HashSet::from_iter("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played".split_whitespace().map(|x|x.to_owned()).collect::<Vec<String>>());
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(Duration::from_secs(3600))
             .expires_at(Utc::now())
-            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
+            .scope(scope.clone())
             .refresh_token("...")
             .build()
             .unwrap();
@@ -428,15 +456,18 @@ mod tests {
         file.read_to_string(&mut tok_str_file).unwrap();
 
         assert_eq!(tok_str, tok_str_file);
+        let tok_from_file: Token = serde_json::from_str(&tok_str_file).unwrap();
+        assert_eq!(tok_from_file.scope, scope);
     }
 
     #[test]
     fn test_token_is_expired() {
+        let scope: HashSet<String>  = HashSet::from_iter("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played".split_whitespace().map(|x|x.to_owned()).collect::<Vec<String>>());
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(Duration::from_secs(1))
             .expires_at(Utc::now())
-            .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
+            .scope(scope)
             .refresh_token("...")
             .build()
             .unwrap();
