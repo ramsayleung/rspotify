@@ -3,6 +3,7 @@ use rspotify::model::{Country, Market, SearchType};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
 use std::{collections::HashSet, iter::FromIterator};
+
 fn main() {
     // You can use any logger for debugging.
     env_logger::init();

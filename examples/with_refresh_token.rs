@@ -17,6 +17,7 @@
 
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
+
 use std::{collections::HashSet, iter::FromIterator};
 
 // Sample request that will follow some artists, print the user's

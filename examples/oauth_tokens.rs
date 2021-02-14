@@ -7,6 +7,7 @@
 
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
+
 use std::{collections::HashSet, iter::FromIterator};
 
 #[tokio::main]
