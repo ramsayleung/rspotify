@@ -23,6 +23,28 @@ mod auth_urls {
     pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
 }
 
+mod duration_second {
+    use serde::{de, Deserialize, Serializer};
+    use std::time::Duration;
+
+    /// Deserialize `std::time::Duration` from milliseconds (represented as u64)
+    pub(in crate) fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let duration: u64 = Deserialize::deserialize(d)?;
+        Ok(Duration::from_secs(duration))
+    }
+
+    /// Serialize `std::time::Duration` to milliseconds (represented as u64)
+    pub(in crate) fn serialize<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        s.serialize_u64(x.as_millis() as u64)
+    }
+}
+
 mod space_separated_scope {
     use serde::{de, Deserialize, Serializer};
     use std::collections::HashSet;
@@ -63,6 +85,7 @@ pub struct Token {
     pub access_token: String,
     /// The time period (in seconds) for which the access token is valid.
     #[builder(default = "Duration::from_secs(0)")]
+    #[serde(with = "duration_second")]
     pub expires_in: Duration,
     /// The valid time for which the access token is available represented
     /// in ISO 8601 combined date and time.
