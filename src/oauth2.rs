@@ -68,7 +68,7 @@ mod space_separated_scope {
     {
         s.serialize_str(
             scope
-                .into_iter()
+                .iter()
                 .map(|x| x.to_owned())
                 .collect::<Vec<String>>()
                 .join(" ")
