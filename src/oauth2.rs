@@ -42,7 +42,8 @@ pub struct Token {
     pub access_token: String,
     /// The time period (in seconds) for which the access token is valid.
     pub expires_in: u32,
-    /// The expire time represented in ISO 8601 combined date and time.
+    /// The valid time for which the access token is available represented
+    /// in ISO 8601 combined date and time.
     #[builder(setter(strip_option), default = "Some(Utc::now())")]
     pub expires_at: Option<DateTime<Utc>>,
     /// A token that can be sent to the Spotify Accounts service
