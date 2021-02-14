@@ -1,11 +1,4 @@
-use chrono::prelude::*;
 use getrandom::getrandom;
-
-/// Convert datetime to unix timestamp
-pub(in crate) fn datetime_to_timestamp(elapsed: u32) -> i64 {
-    let utc: DateTime<Utc> = Utc::now();
-    utc.timestamp() + i64::from(elapsed)
-}
 
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {

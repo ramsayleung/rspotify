@@ -15,7 +15,7 @@ use std::path::Path;
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, Form, Headers};
-use super::util::{datetime_to_timestamp, generate_random_string};
+use super::util::generate_random_string;
 
 mod auth_urls {
     pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
@@ -33,16 +33,23 @@ fn is_scope_subset(needle_scope: &str, haystack_scope: &str) -> bool {
     needle_set.is_subset(&haystack_set)
 }
 
-/// Spotify access token information.
+/// Spotify access token information
+/// [Reference](https://developer.spotify.com/documentation/general/guides/authorization-guide/)
 #[derive(Builder, Clone, Debug, Serialize, Deserialize)]
 pub struct Token {
+    /// An access token that can be provided in subsequent calls
     #[builder(setter(into))]
     pub access_token: String,
+    /// The time period (in seconds) for which the access token is valid.
     pub expires_in: u32,
-    #[builder(setter(strip_option), default)]
-    pub expires_at: Option<i64>,
+    /// The expire time represented in ISO 8601 combined date and time.
+    #[builder(setter(strip_option), default = "Some(Utc::now())")]
+    pub expires_at: Option<DateTime<Utc>>,
+    /// A token that can be sent to the Spotify Accounts service
+    /// in place of an authorization code
     #[builder(setter(into, strip_option), default)]
     pub refresh_token: Option<String>,
+    /// A space-separated list of scopes which have been granted for this `access_token`
     #[builder(setter(into))]
     pub scope: String,
 }
@@ -81,16 +88,9 @@ impl Token {
         Ok(())
     }
 
-    // TODO: we should use `Instant` for expiration dates, which requires this
-    // to be modified.
     pub fn is_expired(&self) -> bool {
-        let now: DateTime<Utc> = Utc::now();
-
-        // 10s as buffer time
-        match self.expires_at {
-            Some(expires_at) => now.timestamp() > expires_at - 10,
-            None => true,
-        }
+        self.expires_at
+            .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
     }
 }
 
@@ -210,7 +210,8 @@ impl Spotify {
             .post_form(auth_urls::TOKEN, Some(&head), payload)
             .await?;
         let mut tok = serde_json::from_str::<Token>(&response)?;
-        tok.expires_at = Some(datetime_to_timestamp(tok.expires_in));
+        tok.expires_at =
+            Utc::now().checked_add_signed(chrono::Duration::seconds(i64::from(tok.expires_in)));
 
         Ok(tok)
     }
@@ -402,7 +403,7 @@ mod tests {
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(3600)
-            .expires_at(1515841743)
+            .expires_at(Utc::now())
             .scope("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played")
             .refresh_token("...")
             .build()
