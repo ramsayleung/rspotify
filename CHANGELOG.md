@@ -184,6 +184,8 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#185](https://github.com/ramsayleung/rspotify/pull/185)) Polish the `Token.expires_at`, `Token.expires_in` fields
   + Change `Token.expires_in` from u32 to `std::time::Duration`
   + Change `Token.expires_at` from i64 to `chrono::DateTime<Utc>`
+  + Change `Token.scope` from `String` to `HashSet`.
+  + Change `OAuth.scope` from `String` to `HashSet`.
 
 ## 0.10 (2020/07/01)
 
