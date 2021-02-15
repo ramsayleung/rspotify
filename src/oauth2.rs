@@ -16,7 +16,7 @@ use std::{
 
 use super::client::{ClientResult, Spotify};
 use super::http::{headers, BaseClient, Form, Headers};
-use super::util::generate_random_string;
+use crate::generate_random_string;
 
 mod auth_urls {
     pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
