@@ -436,6 +436,7 @@ impl Spotify {
 mod tests {
     use super::*;
     use crate::client::SpotifyBuilder;
+    use url::Url;
 
     use std::collections::HashSet;
     use std::fs;
@@ -443,6 +444,45 @@ mod tests {
     use std::thread::sleep;
     use std::time::Duration;
 
+    #[test]
+    fn test_get_authorize_url() {
+        let scope = "playlist-read-private playlist-read-collaborative";
+
+        let oauth = OAuthBuilder::default()
+            .state("fdsafdsfa")
+            .redirect_uri("localhost")
+            .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
+            .build()
+            .unwrap();
+
+        let creds = CredentialsBuilder::default()
+            .id("this-is-my-client-id")
+            .secret("this-is-my-client-secret")
+            .build()
+            .unwrap();
+
+        let spotify = SpotifyBuilder::default()
+            .credentials(creds)
+            .oauth(oauth)
+            .build()
+            .unwrap();
+
+        let authorize_url = spotify.get_authorize_url(false).unwrap();
+        let hash_query: HashMap<_, _> = Url::parse(&authorize_url)
+            .unwrap()
+            .query_pairs()
+            .into_owned()
+            .collect();
+
+        assert_eq!(hash_query.get("client_id").unwrap(), "this-is-my-client-id");
+        assert_eq!(hash_query.get("response_type").unwrap(), "code");
+        assert_eq!(hash_query.get("redirect_uri").unwrap(), "localhost");
+        assert_eq!(
+            hash_query.get("scope").unwrap(),
+            "playlist-read-private playlist-read-collaborative"
+        );
+        assert_eq!(hash_query.get("state").unwrap(), "fdsafdsfa");
+    }
     #[test]
     fn test_write_token() {
         let now: DateTime<Utc> = Utc::now();
