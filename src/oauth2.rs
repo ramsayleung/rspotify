@@ -41,7 +41,7 @@ mod duration_second {
     where
         S: Serializer,
     {
-        s.serialize_u64(x.as_millis() as u64)
+        s.serialize_u64(x.as_secs())
     }
 }
 
@@ -456,11 +456,12 @@ mod tests {
 
     #[test]
     fn test_write_token() {
+        let now: DateTime<Utc> = Utc::now();
         let scope: HashSet<String>  = HashSet::from_iter("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played".split_whitespace().map(|x|x.to_owned()).collect::<Vec<String>>());
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(Duration::from_secs(3600))
-            .expires_at(Utc::now())
+            .expires_at(now)
             .scope(scope.clone())
             .refresh_token("...")
             .build()
@@ -481,6 +482,8 @@ mod tests {
         assert_eq!(tok_str, tok_str_file);
         let tok_from_file: Token = serde_json::from_str(&tok_str_file).unwrap();
         assert_eq!(tok_from_file.scope, scope);
+        assert_eq!(tok_from_file.expires_in, Duration::from_secs(3600));
+        assert_eq!(tok_from_file.expires_at.unwrap(), now);
     }
 
     #[test]
