@@ -56,9 +56,7 @@ mod space_separated_scope {
     {
         let scope: &str = Deserialize::deserialize(d)?;
         Ok(HashSet::from_iter(
-            scope
-                .split_whitespace()
-                .map(|x| x.to_owned())
+            scope.split_whitespace().map(|x| x.to_owned()),
         ))
     }
 
