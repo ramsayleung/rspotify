@@ -477,10 +477,7 @@ mod tests {
         assert_eq!(hash_query.get("client_id").unwrap(), "this-is-my-client-id");
         assert_eq!(hash_query.get("response_type").unwrap(), "code");
         assert_eq!(hash_query.get("redirect_uri").unwrap(), "localhost");
-        assert_eq!(
-            hash_query.get("scope").unwrap(),
-            "playlist-read-private"
-        );
+        assert_eq!(hash_query.get("scope").unwrap(), "playlist-read-private");
         assert_eq!(hash_query.get("state").unwrap(), "fdsafdsfa");
     }
     #[test]
