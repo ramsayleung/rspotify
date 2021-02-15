@@ -21,7 +21,6 @@ use std::fs;
 use std::{
     collections::{HashMap, HashSet},
     env,
-    iter::FromIterator,
     path::PathBuf,
 };
 
@@ -54,7 +53,7 @@ fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
         path.pop();
         fs::create_dir_all(path).unwrap();
     }
-    cache_path.clone()
+    cache_path
 }
 
 fn remove_cache_path(mut cookies: Cookies) {
@@ -80,11 +79,10 @@ fn init_spotify() -> SpotifyBuilder {
     let oauth = OAuthBuilder::default()
         .redirect_uri("http://localhost:8000/callback")
         .scope(
-            HashSet::from_iter(
-                scope
-                    .split_whitespace()
-                    .map(|x| x.to_owned())
-            )
+            scope
+                .split_whitespace()
+                .map(|x| x.to_owned())
+                .collect::<HashSet<_>>(),
         )
         .build()
         .unwrap();
