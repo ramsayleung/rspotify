@@ -446,7 +446,7 @@ mod tests {
 
     #[test]
     fn test_get_authorize_url() {
-        let scope = "playlist-read-private playlist-read-collaborative";
+        let scope = "playlist-read-private";
 
         let oauth = OAuthBuilder::default()
             .state("fdsafdsfa")
@@ -479,7 +479,7 @@ mod tests {
         assert_eq!(hash_query.get("redirect_uri").unwrap(), "localhost");
         assert_eq!(
             hash_query.get("scope").unwrap(),
-            "playlist-read-private playlist-read-collaborative"
+            "playlist-read-private"
         );
         assert_eq!(hash_query.get("state").unwrap(), "fdsafdsfa");
     }
