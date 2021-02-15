@@ -453,7 +453,10 @@ mod tests {
              user-read-private user-read-birthdate user-read-email \
              user-top-read user-read-playback-state user-modify-playback-state \
              user-read-currently-playing user-read-recently-played";
-        let scope = scope.split_whitespace().map(|x| x.to_owned()).collect();
+        let scope = scope
+            .split_whitespace()
+            .map(|x| x.to_owned())
+            .collect::<HashSet<_>>();
 
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
