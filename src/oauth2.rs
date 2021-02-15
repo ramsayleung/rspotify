@@ -48,23 +48,21 @@ mod duration_second {
 mod space_separated_scope {
     use serde::{de, Deserialize, Serializer};
     use std::collections::HashSet;
-    use std::iter::FromIterator;
 
     pub(crate) fn deserialize<'de, D>(d: D) -> Result<HashSet<String>, D::Error>
     where
         D: de::Deserializer<'de>,
     {
         let scope: &str = Deserialize::deserialize(d)?;
-        Ok(HashSet::from_iter(
-            scope.split_whitespace().map(|x| x.to_owned()),
-        ))
+        Ok(scope.split_whitespace().map(|x| x.to_owned()).collect())
     }
 
     pub(crate) fn serialize<S>(scope: &HashSet<String>, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        s.serialize_str(&Vec::from_iter(scope.clone()).join(" "))
+        let scope = scope.clone().into_iter().collect::<Vec<_>>().join(" ");
+        s.serialize_str(&scope)
     }
 }
 
@@ -213,7 +211,7 @@ impl Spotify {
             .scope
             .clone()
             .into_iter()
-            .collect::<Vec<String>>()
+            .collect::<Vec<_>>()
             .join(" ");
         payload.insert(headers::CLIENT_ID, &self.get_creds()?.id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
@@ -350,7 +348,7 @@ impl Spotify {
                 .scope
                 .clone()
                 .into_iter()
-                .collect::<Vec<String>>()
+                .collect::<Vec<_>>()
                 .join(" "),
         );
         data.insert(headers::STATE.to_owned(), oauth.state.clone());
@@ -442,14 +440,21 @@ mod tests {
     use std::collections::HashSet;
     use std::fs;
     use std::io::Read;
-    use std::iter::FromIterator;
     use std::thread::sleep;
     use std::time::Duration;
 
     #[test]
     fn test_write_token() {
         let now: DateTime<Utc> = Utc::now();
-        let scope: HashSet<String>  = HashSet::from_iter("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played".split_whitespace().map(|x|x.to_owned()).collect::<Vec<String>>());
+        let scope = "playlist-read-private playlist-read-collaborative \
+             playlist-modify-public playlist-modify-private \
+             streaming ugc-image-upload user-follow-modify \
+             user-follow-read user-library-read user-library-modify \
+             user-read-private user-read-birthdate user-read-email \
+             user-top-read user-read-playback-state user-modify-playback-state \
+             user-read-currently-playing user-read-recently-played";
+        let scope = scope.split_whitespace().map(|x| x.to_owned()).collect();
+
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(Duration::from_secs(3600))
@@ -480,7 +485,15 @@ mod tests {
 
     #[test]
     fn test_token_is_expired() {
-        let scope: HashSet<String>  = HashSet::from_iter("playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private streaming ugc-image-upload user-follow-modify user-follow-read user-library-read user-library-modify user-read-private user-read-birthdate user-read-email user-top-read user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played".split_whitespace().map(|x|x.to_owned()).collect::<Vec<String>>());
+        let scope = "playlist-read-private playlist-read-collaborative \
+            playlist-modify-public playlist-modify-private streaming \
+            ugc-image-upload user-follow-modify user-follow-read \
+            user-library-read user-library-modify user-read-private \
+            user-read-birthdate user-read-email user-top-read \
+            user-read-playback-state user-modify-playback-state \
+            user-read-currently-playing user-read-recently-played";
+        let scope = scope.split_whitespace().map(|x| x.to_owned()).collect();
+
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(Duration::from_secs(1))

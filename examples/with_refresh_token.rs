@@ -18,8 +18,6 @@
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
-use std::{collections::HashSet, iter::FromIterator};
-
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: Spotify) {
@@ -60,9 +58,7 @@ async fn main() {
     let creds = CredentialsBuilder::from_env().build().unwrap();
     let scope = "user-follow-read user-follow-modify";
     let oauth = OAuthBuilder::from_env()
-        .scope(HashSet::from_iter(
-            scope.split_whitespace().map(|x| x.to_owned()),
-        ))
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
     let mut spotify = SpotifyBuilder::default()
