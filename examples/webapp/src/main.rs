@@ -84,7 +84,6 @@ fn init_spotify() -> SpotifyBuilder {
                 scope
                     .split_whitespace()
                     .map(|x| x.to_owned())
-                    .collect::<Vec<String>>(),
             )
         )
         .build()
