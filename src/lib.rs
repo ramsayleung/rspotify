@@ -164,8 +164,6 @@ mod http;
 pub mod model;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod util;
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(
