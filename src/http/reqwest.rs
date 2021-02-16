@@ -5,7 +5,9 @@ use maybe_async::async_impl;
 use reqwest::{Method, RequestBuilder, StatusCode};
 use serde_json::Value;
 
-use super::{headers, BaseHTTPClient, Form, Headers, Query};
+use std::convert::TryInto;
+
+use super::{BaseHTTPClient, Form, Headers, Query};
 use crate::client::{APIError, ClientError, ClientResult};
 
 impl ClientError {
@@ -61,22 +63,25 @@ impl ReqwestClient {
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
     {
-        let mut request;
+        let mut request = self.client.request(method.clone(), url);
+
+        // Setting the headers, if any
         if let Some(headers) = headers {
-            // The headers need to be converted into a `reqwest::HeaderMap`, which
-            // won't fail as long as its contents are ASCII. This is an internal
-            // function, so the condition will always be true.
+            // The headers need to be converted into a `reqwest::HeaderMap`,
+            // which won't fail as long as its contents are ASCII. This is an
+            // internal function, so the condition cannot be broken by the user
+            // and will always be true.
             //
             // The content-type header will be set automatically.
             let headers = headers.try_into().unwrap();
 
-            request = self.client.headers(headers);
+            request = request.headers(headers);
         }
 
-        request = self.client.request(method.clone(), url);
-
+        // Configuring the request for the specific type (get/post/put/delete)
         request = add_data(request);
 
+        // Finally performing the request and handling the response
         log::info!("Making request {:?}", request);
         let response = request.send().await?;
 
