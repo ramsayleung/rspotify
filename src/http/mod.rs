@@ -204,6 +204,7 @@ impl Spotify {
 
     /// The wrapper for the endpoints, which also includes the required
     /// autentication.
+    #[inline]
     #[maybe_async]
     pub(crate) async fn endpoint_get(&self, url: &str, payload: &Query) -> ClientResult<String> {
         let headers = self.auth_headers()?;
