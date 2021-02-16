@@ -1,6 +1,6 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
-use super::{headers, BaseClient, Form, Headers, Query};
+use super::{headers, BaseHTTPClient, Form, Headers, Query};
 use crate::client::{ClientError, ClientResult, Spotify};
 
 use maybe_async::sync_impl;
@@ -13,7 +13,10 @@ impl ClientError {
     }
 }
 
-impl Spotify {
+#[derive(Default, Debug, Clone)]
+pub struct UreqClient {}
+
+impl UreqClient {
     /// The request handling in ureq is split in three parts:
     ///
     /// * The initial request (POST, GET, ...) is given as the `request`
@@ -57,7 +60,7 @@ impl Spotify {
 }
 
 #[sync_impl]
-impl BaseClient for Spotify {
+impl BaseHTTPClient for UreqClient {
     #[inline]
     fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> ClientResult<String> {
         let request = ureq::get(&self.endpoint_url(url));
