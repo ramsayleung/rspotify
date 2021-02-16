@@ -63,8 +63,6 @@ pub mod headers {
 /// which is kept separate from the Spotify client for cleaner code. Thus, it
 /// also requires other basic traits that are needed for the Spotify client.
 ///
-/// The default headers will be overriden if its value is other than None.
-///
 /// When a request doesn't need to pass parameters, the empty or default value
 /// of the payload type should be passed, like `json!({})` or `Query::new()`.
 /// This avoids using `Option<T>` because `Value` itself may be null in other
