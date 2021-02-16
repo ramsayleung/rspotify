@@ -135,7 +135,7 @@ impl Spotify {
 
     /// The headers required for authenticated requests to the API
     fn auth_headers(&self) -> ClientResult<Headers> {
-        let auth = Headers::new();
+        let mut auth = Headers::new();
         let (key, val) = headers::bearer_auth(self.get_token()?);
         auth.insert(key, val);
 
