@@ -112,6 +112,17 @@ pub trait BaseHTTPClient: Default + Clone + fmt::Debug {
 
 /// HTTP-related methods for the Spotify client. It wraps the basic HTTP client
 /// with features needed of higher level.
+///
+/// The Spotify client has two different wrappers to perform requests:
+///
+/// * Basic wrappers: `get`, `post`, `put`, `delete`, `post_form`. These only
+///   append the configured Spotify API URL to the relative URL provided so that
+///   it's not forgotten. They're used in the authentication process to request
+///   an access token and similars.
+/// * Endpoint wrappers: `endpoint_get`, `endpoint_post`, `endpoint_put`,
+///   `endpoint_delete`. These append the authentication headers for endpoint
+///   requests to reduce the code needed for endpoints and make them as concise
+///   as possible.
 impl Spotify {
     /// If it's a relative URL like "me", the prefix is appended to it.
     /// Otherwise, the same URL is returned.
@@ -133,13 +144,9 @@ impl Spotify {
         Ok(auth)
     }
 
-    // TODO: is this part even necessary? Why would you configure the API URL
-    // anyway? Maybe that's unnecessary?
-
-    /// Small wrapper to include the configured API URL for the request.
     #[inline]
     #[maybe_async]
-    pub async fn get(
+    pub(crate) async fn get(
         &self,
         url: &str,
         headers: Option<&Headers>,
@@ -151,7 +158,7 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub async fn post(
+    pub(crate) async fn post(
         &self,
         url: &str,
         headers: Option<&Headers>,
@@ -163,7 +170,7 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub async fn post_form(
+    pub(crate) async fn post_form(
         &self,
         url: &str,
         headers: Option<&Headers>,
@@ -175,7 +182,7 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub async fn put(
+    pub(crate) async fn put(
         &self,
         url: &str,
         headers: Option<&Headers>,
@@ -187,7 +194,7 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub async fn delete(
+    pub(crate) async fn delete(
         &self,
         url: &str,
         headers: Option<&Headers>,
@@ -200,28 +207,28 @@ impl Spotify {
     /// The wrapper for the endpoints, which also includes the required
     /// autentication.
     #[maybe_async]
-    pub async fn endpoint_get(&self, url: &str, payload: &Query) -> ClientResult<String> {
+    pub(crate) async fn endpoint_get(&self, url: &str, payload: &Query) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.get(url, Some(&headers), payload).await
     }
 
     #[inline]
     #[maybe_async]
-    pub async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
+    pub(crate) async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.post(url, Some(&headers), payload).await
     }
 
     #[inline]
     #[maybe_async]
-    pub async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
+    pub(crate) async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.put(url, Some(&headers), payload).await
     }
 
     #[inline]
     #[maybe_async]
-    pub async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
+    pub(crate) async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.delete(url, Some(&headers), payload).await
     }
