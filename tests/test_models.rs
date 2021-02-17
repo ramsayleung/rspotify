@@ -871,3 +871,51 @@ fn test_audio_analysis_track() {
     let audio_analysis_track: AudioAnalysisTrack = serde_json::from_str(&json).unwrap();
     assert_eq!(audio_analysis_track.mode, Modality::Minor);
 }
+
+#[test]
+fn test_simplified_playlist() {
+    let json = r#"
+  {
+    "collaborative": false,
+    "description": "Chegou o grande dia, aperte o play e partiu fim de semana!",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/37i9dQZF1DX8mBRYewE6or"
+    },
+    "href": "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or",
+    "id": "37i9dQZF1DX8mBRYewE6or",
+    "images": [
+      {
+        "height": null,
+        "url": "https://i.scdn.co/image/ab67706f00000003206a95fa5badbe1d33b65e14",
+        "width": null
+      }
+    ],
+    "name": "Sexta",
+    "owner": {
+      "display_name": "Spotify",
+      "external_urls": {
+        "spotify": "https://open.spotify.com/user/spotify"
+      },
+      "href": "https://api.spotify.com/v1/users/spotify",
+      "id": "spotify",
+      "type": "user",
+      "uri": "spotify:user:spotify"
+    },
+    "primary_color": null,
+    "public": null,
+    "snapshot_id": "MTYxMzM5MzIyMywwMDAwMDAwMGQ0MWQ4Y2Q5OGYwMGIyMDRlOTgwMDk5OGVjZjg0Mjdl",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks",
+      "total": 62
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:37i9dQZF1DX8mBRYewE6or"
+  } 
+  "#;
+    let simplified_playlist: SimplifiedPlaylist = serde_json::from_str(&json).unwrap();
+    assert_eq!(
+        simplified_playlist.tracks.href,
+        "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks"
+    );
+    assert_eq!(simplified_playlist.tracks.total, 62);
+}

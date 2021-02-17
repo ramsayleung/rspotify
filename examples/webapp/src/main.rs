@@ -17,10 +17,12 @@ use rocket_contrib::templates::Template;
 use rspotify::client::{ClientError, SpotifyBuilder};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 
-use std::collections::HashMap;
-use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    path::PathBuf,
+};
 
 #[derive(Debug, Responder)]
 pub enum AppResponse {
@@ -51,7 +53,7 @@ fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
         path.pop();
         fs::create_dir_all(path).unwrap();
     }
-    cache_path.clone()
+    cache_path
 }
 
 fn remove_cache_path(mut cookies: Cookies) {
@@ -73,9 +75,10 @@ fn check_cache_path_exists(cookies: &Cookies) -> (bool, PathBuf) {
 fn init_spotify() -> SpotifyBuilder {
     // Please notice that protocol of redirect_uri, make sure it's http
     // (or https). It will fail if you mix them up.
+    let scope = "user-read-currently-playing playlist-modify-private";
     let oauth = OAuthBuilder::default()
         .redirect_uri("http://localhost:8000/callback")
-        .scope("user-read-currently-playing playlist-modify-private")
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
 

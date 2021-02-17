@@ -18,16 +18,15 @@ async fn main() {
     let creds = CredentialsBuilder::from_env().build().unwrap();
 
     // Using every possible scope
+    let scope = "user-read-email user-read-private user-top-read \
+        user-read-recently-played user-follow-read user-library-read \
+        user-read-currently-playing user-read-playback-state \
+        user-read-playback-position playlist-read-collaborative \
+        playlist-read-private user-follow-modify user-library-modify \
+        user-modify-playback-state playlist-modify-public \
+        playlist-modify-private ugc-image-upload";
     let oauth = OAuthBuilder::from_env()
-        .scope(
-            "user-read-email user-read-private user-top-read \
-             user-read-recently-played user-follow-read user-library-read \
-             user-read-currently-playing user-read-playback-state \
-             user-read-playback-position playlist-read-collaborative \
-             playlist-read-private user-follow-modify user-library-modify \
-             user-modify-playback-state playlist-modify-public \
-             playlist-modify-private ugc-image-upload",
-        )
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
 
