@@ -61,12 +61,12 @@ pub type ClientResult<T> = Result<T, ClientError>;
 /// API as part of the JSON response object.
 #[derive(Debug, Error, Deserialize)]
 pub enum APIError {
-    /// See https://developer.spotify.com/documentation/web-api/reference/#object-errorobject
+    /// See [Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-errorobject)
     #[error("{status}: {message}")]
     #[serde(alias = "error")]
     Regular { status: u16, message: String },
 
-    /// See https://developer.spotify.com/documentation/web-api/reference/#object-playererrorobject
+    /// See [Play Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-playererrorobject)
     #[error("{status} ({reason}): {message}")]
     #[serde(alias = "error")]
     Player {
