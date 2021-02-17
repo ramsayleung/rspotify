@@ -153,6 +153,8 @@
 //! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool.
 
+use getrandom::getrandom;
+
 // disable all modules when both client features are enabled,
 // this way only the compile error below gets show
 // instead of showing a whole list of confusing errors
@@ -184,8 +186,6 @@ mod macros {
         };
     }
 }
-
-use getrandom::getrandom;
 
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {

@@ -78,12 +78,7 @@ fn init_spotify() -> SpotifyBuilder {
     let scope = "user-read-currently-playing playlist-modify-private";
     let oauth = OAuthBuilder::default()
         .redirect_uri("http://localhost:8000/callback")
-        .scope(
-            scope
-                .split_whitespace()
-                .map(|x| x.to_owned())
-                .collect::<HashSet<_>>(),
-        )
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
 

@@ -6,8 +6,8 @@ use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use chrono::Duration;
 use std::collections::{HashMap, HashSet};
-use std::time::Duration;
 use std::{
     env, fs,
     io::{Read, Write},
@@ -24,24 +24,24 @@ mod auth_urls {
 }
 
 mod duration_second {
+    use chrono::Duration;
     use serde::{de, Deserialize, Serializer};
-    use std::time::Duration;
 
-    /// Deserialize `std::time::Duration` from milliseconds (represented as u64)
+    /// Deserialize `chrono::Duration` from seconds (represented as u64)
     pub(in crate) fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        let duration: u64 = Deserialize::deserialize(d)?;
-        Ok(Duration::from_secs(duration))
+        let duration: i64 = Deserialize::deserialize(d)?;
+        Ok(Duration::seconds(duration))
     }
 
-    /// Serialize `std::time::Duration` to milliseconds (represented as u64)
+    /// Serialize `chrono::Duration` to seconds (represented as u64)
     pub(in crate) fn serialize<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        s.serialize_u64(x.as_secs())
+        s.serialize_i64(x.num_seconds())
     }
 }
 
@@ -73,8 +73,8 @@ pub struct Token {
     /// An access token that can be provided in subsequent calls
     #[builder(setter(into))]
     pub access_token: String,
-    /// The time period (in seconds) for which the access token is valid.
-    #[builder(default = "Duration::from_secs(0)")]
+    /// The time period for which the access token is valid.
+    #[builder(default = "Duration::seconds(0)")]
     #[serde(with = "duration_second")]
     pub expires_in: Duration,
     /// The valid time for which the access token is available represented
@@ -85,7 +85,8 @@ pub struct Token {
     /// in place of an authorization code
     #[builder(setter(into, strip_option), default)]
     pub refresh_token: Option<String>,
-    /// A list of scopes which have been granted for this `access_token`
+    /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
+    /// which have been granted for this `access_token`
     #[builder(default = "HashSet::new()")]
     #[serde(with = "space_separated_scope")]
     pub scope: HashSet<String>,
@@ -168,7 +169,7 @@ pub struct OAuth {
     /// https://tools.ietf.org/html/rfc6749#section-10.12
     #[builder(setter(into), default = "generate_random_string(16)")]
     pub state: String,
-    #[builder(default = "HashSet::new()")]
+    #[builder(default)]
     pub scope: HashSet<String>,
     #[builder(setter(into, strip_option), default)]
     pub proxies: Option<String>,
@@ -254,8 +255,7 @@ impl Spotify {
             .post_form(auth_urls::TOKEN, Some(&head), payload)
             .await?;
         let mut tok = serde_json::from_str::<Token>(&response)?;
-        tok.expires_at = Utc::now()
-            .checked_add_signed(chrono::Duration::seconds(tok.expires_in.as_secs() as i64));
+        tok.expires_at = Utc::now().checked_add_signed(tok.expires_in);
         Ok(tok)
     }
 
@@ -438,11 +438,11 @@ mod tests {
     use crate::client::SpotifyBuilder;
     use url::Url;
 
+    use chrono::Duration;
     use std::collections::HashSet;
     use std::fs;
     use std::io::Read;
     use std::thread::sleep;
-    use std::time::Duration;
 
     #[test]
     fn test_get_authorize_url() {
@@ -497,7 +497,7 @@ mod tests {
 
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
-            .expires_in(Duration::from_secs(3600))
+            .expires_in(Duration::seconds(3600))
             .expires_at(now)
             .scope(scope.clone())
             .refresh_token("...")
@@ -519,7 +519,7 @@ mod tests {
         assert_eq!(tok_str, tok_str_file);
         let tok_from_file: Token = serde_json::from_str(&tok_str_file).unwrap();
         assert_eq!(tok_from_file.scope, scope);
-        assert_eq!(tok_from_file.expires_in, Duration::from_secs(3600));
+        assert_eq!(tok_from_file.expires_in, Duration::seconds(3600));
         assert_eq!(tok_from_file.expires_at.unwrap(), now);
     }
 
@@ -536,14 +536,14 @@ mod tests {
 
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
-            .expires_in(Duration::from_secs(1))
+            .expires_in(Duration::seconds(1))
             .expires_at(Utc::now())
             .scope(scope)
             .refresh_token("...")
             .build()
             .unwrap();
         assert!(!tok.is_expired());
-        sleep(Duration::from_secs(2));
+        sleep(std::time::Duration::from_secs(2));
         assert!(tok.is_expired());
     }
 
