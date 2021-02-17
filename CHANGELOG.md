@@ -181,6 +181,12 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `SimplifiedPlayingContext`, since it's useless.
 - ([#177](https://github.com/ramsayleung/rspotify/pull/157)) Change `mode` from `f32` to `enum Modality`:
   + Change `AudioAnalysisSection::mode`, `AudioAnalysisTrack::mode` and `AudioFeatures::mode` from `f32` to `enum Modality`.
+- ([#185](https://github.com/ramsayleung/rspotify/pull/185)) Polish the `Token.expires_at`, `Token.expires_in` fields
+  + Change `Token.expires_in` from u32 to `chrono::Duration`
+  + Change `Token.expires_at` from i64 to `chrono::DateTime<Utc>`
+  + Change `Token.scope` from `String` to `HashSet`.
+  + Change `OAuth.scope` from `String` to `HashSet`.
+  + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 
 ## 0.10 (2020/07/01)
 

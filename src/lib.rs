@@ -153,6 +153,8 @@
 //! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool.
 
+use getrandom::getrandom;
+
 // disable all modules when both client features are enabled,
 // this way only the compile error below gets show
 // instead of showing a whole list of confusing errors
@@ -164,8 +166,6 @@ mod http;
 pub mod model;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod util;
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(
@@ -185,4 +185,17 @@ mod macros {
                 .insert($p1.to_string(), json!($p2))
         };
     }
+}
+
+/// Generate `length` random chars
+pub(in crate) fn generate_random_string(length: usize) -> String {
+    let alphanum: &[u8] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+    let mut buf = vec![0u8; length];
+    getrandom(&mut buf).unwrap();
+    let range = alphanum.len();
+
+    buf.iter()
+        .map(|byte| alphanum[*byte as usize % range] as char)
+        .collect()
 }

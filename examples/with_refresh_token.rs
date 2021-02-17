@@ -56,8 +56,9 @@ async fn main() {
 
     // The default credentials from the `.env` file will be used by default.
     let creds = CredentialsBuilder::from_env().build().unwrap();
+    let scope = "user-follow-read user-follow-modify";
     let oauth = OAuthBuilder::from_env()
-        .scope("user-follow-read user-follow-modify")
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
     let mut spotify = SpotifyBuilder::default()

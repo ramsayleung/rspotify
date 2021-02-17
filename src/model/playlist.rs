@@ -1,7 +1,6 @@
 //! All kinds of playlists objects
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
 
 use super::image::Image;
@@ -18,6 +17,15 @@ pub struct PlaylistResult {
     pub snapshot_id: String,
 }
 
+/// Playlist Track Reference Object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-playlisttracksrefobject)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PlaylistTracksRef {
+    pub href: String,
+    pub total: u32,
+}
+
 /// Simplified playlist object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedplaylistobject)
@@ -32,7 +40,7 @@ pub struct SimplifiedPlaylist {
     pub owner: PublicUser,
     pub public: Option<bool>,
     pub snapshot_id: String,
-    pub tracks: HashMap<String, Value>,
+    pub tracks: PlaylistTracksRef,
     #[serde(rename = "type")]
     pub _type: Type,
     pub uri: String,
