@@ -79,6 +79,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `PrivateUser`
   + `ExplicitContent`
   + Fix broken model links refering to Spotify documentation
+- ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
