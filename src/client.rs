@@ -61,12 +61,12 @@ pub type ClientResult<T> = Result<T, ClientError>;
 /// API as part of the JSON response object.
 #[derive(Debug, Error, Deserialize)]
 pub enum APIError {
-    /// See https://developer.spotify.com/documentation/web-api/reference/#object-errorobject
+    /// See [Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-errorobject)
     #[error("{status}: {message}")]
     #[serde(alias = "error")]
     Regular { status: u16, message: String },
 
-    /// See https://developer.spotify.com/documentation/web-api/reference/#object-playererrorobject
+    /// See [Play Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-playererrorobject)
     #[error("{status} ({reason}): {message}")]
     #[serde(alias = "error")]
     Player {
@@ -103,12 +103,12 @@ pub struct Spotify {
     pub oauth: Option<OAuth>,
 
     /// The Spotify API prefix, [`DEFAULT_API_PREFIX`
-    /// ](constant.DEFAULT_CACHE_PATH.html) by default.
+    /// ](DEFAULT_CACHE_PATH) by default.
     #[builder(setter(into), default = "String::from(DEFAULT_API_PREFIX)")]
     pub prefix: String,
 
     /// The cache file path, in case it's used. By default it's
-    /// [`DEFAULT_CACHE_PATH`](constant.DEFAULT_API_PREFIX.html).
+    /// [`DEFAULT_CACHE_PATH`](DEFAULT_API_PREFIX).
     #[builder(default = r#"PathBuf::from(DEFAULT_CACHE_PATH)"#)]
     pub cache_path: PathBuf,
 }
