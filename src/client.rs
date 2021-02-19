@@ -103,12 +103,12 @@ pub struct Spotify {
     pub oauth: Option<OAuth>,
 
     /// The Spotify API prefix, [`DEFAULT_API_PREFIX`
-    /// ](constant.DEFAULT_CACHE_PATH.html) by default.
+    /// ](DEFAULT_CACHE_PATH) by default.
     #[builder(setter(into), default = "String::from(DEFAULT_API_PREFIX)")]
     pub prefix: String,
 
     /// The cache file path, in case it's used. By default it's
-    /// [`DEFAULT_CACHE_PATH`](constant.DEFAULT_API_PREFIX.html).
+    /// [`DEFAULT_CACHE_PATH`](DEFAULT_API_PREFIX).
     #[builder(default = r#"PathBuf::from(DEFAULT_CACHE_PATH)"#)]
     pub cache_path: PathBuf,
 }
