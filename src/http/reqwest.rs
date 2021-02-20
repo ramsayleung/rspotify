@@ -7,8 +7,8 @@ use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{headers, BaseClient, Form, Headers, Query};
-use crate::client::{APIError, ClientError, ClientResult, Spotify};
+use super::{BaseHTTPClient, Form, Headers, Query};
+use crate::client::{APIError, ClientError, ClientResult};
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -46,7 +46,13 @@ impl From<reqwest::StatusCode> for ClientError {
     }
 }
 
-impl Spotify {
+#[derive(Default, Debug, Clone)]
+pub struct ReqwestClient {
+    /// reqwest needs an instance of its client to perform requests.
+    client: reqwest::Client,
+}
+
+impl ReqwestClient {
     async fn request<D>(
         &self,
         method: Method,
@@ -57,28 +63,25 @@ impl Spotify {
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
     {
-        let url = self.endpoint_url(url);
+        let mut request = self.client.request(method.clone(), url);
 
-        // The default auth headers are used if none were specified.
-        let mut auth;
-        let headers = match headers {
-            Some(h) => h,
-            None => {
-                auth = Headers::new();
-                let (key, val) = headers::bearer_auth(self.get_token()?);
-                auth.insert(key, val);
-                &auth
-            }
-        };
-        // The headers need to be converted into a `reqwest::HeaderMap`, which
-        // won't fail as long as its contents are ASCII. This is an internal
-        // function, so the condition will always be true.
-        //
-        // The content-type header will be set automatically.
-        let headers = headers.try_into().unwrap();
+        // Setting the headers, if any
+        if let Some(headers) = headers {
+            // The headers need to be converted into a `reqwest::HeaderMap`,
+            // which won't fail as long as its contents are ASCII. This is an
+            // internal function, so the condition cannot be broken by the user
+            // and will always be true.
+            //
+            // The content-type header will be set automatically.
+            let headers = headers.try_into().unwrap();
 
-        let mut request = self.client.request(method.clone(), &url).headers(headers);
+            request = request.headers(headers);
+        }
+
+        // Configuring the request for the specific type (get/post/put/delete)
         request = add_data(request);
+
+        // Finally performing the request and handling the response
         log::info!("Making request {:?}", request);
         let response = request.send().await?;
 
@@ -91,7 +94,7 @@ impl Spotify {
 }
 
 #[async_impl]
-impl BaseClient for Spotify {
+impl BaseHTTPClient for ReqwestClient {
     #[inline]
     async fn get(
         &self,

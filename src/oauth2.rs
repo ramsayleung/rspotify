@@ -15,7 +15,7 @@ use std::{
 };
 
 use super::client::{ClientResult, Spotify};
-use super::http::{headers, BaseClient, Form, Headers};
+use super::http::{headers, Form, Headers};
 use crate::generate_random_string;
 
 mod auth_urls {
