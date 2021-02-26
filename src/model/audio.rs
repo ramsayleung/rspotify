@@ -1,21 +1,17 @@
 //! All objects related to artist defined by Spotify API
-use crate::model::{from_duration_ms, to_duration_ms};
+use crate::model::{duration_ms, enums::Modality, modality};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Audio Feature Object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#audio-features-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-audiofeaturesobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioFeatures {
     pub acousticness: f32,
     pub analysis_url: String,
     pub danceability: f32,
-    #[serde(
-        deserialize_with = "from_duration_ms",
-        serialize_with = "to_duration_ms",
-        rename = "duration_ms"
-    )]
+    #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub energy: f32,
     pub id: String,
@@ -23,7 +19,8 @@ pub struct AudioFeatures {
     pub key: i32,
     pub liveness: f32,
     pub loudness: f32,
-    pub mode: f32,
+    #[serde(with = "modality")]
+    pub mode: Modality,
     pub speechiness: f32,
     pub tempo: f32,
     pub time_signature: i32,
@@ -36,7 +33,7 @@ pub struct AudioFeatures {
 
 /// Audio feature object wrapped by `Vec`
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-several-audio-features/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
 #[derive(Deserialize)]
 pub(in crate) struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
@@ -44,7 +41,7 @@ pub(in crate) struct AudioFeaturesPayload {
 
 /// Audio analysis object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysis {
     pub bars: Vec<TimeInterval>,
@@ -57,7 +54,7 @@ pub struct AudioAnalysis {
 }
 
 /// Time interval object
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#time-interval-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct TimeInterval {
     pub start: f32,
@@ -67,7 +64,7 @@ pub struct TimeInterval {
 
 /// Audio analysis section object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisSection {
     #[serde(flatten)]
@@ -77,7 +74,8 @@ pub struct AudioAnalysisSection {
     pub tempo_confidence: f32,
     pub key: i32,
     pub key_confidence: f32,
-    pub mode: f32,
+    #[serde(with = "modality")]
+    pub mode: Modality,
     pub mode_confidence: f32,
     pub time_signature: i32,
     pub time_signature_confidence: f32,
@@ -85,7 +83,7 @@ pub struct AudioAnalysisSection {
 
 /// Audio analysis meta object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisMeta {
     pub analyzer_version: String,
@@ -98,7 +96,7 @@ pub struct AudioAnalysisMeta {
 }
 /// Audio analysis segment object
 ///
-///[Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#segment-object)
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisSegment {
     #[serde(flatten)]
@@ -113,7 +111,7 @@ pub struct AudioAnalysisSegment {
 
 /// Audio analysis track object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioAnalysisTrack {
     pub num_samples: u32,
@@ -132,7 +130,8 @@ pub struct AudioAnalysisTrack {
     pub time_signature_confidence: f32,
     pub key: u32,
     pub key_confidence: f32,
-    pub mode: f32,
+    #[serde(with = "modality")]
+    pub mode: Modality,
     pub mode_confidence: f32,
     pub codestring: String,
     pub code_version: f32,

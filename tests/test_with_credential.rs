@@ -1,18 +1,25 @@
 mod common;
 
 use common::maybe_async_test;
-use rspotify::client::{Spotify, SpotifyBuilder};
-use rspotify::model::{AlbumType, Country, Id};
 use rspotify::oauth2::CredentialsBuilder;
+use rspotify::{
+    client::{Spotify, SpotifyBuilder},
+    model::{Market, AlbumType, Country, Id},
+};
 
 use maybe_async::maybe_async;
 
 /// Generating a new basic client for the requests.
 #[maybe_async]
 pub async fn creds_client() -> Spotify {
-    // The credentials must be available in the environment. Enable
-    // `env-file` in order to read them from an `.env` file.
-    let creds = CredentialsBuilder::from_env().build().unwrap();
+    // The credentials must be available in the environment.
+    let creds = CredentialsBuilder::from_env().build().unwrap_or_else(|_| {
+        panic!(
+            "No credentials configured. Make sure that either the `env-file` \
+            feature is enabled, or that the required environment variables are \
+            exported (`RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET`)"
+        )
+    });
 
     let mut spotify = SpotifyBuilder::default()
         .credentials(creds)
@@ -79,7 +86,7 @@ async fn test_artists_albums() {
         .artist_albums(
             birdy_uri,
             Some(AlbumType::Album),
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -102,7 +109,7 @@ async fn test_artist_top_tracks() {
     let birdy_uri = Id::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
         .await
-        .artist_top_tracks(birdy_uri, Country::UnitedStates)
+        .artist_top_tracks(birdy_uri, Market::Country(Country::UnitedStates))
         .await
         .unwrap();
 }

@@ -17,18 +17,17 @@
 mod common;
 
 use common::maybe_async_test;
-use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::offset::Offset;
-use rspotify::model::{
-    Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
-};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
-
-use std::env;
+use rspotify::{
+    client::{Spotify, SpotifyBuilder},
+    model::{Market, Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions},
+};
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
 use serde_json::map::Map;
+use std::env;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
@@ -43,21 +42,27 @@ pub async fn oauth_client() -> Spotify {
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
-        let creds = CredentialsBuilder::from_env().build().unwrap();
-
-        // Using every possible scope
-        let oauth = OAuthBuilder::from_env()
-            .scope(
-                "user-read-email user-read-private user-top-read \
-                 user-read-recently-played user-follow-read user-library-read \
-                 user-read-currently-playing user-read-playback-state \
-                 user-read-playback-position playlist-read-collaborative \
-                 playlist-read-private user-follow-modify user-library-modify \
-                 user-modify-playback-state playlist-modify-public \
-                 playlist-modify-private ugc-image-upload",
+        let creds = CredentialsBuilder::from_env().build().unwrap_or_else(|_| {
+            panic!(
+                "No credentials configured. Make sure that either the \
+                `env-file` feature is enabled, or that the required \
+                environment variables are exported (`RSPOTIFY_CLIENT_ID`, \
+                `RSPOTIFY_CLIENT_SECRET`)."
             )
-            .build()
-            .unwrap();
+        });
+
+        let scope = "user-read-email user-read-private user-top-read \
+        user-read-recently-played user-follow-read user-library-read \
+        user-read-currently-playing user-read-playback-state \
+        user-read-playback-position playlist-read-collaborative \
+        playlist-read-private user-follow-modify user-library-modify \
+        user-modify-playback-state playlist-modify-public \
+        playlist-modify-private ugc-image-upload"
+            .split_whitespace()
+            .map(|x| x.to_owned())
+            .collect();
+        // Using every possible scope
+        let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
 
         let mut spotify = SpotifyBuilder::default()
             .credentials(creds)
@@ -83,7 +88,7 @@ pub async fn oauth_client() -> Spotify {
 async fn test_categories() {
     oauth_client()
         .await
-        .categories(None, Some(Country::UnitedStates), 10, 0)
+        .categories(None, Some(Market::Country(Country::UnitedStates)), 10, 0)
         .await
         .unwrap();
 }
@@ -94,7 +99,7 @@ async fn test_categories() {
 async fn test_category_playlists() {
     oauth_client()
         .await
-        .category_playlists("pop", Some(Country::UnitedStates), 10, 0)
+        .category_playlists("pop", Some(Market::Country(Country::UnitedStates)), 10, 0)
         .await
         .unwrap();
 }
@@ -321,7 +326,18 @@ async fn test_me() {
 async fn test_new_releases() {
     oauth_client()
         .await
-        .new_releases(Some(Country::Sweden), 10, 0)
+        .new_releases(Some(Market::Country(Country::Sweden)), 10, 0)
+        .await
+        .unwrap();
+}
+
+#[maybe_async]
+#[maybe_async_test]
+#[ignore]
+async fn test_new_releases_with_from_token() {
+    oauth_client()
+        .await
+        .new_releases(Some(Market::FromToken), 10, 0)
         .await
         .unwrap();
 }
@@ -378,7 +394,7 @@ async fn test_recommendations() {
             None,
             Some(seed_tracks),
             10,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             &payload,
         )
         .await
@@ -420,7 +436,7 @@ async fn test_search_artist() {
             SearchType::Artist,
             10,
             0,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             None,
         )
         .await
@@ -439,7 +455,7 @@ async fn test_search_playlist() {
             SearchType::Playlist,
             10,
             0,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             None,
         )
         .await
@@ -458,7 +474,7 @@ async fn test_search_track() {
             SearchType::Track,
             10,
             0,
-            Some(Country::UnitedStates),
+            Some(Market::Country(Country::UnitedStates)),
             None,
         )
         .await
@@ -716,7 +732,7 @@ async fn test_user_playlist() {
     let playlist_id = Id::from_id("59ZbFPES4DQwEjBpWHzrtC").unwrap();
     oauth_client()
         .await
-        .user_playlist(user_id, Some(playlist_id), None, None)
+        .user_playlist(user_id, Some(playlist_id), None)
         .await
         .unwrap();
 }

@@ -2,8 +2,7 @@
 use super::device::Device;
 use super::PlayingItem;
 use crate::model::{
-    from_millisecond_timestamp, from_option_duration_ms, to_millisecond_timestamp,
-    to_option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
+    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -11,7 +10,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 /// Context object
 ///
-/// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
     pub uri: String,
@@ -23,45 +22,31 @@ pub struct Context {
 
 /// Currently playing object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
-    #[serde(
-        deserialize_with = "from_millisecond_timestamp",
-        serialize_with = "to_millisecond_timestamp"
-    )]
+    #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
-    #[serde(
-        deserialize_with = "from_option_duration_ms",
-        serialize_with = "to_option_duration_ms",
-        rename = "progress_ms"
-    )]
+    #[serde(with = "option_duration_ms", rename = "progress_ms")]
     pub progress: Option<Duration>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
     pub currently_playing_type: CurrentlyPlayingType,
     pub actions: Actions,
 }
-/// [Currently Playback Context](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentPlaybackContext {
     pub device: Device,
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
     pub context: Option<Context>,
-    #[serde(
-        deserialize_with = "from_millisecond_timestamp",
-        serialize_with = "to_millisecond_timestamp"
-    )]
+    #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
-    #[serde(
-        deserialize_with = "from_option_duration_ms",
-        serialize_with = "to_option_duration_ms",
-        rename = "progress_ms"
-    )]
+    #[serde(with = "option_duration_ms", rename = "progress_ms")]
     pub progress: Option<Duration>,
     pub is_playing: bool,
     pub item: Option<PlayingItem>,
@@ -71,7 +56,7 @@ pub struct CurrentPlaybackContext {
 
 /// Actions object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct Actions {
     pub disallows: Vec<DisallowKey>,

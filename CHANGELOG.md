@@ -80,6 +80,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `PrivateUser`
   + `ExplicitContent`
   + Fix broken model links refering to Spotify documentation
+- ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
@@ -187,6 +188,14 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `CurrentPlaybackContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
   + Change `Offset.position`'s type from `Option<u32>` to `Option<std::time::Duration>`
   + Remove `SimplifiedPlayingContext`, since it's useless.
+- ([#177](https://github.com/ramsayleung/rspotify/pull/157)) Change `mode` from `f32` to `enum Modality`:
+  + Change `AudioAnalysisSection::mode`, `AudioAnalysisTrack::mode` and `AudioFeatures::mode` from `f32` to `enum Modality`.
+- ([#185](https://github.com/ramsayleung/rspotify/pull/185)) Polish the `Token.expires_at`, `Token.expires_in` fields
+  + Change `Token.expires_in` from u32 to `chrono::Duration`
+  + Change `Token.expires_at` from i64 to `chrono::DateTime<Utc>`
+  + Change `Token.scope` from `String` to `HashSet`.
+  + Change `OAuth.scope` from `String` to `HashSet`.
+  + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 
 ## 0.10 (2020/07/01)
 

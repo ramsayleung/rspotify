@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 /// Search for playlists
 ///
-///[Reference](https://developer.spotify.com/web-api/search-item/);
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search);
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchPlaylists {
     pub playlists: Page<SimplifiedPlaylist>,
@@ -17,7 +17,7 @@ pub struct SearchPlaylists {
 
 /// Search for albums
 ///
-///[Reference](https://developer.spotify.com/web-api/search-item/)
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchAlbums {
     pub albums: Page<SimplifiedAlbum>,
@@ -25,12 +25,12 @@ pub struct SearchAlbums {
 
 /// Search for artists
 ///
-///[Reference](https://developer.spotify.com/web-api/search-item/)
+///[Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchArtists {
     pub artists: Page<FullArtist>,
 }
-///[Search item](https://developer.spotify.com/web-api/search-item/)
+///[Search item](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchTracks {
     pub tracks: Page<FullTrack>,
@@ -38,7 +38,7 @@ pub struct SearchTracks {
 
 /// Search for shows
 ///
-/// [Reference](https://developer.spotify.com/web-api/search-item/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchShows {
     pub shows: Page<SimplifiedShow>,
@@ -46,7 +46,7 @@ pub struct SearchShows {
 
 /// Search for episodes
 ///
-/// [Reference](https://developer.spotify.com/web-api/search-item/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchEpisodes {
     pub episodes: Page<SimplifiedEpisode>,
