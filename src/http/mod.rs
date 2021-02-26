@@ -232,3 +232,26 @@ impl Spotify {
         self.delete(url, Some(&headers), payload).await
     }
 }
+
+mod tests {
+    use super::*;
+    use crate::oauth2::TokenBuilder;
+    #[test]
+    fn test_bearer_auth() {
+        let access_token = "access_token";
+        let tok = TokenBuilder::default()
+            .access_token(access_token)
+            .build()
+            .unwrap();
+        let (auth, value) = headers::bearer_auth(&tok);
+        assert_eq!(auth, "authorization");
+        assert_eq!(value, "Bearer access_token");
+    }
+
+    #[test]
+    fn test_basic_auth() {
+        let (auth, value) = headers::basic_auth("ramsay", "123456");
+        assert_eq!(auth, "authorization");
+        assert_eq!(value, "Basic cmFtc2F5OjEyMzQ1Ng==");
+    }
+}
