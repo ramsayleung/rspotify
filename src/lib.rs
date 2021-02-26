@@ -197,3 +197,22 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
         .map(|byte| alphanum[*byte as usize % range] as char)
         .collect()
 }
+
+mod tests {
+    use super::{generate_random_string, json_insert};
+    use serde_json::json;
+    #[test]
+    fn test_generate_random_string() {
+        let first_generated_string = generate_random_string(10);
+        let second_generated_string = generate_random_string(10);
+        assert_ne!(first_generated_string, second_generated_string);
+    }
+
+    #[test]
+    fn test_json_insert() {
+        let mut params = json!({});
+        let name = "ramsay";
+        json_insert!(params, "name", name);
+        assert_eq!(params["name"], name);
+    }
+}
