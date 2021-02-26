@@ -5,8 +5,9 @@ use std::marker::PhantomData;
 use strum::Display;
 use thiserror::Error;
 
-// This is a sealed trait pattern implementation, it stops external code from implementing the `IdType` trait.
-// The `Sealed` trait must be in a private mod, so external code can not see and implement it.
+// This is a sealed trait pattern implementation, it stops external code from
+// implementing the `IdType` trait. The `Sealed` trait must be in a private mod,
+// so external code can not see and implement it.
 // See also: https://rust-lang.github.io/api-guidelines/future-proofing.html
 mod private {
     pub trait Sealed {}
@@ -73,8 +74,8 @@ pub struct Id<T> {
 /// This is an owning type, it stores a String.
 /// See [IdBuf](crate::model::idtypes::Id) for light-weight non-owning type.
 ///
-/// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or `Id::from_id_or_uri(val).to_owned()`
-/// to construct an instance of this type.
+/// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or
+/// `Id::from_id_or_uri(val).to_owned()` to construct an instance of this type.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct IdBuf<T> {
     #[serde(default)]
@@ -126,10 +127,11 @@ impl<T: IdType> IdBuf<T> {
 pub enum IdError {
     /// Spotify URI prefix is not `spotify:` or `spotify/`
     InvalidPrefix,
-    /// Spotify URI can't be split into type and id parts (e.g. it has invalid separator)
+    /// Spotify URI can't be split into type and id parts
+    /// (e.g. it has invalid separator)
     InvalidFormat,
-    /// Spotify URI has invalid type name, or id has invalid type in a given context
-    /// (e.g. a method expects a track id, but artist id is provided)
+    /// Spotify URI has invalid type name, or id has invalid type in a given
+    /// context (e.g. a method expects a track id, but artist id is provided)
     InvalidType,
     /// Spotify id is invalid (empty or contains non-alphanumeric characters)
     InvalidId,
@@ -182,36 +184,46 @@ impl<T: IdType> Id<T> {
 
     /// Spotify object URI in a well-known format: spotify:type:id
     ///
-    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`, `spotify:track:4y4VO05kYgUTo2bzbox1an`.
+    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
+    /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
     pub fn uri(&self) -> String {
         format!("spotify:{}:{}", T::TYPE, &self.id)
     }
 
     /// Full Spotify object URL, can be opened in a browser
     ///
-    /// Examples: https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an, https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI
+    /// Examples: https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an,
+    /// https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI
     pub fn url(&self) -> String {
         format!("https://open.spotify.com/{}/{}", T::TYPE, &self.id)
     }
 
     /// Parse Spotify id or URI from string slice
     ///
-    /// Spotify URI must be in one of the following formats: `spotify:{type}:{id}` or `spotify/{type}/{id}`.
-    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`, `show`, or `episode`,
-    /// and `{id}` is a non-empty alphanumeric string.
-    /// The URI must be of given `T`ype, otherwise `IdError::InvalidType` error is returned.
+    /// Spotify URI must be in one of the following formats:
+    /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
+    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`,
+    /// `user`, `show`, or `episode`, and `{id}` is a non-empty
+    /// alphanumeric string.
+    /// The URI must be of given `T`ype, otherwise `IdError::InvalidType`
+    /// error is returned.
     ///
-    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`, `spotify/track/4y4VO05kYgUTo2bzbox1an`.
+    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
+    /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
     ///
-    /// If input string is not a valid Spotify URI (it's not started with `spotify:` or `spotify/`),
-    /// it must be a valid Spotify object id, i.e. a non-empty alphanumeric string.
+    /// If input string is not a valid Spotify URI (it's not started with
+    /// `spotify:` or `spotify/`), it must be a valid Spotify object id,
+    /// i.e. a non-empty alphanumeric string.
     ///
     /// # Errors:
     ///
-    /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part is not equal to `_type`,
-    /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id part, or it's an invalid id
-    ///    (id is invalid if it contains non-alphanumeric characters),
-    /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be split into type and id parts.
+    /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part
+    ///    is not equal to `_type`,
+    /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id
+    ///    part, or it's an invalid id (id is invalid if it contains
+    ///    non-alphanumeric characters),
+    /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
+    ///    split into type and id parts.
     pub fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<&'a Id<T>, IdError> {
         match Id::<T>::from_uri(id_or_uri) {
             Ok(id) => Ok(id),
@@ -238,18 +250,23 @@ impl<T: IdType> Id<T> {
 
     /// Parse Spotify URI from string slice
     ///
-    /// Spotify URI must be in one of the following formats: `spotify:{type}:{id}` or `spotify/{type}/{id}`.
-    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`, `show`, or `episode`,
-    /// and `{id}` is a non-empty alphanumeric string.
+    /// Spotify URI must be in one of the following formats:
+    /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
+    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
+    /// `show`, or `episode`, and `{id}` is a non-empty alphanumeric string.
     ///
-    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`, `spotify/track/4y4VO05kYgUTo2bzbox1an`.
+    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
+    /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
     ///
     /// # Errors:
     ///
-    /// - `IdError::InvalidPrefix` - if `uri` is not started with `spotify:` or `spotify/`,
-    /// - `IdError::InvalidType` - if type part of an `uri` is not a valid Spotify type `T`,
+    /// - `IdError::InvalidPrefix` - if `uri` is not started with `spotify:`
+    ///    or `spotify/`,
+    /// - `IdError::InvalidType` - if type part of an `uri` is not a valid
+    ///    Spotify type `T`,
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
-    /// - `IdError::InvalidFormat` - if it can't be splitted into type and id parts.
+    /// - `IdError::InvalidFormat` - if it can't be splitted into type and
+    ///    id parts.
     pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<&'a Id<T>, IdError> {
         let rest = uri.strip_prefix("spotify").ok_or(IdError::InvalidPrefix)?;
         let sep = match rest.chars().next() {
