@@ -107,15 +107,15 @@ If we missed any change or there's something you'd like to discuss about this ve
     + The `ClientError::CLI` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
-- ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints take `Vec<Id<'_, Type>>/&[Id<'_, Type>]` as parameter have changed to `impl IntoIterator<Item = Id<'_, Type>>`.
-  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = Id<'_, Type>>`:
+- ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints take `Vec<&Id<Type>>/&[&Id<Type>]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
+  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
 	- `artists`
 	- `albums`
 	- `save_shows`
 	- `get_several_episodes`
 	- `check_users_saved_shows`
 	- `remove_users_saved_shows`
-  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = Id<'_, Type>>`:
+  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id<Type>>`:
 	- `user_playlist_add_tracks`
 	- `user_playlist_replace_tracks`
 	- `user_playlist_remove_all_occurrences_of_tracks`
@@ -131,7 +131,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 	- `user_follow_users`
 	- `user_unfollow_users`
 	- `audios_features`
-  + The endpoints which changes parameter from `String` to `Id<'_, Type>`:
+  + The endpoints which changes parameter from `String` to `&Id<Type>`:
         - `get_a_show`
         - `get_an_episode`
         - `get_shows_episodes`
@@ -165,7 +165,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
-  + Id and URI parameters are type-safe now everywhere, `Id<'_, Type>` and `IdBuf<Type>` types for ids/URIs added (non-owning and owning structs).
+  + Id and URI parameters are type-safe now everywhere, `Id<Type>` and `IdBuf<Type>` types for ids/URIs added (non-owning and owning structs).
 - ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
   + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
   + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
