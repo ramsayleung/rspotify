@@ -18,7 +18,6 @@ pub trait IdType: private::Sealed {
 pub trait PlayableIdType: IdType {}
 pub trait PlayContextIdType: IdType {}
 
-
 macro_rules! sealed_types {
     ($($name:ident),+) => {
         $(
@@ -56,7 +55,6 @@ pub type PlaylistIdBuf = IdBuf<Playlist>;
 pub type UserIdBuf = IdBuf<User>;
 pub type ShowIdBuf = IdBuf<Show>;
 pub type EpisodeIdBuf = IdBuf<Episode>;
-
 
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
 ///

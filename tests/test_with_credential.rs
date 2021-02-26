@@ -4,7 +4,7 @@ use common::maybe_async_test;
 use rspotify::oauth2::CredentialsBuilder;
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
-    model::{Market, AlbumType, Country, Id},
+    model::{AlbumType, Country, Id, Market},
 };
 
 use maybe_async::maybe_async;

@@ -21,7 +21,9 @@ use rspotify::model::offset::Offset;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
-    model::{Market, Country, Id, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions},
+    model::{
+        Country, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
+    },
 };
 
 use chrono::prelude::*;
