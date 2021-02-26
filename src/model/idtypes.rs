@@ -18,32 +18,27 @@ pub trait IdType: private::Sealed {
 pub trait PlayableIdType: IdType {}
 pub trait PlayContextIdType: IdType {}
 
-impl IdType for Artist {
-    const TYPE: Type = Type::Artist;
+
+macro_rules! sealed_types {
+    ($($name:ident),+) => {
+        $(
+            #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+            pub enum $name {}
+            impl private::Sealed for $name {}
+            impl IdType for $name {
+                const TYPE: Type = Type::$name;
+            }
+        )+
+    }
 }
+
+sealed_types!(Artist, Album, Track, Playlist, User, Show, Episode);
+
 impl PlayContextIdType for Artist {}
-impl IdType for Album {
-    const TYPE: Type = Type::Album;
-}
 impl PlayContextIdType for Album {}
-impl IdType for Track {
-    const TYPE: Type = Type::Track;
-}
 impl PlayableIdType for Track {}
-impl IdType for Playlist {
-    const TYPE: Type = Type::Playlist;
-}
 impl PlayContextIdType for Playlist {}
-impl IdType for User {
-    const TYPE: Type = Type::User;
-}
-impl IdType for Show {
-    const TYPE: Type = Type::Show;
-}
 impl PlayContextIdType for Show {}
-impl IdType for Episode {
-    const TYPE: Type = Type::Episode;
-}
 impl PlayableIdType for Episode {}
 
 pub type ArtistId = Id<Artist>;
@@ -62,27 +57,6 @@ pub type UserIdBuf = IdBuf<User>;
 pub type ShowIdBuf = IdBuf<Show>;
 pub type EpisodeIdBuf = IdBuf<Episode>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Artist {}
-impl private::Sealed for Artist {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Album {}
-impl private::Sealed for Album {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Track {}
-impl private::Sealed for Track {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Playlist {}
-impl private::Sealed for Playlist {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum User {}
-impl private::Sealed for User {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Show {}
-impl private::Sealed for Show {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Episode {}
-impl private::Sealed for Episode {}
 
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
 ///
