@@ -233,7 +233,8 @@ impl Spotify {
     }
 }
 
-mod tests {
+#[cfg(test)]
+mod test {
     use super::*;
     use crate::client::SpotifyBuilder;
     use crate::oauth2::TokenBuilder;

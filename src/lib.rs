@@ -198,7 +198,8 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
         .collect()
 }
 
-mod tests {
+#[cfg(test)]
+mod test {
     use super::{generate_random_string, json_insert};
     use serde_json::json;
     #[test]
