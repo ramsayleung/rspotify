@@ -2190,4 +2190,22 @@ mod tests {
         assert_eq!(track_id1, uri1);
         assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M", &uri2);
     }
+
+    #[test]
+    fn test_append_device_id_without_question_mark() {
+        let path = "me/player/play";
+        let device_id = Some("fdafdsadfa".to_owned());
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        let new_path = spotify.append_device_id(path, device_id);
+        assert_eq!(new_path, "me/player/play?device_id=fdafdsadfa");
+    }
+
+    #[test]
+    fn test_append_device_id_with_question_mark() {
+        let path = "me/player/shuffle?state=true";
+        let device_id = Some("fdafdsadfa".to_owned());
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        let new_path = spotify.append_device_id(path, device_id);
+        assert_eq!(new_path, "me/player/shuffle?state=true&device_id=fdafdsadfa");
+    }
 }
