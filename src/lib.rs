@@ -173,6 +173,19 @@ compile_error!(
 
 #[doc(hidden)]
 mod macros {
+    /// Create a **Hashset** from a list of elements, be used to create scope
+    /// for (Token)[crate::oauth2::Token]
+    #[macro_export]
+    macro_rules! hashset {
+	($($key:expr),*) => {{
+	    let mut container = ::std::collections::HashSet::new();
+	    $(
+		let _ = container.insert($key);
+	    )*
+	    container
+	}
+    };
+}
     /// Reduce boilerplate when inserting new elements in a JSON object.
     #[macro_export]
     macro_rules! json_insert {
@@ -200,9 +213,16 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_random_string, json_insert};
+    use super::{generate_random_string, hashset, json_insert};
     use serde_json::json;
     use std::collections::HashSet;
+
+    #[test]
+    fn test_hashset() {
+        let scope = hashset!("hello", "world", "foo", "bar");
+        assert_eq!(scope.len(), 4);
+    }
+
     #[test]
     fn test_generate_random_string() {
         let mut containers = HashSet::new();

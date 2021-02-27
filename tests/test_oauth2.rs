@@ -1,29 +1,23 @@
-use rspotify::client::SpotifyBuilder;
-use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, Token, TokenBuilder};
-use url::Url;
-
 use chrono::prelude::*;
 use chrono::Duration;
 use maybe_async::maybe_async;
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-    io::Read,
-    path::PathBuf,
-    thread::sleep,
-};
+use rspotify::client::SpotifyBuilder;
+use rspotify::hashset;
+use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, Token, TokenBuilder};
+use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
+use url::Url;
 mod common;
 
 use common::maybe_async_test;
 
 #[test]
 fn test_get_authorize_url() {
-    let scope = "playlist-read-private";
+    let scope = hashset!("playlist-read-private".to_owned());
 
     let oauth = OAuthBuilder::default()
         .state("fdsafdsfa")
         .redirect_uri("localhost")
-        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
+        .scope(scope)
         .build()
         .unwrap();
 
@@ -57,17 +51,10 @@ fn test_get_authorize_url() {
 #[maybe_async_test]
 async fn test_read_token_cache() {
     let now: DateTime<Utc> = Utc::now();
-    let scope = "playlist-read-private playlist-read-collaborative \
-             playlist-modify-public playlist-modify-private \
-             streaming ugc-image-upload user-follow-modify \
-             user-follow-read user-library-read user-library-modify \
-             user-read-private user-read-birthdate user-read-email \
-             user-top-read user-read-playback-state user-modify-playback-state \
-             user-read-currently-playing user-read-recently-played";
-    let scope = scope
-        .split_whitespace()
-        .map(|x| x.to_owned())
-        .collect::<HashSet<_>>();
+    let scope = hashset!(
+        "playlist-read-private".to_owned(),
+        "playlist-read-collaborative".to_owned()
+    );
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
@@ -88,10 +75,7 @@ async fn test_read_token_cache() {
     predefined_spotify.write_token_cache().unwrap();
     assert!(predefined_spotify.cache_path.exists());
 
-    let oauth_scope = "playlist-read-private"
-        .split_whitespace()
-        .map(|x| x.to_owned())
-        .collect::<HashSet<String>>();
+    let oauth_scope = hashset!("playlist-read-private".to_owned());
     let oauth = OAuthBuilder::default()
         .state("fdasfasfdasd")
         .redirect_uri("http://localhost:8000")
@@ -117,17 +101,10 @@ async fn test_read_token_cache() {
 #[test]
 fn test_write_token() {
     let now: DateTime<Utc> = Utc::now();
-    let scope = "playlist-read-private playlist-read-collaborative \
-             playlist-modify-public playlist-modify-private \
-             streaming ugc-image-upload user-follow-modify \
-             user-follow-read user-library-read user-library-modify \
-             user-read-private user-read-birthdate user-read-email \
-             user-top-read user-read-playback-state user-modify-playback-state \
-             user-read-currently-playing user-read-recently-played";
-    let scope = scope
-        .split_whitespace()
-        .map(|x| x.to_owned())
-        .collect::<HashSet<_>>();
+    let scope = hashset!(
+        "playlist-read-private".to_owned(),
+        "playlist-read-collaborative".to_owned()
+    );
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
@@ -163,14 +140,10 @@ fn test_write_token() {
 
 #[test]
 fn test_token_is_expired() {
-    let scope = "playlist-read-private playlist-read-collaborative \
-            playlist-modify-public playlist-modify-private streaming \
-            ugc-image-upload user-follow-modify user-follow-read \
-            user-library-read user-library-modify user-read-private \
-            user-read-birthdate user-read-email user-top-read \
-            user-read-playback-state user-modify-playback-state \
-            user-read-currently-playing user-read-recently-played";
-    let scope = scope.split_whitespace().map(|x| x.to_owned()).collect();
+    let scope = hashset!(
+        "playlist-read-private".to_owned(),
+        "playlist-read-collaborative".to_owned()
+    );
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
