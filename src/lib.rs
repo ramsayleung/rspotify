@@ -202,11 +202,14 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 mod test {
     use super::{generate_random_string, json_insert};
     use serde_json::json;
+    use std::collections::HashSet;
     #[test]
     fn test_generate_random_string() {
-        let first_generated_string = generate_random_string(10);
-        let second_generated_string = generate_random_string(10);
-        assert_ne!(first_generated_string, second_generated_string);
+        let mut containers = HashSet::new();
+        for _ in 1..101 {
+            containers.insert(generate_random_string(10));
+        }
+        assert_eq!(containers.len(), 100);
     }
 
     #[test]
