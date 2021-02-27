@@ -235,7 +235,10 @@ impl Spotify {
 
 mod tests {
     use super::*;
+    use crate::client::SpotifyBuilder;
     use crate::oauth2::TokenBuilder;
+    use chrono::prelude::*;
+    use chrono::Duration;
     #[test]
     fn test_bearer_auth() {
         let access_token = "access_token";
@@ -253,5 +256,48 @@ mod tests {
         let (auth, value) = headers::basic_auth("ramsay", "123456");
         assert_eq!(auth, "authorization");
         assert_eq!(value, "Basic cmFtc2F5OjEyMzQ1Ng==");
+    }
+
+    #[test]
+    fn test_endpoint_url() {
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        assert_eq!(
+            spotify.endpoint_url("me/player/play"),
+            "https://api.spotify.com/v1/me/player/play"
+        );
+        assert_eq!(
+            spotify.endpoint_url("http://api.spotify.com/v1/me/player/play"),
+            "http://api.spotify.com/v1/me/player/play"
+        );
+        assert_eq!(
+            spotify.endpoint_url("https://api.spotify.com/v1/me/player/play"),
+            "https://api.spotify.com/v1/me/player/play"
+        );
+    }
+
+    #[test]
+    fn test_auth_headers() {
+        let scope = "playlist-read-private";
+        let scope = scope.split_whitespace().map(|x| x.to_owned()).collect();
+
+        let tok = TokenBuilder::default()
+            .access_token("test-access_token")
+            .expires_in(Duration::seconds(1))
+            .expires_at(Utc::now())
+            .scope(scope)
+            .refresh_token("...")
+            .build()
+            .unwrap();
+
+        let spotify = SpotifyBuilder::default()
+            .token(tok.clone())
+            .build()
+            .unwrap();
+
+        let headers = spotify.auth_headers().unwrap();
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Bearer test-access_token".to_owned())
+        );
     }
 }

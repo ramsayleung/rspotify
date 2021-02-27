@@ -9,6 +9,7 @@ use std::{
     collections::{HashMap, HashSet},
     fs,
     io::Read,
+    path::PathBuf,
     thread::sleep,
 };
 mod common;
@@ -79,11 +80,13 @@ async fn test_read_token_cache() {
 
     let predefined_spotify = SpotifyBuilder::default()
         .token(tok.clone())
+        .cache_path(PathBuf::from(".test_read_token_cache.json"))
         .build()
         .unwrap();
 
     // write token data to cache_path
     predefined_spotify.write_token_cache().unwrap();
+    assert!(predefined_spotify.cache_path.exists());
 
     let oauth_scope = "playlist-read-private"
         .split_whitespace()
@@ -96,7 +99,11 @@ async fn test_read_token_cache() {
         .build()
         .unwrap();
 
-    let mut spotify = SpotifyBuilder::default().oauth(oauth).build().unwrap();
+    let mut spotify = SpotifyBuilder::default()
+        .oauth(oauth)
+        .cache_path(PathBuf::from(".test_read_token_cache.json"))
+        .build()
+        .unwrap();
     // read token from cache file
     let tok_from_file = spotify.read_token_cache().await.unwrap();
     assert_eq!(tok_from_file.scope, scope);
@@ -133,6 +140,7 @@ fn test_write_token() {
 
     let spotify = SpotifyBuilder::default()
         .token(tok.clone())
+        .cache_path(PathBuf::from(".test_write_token_cache.json"))
         .build()
         .unwrap();
 
