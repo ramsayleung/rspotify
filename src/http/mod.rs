@@ -289,10 +289,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let spotify = SpotifyBuilder::default()
-            .token(tok.clone())
-            .build()
-            .unwrap();
+        let spotify = SpotifyBuilder::default().token(tok).build().unwrap();
 
         let headers = spotify.auth_headers().unwrap();
         assert_eq!(
