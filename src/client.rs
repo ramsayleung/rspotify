@@ -2206,6 +2206,9 @@ mod tests {
         let device_id = Some("fdafdsadfa".to_owned());
         let spotify = SpotifyBuilder::default().build().unwrap();
         let new_path = spotify.append_device_id(path, device_id);
-        assert_eq!(new_path, "me/player/shuffle?state=true&device_id=fdafdsadfa");
+        assert_eq!(
+            new_path,
+            "me/player/shuffle?state=true&device_id=fdafdsadfa"
+        );
     }
 }

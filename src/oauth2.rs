@@ -431,4 +431,3 @@ impl Spotify {
         Ok(code)
     }
 }
-
