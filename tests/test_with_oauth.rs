@@ -23,6 +23,7 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
     model::Market,
+    scope,
 };
 
 use chrono::prelude::*;
@@ -52,16 +53,25 @@ pub async fn oauth_client() -> Spotify {
             )
         });
 
-        let scope = "user-read-email user-read-private user-top-read \
-        user-read-recently-played user-follow-read user-library-read \
-        user-read-currently-playing user-read-playback-state \
-        user-read-playback-position playlist-read-collaborative \
-        playlist-read-private user-follow-modify user-library-modify \
-        user-modify-playback-state playlist-modify-public \
-        playlist-modify-private ugc-image-upload"
-            .split_whitespace()
-            .map(|x| x.to_owned())
-            .collect();
+        let scope = scope!(
+            "user-read-email",
+            "user-read-private",
+            "user-top-read",
+            "user-read-recently-played",
+            "user-follow-read",
+            "user-library-read",
+            "user-read-currently-playing",
+            "user-read-playback-state",
+            "user-read-playback-position",
+            "playlist-read-collaborative",
+            "playlist-read-private",
+            "user-follow-modify",
+            "user-library-modify",
+            "user-modify-playback-state",
+            "playlist-modify-public",
+            "playlist-modify-private",
+            "ugc-image-upload"
+        );
         // Using every possible scope
         let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
 
