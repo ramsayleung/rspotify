@@ -241,6 +241,7 @@ mod test {
     use crate::scope;
     use chrono::prelude::*;
     use chrono::Duration;
+
     #[test]
     fn test_bearer_auth() {
         let access_token = "access_token";
