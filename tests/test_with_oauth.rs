@@ -508,7 +508,7 @@ async fn test_start_playback() {
         .start_uris_playback(
             &uris,
             Some(device_id),
-            Some(Offset::<()>::for_position(0)),
+            Some(Offset::for_position(0)),
             None,
         )
         .await
