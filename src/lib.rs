@@ -173,14 +173,27 @@ compile_error!(
 
 #[doc(hidden)]
 mod macros {
-    /// Create a **Hashset** from a list of elements, be used to create scope
+    /// Create a **Hashset** from a list of &str(which will be converted to
+    /// String internally), be used to create scope
     /// for (Token)[crate::oauth2::Token]
+    /// Example
+    /// ```
+    /// let scope: HashSet<String> = scope!("playlist-read-private", "playlist-read-collaborative");
+    /// let tok = TokenBuilder::default()
+    ///     .access_token("test-access_token")
+    ///     .expires_in(Duration::seconds(1))
+    ///     .expires_at(Utc::now())
+    ///     .scope(scope)
+    ///     .refresh_token("...")
+    ///     .build()
+    ///     .unwrap();
+    /// ```
     #[macro_export]
-    macro_rules! hashset {
+    macro_rules! scope {
 	($($key:expr),*) => {{
 	    let mut container = ::std::collections::HashSet::new();
 	    $(
-		let _ = container.insert($key);
+		let _ = container.insert($key.to_owned());
 	    )*
 	    container
 	}
@@ -213,14 +226,18 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_random_string, hashset, json_insert};
+    use super::{generate_random_string, json_insert, scope};
     use serde_json::json;
     use std::collections::HashSet;
 
     #[test]
     fn test_hashset() {
-        let scope = hashset!("hello", "world", "foo", "bar");
+        let scope = scope!("hello", "world", "foo", "bar");
         assert_eq!(scope.len(), 4);
+        assert!(scope.contains(&"hello".to_owned()));
+        assert!(scope.contains(&"world".to_owned()));
+        assert!(scope.contains(&"foo".to_owned()));
+        assert!(scope.contains(&"bar".to_owned()));
     }
 
     #[test]

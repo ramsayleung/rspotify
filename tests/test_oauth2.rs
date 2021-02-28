@@ -2,8 +2,8 @@ use chrono::prelude::*;
 use chrono::Duration;
 use maybe_async::maybe_async;
 use rspotify::client::SpotifyBuilder;
-use rspotify::hashset;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, Token, TokenBuilder};
+use rspotify::scope;
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
 use url::Url;
 mod common;
@@ -12,12 +12,10 @@ use common::maybe_async_test;
 
 #[test]
 fn test_get_authorize_url() {
-    let scope = hashset!("playlist-read-private".to_owned());
-
     let oauth = OAuthBuilder::default()
         .state("fdsafdsfa")
         .redirect_uri("localhost")
-        .scope(scope)
+        .scope(scope!("playlist-read-private"))
         .build()
         .unwrap();
 
@@ -51,10 +49,7 @@ fn test_get_authorize_url() {
 #[maybe_async_test]
 async fn test_read_token_cache() {
     let now: DateTime<Utc> = Utc::now();
-    let scope = hashset!(
-        "playlist-read-private".to_owned(),
-        "playlist-read-collaborative".to_owned()
-    );
+    let scope = scope!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
@@ -75,7 +70,7 @@ async fn test_read_token_cache() {
     predefined_spotify.write_token_cache().unwrap();
     assert!(predefined_spotify.cache_path.exists());
 
-    let oauth_scope = hashset!("playlist-read-private".to_owned());
+    let oauth_scope = scope!("playlist-read-private");
     let oauth = OAuthBuilder::default()
         .state("fdasfasfdasd")
         .redirect_uri("http://localhost:8000")
@@ -101,10 +96,7 @@ async fn test_read_token_cache() {
 #[test]
 fn test_write_token() {
     let now: DateTime<Utc> = Utc::now();
-    let scope = hashset!(
-        "playlist-read-private".to_owned(),
-        "playlist-read-collaborative".to_owned()
-    );
+    let scope = scope!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
@@ -140,10 +132,7 @@ fn test_write_token() {
 
 #[test]
 fn test_token_is_expired() {
-    let scope = hashset!(
-        "playlist-read-private".to_owned(),
-        "playlist-read-collaborative".to_owned()
-    );
+    let scope = scope!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
