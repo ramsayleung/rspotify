@@ -250,7 +250,8 @@ impl<T: IdType> Id<T> {
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
     pub fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Id<T>, IdError> {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
-            // Safe, b/c Id is just a str with ZST type tag, and id is proved to be a valid id at this point
+            // Safe, b/c Id is just a str with ZST type tag, and id is proved
+            // to be a valid id at this point
             Ok(unsafe { &*(id as *const str as *const Id<T>) })
         } else {
             Err(IdError::InvalidId)
