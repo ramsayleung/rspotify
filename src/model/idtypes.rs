@@ -2,9 +2,9 @@ use crate::model::Type;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::marker::PhantomData;
+use std::ops::Deref;
 use strum::Display;
 use thiserror::Error;
-use std::ops::Deref;
 
 // This is a sealed trait pattern implementation, it stops external code from
 // implementing the `IdType` trait. The `Sealed` trait must be in a private mod,

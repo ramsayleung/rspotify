@@ -505,12 +505,7 @@ async fn test_start_playback() {
     let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
     oauth_client()
         .await
-        .start_uris_playback(
-            &uris,
-            Some(device_id),
-            Some(Offset::for_position(0)),
-            None,
-        )
+        .start_uris_playback(&uris, Some(device_id), Some(Offset::for_position(0)), None)
         .await
         .unwrap();
 }
