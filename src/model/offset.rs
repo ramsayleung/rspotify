@@ -1,5 +1,5 @@
 //! Offset object
-use crate::model::{idtypes, Id, IdBuf, PlayableIdType};
+use crate::model::{Id, IdBuf, PlayableIdType};
 use std::time::Duration;
 
 /// Offset object
@@ -11,13 +11,10 @@ pub enum Offset<T> {
     Uri(IdBuf<T>),
 }
 
-impl Offset<idtypes::Track> {
-    pub fn for_position(position: u64) -> Offset<idtypes::Track> {
+impl<T: PlayableIdType> Offset<T> {
+    pub fn for_position(position: u64) -> Offset<T> {
         Offset::Position(Duration::from_millis(position))
     }
-}
-
-impl<T: PlayableIdType> Offset<T> {
     pub fn for_uri(uri: &Id<T>) -> Offset<T> {
         Offset::Uri(uri.to_owned())
     }

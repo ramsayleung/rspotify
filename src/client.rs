@@ -1664,11 +1664,11 @@ impl Spotify {
     }
 
     #[maybe_async]
-    pub async fn start_uris_playback<T: PlayableIdType, U: PlayableIdType>(
+    pub async fn start_uris_playback<T: PlayableIdType>(
         &self,
         uris: &[&Id<T>],
         device_id: Option<String>,
-        offset: Option<super::model::Offset<U>>,
+        offset: Option<super::model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         use super::model::Offset;
