@@ -237,8 +237,8 @@ impl Spotify {
 mod test {
     use super::*;
     use crate::client::SpotifyBuilder;
-    use crate::scope;
     use crate::oauth2::TokenBuilder;
+    use crate::scope;
     use chrono::prelude::*;
     use chrono::Duration;
     #[test]
@@ -279,7 +279,6 @@ mod test {
 
     #[test]
     fn test_auth_headers() {
-
         let tok = TokenBuilder::default()
             .access_token("test-access_token")
             .expires_in(Duration::seconds(1))
