@@ -86,15 +86,15 @@ pub struct IdBuf<T> {
 
 impl<T> AsRef<Id<T>> for IdBuf<T> {
     fn as_ref(&self) -> &Id<T> {
-        // Safe, b/c of the same T between types, IdBuf can't be constructed from invalid id, and Id is just a wrapped str with ZST type tag
+        // Safe, b/c of the same T between types, IdBuf can't be constructed
+        // from invalid id, and Id is just a wrapped str with ZST type tag
         unsafe { &*(&*self.id as *const str as *const Id<T>) }
     }
 }
 
 impl<T> Borrow<Id<T>> for IdBuf<T> {
     fn borrow(&self) -> &Id<T> {
-        // Safe, b/c of the same T between types, IdBuf can't be constructed from invalid id, and Id is just a wrapped str with ZST type tag
-        unsafe { &*(&*self.id as *const str as *const Id<T>) }
+        self.as_ref()
     }
 }
 
