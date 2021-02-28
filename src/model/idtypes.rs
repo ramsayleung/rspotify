@@ -4,6 +4,7 @@ use std::borrow::Borrow;
 use std::marker::PhantomData;
 use strum::Display;
 use thiserror::Error;
+use std::ops::Deref;
 
 // This is a sealed trait pattern implementation, it stops external code from
 // implementing the `IdType` trait. The `Sealed` trait must be in a private mod,
@@ -94,6 +95,14 @@ impl<T> AsRef<Id<T>> for IdBuf<T> {
 
 impl<T> Borrow<Id<T>> for IdBuf<T> {
     fn borrow(&self) -> &Id<T> {
+        self.as_ref()
+    }
+}
+
+impl<T> Deref for IdBuf<T> {
+    type Target = Id<T>;
+
+    fn deref(&self) -> &Self::Target {
         self.as_ref()
     }
 }

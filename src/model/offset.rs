@@ -17,7 +17,7 @@ impl Offset<idtypes::Track> {
     }
 }
 
-impl<T: PlayableTypeId> Offset<T> {
+impl<T: PlayableIdType> Offset<T> {
     pub fn for_uri(uri: &Id<T>) -> Offset<T> {
         Offset::Uri(uri.to_owned())
     }
