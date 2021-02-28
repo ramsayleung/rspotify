@@ -183,7 +183,7 @@ mod macros {
     /// use std::collections::HashSet;
     /// use chrono::prelude::*;
     /// use chrono::Duration;
-    /// 
+    ///
     /// let scope: HashSet<String> = scope!("playlist-read-private", "playlist-read-collaborative");
     /// let tok = TokenBuilder::default()
     ///     .access_token("test-access_token")
