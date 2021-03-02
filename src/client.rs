@@ -1643,11 +1643,7 @@ impl Spotify {
         if let Some(offset) = offset {
             match offset {
                 Offset::Position(position) => {
-                    json_insert!(
-                        params,
-                        "offset",
-                        json!({ "position": position.as_millis() })
-                    );
+                    json_insert!(params, "offset", json!({ "position": position }));
                 }
                 Offset::Uri(uri) => {
                     json_insert!(params, "offset", json!({ "uri": uri.uri() }));
@@ -1682,11 +1678,7 @@ impl Spotify {
         if let Some(offset) = offset {
             match offset {
                 Offset::Position(position) => {
-                    json_insert!(
-                        params,
-                        "offset",
-                        json!({ "position": position.as_millis() })
-                    );
+                    json_insert!(params, "offset", json!({ "position": position }));
                 }
                 Offset::Uri(uri) => {
                     json_insert!(params, "offset", json!({ "uri": uri.uri() }));
