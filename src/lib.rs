@@ -165,57 +165,14 @@ pub mod model;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
 
+#[macro_use]
+mod macros;
+
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(
     "`client-reqwest` and `client-ureq` features cannot both be enabled at the same time, \
   if you want to use `client-ureq` you need to set `default-features = false`"
 );
-
-#[doc(hidden)]
-mod macros {
-    /// Create a **Hashset** from a list of &str(which will be converted to
-    /// String internally), be used to create scope
-    /// for (Token)[crate::oauth2::Token]
-    /// Example
-    /// ```
-    /// use rspotify::oauth2::TokenBuilder;
-    /// use rspotify::scope;
-    /// use std::collections::HashSet;
-    /// use chrono::prelude::*;
-    /// use chrono::Duration;
-    ///
-    /// let scope: HashSet<String> = scope!("playlist-read-private", "playlist-read-collaborative");
-    /// let tok = TokenBuilder::default()
-    ///     .access_token("test-access_token")
-    ///     .expires_in(Duration::seconds(1))
-    ///     .expires_at(Utc::now())
-    ///     .scope(scope)
-    ///     .refresh_token("...")
-    ///     .build()
-    ///     .unwrap();
-    /// ```
-    #[macro_export]
-    macro_rules! scope {
-	($($key:expr),*) => {{
-	    let mut container = ::std::collections::HashSet::new();
-	    $(
-		let _ = container.insert($key.to_owned());
-	    )*
-	    container
-	}
-    };
-}
-    /// Reduce boilerplate when inserting new elements in a JSON object.
-    #[macro_export]
-    macro_rules! json_insert {
-        ($json:expr, $p1:expr, $p2:expr) => {
-            $json
-                .as_object_mut()
-                .unwrap()
-                .insert($p1.to_string(), json!($p2))
-        };
-    }
-}
 
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {
