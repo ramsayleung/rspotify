@@ -2,8 +2,6 @@ use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::scope;
 
-use std::collections::HashSet;
-
 #[tokio::main]
 async fn main() {
     // You can use any logger for debugging.
