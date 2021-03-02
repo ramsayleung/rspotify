@@ -171,6 +171,7 @@ compile_error!(
   if you want to use `client-ureq` you need to set `default-features = false`"
 );
 
+#[doc(hidden)]
 mod macros {
     /// Create a **Hashset** from a list of &str(which will be converted to
     /// String internally), be used to create scope
