@@ -137,6 +137,7 @@ If we missed any change or there's something you'd like to discuss about this ve
         - `get_shows_episodes`
   + The endpoint which changes parameter from `Vec<Map<String, Value>>` to `Vec<TrackPositions>`:
         - `playlist_remove_specific_occurrences_of_tracks`
+- The `Offset` type is now an enum to match API logic, `Offset::Position` is `u32` now (it's not a position in time, it's a position in a playlist, and you can't have both `position` and `uri` fields at the same time).
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Rename endpoints with more fitting name:
   + `audio_analysis` -> `track_analysis`
   + `audio_features` -> `track_features`

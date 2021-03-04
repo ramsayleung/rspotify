@@ -227,7 +227,7 @@ impl<T: IdType> Id<T> {
     /// # Errors:
     ///
     /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part
-    ///    is not equal to `_type`,
+    ///    is not equal to `T`,
     /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id
     ///    part, or it's an invalid id (id is invalid if it contains
     ///    non-alphanumeric characters),
