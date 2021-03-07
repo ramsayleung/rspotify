@@ -161,7 +161,8 @@ pub mod client;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 mod http;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod model;
+#[doc(inline)]
+pub use rspotify_model as model;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
 

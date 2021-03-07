@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;
-use crate::model::{Followers, Type};
+use crate::{Followers, Type};
 use std::collections::HashMap;
 /// Simplified Artist Object
 ///
@@ -41,7 +41,7 @@ pub struct FullArtist {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
 #[derive(Deserialize)]
-pub(in crate) struct FullArtists {
+pub struct FullArtists {
     pub artists: Vec<FullArtist>,
 }
 
@@ -49,6 +49,6 @@ pub(in crate) struct FullArtists {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-followed)
 #[derive(Deserialize)]
-pub(in crate) struct CursorPageFullArtists {
+pub struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,
 }

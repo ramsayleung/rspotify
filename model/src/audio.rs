@@ -1,5 +1,5 @@
 //! All objects related to artist defined by Spotify API
-use crate::model::{duration_ms, enums::Modality, modality};
+use crate::{duration_ms, enums::Modality, modality};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -35,7 +35,7 @@ pub struct AudioFeatures {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
 #[derive(Deserialize)]
-pub(in crate) struct AudioFeaturesPayload {
+pub struct AudioFeaturesPayload {
     pub audio_features: Vec<AudioFeatures>,
 }
 

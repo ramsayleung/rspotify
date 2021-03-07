@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::image::Image;
-use crate::model::{Country, Followers, SubscriptionLevel, Type};
+use crate::{Country, Followers, SubscriptionLevel, Type};
 
 /// Public user object
 ///

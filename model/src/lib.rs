@@ -235,7 +235,7 @@ pub use {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{Id, IdError};
+    use crate::{Id, IdError};
 
     #[test]
     fn test_get_id() {

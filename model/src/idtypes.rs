@@ -1,4 +1,4 @@
-use crate::model::Type;
+use crate::Type;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::marker::PhantomData;

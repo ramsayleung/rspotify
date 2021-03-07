@@ -1,7 +1,7 @@
 //! All objects related to context
 use super::device::Device;
 use super::PlayingItem;
-use crate::model::{
+use crate::{
     millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
 };
 use chrono::{DateTime, Utc};
