@@ -279,12 +279,10 @@ impl<T: IdType> Id<T> {
     ///    id parts.
     pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<&'a Id<T>, IdError> {
         let rest = uri.strip_prefix("spotify").ok_or(IdError::InvalidPrefix)?;
-        let sep = match rest.chars().next() {
-            Some(ch) if ch == '/' || ch == ':' => ch,
-            _ => return Err(IdError::InvalidPrefix),
-        };
-        // It's safe to do .get_unchecked() because we checked the first char above
-        let rest = unsafe { rest.get_unchecked(1..) };
+        let (sep, rest) = rest.split_at(1);
+        if sep != "/" && sep != ":" {
+            return Err(IdError::InvalidPrefix);
+        }
 
         let (tpe, id) = rest
             .rfind(sep)
