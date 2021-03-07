@@ -816,27 +816,6 @@ fn test_current_playback_context() {
 }
 
 #[test]
-fn test_offset() {
-    let json = r#"
-  {
-    "position": 5,
-    "uri": "spotify:track:1301WleyT98MSxVHPZCA6M"
-  }
-  "#;
-    let offset: Offset = serde_json::from_str(&json).unwrap();
-    let duration = Duration::from_millis(5);
-    assert_eq!(offset.position, Some(duration));
-
-    let empty_json = r#"
-  {
-
-  }
-  "#;
-    let empty_offset: Offset = serde_json::from_str(&empty_json).unwrap();
-    assert!(empty_offset.position.is_none());
-}
-
-#[test]
 fn test_audio_analysis_track() {
     let json = r#"
   {

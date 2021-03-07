@@ -16,15 +16,16 @@
 //! so in the case of Spotify it doesn't seem to revoke them at all.
 
 use rspotify::client::{Spotify, SpotifyBuilder};
+use rspotify::model::Id;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: Spotify) {
     let artists = vec![
-        "3RGLhK1IP9jnYFH4BRFJBS", // The Clash
-        "0yNLKJebCb8Aueb54LYya3", // New Order
-        "2jzc5TC5TVFLXQlBNiIUzE", // a-ha
+        Id::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        Id::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        Id::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
     spotify
         .user_follow_artists(artists.clone())

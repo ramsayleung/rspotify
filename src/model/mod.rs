@@ -6,6 +6,7 @@ pub mod category;
 pub mod context;
 pub mod device;
 pub mod enums;
+pub mod idtypes;
 pub mod image;
 pub mod offset;
 pub mod page;
@@ -220,8 +221,67 @@ pub enum PlayingItem {
     Episode(show::FullEpisode),
 }
 
+pub use idtypes::{
+    AlbumId, AlbumIdBuf, ArtistId, ArtistIdBuf, EpisodeId, EpisodeIdBuf, Id, IdBuf, IdError,
+    PlayableIdType, PlaylistId, PlaylistIdBuf, ShowId, ShowIdBuf, TrackId, TrackIdBuf, UserId,
+    UserIdBuf,
+};
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, image::*,
     offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*, track::*,
     user::*,
 };
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{Id, IdError};
+
+    #[test]
+    fn test_get_id() {
+        // Assert artist
+        let artist_id = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
+        let id = Id::<idtypes::Artist>::from_id_or_uri(artist_id).unwrap();
+        assert_eq!("2WX2uTcsvV5OnS0inACecP", id.id());
+
+        // Assert album
+        let album_id_a = "spotify/album/2WX2uTcsvV5OnS0inACecP";
+        assert_eq!(
+            "2WX2uTcsvV5OnS0inACecP",
+            Id::<idtypes::Album>::from_id_or_uri(album_id_a)
+                .unwrap()
+                .id()
+        );
+
+        // Mismatch type
+        assert_eq!(
+            Err(IdError::InvalidType),
+            Id::<idtypes::Artist>::from_id_or_uri(album_id_a)
+        );
+
+        // Could not split
+        let artist_id_c = "spotify-album-2WX2uTcsvV5OnS0inACecP";
+        assert_eq!(
+            Err(IdError::InvalidId),
+            Id::<idtypes::Artist>::from_id_or_uri(artist_id_c)
+        );
+
+        let playlist_id = "spotify:playlist:59ZbFPES4DQwEjBpWHzrtC";
+        assert_eq!(
+            "59ZbFPES4DQwEjBpWHzrtC",
+            Id::<idtypes::Playlist>::from_id_or_uri(playlist_id)
+                .unwrap()
+                .id()
+        );
+    }
+
+    #[test]
+    fn test_get_uri() {
+        let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
+        let track_id2 = "1301WleyT98MSxVHPZCA6M";
+        let id1 = Id::<idtypes::Track>::from_id_or_uri(track_id1).unwrap();
+        let id2 = Id::<idtypes::Track>::from_id_or_uri(track_id2).unwrap();
+        assert_eq!(track_id1, &id1.uri());
+        assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M", &id2.uri());
+    }
+}
