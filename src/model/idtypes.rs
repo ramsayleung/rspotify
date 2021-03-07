@@ -278,11 +278,15 @@ impl<T: IdType> Id<T> {
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
     pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<&'a Id<T>, IdError> {
-        let rest = uri.strip_prefix("spotify").ok_or(IdError::InvalidPrefix)?;
-        let (sep, rest) = rest.split_at(1);
-        if sep != "/" && sep != ":" {
-            return Err(IdError::InvalidPrefix);
-        }
+        let mut chars = uri
+            .strip_prefix("spotify")
+            .ok_or(IdError::InvalidPrefix)?
+            .chars();
+        let sep = match chars.next() {
+            Some(ch) if ch == '/' || ch == ':' => ch,
+            _ => return Err(IdError::InvalidPrefix),
+        };
+        let rest = chars.as_str();
 
         let (tpe, id) = rest
             .rfind(sep)
