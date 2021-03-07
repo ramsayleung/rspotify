@@ -73,7 +73,7 @@ pub struct Id<T> {
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
 ///
 /// This is an owning type, it stores a String.
-/// See [IdBuf](crate::model::idtypes::Id) for light-weight non-owning type.
+/// See [Id](crate::model::idtypes::Id) for light-weight non-owning type.
 ///
 /// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or
 /// `Id::from_id_or_uri(val).to_owned()` to construct an instance of this type.
