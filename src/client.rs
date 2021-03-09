@@ -1986,14 +1986,15 @@ impl Spotify {
         &self,
         ids: impl IntoIterator<Item = &'a EpisodeId>,
         market: Option<Market>,
-    ) -> ClientResult<SeveralEpisodes> {
+    ) -> ClientResult<Vec<FullEpisode>> {
         let mut params = Query::with_capacity(1);
         params.insert("ids".to_owned(), join_ids(ids));
         if let Some(market) = market {
             params.insert("market".to_owned(), market.to_string());
         }
+
         let result = self.endpoint_get("episodes", &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
     }
 
     /// Check if one or more shows is already saved in the current Spotify user’s library.

@@ -9,6 +9,9 @@ use thiserror::Error;
 // This is a sealed trait pattern implementation, it stops external code from
 // implementing the `IdType` trait. The `Sealed` trait must be in a private mod,
 // so external code can not see and implement it.
+//
+// We use the `sealed_types` macro for an easier implementation here.
+//
 // See also: https://rust-lang.github.io/api-guidelines/future-proofing.html
 mod private {
     pub trait Sealed {}

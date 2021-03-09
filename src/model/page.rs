@@ -14,6 +14,7 @@ pub struct Page<T> {
     pub previous: Option<String>,
     pub total: u32,
 }
+
 /// Cursor-based paging object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-cursorpagingobject)
@@ -28,6 +29,7 @@ pub struct CursorBasedPage<T> {
     /// Spotify document says
     pub total: Option<u32>,
 }
+
 /// Cursor object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-cursorobject)
