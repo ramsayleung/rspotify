@@ -87,8 +87,8 @@ pub struct Token {
     pub refresh_token: Option<String>,
     /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
     /// which have been granted for this `access_token`
-    #[builder(default = "HashSet::new()")]
-    #[serde(with = "space_separated_scope")]
+    #[builder(default)]
+    #[serde(default, with = "space_separated_scope")]
     pub scope: HashSet<String>,
 }
 
