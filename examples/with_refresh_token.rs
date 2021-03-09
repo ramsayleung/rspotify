@@ -16,15 +16,16 @@
 //! so in the case of Spotify it doesn't seem to revoke them at all.
 
 use rspotify::client::{Spotify, SpotifyBuilder};
+use rspotify::model::Id;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: Spotify) {
     let artists = vec![
-        "3RGLhK1IP9jnYFH4BRFJBS", // The Clash
-        "0yNLKJebCb8Aueb54LYya3", // New Order
-        "2jzc5TC5TVFLXQlBNiIUzE", // a-ha
+        Id::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        Id::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        Id::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
     spotify
         .user_follow_artists(artists.clone())
@@ -56,8 +57,9 @@ async fn main() {
 
     // The default credentials from the `.env` file will be used by default.
     let creds = CredentialsBuilder::from_env().build().unwrap();
+    let scope = "user-follow-read user-follow-modify";
     let oauth = OAuthBuilder::from_env()
-        .scope("user-follow-read user-follow-modify")
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
     let mut spotify = SpotifyBuilder::default()

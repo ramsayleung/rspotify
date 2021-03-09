@@ -816,22 +816,85 @@ fn test_current_playback_context() {
 }
 
 #[test]
-fn test_offset() {
+fn test_audio_analysis_track() {
     let json = r#"
   {
-    "position": 5,
-    "uri": "spotify:track:1301WleyT98MSxVHPZCA6M"
+    "num_samples": 5630445,
+    "duration": 255.34898,
+    "sample_md5": "",
+    "offset_seconds": 0,
+    "window_seconds": 0,
+    "analysis_sample_rate": 22050,
+    "analysis_channels": 1,
+    "end_of_fade_in": 0,
+    "start_of_fade_out": 251.73334,
+    "loudness": -11.84,
+    "tempo": 98.002,
+    "tempo_confidence": 0.423,
+    "time_signature": 4,
+    "time_signature_confidence": 1,
+    "key": 5,
+    "key_confidence": 0.36,
+    "mode": 0,
+    "mode_confidence": 0.414,
+    "codestring": "e",
+    "code_version": 3.15,
+    "echoprintstring": "e",
+    "echoprint_version": 4.12,
+    "synchstring": "eJ",
+    "synch_version": 1,
+    "rhythmstring": "e",
+    "rhythm_version": 1
   }
   "#;
-    let offset: Offset = serde_json::from_str(&json).unwrap();
-    let duration = Duration::from_millis(5);
-    assert_eq!(offset.position, Some(duration));
+    let audio_analysis_track: AudioAnalysisTrack = serde_json::from_str(&json).unwrap();
+    assert_eq!(audio_analysis_track.mode, Modality::Minor);
+}
 
-    let empty_json = r#"
+#[test]
+fn test_simplified_playlist() {
+    let json = r#"
   {
-
-  }
+    "collaborative": false,
+    "description": "Chegou o grande dia, aperte o play e partiu fim de semana!",
+    "external_urls": {
+      "spotify": "https://open.spotify.com/playlist/37i9dQZF1DX8mBRYewE6or"
+    },
+    "href": "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or",
+    "id": "37i9dQZF1DX8mBRYewE6or",
+    "images": [
+      {
+        "height": null,
+        "url": "https://i.scdn.co/image/ab67706f00000003206a95fa5badbe1d33b65e14",
+        "width": null
+      }
+    ],
+    "name": "Sexta",
+    "owner": {
+      "display_name": "Spotify",
+      "external_urls": {
+        "spotify": "https://open.spotify.com/user/spotify"
+      },
+      "href": "https://api.spotify.com/v1/users/spotify",
+      "id": "spotify",
+      "type": "user",
+      "uri": "spotify:user:spotify"
+    },
+    "primary_color": null,
+    "public": null,
+    "snapshot_id": "MTYxMzM5MzIyMywwMDAwMDAwMGQ0MWQ4Y2Q5OGYwMGIyMDRlOTgwMDk5OGVjZjg0Mjdl",
+    "tracks": {
+      "href": "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks",
+      "total": 62
+    },
+    "type": "playlist",
+    "uri": "spotify:playlist:37i9dQZF1DX8mBRYewE6or"
+  } 
   "#;
-    let empty_offset: Offset = serde_json::from_str(&empty_json).unwrap();
-    assert!(empty_offset.position.is_none());
+    let simplified_playlist: SimplifiedPlaylist = serde_json::from_str(&json).unwrap();
+    assert_eq!(
+        simplified_playlist.tracks.href,
+        "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks"
+    );
+    assert_eq!(simplified_playlist.tracks.total, 62);
 }

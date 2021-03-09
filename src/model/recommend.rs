@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// Recommendations object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Recommendations {
     pub seeds: Vec<RecommendationsSeed>,
@@ -14,7 +14,7 @@ pub struct Recommendations {
 
 /// Recommendations seed object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-seed-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationseedobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RecommendationsSeed {
     #[serde(rename = "afterFilteringSize")]

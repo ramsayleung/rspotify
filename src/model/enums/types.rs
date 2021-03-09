@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
-use strum::ToString;
+use strum::{Display, EnumString, ToString};
 
-/// Copyright type: `C` = the copyright, `P` = the sound recording (performance) copyright.
+/// Copyright type: `C` = the copyright, `P` = the sound recording (performance)
+/// copyright.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
@@ -28,7 +29,7 @@ pub enum AlbumType {
 }
 
 /// Type: `artist`, `album`, `track`, `playlist`, `show` or `episode`
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Display, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Type {
@@ -69,7 +70,7 @@ pub enum CurrentlyPlayingType {
 
 /// Type for search: `artist`, `album`, `track`, `playlist`, `show`, `episode`
 ///
-/// [Reference](https://developer.spotify.com/web-api/search-item/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]

@@ -7,7 +7,7 @@ use crate::model::{Followers, Type};
 use std::collections::HashMap;
 /// Simplified Artist Object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedartistobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
@@ -21,7 +21,7 @@ pub struct SimplifiedArtist {
 
 /// Full Artist Object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-full)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-artistobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtist {
     pub external_urls: HashMap<String, String>,
@@ -39,7 +39,7 @@ pub struct FullArtist {
 
 /// Full artist object wrapped by `Vec`
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/artists/get-several-artists/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
 #[derive(Deserialize)]
 pub(in crate) struct FullArtists {
     pub artists: Vec<FullArtist>,
@@ -47,7 +47,7 @@ pub(in crate) struct FullArtists {
 
 /// Full Artists vector wrapped by cursor-based-page object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/get-followed/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-followed)
 #[derive(Deserialize)]
 pub(in crate) struct CursorPageFullArtists {
     pub artists: CursorBasedPage<FullArtist>,

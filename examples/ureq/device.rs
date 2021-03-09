@@ -1,6 +1,8 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
+use std::collections::HashSet;
+
 fn main() {
     // You can use any logger for debugging.
     env_logger::init();
@@ -28,10 +30,9 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build()
     //     .unwrap();
-    let oauth = OAuthBuilder::from_env()
-        .scope("user-read-playback-state")
-        .build()
-        .unwrap();
+    let mut scope = HashSet::new();
+    scope.insert("user-read-playback-state".to_owned());
+    let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
 
     let mut spotify = SpotifyBuilder::default()
         .credentials(creds)

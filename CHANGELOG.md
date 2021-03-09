@@ -13,6 +13,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
   + Cleanup, reduced repetitive code and boilerplate internally in several places ([#117](https://github.com/ramsayleung/rspotify/pull/117), [#113](https://github.com/ramsayleung/rspotify/pull/113), [#107](https://github.com/ramsayleung/rspotify/pull/107), [#106](https://github.com/ramsayleung/rspotify/pull/106)).
+  + Added internal zero-copy type for Spotify ids, reduced number of allocations/clones ([#161](https://github.com/ramsayleung/rspotify/pull/161)).
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Mark `SimplifiedEpisode.language` as deprecated.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Derive `PartialEq` and `Eq` for models:
@@ -79,6 +80,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `PrivateUser`
   + `ExplicitContent`
   + Fix broken model links refering to Spotify documentation
+- ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
@@ -105,15 +107,15 @@ If we missed any change or there's something you'd like to discuss about this ve
     + The `ClientError::CLI` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
-- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Endpoints take `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &str>`, which is backward compatibility.
-  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &str>`:
+- ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
+  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
 	- `artists`
 	- `albums`
 	- `save_shows`
 	- `get_several_episodes`
 	- `check_users_saved_shows`
 	- `remove_users_saved_shows`
-  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &str>`:
+  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id<Type>>`:
 	- `user_playlist_add_tracks`
 	- `user_playlist_replace_tracks`
 	- `user_playlist_remove_all_occurrences_of_tracks`
@@ -129,6 +131,13 @@ If we missed any change or there's something you'd like to discuss about this ve
 	- `user_follow_users`
 	- `user_unfollow_users`
 	- `audios_features`
+  + The endpoints which changes parameter from `String` to `&Id<Type>`:
+        - `get_a_show`
+        - `get_an_episode`
+        - `get_shows_episodes`
+  + The endpoint which changes parameter from `Vec<Map<String, Value>>` to `Vec<TrackPositions>`:
+        - `playlist_remove_specific_occurrences_of_tracks`
+- The `Offset` type is now an enum to match API logic, `Offset::Position` is `u32` now (it's not a position in time, it's a position in a playlist, and you can't have both `position` and `uri` fields at the same time).
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Rename endpoints with more fitting name:
   + `audio_analysis` -> `track_analysis`
   + `audio_features` -> `track_features`
@@ -157,6 +166,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
+  + Id and URI parameters are type-safe now everywhere, `Id<Type>` and `IdBuf<Type>` types for ids/URIs added (non-owning and owning structs).
 - ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
   + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
   + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
@@ -179,6 +189,14 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `CurrentPlaybackContext.timestamp`'s type from `u64` to `chrono::DateTime<Utc>`.
   + Change `Offset.position`'s type from `Option<u32>` to `Option<std::time::Duration>`
   + Remove `SimplifiedPlayingContext`, since it's useless.
+- ([#177](https://github.com/ramsayleung/rspotify/pull/157)) Change `mode` from `f32` to `enum Modality`:
+  + Change `AudioAnalysisSection::mode`, `AudioAnalysisTrack::mode` and `AudioFeatures::mode` from `f32` to `enum Modality`.
+- ([#185](https://github.com/ramsayleung/rspotify/pull/185)) Polish the `Token.expires_at`, `Token.expires_in` fields
+  + Change `Token.expires_in` from u32 to `chrono::Duration`
+  + Change `Token.expires_at` from i64 to `chrono::DateTime<Utc>`
+  + Change `Token.scope` from `String` to `HashSet`.
+  + Change `OAuth.scope` from `String` to `HashSet`.
+  + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 
 ## 0.10 (2020/07/01)
 

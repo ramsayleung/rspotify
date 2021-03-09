@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 use strum::ToString;
 
-/// Disallows object:
-/// `interrupting_playback`, `pausing`, `resuming`, `seeking`, `skipping_next`,
-/// `skipping_prev`, `toggling_repeat_context`, `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`
+use super::Country;
+
+/// Disallows object: `interrupting_playback`, `pausing`, `resuming`, `seeking`,
+/// `skipping_next`, `skipping_prev`, `toggling_repeat_context`,
+/// `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, ToString)]
@@ -22,7 +24,7 @@ pub enum DisallowKey {
     TransferringPlayback,
 }
 
-/// Time range: `long-term`, `medium-term`, `short-term`
+/// Time range: `long-term`, `medium-term`, `short-term`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/personalization/get-users-top-artists-and-tracks/)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
@@ -46,7 +48,7 @@ pub enum RepeatState {
     Context,
 }
 
-/// Type for include_external: `audio`
+/// Type for include_external: `audio`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
@@ -78,4 +80,34 @@ pub enum RestrictionReason {
     Market,
     Product,
     Explict,
+}
+
+/// Indicates the modality (major or minor) of a track
+/// This field will contain a 0 for `minor`, a 1 for `major` or
+/// a -1 for `no result`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+pub enum Modality {
+    Minor = 0,
+    Major = 1,
+    NoResult = -1,
+}
+
+/// Limit the response to a particular market
+///
+/// FromToken is the same thing as setting the market parameter to the user's country.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Market {
+    Country(Country),
+    FromToken,
+}
+
+impl ToString for Market {
+    fn to_string(&self) -> String {
+        match self {
+            Market::Country(c) => c.to_string(),
+            Market::FromToken => "from_token".to_string(),
+        }
+    }
 }

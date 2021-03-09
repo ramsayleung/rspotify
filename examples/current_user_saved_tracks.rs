@@ -1,5 +1,9 @@
+//! This example showcases how streams can be used for asynchronous automatic
+//! pagination.
+
 use futures_util::pin_mut;
 use futures_util::stream::StreamExt;
+use std::collections::HashSet;
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 
@@ -31,8 +35,10 @@ async fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build()
     //     .unwrap();
+    let mut scopes = HashSet::new();
+    scopes.insert("user-library-read".to_owned());
     let oauth = OAuthBuilder::from_env()
-        .scope("user-library-read")
+        .scope(scopes)
         .build()
         .unwrap();
 

@@ -1,5 +1,10 @@
+//! This example showcases how streams can be used for synchronous automatic
+//! pagination.
+
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
+
+use std::collections::HashSet;
 
 #[tokio::main]
 async fn main() {
@@ -29,10 +34,9 @@ async fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build()
     //     .unwrap();
-    let oauth = OAuthBuilder::from_env()
-        .scope("user-read-recently-played")
-        .build()
-        .unwrap();
+    let mut scopes = HashSet::new();
+    scopes.insert("user-read-recently-played".to_owned());
+    let oauth = OAuthBuilder::from_env().scope(scopes).build().unwrap();
 
     let mut spotify = SpotifyBuilder::default()
         .credentials(creds)

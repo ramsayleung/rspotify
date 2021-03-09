@@ -11,11 +11,12 @@ use thiserror::Error;
 
 use std::path::PathBuf;
 
-use super::http::{BaseClient, Query};
+use super::http::{HTTPClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
-use super::util::stream::{page_stream, StreamOrIterator};
+use super::pagination::{page_stream, StreamOrIterator};
+use crate::model::idtypes::{IdType, PlayContextIdType};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -62,12 +63,12 @@ pub type ClientResult<T> = Result<T, ClientError>;
 /// API as part of the JSON response object.
 #[derive(Debug, Error, Deserialize)]
 pub enum APIError {
-    /// See https://developer.spotify.com/documentation/web-api/reference/object-model/#error-object
+    /// See [Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-errorobject)
     #[error("{status}: {message}")]
     #[serde(alias = "error")]
     Regular { status: u16, message: String },
 
-    /// See https://developer.spotify.com/documentation/web-api/reference/object-model/#player-error-object
+    /// See [Play Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-playererrorobject)
     #[error("{status} ({reason}): {message}")]
     #[serde(alias = "error")]
     Player {
@@ -83,10 +84,9 @@ pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
 /// Spotify API object
 #[derive(Builder, Debug, Clone)]
 pub struct Spotify {
-    /// reqwest needs an instance of its client to perform requests.
-    #[cfg(feature = "client-reqwest")]
+    /// Internal member to perform requests to the Spotify API.
     #[builder(setter(skip))]
-    pub(in crate) client: reqwest::Client,
+    pub(in crate) http: HTTPClient,
 
     /// The access token information required for requests to the Spotify API.
     #[builder(setter(strip_option), default)]
@@ -104,12 +104,12 @@ pub struct Spotify {
     pub oauth: Option<OAuth>,
 
     /// The Spotify API prefix, [`DEFAULT_API_PREFIX`
-    /// ](constant.DEFAULT_CACHE_PATH.html) by default.
+    /// ](DEFAULT_CACHE_PATH) by default.
     #[builder(setter(into), default = "String::from(DEFAULT_API_PREFIX)")]
     pub prefix: String,
 
     /// The cache file path, in case it's used. By default it's
-    /// [`DEFAULT_CACHE_PATH`](constant.DEFAULT_API_PREFIX.html).
+    /// [`DEFAULT_CACHE_PATH`](DEFAULT_API_PREFIX).
     #[builder(default = r#"PathBuf::from(DEFAULT_CACHE_PATH)"#)]
     pub cache_path: PathBuf,
 }
@@ -137,49 +137,9 @@ impl Spotify {
             .ok_or_else(|| ClientError::InvalidAuth("no oauth configured".to_string()))
     }
 
-    /// TODO: should be moved into a custom type
-    fn get_uri(&self, _type: Type, _id: &str) -> String {
-        format!("spotify:{}:{}", _type.to_string(), self.get_id(_type, _id))
-    }
-
     /// Converts a JSON response from Spotify into its model.
     fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> ClientResult<T> {
         serde_json::from_str::<T>(input).map_err(Into::into)
-    }
-
-    /// Get spotify id by type and id
-    /// TODO: should be rewritten and moved into a separate type for IDs
-    fn get_id(&self, _type: Type, id: &str) -> String {
-        let mut _id = id.to_owned();
-        let fields: Vec<&str> = _id.split(':').collect();
-        let len = fields.len();
-        if len >= 3 {
-            if _type.to_string() != fields[len - 2] {
-                error!(
-                    "expected id of type {:?} but found type {:?} {:?}",
-                    _type,
-                    fields[len - 2],
-                    _id
-                );
-            } else {
-                return fields[len - 1].to_owned();
-            }
-        }
-        let sfields: Vec<&str> = _id.split('/').collect();
-        let len: usize = sfields.len();
-        if len >= 3 {
-            if _type.to_string() != sfields[len - 2] {
-                error!(
-                    "expected id of type {:?} but found type {:?} {:?}",
-                    _type,
-                    sfields[len - 2],
-                    _id
-                );
-            } else {
-                return sfields[len - 1].to_owned();
-            }
-        }
-        _id.to_owned()
     }
 
     /// Append device ID to an API path.
@@ -200,12 +160,11 @@ impl Spotify {
     /// Parameters:
     /// - track_id - a spotify URI, URL or ID
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-track/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-track)
     #[maybe_async]
-    pub async fn track(&self, track_id: &str) -> ClientResult<FullTrack> {
-        let trid = self.get_id(Type::Track, track_id);
-        let url = format!("tracks/{}", trid);
-        let result = self.get(&url, None, &Query::new()).await?;
+    pub async fn track(&self, track_id: &TrackId) -> ClientResult<FullTrack> {
+        let url = format!("tracks/{}", track_id.id());
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -213,28 +172,24 @@ impl Spotify {
     ///
     /// Parameters:
     /// - track_ids - a list of spotify URIs, URLs or IDs
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-several-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
     #[maybe_async]
     pub async fn tracks<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
-        // TODO: this can be improved
-        let mut ids: Vec<String> = vec![];
-        for track_id in track_ids {
-            ids.push(self.get_id(Type::Track, track_id));
-        }
+        let ids = join_ids(track_ids);
 
         let mut params = Query::new();
         if let Some(market) = market {
             params.insert("market".to_owned(), market.to_string());
         }
 
-        let url = format!("tracks/?ids={}", ids.join(","));
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("tracks/?ids={}", ids);
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
@@ -243,12 +198,11 @@ impl Spotify {
     /// Parameters:
     /// - artist_id - an artist ID, URI or URL
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-artist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artist)
     #[maybe_async]
-    pub async fn artist(&self, artist_id: &str) -> ClientResult<FullArtist> {
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}", trid);
-        let result = self.get(&url, None, &Query::new()).await?;
+    pub async fn artist(&self, artist_id: &ArtistId) -> ClientResult<FullArtist> {
+        let url = format!("artists/{}", artist_id.id());
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -257,18 +211,15 @@ impl Spotify {
     /// Parameters:
     /// - artist_ids - a list of artist IDs, URIs or URLs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-several-artists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
     #[maybe_async]
     pub async fn artists<'a>(
         &self,
-        artist_ids: impl IntoIterator<Item = &'a str>,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
     ) -> ClientResult<Vec<FullArtist>> {
-        let mut ids: Vec<String> = vec![];
-        for artist_id in artist_ids {
-            ids.push(self.get_id(Type::Artist, artist_id));
-        }
-        let url = format!("artists/?ids={}", ids.join(","));
-        let result = self.get(&url, None, &Query::new()).await?;
+        let ids = join_ids(artist_ids);
+        let url = format!("artists/?ids={}", ids);
+        let result = self.endpoint_get(&url, &Query::new()).await?;
 
         self.convert_result::<FullArtists>(&result)
             .map(|x| x.artists)
@@ -279,17 +230,17 @@ impl Spotify {
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
     /// - album_type - 'album', 'single', 'appears_on', 'compilation'
-    /// - country - limit the response to one particular country.
+    /// - market - limit the response to one particular country.
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-artists-albums/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
     #[maybe_async]
     pub async fn artist_albums(
         &self,
-        artist_id: &str,
+        artist_id: &ArtistId,
         album_type: Option<AlbumType>,
-        country: Option<Country>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
@@ -303,12 +254,11 @@ impl Spotify {
         if let Some(offset) = offset {
             params.insert("offset".to_owned(), offset.to_string());
         }
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = market {
+            params.insert("market".to_owned(), market.to_string());
         }
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/albums", trid);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("artists/{}/albums", artist_id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -317,24 +267,21 @@ impl Spotify {
     ///
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
-    /// - country - limit the response to one particular country.
+    /// - market - limit the response to one particular country.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-artists-top-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-top-tracks)
     #[maybe_async]
-    pub async fn artist_top_tracks<T: Into<Option<Country>>>(
+    pub async fn artist_top_tracks(
         &self,
-        artist_id: &str,
-        country: T,
+        artist_id: &ArtistId,
+        market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "country".to_owned(),
-            country.into().unwrap_or(Country::UnitedStates).to_string(),
-        );
 
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/top-tracks", trid);
-        let result = self.get(&url, None, &params).await?;
+        params.insert("market".to_owned(), market.to_string());
+
+        let url = format!("artists/{}/top-tracks", artist_id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
@@ -345,12 +292,14 @@ impl Spotify {
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-related-artists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-related-artists)
     #[maybe_async]
-    pub async fn artist_related_artists(&self, artist_id: &str) -> ClientResult<Vec<FullArtist>> {
-        let trid = self.get_id(Type::Artist, artist_id);
-        let url = format!("artists/{}/related-artists", trid);
-        let result = self.get(&url, None, &Query::new()).await?;
+    pub async fn artist_related_artists(
+        &self,
+        artist_id: &ArtistId,
+    ) -> ClientResult<Vec<FullArtist>> {
+        let url = format!("artists/{}/related-artists", artist_id.id());
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result::<FullArtists>(&result)
             .map(|x| x.artists)
     }
@@ -360,13 +309,12 @@ impl Spotify {
     /// Parameters:
     /// - album_id - the album ID, URI or URL
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-album/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-album)
     #[maybe_async]
-    pub async fn album(&self, album_id: &str) -> ClientResult<FullAlbum> {
-        let trid = self.get_id(Type::Album, album_id);
-        let url = format!("albums/{}", trid);
+    pub async fn album(&self, album_id: &AlbumId) -> ClientResult<FullAlbum> {
+        let url = format!("albums/{}", album_id.id());
 
-        let result = self.get(&url, None, &Query::new()).await?;
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -375,18 +323,15 @@ impl Spotify {
     /// Parameters:
     /// - albums_ids - a list of album IDs, URIs or URLs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-several-albums/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
     #[maybe_async]
     pub async fn albums<'a>(
         &self,
-        album_ids: impl IntoIterator<Item = &'a str>,
+        album_ids: impl IntoIterator<Item = &'a AlbumId>,
     ) -> ClientResult<Vec<FullAlbum>> {
-        let mut ids: Vec<String> = vec![];
-        for album_id in album_ids {
-            ids.push(self.get_id(Type::Album, album_id));
-        }
-        let url = format!("albums/?ids={}", ids.join(","));
-        let result = self.get(&url, None, &Query::new()).await?;
+        let ids = join_ids(album_ids);
+        let url = format!("albums/?ids={}", ids);
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
 
@@ -404,7 +349,7 @@ impl Spotify {
     ///   include_external=audio is specified the response will include any
     ///   relevant audio content that is hosted externally.  
     ///
-    /// [Reference](https://developer.spotify.com/web-api/search-item/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
     #[maybe_async]
     pub async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -412,7 +357,7 @@ impl Spotify {
         _type: SearchType,
         limit: L,
         offset: O,
-        market: Option<Country>,
+        market: Option<Market>,
         include_external: Option<IncludeExternal>,
     ) -> ClientResult<SearchResult> {
         let mut params = Query::with_capacity(4);
@@ -427,7 +372,7 @@ impl Spotify {
             params.insert("include_external".to_owned(), include_external.to_string());
         }
 
-        let result = self.get("search", None, &params).await?;
+        let result = self.endpoint_get("search", &params).await?;
         self.convert_result(&result)
     }
 
@@ -438,20 +383,19 @@ impl Spotify {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-albums-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
     #[maybe_async]
     pub async fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        album_id: &str,
+        album_id: &AlbumId,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedTrack>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let trid = self.get_id(Type::Album, album_id);
-        let url = format!("albums/{}/tracks", trid);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("albums/{}/tracks", album_id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -460,11 +404,11 @@ impl Spotify {
     /// Parameters:
     /// - user - the id of the usr
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-profile/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-profile)
     #[maybe_async]
-    pub async fn user(&self, user_id: &str) -> ClientResult<PublicUser> {
-        let url = format!("users/{}", user_id);
-        let result = self.get(&url, None, &Query::new()).await?;
+    pub async fn user(&self, user_id: &UserId) -> ClientResult<PublicUser> {
+        let url = format!("users/{}", user_id.id());
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -472,15 +416,15 @@ impl Spotify {
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlist)
     #[maybe_async]
     pub async fn playlist(
         &self,
-        playlist_id: &str,
+        playlist_id: &PlaylistId,
         fields: Option<&str>,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<FullPlaylist> {
         let mut params = Query::new();
         if let Some(fields) = fields {
@@ -490,9 +434,8 @@ impl Spotify {
             params.insert("market".to_owned(), market.to_string());
         }
 
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("playlists/{}", plid);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("playlists/{}", playlist_id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -502,7 +445,7 @@ impl Spotify {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-a-list-of-current-users-playlists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
     #[maybe_async]
     pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -513,7 +456,7 @@ impl Spotify {
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
 
-        let result = self.get("me/playlists", None, &params).await?;
+        let result = self.endpoint_get("me/playlists", &params).await?;
         self.convert_result(&result)
     }
 
@@ -524,19 +467,19 @@ impl Spotify {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-list-users-playlists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
     #[maybe_async]
     pub async fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let url = format!("users/{}/playlists", user_id);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("users/{}/playlists", user_id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -547,32 +490,27 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - fields - which fields to return
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-list-users-playlists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
     #[maybe_async]
     pub async fn user_playlist(
         &self,
-        user_id: &str,
-        playlist_id: Option<&mut str>,
+        user_id: &UserId,
+        playlist_id: Option<&PlaylistId>,
         fields: Option<&str>,
-        market: Option<Country>,
     ) -> ClientResult<FullPlaylist> {
         let mut params = Query::new();
         if let Some(fields) = fields {
             params.insert("fields".to_owned(), fields.to_string());
         }
-        if let Some(market) = market {
-            params.insert("market".to_owned(), market.to_string());
-        }
         match playlist_id {
             Some(playlist_id) => {
-                let plid = self.get_id(Type::Playlist, playlist_id);
-                let url = format!("users/{}/playlists/{}", user_id, plid);
-                let result = self.get(&url, None, &params).await?;
+                let url = format!("users/{}/playlists/{}", user_id.id(), playlist_id.id());
+                let result = self.endpoint_get(&url, &params).await?;
                 self.convert_result(&result)
             }
             None => {
-                let url = format!("users/{}/starred", user_id);
-                let result = self.get(&url, None, &params).await?;
+                let url = format!("users/{}/starred", user_id.id());
+                let result = self.endpoint_get(&url, &params).await?;
                 self.convert_result(&result)
             }
         }
@@ -585,17 +523,17 @@ impl Spotify {
     /// - fields - which fields to return
     /// - limit - the maximum number of tracks to return
     /// - offset - the index of the first track to return
-    /// - market - an ISO 3166-1 alpha-2 country code.
+    /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-playlists-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
     #[maybe_async]
     pub async fn playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        playlist_id: &str,
+        playlist_id: &PlaylistId,
         fields: Option<&str>,
         limit: L,
         offset: O,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<Page<PlaylistItem>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
@@ -606,9 +544,8 @@ impl Spotify {
         if let Some(fields) = fields {
             params.insert("fields".to_owned(), fields.to_owned());
         }
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let url = format!("playlists/{}/tracks", plid);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -620,11 +557,11 @@ impl Spotify {
     /// - public - is the created playlist public
     /// - description - the description of the playlist
     ///
-    /// [Reference](https://developer.spotify.com/web-api/create-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-create-playlist)
     #[maybe_async]
     pub async fn user_playlist_create<P: Into<Option<bool>>, D: Into<Option<String>>>(
         &self,
-        user_id: &str,
+        user_id: &UserId,
         name: &str,
         public: P,
         description: D,
@@ -636,8 +573,8 @@ impl Spotify {
             "public": public,
             "description": description
         });
-        let url = format!("users/{}/playlists", user_id);
-        let result = self.post(&url, None, &params).await?;
+        let url = format!("users/{}/playlists", user_id.id());
+        let result = self.endpoint_post(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -650,7 +587,7 @@ impl Spotify {
     /// - collaborative - optional is the playlist collaborative
     /// - description - optional description of the playlist
     ///
-    /// [Reference](https://developer.spotify.com/web-api/change-playlist-details/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-change-playlist-details)
     #[maybe_async]
     pub async fn playlist_change_detail(
         &self,
@@ -674,7 +611,7 @@ impl Spotify {
             json_insert!(params, "description", description);
         }
         let url = format!("playlists/{}", playlist_id);
-        self.put(&url, None, &params).await
+        self.endpoint_put(&url, &params).await
     }
 
     /// Unfollows (deletes) a playlist for a user.
@@ -682,11 +619,11 @@ impl Spotify {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     ///
-    /// [Reference](https://developer.spotify.com/web-api/unfollow-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-playlist)
     #[maybe_async]
     pub async fn playlist_unfollow(&self, playlist_id: &str) -> ClientResult<String> {
         let url = format!("playlists/{}/followers", playlist_id);
-        self.delete(&url, None, &json!({})).await
+        self.endpoint_delete(&url, &json!({})).await
     }
 
     /// Adds tracks to a playlist.
@@ -696,25 +633,22 @@ impl Spotify {
     /// - track_ids - a list of track URIs, URLs or IDs
     /// - position - the position to add the tracks
     ///
-    /// [Reference](https://developer.spotify.com/web-api/add-tracks-to-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
     #[maybe_async]
     pub async fn playlist_add_tracks<'a>(
         &self,
-        playlist_id: &str,
-        track_ids: impl IntoIterator<Item = &'a str>,
+        playlist_id: &PlaylistId,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
-            .into_iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
+        let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+
         let mut params = json!({ "uris": uris });
         if let Some(position) = position {
             json_insert!(params, "position", position);
         }
-        let url = format!("playlists/{}/tracks", plid);
-        let result = self.post(&url, None, &params).await?;
+        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let result = self.endpoint_post(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -725,23 +659,18 @@ impl Spotify {
     /// - playlist_id - the id of the playlist
     /// - tracks - the list of track ids to add to the playlist
     ///
-    /// [Reference](https://developer.spotify.com/web-api/replace-playlists-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
     #[maybe_async]
     pub async fn playlist_replace_tracks<'a>(
         &self,
-        playlist_id: &str,
-        track_ids: impl IntoIterator<Item = &'a str>,
+        playlist_id: &PlaylistId,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<()> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
-            .into_iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
-        // let mut params = Map::new();
-        // params.insert("uris".to_owned(), uris.into());
+        let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+
         let params = json!({ "uris": uris });
-        let url = format!("playlists/{}/tracks", plid);
-        self.put(&url, None, &params).await?;
+        let url = format!("playlists/{}/tracks", playlist_id.id());
+        self.endpoint_put(&url, &params).await?;
 
         Ok(())
     }
@@ -751,21 +680,21 @@ impl Spotify {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     /// - range_start - the position of the first track to be reordered
-    /// - range_length - optional the number of tracks to be reordered (default: 1)
+    /// - range_length - optional the number of tracks to be reordered (default:
+    ///   1)
     /// - insert_before - the position where the tracks should be inserted
     /// - snapshot_id - optional playlist's snapshot ID
     ///
-    /// [Reference](https://developer.spotify.com/web-api/reorder-playlists-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
     #[maybe_async]
     pub async fn playlist_reorder_tracks<R: Into<Option<u32>>>(
         &self,
-        playlist_id: &str,
+        playlist_id: &PlaylistId,
         range_start: i32,
         range_length: R,
         insert_before: i32,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
         let mut params = json! ({
             "range_start": range_start,
             "range_length": range_length.into().unwrap_or(1),
@@ -775,8 +704,8 @@ impl Spotify {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
 
-        let url = format!("playlists/{}/tracks", plid);
-        let result = self.put(&url, None, &params).await?;
+        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let result = self.endpoint_put(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -787,33 +716,31 @@ impl Spotify {
     /// - track_ids - the list of track ids to add to the playlist
     /// - snapshot_id - optional id of the playlist snapshot
     ///
-    /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
     #[maybe_async]
     pub async fn playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
-        playlist_id: &str,
-        track_ids: impl IntoIterator<Item = &'a str>,
+        playlist_id: &PlaylistId,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let uris: Vec<String> = track_ids
+        let tracks = track_ids
             .into_iter()
-            .map(|id| self.get_uri(Type::Track, id))
-            .collect();
+            .map(|id| {
+                let mut map = Map::with_capacity(1);
+                map.insert("uri".to_owned(), id.uri().into());
+                map
+            })
+            .collect::<Vec<_>>();
 
-        // TODO: this can be improved
-        let mut tracks: Vec<Map<String, Value>> = vec![];
-        for uri in uris {
-            let mut map = Map::new();
-            map.insert("uri".to_owned(), uri.into());
-            tracks.push(map);
-        }
         let mut params = json!({ "tracks": tracks });
+
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("playlists/{}/tracks", plid);
-        let result = self.delete(&url, None, &params).await?;
+
+        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let result = self.endpoint_delete(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -821,8 +748,8 @@ impl Spotify {
     ///
     /// Parameters:
     /// - playlist_id: the id of the playlist
-    /// - tracks: an array of map containing Spotify URIs of the tracks to remove
-    /// with their current positions in the playlist. For example:
+    /// - tracks: an array of map containing Spotify URIs of the tracks to
+    ///   remove with their current positions in the playlist. For example:
     ///
     /// ```json
     /// {
@@ -845,35 +772,30 @@ impl Spotify {
     /// ```
     /// - snapshot_id: optional id of the playlist snapshot
     ///
-    /// [Reference](https://developer.spotify.com/web-api/remove-tracks-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
     #[maybe_async]
     pub async fn playlist_remove_specific_occurrences_of_tracks(
         &self,
-        playlist_id: &str,
-        tracks: Vec<Map<String, Value>>,
+        playlist_id: &PlaylistId,
+        tracks: Vec<TrackPositions<'_>>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
-        // TODO: this can be improved
-        let plid = self.get_id(Type::Playlist, playlist_id);
-        let mut ftracks: Vec<Map<String, Value>> = vec![];
-        for track in tracks {
-            let mut map = Map::new();
-            if let Some(_uri) = track.get("uri") {
-                let uri = self.get_uri(Type::Track, &_uri.as_str().unwrap().to_owned());
-                map.insert("uri".to_owned(), uri.into());
-            }
-            if let Some(_position) = track.get("position") {
-                map.insert("position".to_owned(), _position.to_owned());
-            }
-            ftracks.push(map);
-        }
+        let ftracks = tracks
+            .into_iter()
+            .map(|track| {
+                let mut map = Map::new();
+                map.insert("uri".to_owned(), track.id.uri().into());
+                map.insert("positions".to_owned(), track.positions.into());
+                map
+            })
+            .collect::<Vec<_>>();
 
         let mut params = json!({ "tracks": ftracks });
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
-        let url = format!("playlists/{}/tracks", plid);
-        let result = self.delete(&url, None, &params).await?;
+        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let result = self.endpoint_delete(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -882,18 +804,17 @@ impl Spotify {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     ///
-    /// [Reference](https://developer.spotify.com/web-api/follow-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-follow-playlist)
     #[maybe_async]
     pub async fn playlist_follow<P: Into<Option<bool>>>(
         &self,
-        playlist_id: &str,
+        playlist_id: &PlaylistId,
         public: P,
     ) -> ClientResult<()> {
-        let url = format!("playlists/{}/followers", playlist_id);
+        let url = format!("playlists/{}/followers", playlist_id.id());
 
-        self.put(
+        self.endpoint_put(
             &url,
-            None,
             &json! ({
                 "public": public.into().unwrap_or(true)
             }),
@@ -910,39 +831,43 @@ impl Spotify {
     /// - user_ids - the ids of the users that you want to
     /// check to see if they follow the playlist. Maximum: 5 ids.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/check-user-following-playlist/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-if-user-follows-playlist)
     #[maybe_async]
-    pub async fn playlist_check_follow(
+    pub async fn playlist_check_follow<'a>(
         &self,
-        playlist_id: &str,
-        user_ids: &[String],
+        playlist_id: &PlaylistId,
+        user_ids: &'a [&'a UserId],
     ) -> ClientResult<Vec<bool>> {
         if user_ids.len() > 5 {
             error!("The maximum length of user ids is limited to 5 :-)");
         }
         let url = format!(
             "playlists/{}/followers/contains?ids={}",
-            playlist_id,
-            user_ids.join(",")
+            playlist_id.id(),
+            user_ids
+                .iter()
+                .map(|id| id.id())
+                .collect::<Vec<_>>()
+                .join(","),
         );
-        let result = self.get(&url, None, &Query::new()).await?;
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
     /// Get detailed profile information about the current user.
     /// An alias for the 'current_user' method.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-current-users-profile/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-current-users-profile)
     #[maybe_async]
     pub async fn me(&self) -> ClientResult<PrivateUser> {
-        let result = self.get("me/", None, &Query::new()).await?;
+        let result = self.endpoint_get("me/", &Query::new()).await?;
         self.convert_result(&result)
     }
 
     /// Get detailed profile information about the current user.
     /// An alias for the 'me' method.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-current-users-profile/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-current-users-profile)
     #[maybe_async]
     pub async fn current_user(&self) -> ClientResult<PrivateUser> {
         self.me().await
@@ -950,7 +875,7 @@ impl Spotify {
 
     /// Get information about the current users currently playing track.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     #[maybe_async]
     pub async fn current_user_playing_track(
         &self,
@@ -973,7 +898,7 @@ impl Spotify {
     /// - offset - the index of the first album to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-albums/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
     #[maybe_async]
     pub async fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -983,7 +908,7 @@ impl Spotify {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get("me/albums", None, &params).await?;
+        let result = self.endpoint_get("me/albums", &params).await?;
         self.convert_result(&result)
     }
 
@@ -995,7 +920,7 @@ impl Spotify {
     /// - offset - the index of the first track to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
     #[maybe_async]
     pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1005,7 +930,7 @@ impl Spotify {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get("me/tracks", None, &params).await?;
+        let result = self.endpoint_get("me/tracks", &params).await?;
         self.convert_result(&result)
     }
 
@@ -1028,8 +953,7 @@ impl Spotify {
     /// - limit - the number of tracks to return
     /// - after - the last artist ID retrieved from the previous request
     ///
-    ///
-    /// [Reference](https://developer.spotify.com/web-api/get-followed-artists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-followed)
     #[maybe_async]
     pub async fn current_user_followed_artists<L: Into<Option<u32>>>(
         &self,
@@ -1043,7 +967,7 @@ impl Spotify {
             params.insert("after".to_owned(), after);
         }
 
-        let result = self.get("me/following", None, &params).await?;
+        let result = self.endpoint_get("me/following", &params).await?;
         self.convert_result::<CursorPageFullArtists>(&result)
             .map(|x| x.artists)
     }
@@ -1053,18 +977,14 @@ impl Spotify {
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/remove-tracks-user/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-user)
     #[maybe_async]
     pub async fn current_user_saved_tracks_delete<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a str>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = track_ids
-            .into_iter()
-            .map(|id| self.get_id(Type::Track, id))
-            .collect();
-        let url = format!("me/tracks/?ids={}", uris.join(","));
-        self.delete(&url, None, &json!({})).await?;
+        let url = format!("me/tracks/?ids={}", join_ids(track_ids));
+        self.endpoint_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1075,18 +995,14 @@ impl Spotify {
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/check-users-saved-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-users-saved-tracks)
     #[maybe_async]
     pub async fn current_user_saved_tracks_contains<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a str>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<Vec<bool>> {
-        let uris: Vec<String> = track_ids
-            .into_iter()
-            .map(|id| self.get_id(Type::Track, id))
-            .collect();
-        let url = format!("me/tracks/contains/?ids={}", uris.join(","));
-        let result = self.get(&url, None, &Query::new()).await?;
+        let url = format!("me/tracks/contains/?ids={}", join_ids(track_ids));
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1095,18 +1011,14 @@ impl Spotify {
     /// Parameters:
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/save-tracks-user/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-save-tracks-user)
     #[maybe_async]
     pub async fn current_user_saved_tracks_add<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a str>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = track_ids
-            .into_iter()
-            .map(|id| self.get_id(Type::Track, id))
-            .collect();
-        let url = format!("me/tracks/?ids={}", uris.join(","));
-        self.put(&url, None, &json!({})).await?;
+        let url = format!("me/tracks/?ids={}", join_ids(track_ids));
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1118,7 +1030,7 @@ impl Spotify {
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
     #[maybe_async]
     pub async fn current_user_top_artists<
         L: Into<Option<u32>>,
@@ -1140,7 +1052,7 @@ impl Spotify {
                 .unwrap_or(TimeRange::MediumTerm)
                 .to_string(),
         );
-        let result = self.get(&"me/top/artists", None, &params).await?;
+        let result = self.endpoint_get(&"me/top/artists", &params).await?;
         self.convert_result(&result)
     }
 
@@ -1151,7 +1063,7 @@ impl Spotify {
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
     #[maybe_async]
     pub async fn current_user_top_tracks<
         L: Into<Option<u32>>,
@@ -1173,7 +1085,7 @@ impl Spotify {
                 .unwrap_or(TimeRange::MediumTerm)
                 .to_string(),
         );
-        let result = self.get("me/top/tracks", None, &params).await?;
+        let result = self.endpoint_get("me/top/tracks", &params).await?;
         self.convert_result(&result)
     }
 
@@ -1182,7 +1094,7 @@ impl Spotify {
     /// Parameters:
     /// - limit - the number of entities to return
     ///
-    /// [Reference](https://developer.spotify.com/web-api/web-api-personalization-endpoints/get-recently-played/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
     #[maybe_async]
     pub async fn current_user_recently_played<L: Into<Option<u32>>>(
         &self,
@@ -1190,7 +1102,9 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let mut params = Query::with_capacity(1);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        let result = self.get("me/player/recently-played", None, &params).await?;
+        let result = self
+            .endpoint_get("me/player/recently-played", &params)
+            .await?;
         self.convert_result(&result)
     }
 
@@ -1199,18 +1113,14 @@ impl Spotify {
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/save-albums-user/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-save-albums-user)
     #[maybe_async]
     pub async fn current_user_saved_albums_add<'a>(
         &self,
-        album_ids: impl IntoIterator<Item = &'a str>,
+        album_ids: impl IntoIterator<Item = &'a AlbumId>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = album_ids
-            .into_iter()
-            .map(|id| self.get_id(Type::Album, id))
-            .collect();
-        let url = format!("me/albums/?ids={}", uris.join(","));
-        self.put(&url, None, &json!({})).await?;
+        let url = format!("me/albums/?ids={}", join_ids(album_ids));
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1220,18 +1130,14 @@ impl Spotify {
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-albums-user/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-albums-user)
     #[maybe_async]
     pub async fn current_user_saved_albums_delete<'a>(
         &self,
-        album_ids: impl IntoIterator<Item = &'a str>,
+        album_ids: impl IntoIterator<Item = &'a AlbumId>,
     ) -> ClientResult<()> {
-        let uris: Vec<String> = album_ids
-            .into_iter()
-            .map(|id| self.get_id(Type::Album, id))
-            .collect();
-        let url = format!("me/albums/?ids={}", uris.join(","));
-        self.delete(&url, None, &json!({})).await?;
+        let url = format!("me/albums/?ids={}", join_ids(album_ids));
+        self.endpoint_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1242,18 +1148,14 @@ impl Spotify {
     /// Parameters:
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-albums/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-users-saved-albums)
     #[maybe_async]
     pub async fn current_user_saved_albums_contains<'a>(
         &self,
-        album_ids: impl IntoIterator<Item = &'a str>,
+        album_ids: impl IntoIterator<Item = &'a AlbumId>,
     ) -> ClientResult<Vec<bool>> {
-        let uris: Vec<String> = album_ids
-            .into_iter()
-            .map(|id| self.get_id(Type::Album, id))
-            .collect();
-        let url = format!("me/albums/contains/?ids={}", uris.join(","));
-        let result = self.get(&url, None, &Query::new()).await?;
+        let url = format!("me/albums/contains/?ids={}", join_ids(album_ids));
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1262,17 +1164,14 @@ impl Spotify {
     /// Parameters:
     /// - artist_ids - a list of artist IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/follow-artists-users/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-follow-artists-users)
     #[maybe_async]
     pub async fn user_follow_artists<'a>(
         &self,
-        artist_ids: impl IntoIterator<Item = &'a str>,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=artist&ids={}",
-            artist_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
-        self.put(&url, None, &json!({})).await?;
+        let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1282,17 +1181,14 @@ impl Spotify {
     /// Parameters:
     /// - artist_ids - a list of artist IDs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-artists-users)
     #[maybe_async]
     pub async fn user_unfollow_artists<'a>(
         &self,
-        artist_ids: impl IntoIterator<Item = &'a str>,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=artist&ids={}",
-            artist_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
-        self.delete(&url, None, &json!({})).await?;
+        let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
+        self.endpoint_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1303,17 +1199,17 @@ impl Spotify {
     /// Parameters:
     /// - artist_ids - the ids of the users that you want to
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/check-current-user-follows/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-current-user-follows)
     #[maybe_async]
     pub async fn user_artist_check_follow<'a>(
         &self,
-        artsit_ids: impl IntoIterator<Item = &'a str>,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
     ) -> ClientResult<Vec<bool>> {
         let url = format!(
             "me/following/contains?type=artist&ids={}",
-            artsit_ids.into_iter().collect::<Vec<_>>().join(",")
+            join_ids(artist_ids)
         );
-        let result = self.get(&url, None, &Query::new()).await?;
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1322,17 +1218,14 @@ impl Spotify {
     /// Parameters:
     /// - user_ids - a list of artist IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/follow-artists-users/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-follow-artists-users)
     #[maybe_async]
     pub async fn user_follow_users<'a>(
         &self,
-        user_ids: impl IntoIterator<Item = &'a str>,
+        user_ids: impl IntoIterator<Item = &'a UserId>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=user&ids={}",
-            user_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
-        self.put(&url, None, &json!({})).await?;
+        let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1342,17 +1235,14 @@ impl Spotify {
     /// Parameters:
     /// - user_ids - a list of artist IDs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/follow/unfollow-artists-users/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-artists-users)
     #[maybe_async]
     pub async fn user_unfollow_users<'a>(
         &self,
-        user_ids: impl IntoIterator<Item = &'a str>,
+        user_ids: impl IntoIterator<Item = &'a UserId>,
     ) -> ClientResult<()> {
-        let url = format!(
-            "me/following?type=user&ids={}",
-            user_ids.into_iter().collect::<Vec<_>>().join(",")
-        );
-        self.delete(&url, None, &json!({})).await?;
+        let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
+        self.endpoint_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1363,7 +1253,7 @@ impl Spotify {
     /// - locale - The desired language, consisting of a lowercase ISO 639
     ///   language code and an uppercase ISO 3166-1 alpha-2 country code,
     ///   joined by an underscore.
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or the string from_token.
     /// - timestamp - A timestamp in ISO 8601 format: yyyy-MM-ddTHH:mm:ss. Use
     ///   this parameter to specify the user's local time to get results
     ///   tailored for that specific date and time in the day
@@ -1373,12 +1263,12 @@ impl Spotify {
     ///   (the first object). Use with limit to get the next set of
     ///   items.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-list-featured-playlists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-featured-playlists)
     #[maybe_async]
     pub async fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         locale: Option<String>,
-        country: Option<Country>,
+        country: Option<Market>,
         timestamp: Option<DateTime<Utc>>,
         limit: L,
         offset: O,
@@ -1389,41 +1279,43 @@ impl Spotify {
         if let Some(locale) = locale {
             params.insert("locale".to_owned(), locale);
         }
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
         if let Some(timestamp) = timestamp {
             params.insert("timestamp".to_owned(), timestamp.to_rfc3339());
         }
-        let result = self.get("browse/featured-playlists", None, &params).await?;
+        let result = self
+            .endpoint_get("browse/featured-playlists", &params)
+            .await?;
         self.convert_result(&result)
     }
 
     /// Get a list of new album releases featured in Spotify.
     ///
     /// Parameters:
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or string from_token.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 50
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-list-new-releases/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
     #[maybe_async]
     pub async fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        country: Option<Country>,
+        country: Option<Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
 
-        let result = self.get("browse/new-releases", None, &params).await?;
+        let result = self.endpoint_get("browse/new-releases", &params).await?;
         self.convert_result::<PageSimpliedAlbums>(&result)
             .map(|x| x.albums)
     }
@@ -1431,7 +1323,7 @@ impl Spotify {
     /// Get a list of new album releases featured in Spotify
     ///
     /// Parameters:
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or string from_token.
     /// - locale - The desired language, consisting of an ISO 639 language code
     ///   and an ISO 3166-1 alpha-2 country code, joined by an underscore.
     /// - limit - The maximum number of items to return. Default: 20.
@@ -1439,12 +1331,12 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-list-categories/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
     #[maybe_async]
     pub async fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         locale: Option<String>,
-        country: Option<Country>,
+        country: Option<Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<Category>> {
@@ -1454,10 +1346,10 @@ impl Spotify {
         if let Some(locale) = locale {
             params.insert("locale".to_owned(), locale);
         }
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
-        let result = self.get("browse/categories", None, &params).await?;
+        let result = self.endpoint_get("browse/categories", &params).await?;
         self.convert_result::<PageCategory>(&result)
             .map(|x| x.categories)
     }
@@ -1466,30 +1358,30 @@ impl Spotify {
     ///
     /// Parameters:
     /// - category_id - The category id to get playlists from.
-    /// - country - An ISO 3166-1 alpha-2 country code.
+    /// - country - An ISO 3166-1 alpha-2 country code or the string from_token.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 50
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/browse/get-categorys-playlists/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
     #[maybe_async]
     pub async fn category_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         category_id: &str,
-        country: Option<Country>,
+        country: Option<Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        if let Some(country) = country {
-            params.insert("country".to_owned(), country.to_string());
+        if let Some(market) = country {
+            params.insert("country".to_owned(), market.to_string());
         }
 
         let url = format!("browse/categories/{}/playlists", category_id);
-        let result = self.get(&url, None, &params).await?;
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result::<CategoryPlaylists>(&result)
             .map(|x| x.playlists)
     }
@@ -1500,7 +1392,7 @@ impl Spotify {
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
     /// - seed_genres - a list of genre names. Available genres for
-    /// - country - An ISO 3166-1 alpha-2 country code. If provided, all
+    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token. If provided, all
     ///   results will be playable in this country.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 100
@@ -1508,15 +1400,15 @@ impl Spotify {
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-recommendations/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     #[maybe_async]
     pub async fn recommendations<L: Into<Option<u32>>>(
         &self,
-        seed_artists: Option<Vec<String>>,
+        seed_artists: Option<Vec<&ArtistId>>,
         seed_genres: Option<Vec<String>>,
-        seed_tracks: Option<Vec<String>>,
+        seed_tracks: Option<Vec<&TrackId>>,
         limit: L,
-        country: Option<Country>,
+        market: Option<Market>,
         payload: &Map<String, Value>,
     ) -> ClientResult<Recommendations> {
         let mut params = Query::with_capacity(payload.len() + 1);
@@ -1551,26 +1443,20 @@ impl Spotify {
         }
 
         if let Some(seed_artists) = seed_artists {
-            let seed_artists_ids = seed_artists
-                .iter()
-                .map(|id| self.get_id(Type::Artist, id))
-                .collect::<Vec<_>>();
-            params.insert("seed_artists".to_owned(), seed_artists_ids.join(","));
+            params.insert("seed_artists".to_owned(), join_ids(seed_artists));
         }
+
         if let Some(seed_genres) = seed_genres {
             params.insert("seed_genres".to_owned(), seed_genres.join(","));
         }
+
         if let Some(seed_tracks) = seed_tracks {
-            let seed_tracks_ids = seed_tracks
-                .iter()
-                .map(|id| self.get_id(Type::Track, id))
-                .collect::<Vec<_>>();
-            params.insert("seed_tracks".to_owned(), seed_tracks_ids.join(","));
+            params.insert("seed_tracks".to_owned(), join_ids(seed_tracks));
         }
-        if let Some(country) = country {
-            params.insert("market".to_owned(), country.to_string());
+        if let Some(market) = market {
+            params.insert("market".to_owned(), market.to_string());
         }
-        let result = self.get("recommendations", None, &params).await?;
+        let result = self.endpoint_get("recommendations", &params).await?;
         self.convert_result(&result)
     }
 
@@ -1579,12 +1465,11 @@ impl Spotify {
     /// Parameters:
     /// - track - track URI, URL or ID
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-audio-features/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-features)
     #[maybe_async]
-    pub async fn track_features(&self, track: &str) -> ClientResult<AudioFeatures> {
-        let track_id = self.get_id(Type::Track, track);
-        let url = format!("audio-features/{}", track_id);
-        let result = self.get(&url, None, &Query::new()).await?;
+    pub async fn track_features(&self, track_id: &TrackId) -> ClientResult<AudioFeatures> {
+        let url = format!("audio-features/{}", track_id.id());
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
@@ -1593,19 +1478,15 @@ impl Spotify {
     /// Parameters:
     /// - tracks a list of track URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-several-audio-features/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
     #[maybe_async]
     pub async fn tracks_features<'a>(
         &self,
-        tracks: impl IntoIterator<Item = &'a str>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<Option<Vec<AudioFeatures>>> {
-        let ids: Vec<String> = tracks
-            .into_iter()
-            .map(|track| self.get_id(Type::Track, track))
-            .collect();
-        let url = format!("audio-features/?ids={}", ids.join(","));
+        let url = format!("audio-features/?ids={}", join_ids(track_ids));
 
-        let result = self.get(&url, None, &Query::new()).await?;
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -1619,21 +1500,22 @@ impl Spotify {
     /// Parameters:
     /// - track_id - a track URI, URL or ID
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-audio-analysis/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
     #[maybe_async]
-    pub async fn track_analysis(&self, track: &str) -> ClientResult<AudioAnalysis> {
-        let trid = self.get_id(Type::Track, track);
-        let url = format!("audio-analysis/{}", trid);
-        let result = self.get(&url, None, &Query::new()).await?;
+    pub async fn track_analysis(&self, track_id: &TrackId) -> ClientResult<AudioAnalysis> {
+        let url = format!("audio-analysis/{}", track_id.id());
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         self.convert_result(&result)
     }
 
     /// Get a User’s Available Devices
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-a-users-available-devices/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-users-available-devices)
     #[maybe_async]
     pub async fn device(&self) -> ClientResult<Vec<Device>> {
-        let result = self.get("me/player/devices", None, &Query::new()).await?;
+        let result = self
+            .endpoint_get("me/player/devices", &Query::new())
+            .await?;
         self.convert_result::<DevicePayload>(&result)
             .map(|x| x.devices)
     }
@@ -1641,16 +1523,16 @@ impl Spotify {
     /// Get Information About The User’s Current Playback
     ///
     /// Parameters:
-    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code or the string from_token.
     /// - additional_types: Optional. A comma-separated list of item types that
     ///   your client supports besides the default track type. Valid types are:
     ///   `track` and `episode`.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-information-about-the-users-current-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
     #[maybe_async]
     pub async fn current_playback(
         &self,
-        market: Option<Country>,
+        market: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let mut params = Query::new();
@@ -1668,7 +1550,7 @@ impl Spotify {
             );
         }
 
-        let result = self.get("me/player", None, &params).await?;
+        let result = self.endpoint_get("me/player", &params).await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -1679,21 +1561,21 @@ impl Spotify {
     /// Get the User’s Currently Playing Track
     ///
     /// Parameters:
-    /// - market: Optional. an ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. an ISO 3166-1 alpha-2 country code or the string from_token.
     /// - additional_types: Optional. A comma-separated list of item types that
     ///   your client supports besides the default track type. Valid types are:
     ///   `track` and `episode`.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/get-the-users-currently-playing-track/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     #[maybe_async]
     pub async fn current_playing(
         &self,
-        market: Option<Country>,
+        market: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
         if let Some(additional_types) = additional_types {
             params.insert(
@@ -1726,16 +1608,15 @@ impl Spotify {
     /// - force_play - true: after transfer, play. false:
     ///   keep current state.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/transfer-a-users-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-transfer-a-users-playback)
     #[maybe_async]
     pub async fn transfer_playback<T: Into<Option<bool>>>(
         &self,
         device_id: &str,
         force_play: T,
     ) -> ClientResult<()> {
-        self.put(
+        self.endpoint_put(
             "me/player",
-            None,
             &json! ({
                 "device_ids": vec![device_id.to_owned()],
                 "play": force_play.into().unwrap_or(true)
@@ -1760,31 +1641,27 @@ impl Spotify {
     /// - offset - offset into context by index or track
     /// - position_ms - Indicates from what position to start playback.
     ///
-    /// [Reference](https://developer.spotify.com/web-api/start-a-users-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
     #[maybe_async]
-    pub async fn start_playback(
+    pub async fn start_context_playback<T: PlayContextIdType, U: PlayableIdType>(
         &self,
+        context_uri: &Id<T>,
         device_id: Option<String>,
-        context_uri: Option<String>,
-        uris: Option<Vec<String>>,
-        offset: Option<super::model::Offset>,
-        position_ms: Option<u32>,
+        offset: Option<super::model::Offset<U>>,
+        position_ms: Option<std::time::Duration>,
     ) -> ClientResult<()> {
-        if context_uri.is_some() && uris.is_some() {
-            error!("specify either contexxt uri or uris, not both");
-        }
+        use super::model::Offset;
+
         let mut params = json!({});
-        if let Some(context_uri) = context_uri {
-            json_insert!(params, "context_uri", context_uri);
-        }
-        if let Some(uris) = uris {
-            json_insert!(params, "uris", uris);
-        }
+        json_insert!(params, "context_uri", context_uri.uri());
         if let Some(offset) = offset {
-            if let Some(position) = offset.position {
-                json_insert!(params, "offset", json!({ "position": position }));
-            } else if let Some(uri) = offset.uri {
-                json_insert!(params, "offset", json!({ "uri": uri }));
+            match offset {
+                Offset::Position(position) => {
+                    json_insert!(params, "offset", json!({ "position": position }));
+                }
+                Offset::Uri(uri) => {
+                    json_insert!(params, "offset", json!({ "uri": uri.uri() }));
+                }
             }
         }
         if let Some(position_ms) = position_ms {
@@ -1796,16 +1673,51 @@ impl Spotify {
         Ok(())
     }
 
+    #[maybe_async]
+    pub async fn start_uris_playback<T: PlayableIdType>(
+        &self,
+        uris: &[&Id<T>],
+        device_id: Option<String>,
+        offset: Option<super::model::Offset<T>>,
+        position_ms: Option<u32>,
+    ) -> ClientResult<()> {
+        use super::model::Offset;
+
+        let mut params = json!({});
+        json_insert!(
+            params,
+            "uris",
+            uris.iter().map(|id| id.uri()).collect::<Vec<_>>()
+        );
+        if let Some(offset) = offset {
+            match offset {
+                Offset::Position(position) => {
+                    json_insert!(params, "offset", json!({ "position": position }));
+                }
+                Offset::Uri(uri) => {
+                    json_insert!(params, "offset", json!({ "uri": uri.uri() }));
+                }
+            }
+        }
+        if let Some(position_ms) = position_ms {
+            json_insert!(params, "position_ms", position_ms);
+        };
+        let url = self.append_device_id("me/player/play", device_id);
+        self.endpoint_put(&url, &params).await?;
+
+        Ok(())
+    }
+
     /// Pause a User’s Playback.
     ///
     /// Parameters:
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/pause-a-users-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-pause-a-users-playback)
     #[maybe_async]
     pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
-        self.put(&url, None, &json!({})).await?;
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1815,11 +1727,11 @@ impl Spotify {
     /// Parameters:
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/skip-users-playback-to-next-track/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-skip-users-playback-to-next-track)
     #[maybe_async]
     pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
-        self.post(&url, None, &json!({})).await?;
+        self.endpoint_post(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1829,11 +1741,11 @@ impl Spotify {
     /// Parameters:
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/skip-users-playback-to-previous-track/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-skip-users-playback-to-previous-track)
     #[maybe_async]
     pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
-        self.post(&url, None, &json!({})).await?;
+        self.endpoint_post(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1844,7 +1756,7 @@ impl Spotify {
     /// - position_ms - position in milliseconds to seek to
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/seek-to-position-in-currently-playing-track/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-seek-to-position-in-currently-playing-track)
     #[maybe_async]
     pub async fn seek_track(
         &self,
@@ -1855,7 +1767,7 @@ impl Spotify {
             &format!("me/player/seek?position_ms={}", position_ms),
             device_id,
         );
-        self.put(&url, None, &json!({})).await?;
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1866,14 +1778,14 @@ impl Spotify {
     /// - state - `track`, `context`, or `off`
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/set-repeat-mode-on-users-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-repeat-mode-on-users-playback)
     #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
             &format!("me/player/repeat?state={}", state.to_string()),
             device_id,
         );
-        self.put(&url, None, &json!({})).await?;
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1884,7 +1796,7 @@ impl Spotify {
     /// - volume_percent - volume between 0 and 100
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/set-volume-for-users-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     #[maybe_async]
     pub async fn volume(&self, volume_percent: u8, device_id: Option<String>) -> ClientResult<()> {
         if volume_percent > 100u8 {
@@ -1894,7 +1806,7 @@ impl Spotify {
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,
         );
-        self.put(&url, None, &json!({})).await?;
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1905,11 +1817,11 @@ impl Spotify {
     /// - state - true or false
     /// - device_id - device target for playback
     ///
-    /// [Reference](https://developer.spotify.com/web-api/toggle-shuffle-for-users-playback/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-toggle-shuffle-for-users-playback)
     #[maybe_async]
     pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
-        self.put(&url, None, &json!({})).await?;
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1917,19 +1829,20 @@ impl Spotify {
     /// Add an item to the end of the user's playback queue.
     ///
     /// Parameters:
-    /// - uri - THe uri of the item to add, Track or Episode
+    /// - uri - The uri of the item to add, Track or Episode
     /// - device id - The id of the device targeting
-    /// - If no device ID provided the user's currently active device is targeted
+    /// - If no device ID provided the user's currently active device is
+    ///   targeted
     ///
-    /// [Reference](https://developer.spotify.com/console/post-queue/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue)
     #[maybe_async]
-    pub async fn add_item_to_queue(
+    pub async fn add_item_to_queue<T: PlayableIdType>(
         &self,
-        item: String,
+        item: &Id<T>,
         device_id: Option<String>,
     ) -> ClientResult<()> {
-        let url = self.append_device_id(&format!("me/player/queue?uri={}", &item), device_id);
-        self.post(&url, None, &json!({})).await?;
+        let url = self.append_device_id(&format!("me/player/queue?uri={}", item), device_id);
+        self.endpoint_post(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1937,14 +1850,17 @@ impl Spotify {
     /// Add a show or a list of shows to a user’s library.
     ///
     /// Parameters:
-    /// - ids(Required) A comma-separated list of Spotify IDs for the shows to be added to the user’s library.
+    /// - ids(Required) A comma-separated list of Spotify IDs for the shows to
+    ///   be added to the user’s library.
     ///
-    /// [Reference](https://developer.spotify.com/console/put-current-user-saved-shows)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-save-shows-user)
     #[maybe_async]
-    pub async fn save_shows<'a>(&self, ids: impl IntoIterator<Item = &'a str>) -> ClientResult<()> {
-        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
-        let url = format!("me/shows/?ids={}", joined_ids);
-        self.put(&url, None, &json!({})).await?;
+    pub async fn save_shows<'a>(
+        &self,
+        show_ids: impl IntoIterator<Item = &'a ShowId>,
+    ) -> ClientResult<()> {
+        let url = format!("me/shows/?ids={}", join_ids(show_ids));
+        self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1953,10 +1869,12 @@ impl Spotify {
     /// Optional parameters can be used to limit the number of shows returned.
     ///
     /// Parameters:
-    /// - limit(Optional). The maximum number of shows to return. Default: 20. Minimum: 1. Maximum: 50
-    /// - offset(Optional). The index of the first show to return. Default: 0 (the first object). Use with limit to get the next set of shows.
+    /// - limit(Optional). The maximum number of shows to return. Default: 20.
+    ///   Minimum: 1. Maximum: 50.
+    /// - offset(Optional). The index of the first show to return. Default: 0
+    ///   (the first object). Use with limit to get the next set of shows.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-shows/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
     #[maybe_async]
     pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1966,7 +1884,7 @@ impl Spotify {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
-        let result = self.get("me/shows", None, &params).await?;
+        let result = self.endpoint_get("me/shows", &params).await?;
         self.convert_result(&result)
     }
 
@@ -1976,17 +1894,17 @@ impl Spotify {
     /// - id: The Spotify ID for the show.
     ///
     /// Query Parameters
-    /// - market(Optional): An ISO 3166-1 alpha-2 country code.
+    /// - market(Optional): An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-a-show/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-show)
     #[maybe_async]
-    pub async fn get_a_show(&self, id: String, market: Option<Country>) -> ClientResult<FullShow> {
+    pub async fn get_a_show(&self, id: &ShowId, market: Option<Market>) -> ClientResult<FullShow> {
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
-        let url = format!("shows/{}", id);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("shows/{}", id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -1995,25 +1913,21 @@ impl Spotify {
     ///
     /// Query Parameters
     /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
-    /// - market(Optional) An ISO 3166-1 alpha-2 country code.
+    /// - market(Optional) An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-several-shows/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
     #[maybe_async]
     pub async fn get_several_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        ids: impl IntoIterator<Item = &'a ShowId>,
+        market: Option<Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
-        // TODO: This can probably be better
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "ids".to_owned(),
-            ids.into_iter().collect::<Vec<_>>().join(","),
-        );
+        params.insert("ids".to_owned(), join_ids(ids));
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
-        let result = self.get("shows", None, &params).await?;
+        let result = self.endpoint_get("shows", &params).await?;
         self.convert_result::<SeversalSimplifiedShows>(&result)
             .map(|x| x.shows)
     }
@@ -2027,25 +1941,25 @@ impl Spotify {
     /// Query Parameters
     /// - limit: Optional. The maximum number of episodes to return. Default: 20. Minimum: 1. Maximum: 50.
     /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/shows/get-shows-episodes/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-shows-episodes)
     #[maybe_async]
     pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        id: String,
+        id: &ShowId,
         limit: L,
         offset: O,
-        market: Option<Country>,
+        market: Option<Market>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(20).to_string());
         params.insert("offset".to_owned(), offset.into().unwrap_or(0).to_string());
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
-        let url = format!("shows/{}/episodes", id);
-        let result = self.get(&url, None, &params).await?;
+        let url = format!("shows/{}/episodes", id.id());
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -2055,22 +1969,22 @@ impl Spotify {
     /// - id: The Spotify ID for the episode.
     ///
     /// Query Parameters
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-an-episode/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-episode)
     #[maybe_async]
     pub async fn get_an_episode(
         &self,
-        id: String,
-        market: Option<Country>,
+        id: &EpisodeId,
+        market: Option<Market>,
     ) -> ClientResult<FullEpisode> {
-        let url = format!("episodes/{}", id);
+        let url = format!("episodes/{}", id.id());
         let mut params = Query::new();
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
 
-        let result = self.get(&url, None, &params).await?;
+        let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
     }
 
@@ -2078,24 +1992,21 @@ impl Spotify {
     ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the episodes. Maximum: 50 IDs.
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/episodes/get-several-episodes/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
     #[maybe_async]
     pub async fn get_several_episodes<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        ids: impl IntoIterator<Item = &'a EpisodeId>,
+        market: Option<Market>,
     ) -> ClientResult<SeveralEpisodes> {
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "ids".to_owned(),
-            ids.into_iter().collect::<Vec<_>>().join(","),
-        );
+        params.insert("ids".to_owned(), join_ids(ids));
         if let Some(market) = market {
-            params.insert("country".to_owned(), market.to_string());
+            params.insert("market".to_owned(), market.to_string());
         }
-        let result = self.get("episodes", None, &params).await?;
+        let result = self.endpoint_get("episodes", &params).await?;
         self.convert_result(&result)
     }
 
@@ -2104,18 +2015,15 @@ impl Spotify {
     /// Query Parameters
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/check-users-saved-shows/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-users-saved-shows)
     #[maybe_async]
     pub async fn check_users_saved_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
+        ids: impl IntoIterator<Item = &'a ShowId>,
     ) -> ClientResult<Vec<bool>> {
         let mut params = Query::with_capacity(1);
-        params.insert(
-            "ids".to_owned(),
-            ids.into_iter().collect::<Vec<_>>().join(","),
-        );
-        let result = self.get("me/shows/contains", None, &params).await?;
+        params.insert("ids".to_owned(), join_ids(ids));
+        let result = self.endpoint_get("me/shows/contains", &params).await?;
         self.convert_result(&result)
     }
 
@@ -2124,25 +2032,29 @@ impl Spotify {
     ///
     /// Query Parameters
     /// - ids: Required. A comma-separated list of Spotify IDs for the shows to be deleted from the user’s library.
-    /// - market: Optional. An ISO 3166-1 alpha-2 country code.
+    /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/library/remove-shows-user/)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-shows-user)
     #[maybe_async]
     pub async fn remove_users_saved_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a str>,
-        market: Option<Country>,
+        show_ids: impl IntoIterator<Item = &'a ShowId>,
+        market: Option<Market>,
     ) -> ClientResult<()> {
-        let joined_ids = ids.into_iter().collect::<Vec<_>>().join(",");
-        let url = format!("me/shows?ids={}", joined_ids);
+        let url = format!("me/shows?ids={}", join_ids(show_ids));
         let mut params = json!({});
         if let Some(market) = market {
             json_insert!(params, "country", market.to_string());
         }
-        self.delete(&url, None, &params).await?;
+        self.endpoint_delete(&url, &params).await?;
 
         Ok(())
     }
+}
+
+#[inline]
+fn join_ids<'a, T: 'a + IdType>(ids: impl IntoIterator<Item = &'a Id<T>>) -> String {
+    ids.into_iter().collect::<Vec<_>>().join(",")
 }
 
 #[cfg(test)]
@@ -2155,52 +2067,5 @@ mod tests {
         let spotify = SpotifyBuilder::default().build().unwrap();
         let code = spotify.parse_response_code(url).unwrap();
         assert_eq!(code, "AQD0yXvFEOvw");
-    }
-
-    #[test]
-    fn test_get_id() {
-        // Assert artist
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let artist_id = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
-        let id = spotify.get_id(Type::Artist, artist_id);
-        assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
-
-        // Assert album
-        let artist_id_a = "spotify/album/2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Album, artist_id_a)
-        );
-
-        // Mismatch type
-        let artist_id_b = "spotify:album:2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "spotify:album:2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, artist_id_b)
-        );
-
-        // Could not split
-        let artist_id_c = "spotify-album-2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "spotify-album-2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, artist_id_c)
-        );
-
-        let playlist_id = "spotify:playlist:59ZbFPES4DQwEjBpWHzrtC";
-        assert_eq!(
-            "59ZbFPES4DQwEjBpWHzrtC",
-            &spotify.get_id(Type::Playlist, playlist_id)
-        );
-    }
-
-    #[test]
-    fn test_get_uri() {
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
-        let track_id2 = "1301WleyT98MSxVHPZCA6M";
-        let uri1 = spotify.get_uri(Type::Track, track_id1);
-        let uri2 = spotify.get_uri(Type::Track, track_id2);
-        assert_eq!(track_id1, uri1);
-        assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M", &uri2);
     }
 }

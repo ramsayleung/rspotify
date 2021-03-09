@@ -1,27 +1,28 @@
-//! In this example, the token is saved into a cache file. If you are building a real-world web
-//! app, it's easy to save token into database, by calling the function
-//! `util::get_token_without_cache()`, instead of `util::get_token()`, which saves token by
-//! default.
+//! In this example, the token is saved into a cache file. If you are building a
+//! real-world web app, you should store it in a database instead. In that case
+//! you can use `Spotify::request_user_token_without_cache` and
+//! `Spotify::refresh_user_token_without_cache` to avoid creating cache files.
 
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use]
 extern crate rocket;
 
+use getrandom::getrandom;
 use rocket::http::{Cookie, Cookies};
 use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
 use rspotify::client::{ClientError, SpotifyBuilder};
-
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
-use rspotify::util;
 
-use std::collections::HashMap;
-use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    path::PathBuf,
+};
 
 #[derive(Debug, Responder)]
 pub enum AppResponse {
@@ -32,6 +33,19 @@ pub enum AppResponse {
 
 const CACHE_PATH: &str = ".spotify_cache/";
 
+/// Generate `length` random chars
+fn generate_random_uuid(length: usize) -> String {
+    let alphanum: &[u8] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+    let mut buf = vec![0u8; length];
+    getrandom(&mut buf).unwrap();
+    let range = alphanum.len();
+
+    buf.iter()
+        .map(|byte| alphanum[*byte as usize % range] as char)
+        .collect()
+}
+
 fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
     let (exist, cache_path) = check_cache_path_exists(cookies);
     if !exist {
@@ -39,7 +53,7 @@ fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
         path.pop();
         fs::create_dir_all(path).unwrap();
     }
-    cache_path.clone()
+    cache_path
 }
 
 fn remove_cache_path(mut cookies: Cookies) {
@@ -61,9 +75,10 @@ fn check_cache_path_exists(cookies: &Cookies) -> (bool, PathBuf) {
 fn init_spotify() -> SpotifyBuilder {
     // Please notice that protocol of redirect_uri, make sure it's http
     // (or https). It will fail if you mix them up.
+    let scope = "user-read-currently-playing playlist-modify-private";
     let oauth = OAuthBuilder::default()
         .redirect_uri("http://localhost:8000/callback")
-        .scope("user-read-currently-playing playlist-modify-private")
+        .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
         .build()
         .unwrap();
 
@@ -103,22 +118,27 @@ fn callback(cookies: Cookies, code: String) -> AppResponse {
 
 #[get("/")]
 fn index(mut cookies: Cookies) -> AppResponse {
-    let cookie = cookies.get("uuid");
     let mut spotify_builder = init_spotify();
-    let spotify = match cookie.is_none() {
-        true => {
-            cookies.add(Cookie::new("uuid", util::generate_random_string(64)));
-            spotify_builder
-                .cache_path(create_cache_path_if_absent(&cookies))
-                .build()
-                .unwrap()
-        }
-        false => {
-            let (_exist, cache_path) = check_cache_path_exists(&cookies);
-            let token = TokenBuilder::from_cache(cache_path).build().unwrap();
-            spotify_builder.token(token).build().unwrap()
-        }
+    let check_exists = |c| {
+        let (exists, _) = check_cache_path_exists(c);
+        exists
     };
+
+    // The user is authenticated if their cookie is set and a cache exists for
+    // them.
+    let authenticated = cookies.get("uuid").is_some() && check_exists(&cookies);
+    let spotify = if authenticated {
+        let (_, cache_path) = check_cache_path_exists(&cookies);
+        let token = TokenBuilder::from_cache(cache_path).build().unwrap();
+        spotify_builder.token(token).build().unwrap()
+    } else {
+        cookies.add(Cookie::new("uuid", generate_random_uuid(64)));
+        spotify_builder
+            .cache_path(create_cache_path_if_absent(&cookies))
+            .build()
+            .unwrap()
+    };
+
     let mut context = HashMap::new();
     match spotify.me() {
         Ok(user_info) => {

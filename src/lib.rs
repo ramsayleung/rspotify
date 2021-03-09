@@ -7,18 +7,17 @@
 //!
 //! ## Configuration
 //!
-//! By default, Rspotify uses the [`reqwest`](https://docs.rs/reqwest)
+//! By default, Rspotify uses the [`reqwest`](reqwest)
 //! asynchronous HTTP client with its default TLS, but you can customize both
 //! the HTTP client and the TLS with the following features:
 //!
-//! - `client-reqwest` (default), TLS available:
-//!     + `reqwest-default-tls` (default)
+//! - `client-reqwest`, TLS available:
+//!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
 //! - `client-ureq`, TLS available:
-//!     + `ureq-rustls-tls` (what `ureq` uses by default)
-//!     + `ureq-native-tls`
+//!     + `ureq-rustls-tls` (ureq's default)
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
 //! have to disable the default features and enable whichever you want. For
@@ -32,7 +31,7 @@
 //!     features = ["client-reqwest", "reqwest-native-tls"]
 //! }
 //! ```
-//! Rspotify uses [maybe_async](https://docs.rs/maybe-async/0.2.0/maybe_async/)
+//! Rspotify uses [maybe_async][maybe_async]
 //! crate to switch between different HTTP clients to get different features.
 //! In our case, `rspotify` supports async and blocking feature by triggering
 //! `maybe_async` inside `Cargo.toml`, so we don't have maintain two sets of
@@ -51,15 +50,13 @@
 //! }
 //! ```
 //!
-//! [`reqwest`](https://docs.rs/reqwest/#proxies) supports system proxies by
+//! [`reqwest`](reqwest#proxies) supports system proxies by
 //! default. It reads the environment variables `HTTP_PROXY` and `HTTPS_PROXY`
 //! environmental variables to set HTTP and HTTPS proxies, respectively.
 //!
-//! Rspotify supports the [`dotenv` crate
-//! ](https://github.com/dotenv-rs/dotenv), which allows you to save
+//! Rspotify supports the [`dotenv` crate](dotenv), which allows you to save
 //! credentials in a `.env` file. These will then be available as environmental
-//! values when using methods like [`CredentialsBuilder::from_env`
-//! ](oauth2/struct.CredentialsBuilder.html#method.from_env):
+//! values when using methods like [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
 //!
 //! ```toml
 //! [dependencies]
@@ -86,7 +83,7 @@
 //! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow),
 //! consists on requesting a token to Spotify given some client credentials.
 //! This can be done with [`Spotify::request_client_token`
-//! ](client/struct.Spotify.html#method.request_client_token), as seen in
+//! ](crate::client::Spotify::request_client_token), as seen in
 //! [this example
 //! ](https://github.com/ramsayleung/rspotify/blob/master/examples/album.rs).
 //!
@@ -96,24 +93,24 @@
 //! instead. In a nutshell, these are the steps you need to make for this:
 //!
 //! 0. Generate a request URL with [`Spotify::get_authorize_url`
-//!    ](client/struct.Spotify.html#method.get_authorize_url).
+//!    ](crate::client::Spotify::get_authorize_url).
 //! 1. The user logs in with the request URL, which redirects to the redirect
 //!    URI and provides a code in the parameters. This happens on your side.
 //! 2. The code obtained in the previous step is parsed with
 //!    [`Spotify::parse_response_code`
-//!    ](client/struct.Spotify.html#method.parse_response_code).
+//!    ](crate::client::Spotify::parse_response_code).
 //! 3. The code is sent to Spotify in order to obtain an access token with
 //!    [`Spotify::request_user_token`
-//!    ](client/struct.Spotify.html#method.request_user_token) or
+//!    ](crate::client::Spotify::request_user_token) or
 //!    [`Spotify::request_user_token_without_cache`
-//!    ](client/struct.Spotify.html#method.prompt_for_user_token_without_cache).
+//!    ](crate::client::Spotify::prompt_for_user_token_without_cache).
 //! 4. Finally, this access token can be used internally for the requests.
 //!    This access token may expire relatively soon, so it can be refreshed
 //!    with the refresh token (obtained in the third step as well) using
 //!    [`Spotify::refresh_user_token`
-//!    ](client/struct.Spotify.html#method.refresh_user_token) or
+//!    ](crate::client::Spotify::refresh_user_token) or
 //!    [`Spotify::refresh_user_token_without_cache`
-//!    ](client/struct.Spotify.html#method.refresh_user_token_without_cache).
+//!    ](crate::client::Spotify::refresh_user_token_without_cache).
 //!    Otherwise, a new access token may be generated from scratch by repeating
 //!    these steps, but the advantage of refreshing it is that this doesn't
 //!    require the user to log in, and that it's a simpler procedure.
@@ -125,9 +122,9 @@
 //!
 //! If you're developing a CLI application, you might be interested in the
 //! `cli` feature, which brings the [`Spotify::prompt_for_user_token`
-//! ](client/struct.Spotify.html#method.prompt_for_user_token) and
+//! ](crate::client::Spotify::prompt_for_user_token) and
 //! [`Spotify::prompt_for_user_token_without_cache`
-//! ](client/struct.Spotify.html#method.prompt_for_user_token_without_cache)
+//! ](crate::client::Spotify::prompt_for_user_token_without_cache)
 //! methods. These will run all the authentication steps. The user wil log in
 //! by opening the request URL in its default browser, and the requests will be
 //! performed automatically.
@@ -154,11 +151,27 @@
 //! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool.
 
+use getrandom::getrandom;
+
+// disable all modules when both client features are enabled,
+// this way only the compile error below gets show
+// instead of showing a whole list of confusing errors
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod client;
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 mod http;
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod model;
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
-pub mod util;
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
+pub mod pagination;
+
+#[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
+compile_error!(
+    "`client-reqwest` and `client-ureq` features cannot both be enabled at the same time, \
+  if you want to use `client-ureq` you need to set `default-features = false`"
+);
 
 #[doc(hidden)]
 mod macros {
@@ -172,4 +185,17 @@ mod macros {
                 .insert($p1.to_string(), json!($p2))
         };
     }
+}
+
+/// Generate `length` random chars
+pub(in crate) fn generate_random_string(length: usize) -> String {
+    let alphanum: &[u8] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+    let mut buf = vec![0u8; length];
+    getrandom(&mut buf).unwrap();
+    let range = alphanum.len();
+
+    buf.iter()
+        .map(|byte| alphanum[*byte as usize % range] as char)
+        .collect()
 }
