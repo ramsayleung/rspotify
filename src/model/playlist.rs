@@ -5,9 +5,8 @@ use std::collections::HashMap;
 
 use super::image::Image;
 use super::page::Page;
-use super::track::FullTrack;
 use super::user::PublicUser;
-use crate::model::{Followers, Type};
+use crate::model::{Followers, Type, PlayingItem};
 
 /// Playlist result object
 ///
@@ -76,7 +75,7 @@ pub struct PlaylistItem {
     pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
     pub is_local: bool,
-    pub track: Option<FullTrack>,
+    pub track: Option<PlayingItem>,
 }
 /// Featured playlists object
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-featured-playlists)
