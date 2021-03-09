@@ -1,5 +1,6 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
+use rspotify::scopes;
 
 fn main() {
     // You can use any logger for debugging.
@@ -29,7 +30,7 @@ fn main() {
     //     .build()
     //     .unwrap();
     let oauth = OAuthBuilder::from_env()
-        .scope("user-library-read")
+        .scope(scopes!("user-library-read"))
         .build()
         .unwrap();
 
