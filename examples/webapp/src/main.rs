@@ -76,7 +76,7 @@ fn check_cache_path_exists(cookies: &Cookies) -> (bool, PathBuf) {
 fn init_spotify() -> SpotifyBuilder {
     // Please notice that protocol of redirect_uri, make sure it's http
     // (or https). It will fail if you mix them up.
-    let scope = scopes!("user-read-currently-playing playlist-modify-private");
+    let scope = scopes!("user-read-currently-playing", "playlist-modify-private");
     let oauth = OAuthBuilder::default()
         .redirect_uri("http://localhost:8000/callback")
         .scope(scope)

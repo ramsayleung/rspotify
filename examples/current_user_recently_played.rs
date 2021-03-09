@@ -1,6 +1,6 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scope;
+use rspotify::scopes;
 
 #[tokio::main]
 async fn main() {

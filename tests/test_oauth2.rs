@@ -93,6 +93,7 @@ async fn test_read_token_cache() {
     // delete cache file in the end
     fs::remove_file(&spotify.cache_path).unwrap();
 }
+
 #[test]
 fn test_write_token() {
     let now: DateTime<Utc> = Utc::now();
