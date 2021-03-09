@@ -1,7 +1,9 @@
 /// Create a **Hashset** from a list of &str(which will be converted to
-/// String internally), be used to create scope
-/// for (Token)[crate::oauth2::Token]
-/// Example
+/// String internally), be used to create scope for
+/// [`Token`](crate::oauth2::Token).
+///
+/// Example:
+///
 /// ```
 /// use rspotify::oauth2::TokenBuilder;
 /// use rspotify::scopes;
@@ -9,7 +11,7 @@
 /// use chrono::prelude::*;
 /// use chrono::Duration;
 ///
-/// let scope: HashSet<String> = scopes!("playlist-read-private", "playlist-read-collaborative");
+/// let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
 /// let tok = TokenBuilder::default()
 ///     .access_token("test-access_token")
 ///     .expires_in(Duration::seconds(1))
@@ -29,6 +31,7 @@ macro_rules! scopes {
 	    container
 	}};
 }
+
 /// Reduce boilerplate when inserting new elements in a JSON object.
 #[doc(hidden)]
 #[macro_export]
