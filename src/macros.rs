@@ -43,3 +43,27 @@ macro_rules! json_insert {
             .insert($p1.to_string(), json!($p2))
     };
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{json_insert, scopes};
+    use serde_json::json;
+
+    #[test]
+    fn test_hashset() {
+        let scope = scopes!("hello", "world", "foo", "bar");
+        assert_eq!(scope.len(), 4);
+        assert!(scope.contains(&"hello".to_owned()));
+        assert!(scope.contains(&"world".to_owned()));
+        assert!(scope.contains(&"foo".to_owned()));
+        assert!(scope.contains(&"bar".to_owned()));
+    }
+
+    #[test]
+    fn test_json_insert() {
+        let mut params = json!({});
+        let name = "ramsay";
+        json_insert!(params, "name", name);
+        assert_eq!(params["name"], name);
+    }
+}

@@ -203,19 +203,8 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_random_string, json_insert, scopes};
-    use serde_json::json;
+    use super::generate_random_string;
     use std::collections::HashSet;
-
-    #[test]
-    fn test_hashset() {
-        let scope = scopes!("hello", "world", "foo", "bar");
-        assert_eq!(scope.len(), 4);
-        assert!(scope.contains(&"hello".to_owned()));
-        assert!(scope.contains(&"world".to_owned()));
-        assert!(scope.contains(&"foo".to_owned()));
-        assert!(scope.contains(&"bar".to_owned()));
-    }
 
     #[test]
     fn test_generate_random_string() {
@@ -224,13 +213,5 @@ mod test {
             containers.insert(generate_random_string(10));
         }
         assert_eq!(containers.len(), 100);
-    }
-
-    #[test]
-    fn test_json_insert() {
-        let mut params = json!({});
-        let name = "ramsay";
-        json_insert!(params, "name", name);
-        assert_eq!(params["name"], name);
     }
 }
