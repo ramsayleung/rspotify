@@ -24,13 +24,13 @@
 /// ```
 #[macro_export]
 macro_rules! scopes {
-	($($key:expr),*) => {{
-	    let mut container = ::std::collections::HashSet::new();
-	    $(
-		container.insert($key.to_owned());
-	    )*
-	    container
-	}};
+    ($($key:expr),*) => {{
+        let mut container = ::std::collections::HashSet::new();
+        $(
+            container.insert($key.to_owned());
+        )*
+        container
+    }};
 }
 
 /// Reduce boilerplate when inserting new elements in a JSON object.

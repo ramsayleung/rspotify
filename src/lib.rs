@@ -27,7 +27,7 @@
 //! have to disable the default features and enable whichever you want. For
 //! example, this would compile Rspotify with `reqwest` and the native TLS:
 //!
-//! ```
+//! ```toml
 //! [dependencies]
 //! rspotify = {
 //!     version = "...",
@@ -40,7 +40,7 @@
 //! asynchronous HTTP clients. You can also use `ureq`, a synchronous client,
 //! like so:
 //!
-//! ```
+//! ```toml
 //! [dependencies]
 //! rspotify = {
 //!     version = "...",
@@ -62,7 +62,7 @@
 //! environmental values when using methods like
 //! [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
 //!
-//! ```
+//! ```toml
 //! [dependencies]
 //! rspotify = { version = "...", features = ["env-file"] }
 //! ```
