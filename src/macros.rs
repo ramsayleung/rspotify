@@ -1,6 +1,7 @@
 /// Create a [`HashSet`](std::collections::HashSet) from a list of `&str` (which
 /// will be converted to String internally), to easily create scopes for
-/// [`Token`](crate::oauth2::Token).
+/// [`Token`](crate::oauth2::Token) or
+/// [`OAuthBuilder`](crate::oauth2::OAuthBuilder).
 ///
 /// Example:
 ///
