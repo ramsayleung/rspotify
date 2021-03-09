@@ -167,25 +167,14 @@ pub mod oauth2;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod pagination;
 
+#[macro_use]
+mod macros;
+
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(
     "`client-reqwest` and `client-ureq` features cannot both be enabled at the same time, \
   if you want to use `client-ureq` you need to set `default-features = false`"
 );
-
-#[doc(hidden)]
-mod macros {
-    /// Reduce boilerplate when inserting new elements in a JSON object.
-    #[macro_export]
-    macro_rules! json_insert {
-        ($json:expr, $p1:expr, $p2:expr) => {
-            $json
-                .as_object_mut()
-                .unwrap()
-                .insert($p1.to_string(), json!($p2))
-        };
-    }
-}
 
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {
@@ -198,4 +187,38 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
     buf.iter()
         .map(|byte| alphanum[*byte as usize % range] as char)
         .collect()
+}
+
+#[cfg(test)]
+mod test {
+    use super::{generate_random_string, json_insert, scopes};
+    use serde_json::json;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_hashset() {
+        let scope = scopes!("hello", "world", "foo", "bar");
+        assert_eq!(scope.len(), 4);
+        assert!(scope.contains(&"hello".to_owned()));
+        assert!(scope.contains(&"world".to_owned()));
+        assert!(scope.contains(&"foo".to_owned()));
+        assert!(scope.contains(&"bar".to_owned()));
+    }
+
+    #[test]
+    fn test_generate_random_string() {
+        let mut containers = HashSet::new();
+        for _ in 1..101 {
+            containers.insert(generate_random_string(10));
+        }
+        assert_eq!(containers.len(), 100);
+    }
+
+    #[test]
+    fn test_json_insert() {
+        let mut params = json!({});
+        let name = "ramsay";
+        json_insert!(params, "name", name);
+        assert_eq!(params["name"], name);
+    }
 }
