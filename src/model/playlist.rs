@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use super::image::Image;
 use super::page::Page;
 use super::user::PublicUser;
-use crate::model::{Followers, Type, PlayingItem};
+use crate::model::{Followers, PlayingItem, Type};
 
 /// Playlist result object
 ///
