@@ -7,23 +7,27 @@
 //!
 //! ## Configuration
 //!
-//! By default, Rspotify uses the [`reqwest`](reqwest)
-//! asynchronous HTTP client with its default TLS, but you can customize both
-//! the HTTP client and the TLS with the following features:
+//! ### HTTP Client
 //!
-//! - `client-reqwest`, TLS available:
+//! By default, Rspotify uses the [`reqwest`] asynchronous HTTP client with its
+//! default TLS, but you can customize both the HTTP client and the TLS with the
+//! following features:
+//!
+//! - [`reqwest`](https://github.com/seanmonstar/reqwest): enabling
+//!   `client-reqwest`, TLS available:
 //!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
-//! - `client-ureq`, TLS available:
+//! - [`ureq`](https://github.com/algesten/ureq): enabling `client-ureq`, TLS
+//!   available:
 //!     + `ureq-rustls-tls` (ureq's default)
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
 //! have to disable the default features and enable whichever you want. For
 //! example, this would compile Rspotify with `reqwest` and the native TLS:
 //!
-//! ```toml
+//! ```
 //! [dependencies]
 //! rspotify = {
 //!     version = "...",
@@ -31,17 +35,12 @@
 //!     features = ["client-reqwest", "reqwest-native-tls"]
 //! }
 //! ```
-//! Rspotify uses [maybe_async][maybe_async]
-//! crate to switch between different HTTP clients to get different features.
-//! In our case, `rspotify` supports async and blocking feature by triggering
-//! `maybe_async` inside `Cargo.toml`, so we don't have maintain two sets of
-//! code which are mostly same. By default, Rspotify uses asynchronous
-//! programming with `async` and `await` by leveraging `reqwest` crate by
-//! using `client-reqwest` feature. And the blocking IO feature can be
-//! enabled to access with `client-ureq` feature, with non-async methods
-//! and the `rustls` TLS:
 //!
-//! ```toml
+//! [`maybe_async`] internally enables Rspotify to  use both synchronous and
+//! asynchronous HTTP clients. You can also use `ureq`, a synchronous client,
+//! like so:
+//!
+//! ```
 //! [dependencies]
 //! rspotify = {
 //!     version = "...",
@@ -50,21 +49,28 @@
 //! }
 //! ```
 //!
-//! [`reqwest`](reqwest#proxies) supports system proxies by
-//! default. It reads the environment variables `HTTP_PROXY` and `HTTPS_PROXY`
-//! environmental variables to set HTTP and HTTPS proxies, respectively.
+//! ### Proxies
 //!
-//! Rspotify supports the [`dotenv` crate](dotenv), which allows you to save
-//! credentials in a `.env` file. These will then be available as environmental
-//! values when using methods like [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
+//! [`reqwest`](reqwest#proxies) supports system proxies by default. It reads
+//! the environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental
+//! variables to set HTTP and HTTPS proxies, respectively.
 //!
-//! ```toml
+//! ### Environmental variables
+//!
+//! Rspotify supports the [`dotenv`] crate, which allows you to save credentials
+//! in a `.env` file. These will then be automatically available as
+//! environmental values when using methods like
+//! [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
+//!
+//! ```
 //! [dependencies]
 //! rspotify = { version = "...", features = ["env-file"] }
 //! ```
 //!
-//! Rspotify includes support for CLI apps to obtain access tokens by prompting
-//! the user, after enabling the `cli` feature. See the [Authorization
+//! ### CLI utilities
+//!
+//! Rspotify includes basic support for CLI apps to obtain access tokens by
+//! prompting the user, after enabling the `cli` feature. See the [Authorization
 //! ](#authorization) section for more information.
 //!
 //! ## Getting Started
@@ -153,25 +159,33 @@
 
 use getrandom::getrandom;
 
-// disable all modules when both client features are enabled,
-// this way only the compile error below gets show
-// instead of showing a whole list of confusing errors
+// Disable all modules when both client features are enabled or when none are.
+// This way only the compile error below gets shown instead of a whole list of
+// confusing errors..
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod client;
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 mod http;
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod model;
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
-
+pub mod model;
 #[macro_use]
 mod macros;
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(
-    "`client-reqwest` and `client-ureq` features cannot both be enabled at the same time, \
-  if you want to use `client-ureq` you need to set `default-features = false`"
+    "`client-reqwest` and `client-ureq` features cannot both be enabled at \
+    the same time, if you want to use `client-ureq` you need to set \
+    `default-features = false`"
+);
+
+#[cfg(not(any(feature = "client-reqwest", feature = "client-ureq")))]
+compile_error!(
+    "You have to enable at least one of the available clients with the \
+    `client-reqwest` or `client-ureq` features."
 );
 
 /// Generate `length` random chars
