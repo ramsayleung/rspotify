@@ -940,7 +940,7 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
     pub fn current_user_saved_tracks_stream<'a>(
         &'a self,
-    ) -> impl StreamOrIterator<ClientResult<SavedTrack>> + 'a {
+    ) -> impl StreamOrIterator<ClientResult<SavedTrack>> + '_ {
         page_stream(
             move |limit, offset| self.current_user_saved_tracks(limit, offset),
             50,

@@ -3,9 +3,9 @@
 
 use futures_util::pin_mut;
 use futures_util::stream::StreamExt;
-use std::collections::HashSet;
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
+use std::collections::HashSet;
 
 #[tokio::main]
 async fn main() {
@@ -37,10 +37,7 @@ async fn main() {
     //     .unwrap();
     let mut scopes = HashSet::new();
     scopes.insert("user-library-read".to_owned());
-    let oauth = OAuthBuilder::from_env()
-        .scope(scopes)
-        .build()
-        .unwrap();
+    let oauth = OAuthBuilder::from_env().scope(scopes).build().unwrap();
 
     let mut spotify = SpotifyBuilder::default()
         .credentials(creds)

@@ -2,12 +2,12 @@
 //! asynchronous, it'll be  based on `futures::stream::Stream`, if it's
 //! synchronous it'll just use `std::iter::Iterator`.
 
-#[cfg(feature = "__async")]
-mod stream;
 #[cfg(feature = "__sync")]
 mod iter;
-
 #[cfg(feature = "__async")]
-pub use stream::*;
+mod stream;
+
 #[cfg(feature = "__sync")]
 pub use iter::*;
+#[cfg(feature = "__async")]
+pub use stream::*;
