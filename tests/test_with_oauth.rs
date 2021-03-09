@@ -22,7 +22,8 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
     model::{
-        Country, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions, EpisodeId
+        Country, EpisodeId, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId,
+        TrackPositions,
     },
     scopes,
 };

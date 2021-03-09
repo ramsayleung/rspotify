@@ -1994,7 +1994,8 @@ impl Spotify {
         }
 
         let result = self.endpoint_get("episodes", &params).await?;
-        self.convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
+        self.convert_result::<EpisodesPayload>(&result)
+            .map(|x| x.episodes)
     }
 
     /// Check if one or more shows is already saved in the current Spotify user’s library.
