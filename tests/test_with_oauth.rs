@@ -22,7 +22,7 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
     model::{
-        Country, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
+        Country, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions, EpisodeId
     },
     scopes,
 };
@@ -809,6 +809,23 @@ async fn test_get_several_shows() {
             vec![
                 ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
                 ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
+            ],
+            None,
+        )
+        .await
+        .unwrap();
+}
+
+#[maybe_async]
+#[maybe_async_test]
+#[ignore]
+async fn test_get_several_episodes() {
+    oauth_client()
+        .await
+        .get_several_episodes(
+            vec![
+                EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+                EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
             ],
             None,
         )
