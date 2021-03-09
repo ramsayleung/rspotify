@@ -87,6 +87,7 @@ pub struct Token {
     pub refresh_token: Option<String>,
     /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
     /// which have been granted for this `access_token`
+    /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
     #[builder(default)]
     #[serde(default, with = "space_separated_scope")]
     pub scope: HashSet<String>,
@@ -169,6 +170,7 @@ pub struct OAuth {
     /// [Cross-Site Request Forgery](https://tools.ietf.org/html/rfc6749#section-10.12)
     #[builder(setter(into), default = "generate_random_string(16)")]
     pub state: String,
+    /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
     #[builder(default)]
     pub scope: HashSet<String>,
     #[builder(setter(into, strip_option), default)]
@@ -429,142 +431,5 @@ impl Spotify {
             .ok_or_else(|| ClientError::CLI("unable to parse the response code".to_string()))?;
 
         Ok(code)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::client::SpotifyBuilder;
-    use url::Url;
-
-    use chrono::Duration;
-    use std::collections::HashSet;
-    use std::fs;
-    use std::io::Read;
-    use std::thread::sleep;
-
-    #[test]
-    fn test_get_authorize_url() {
-        let scope = "playlist-read-private";
-
-        let oauth = OAuthBuilder::default()
-            .state("fdsafdsfa")
-            .redirect_uri("localhost")
-            .scope(scope.split_whitespace().map(|x| x.to_owned()).collect())
-            .build()
-            .unwrap();
-
-        let creds = CredentialsBuilder::default()
-            .id("this-is-my-client-id")
-            .secret("this-is-my-client-secret")
-            .build()
-            .unwrap();
-
-        let spotify = SpotifyBuilder::default()
-            .credentials(creds)
-            .oauth(oauth)
-            .build()
-            .unwrap();
-
-        let authorize_url = spotify.get_authorize_url(false).unwrap();
-        let hash_query: HashMap<_, _> = Url::parse(&authorize_url)
-            .unwrap()
-            .query_pairs()
-            .into_owned()
-            .collect();
-
-        assert_eq!(hash_query.get("client_id").unwrap(), "this-is-my-client-id");
-        assert_eq!(hash_query.get("response_type").unwrap(), "code");
-        assert_eq!(hash_query.get("redirect_uri").unwrap(), "localhost");
-        assert_eq!(hash_query.get("scope").unwrap(), "playlist-read-private");
-        assert_eq!(hash_query.get("state").unwrap(), "fdsafdsfa");
-    }
-    #[test]
-    fn test_write_token() {
-        let now: DateTime<Utc> = Utc::now();
-        let scope = "playlist-read-private playlist-read-collaborative \
-             playlist-modify-public playlist-modify-private \
-             streaming ugc-image-upload user-follow-modify \
-             user-follow-read user-library-read user-library-modify \
-             user-read-private user-read-birthdate user-read-email \
-             user-top-read user-read-playback-state user-modify-playback-state \
-             user-read-currently-playing user-read-recently-played";
-        let scope = scope
-            .split_whitespace()
-            .map(|x| x.to_owned())
-            .collect::<HashSet<_>>();
-
-        let tok = TokenBuilder::default()
-            .access_token("test-access_token")
-            .expires_in(Duration::seconds(3600))
-            .expires_at(now)
-            .scope(scope.clone())
-            .refresh_token("...")
-            .build()
-            .unwrap();
-
-        let spotify = SpotifyBuilder::default()
-            .token(tok.clone())
-            .build()
-            .unwrap();
-
-        let tok_str = serde_json::to_string(&tok).unwrap();
-        spotify.write_token_cache().unwrap();
-
-        let mut file = fs::File::open(&spotify.cache_path).unwrap();
-        let mut tok_str_file = String::new();
-        file.read_to_string(&mut tok_str_file).unwrap();
-
-        assert_eq!(tok_str, tok_str_file);
-        let tok_from_file: Token = serde_json::from_str(&tok_str_file).unwrap();
-        assert_eq!(tok_from_file.scope, scope);
-        assert_eq!(tok_from_file.expires_in, Duration::seconds(3600));
-        assert_eq!(tok_from_file.expires_at.unwrap(), now);
-    }
-
-    #[test]
-    fn test_token_is_expired() {
-        let scope = "playlist-read-private playlist-read-collaborative \
-            playlist-modify-public playlist-modify-private streaming \
-            ugc-image-upload user-follow-modify user-follow-read \
-            user-library-read user-library-modify user-read-private \
-            user-read-birthdate user-read-email user-top-read \
-            user-read-playback-state user-modify-playback-state \
-            user-read-currently-playing user-read-recently-played";
-        let scope = scope.split_whitespace().map(|x| x.to_owned()).collect();
-
-        let tok = TokenBuilder::default()
-            .access_token("test-access_token")
-            .expires_in(Duration::seconds(1))
-            .expires_at(Utc::now())
-            .scope(scope)
-            .refresh_token("...")
-            .build()
-            .unwrap();
-        assert!(!tok.is_expired());
-        sleep(std::time::Duration::from_secs(2));
-        assert!(tok.is_expired());
-    }
-
-    #[test]
-    fn test_parse_response_code() {
-        let spotify = SpotifyBuilder::default().build().unwrap();
-
-        let url = "http://localhost:8888/callback";
-        let code = spotify.parse_response_code(url);
-        assert_eq!(code, None);
-
-        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw";
-        let code = spotify.parse_response_code(url);
-        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
-
-        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_";
-        let code = spotify.parse_response_code(url);
-        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
-
-        let url = "http://localhost:8888/callback?state=sN&code=AQD0yXvFEOvw#_=_";
-        let code = spotify.parse_response_code(url);
-        assert_eq!(code, Some("AQD0yXvFEOvw".to_string()));
     }
 }

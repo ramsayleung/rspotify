@@ -2044,7 +2044,7 @@ fn join_ids<'a, T: 'a + IdType>(ids: impl IntoIterator<Item = &'a Id<T>>) -> Str
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use super::*;
 
     #[test]
@@ -2053,5 +2053,26 @@ mod tests {
         let spotify = SpotifyBuilder::default().build().unwrap();
         let code = spotify.parse_response_code(url).unwrap();
         assert_eq!(code, "AQD0yXvFEOvw");
+    }
+
+    #[test]
+    fn test_append_device_id_without_question_mark() {
+        let path = "me/player/play";
+        let device_id = Some("fdafdsadfa".to_owned());
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        let new_path = spotify.append_device_id(path, device_id);
+        assert_eq!(new_path, "me/player/play?device_id=fdafdsadfa");
+    }
+
+    #[test]
+    fn test_append_device_id_with_question_mark() {
+        let path = "me/player/shuffle?state=true";
+        let device_id = Some("fdafdsadfa".to_owned());
+        let spotify = SpotifyBuilder::default().build().unwrap();
+        let new_path = spotify.append_device_id(path, device_id);
+        assert_eq!(
+            new_path,
+            "me/player/shuffle?state=true&device_id=fdafdsadfa"
+        );
     }
 }

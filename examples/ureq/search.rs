@@ -1,6 +1,7 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::model::{Country, Market, SearchType};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
+use rspotify::scope;
 
 use std::collections::HashSet;
 
@@ -31,9 +32,10 @@ fn main() {
     //     .redirect_uri("http://localhost:8888/callback")
     //     .build()
     //     .unwrap();
-    let mut scope = HashSet::new();
-    scope.insert("user-read-playback-state".to_owned());
-    let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
+    let oauth = OAuthBuilder::from_env()
+        .scope(scopes!("user-read-playback-state"))
+        .build()
+        .unwrap();
 
     let mut spotify = SpotifyBuilder::default()
         .credentials(creds)
