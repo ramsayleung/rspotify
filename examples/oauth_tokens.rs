@@ -19,7 +19,7 @@ async fn main() {
     let creds = CredentialsBuilder::from_env().build().unwrap();
 
     // Using every possible scope
-    let scope = scope!(
+    let scope = scopes!(
         "user-read-email",
         "user-read-private",
         "user-top-read",

@@ -3,7 +3,7 @@ use chrono::Duration;
 use maybe_async::maybe_async;
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, Token, TokenBuilder};
-use rspotify::scope;
+use rspotify::scopes;
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
 use url::Url;
 mod common;
@@ -15,7 +15,7 @@ fn test_get_authorize_url() {
     let oauth = OAuthBuilder::default()
         .state("fdsafdsfa")
         .redirect_uri("localhost")
-        .scope(scope!("playlist-read-private"))
+        .scope(scopes!("playlist-read-private"))
         .build()
         .unwrap();
 
@@ -49,7 +49,7 @@ fn test_get_authorize_url() {
 #[maybe_async_test]
 async fn test_read_token_cache() {
     let now: DateTime<Utc> = Utc::now();
-    let scope = scope!("playlist-read-private", "playlist-read-collaborative");
+    let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
@@ -70,7 +70,7 @@ async fn test_read_token_cache() {
     predefined_spotify.write_token_cache().unwrap();
     assert!(predefined_spotify.cache_path.exists());
 
-    let oauth_scope = scope!("playlist-read-private");
+    let oauth_scope = scopes!("playlist-read-private");
     let oauth = OAuthBuilder::default()
         .state("fdasfasfdasd")
         .redirect_uri("http://localhost:8000")
@@ -96,7 +96,7 @@ async fn test_read_token_cache() {
 #[test]
 fn test_write_token() {
     let now: DateTime<Utc> = Utc::now();
-    let scope = scope!("playlist-read-private", "playlist-read-collaborative");
+    let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")
@@ -132,7 +132,7 @@ fn test_write_token() {
 
 #[test]
 fn test_token_is_expired() {
-    let scope = scope!("playlist-read-private", "playlist-read-collaborative");
+    let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = TokenBuilder::default()
         .access_token("test-access_token")

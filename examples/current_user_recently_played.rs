@@ -31,7 +31,7 @@ async fn main() {
     //     .build()
     //     .unwrap();
     let oauth = OAuthBuilder::from_env()
-        .scope(scope!("user-read-recently-played"))
+        .scope(scopes!("user-read-recently-played"))
         .build()
         .unwrap();
 

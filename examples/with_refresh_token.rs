@@ -17,7 +17,7 @@
 
 use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scope;
+use rspotify::scopes;
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
@@ -57,7 +57,7 @@ async fn main() {
 
     // The default credentials from the `.env` file will be used by default.
     let creds = CredentialsBuilder::from_env().build().unwrap();
-    let scope = scope!("user-follow-read user-follow-modify");
+    let scope = scopes!("user-follow-read user-follow-modify");
     let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
     let mut spotify = SpotifyBuilder::default()
         .credentials(creds.clone())

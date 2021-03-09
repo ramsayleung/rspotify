@@ -189,13 +189,13 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_random_string, json_insert, scope};
+    use super::{generate_random_string, json_insert, scopes};
     use serde_json::json;
     use std::collections::HashSet;
 
     #[test]
     fn test_hashset() {
-        let scope = scope!("hello", "world", "foo", "bar");
+        let scope = scopes!("hello", "world", "foo", "bar");
         assert_eq!(scope.len(), 4);
         assert!(scope.contains(&"hello".to_owned()));
         assert!(scope.contains(&"world".to_owned()));

@@ -4,12 +4,12 @@
 /// Example
 /// ```
 /// use rspotify::oauth2::TokenBuilder;
-/// use rspotify::scope;
+/// use rspotify::scopes;
 /// use std::collections::HashSet;
 /// use chrono::prelude::*;
 /// use chrono::Duration;
 ///
-/// let scope: HashSet<String> = scope!("playlist-read-private", "playlist-read-collaborative");
+/// let scope: HashSet<String> = scopes!("playlist-read-private", "playlist-read-collaborative");
 /// let tok = TokenBuilder::default()
 ///     .access_token("test-access_token")
 ///     .expires_in(Duration::seconds(1))
@@ -20,15 +20,14 @@
 ///     .unwrap();
 /// ```
 #[macro_export]
-macro_rules! scope {
+macro_rules! scopes {
 	($($key:expr),*) => {{
 	    let mut container = ::std::collections::HashSet::new();
 	    $(
 		container.insert($key.to_owned());
 	    )*
 	    container
-	}
-    };
+	}};
 }
 /// Reduce boilerplate when inserting new elements in a JSON object.
 #[doc(hidden)]

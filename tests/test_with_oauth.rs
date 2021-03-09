@@ -23,7 +23,7 @@ use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
     model::Market,
-    scope,
+    scopes,
 };
 
 use chrono::prelude::*;
@@ -53,7 +53,7 @@ pub async fn oauth_client() -> Spotify {
             )
         });
 
-        let scope = scope!(
+        let scope = scopes!(
             "user-read-email",
             "user-read-private",
             "user-top-read",

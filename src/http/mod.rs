@@ -238,7 +238,7 @@ mod test {
     use super::*;
     use crate::client::SpotifyBuilder;
     use crate::oauth2::TokenBuilder;
-    use crate::scope;
+    use crate::scopes;
     use chrono::prelude::*;
     use chrono::Duration;
 
@@ -284,7 +284,7 @@ mod test {
             .access_token("test-access_token")
             .expires_in(Duration::seconds(1))
             .expires_at(Utc::now())
-            .scope(scope!("playlist-read-private"))
+            .scope(scopes!("playlist-read-private"))
             .refresh_token("...")
             .build()
             .unwrap();

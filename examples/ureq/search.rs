@@ -33,7 +33,7 @@ fn main() {
     //     .build()
     //     .unwrap();
     let oauth = OAuthBuilder::from_env()
-        .scope(scope!("user-read-playback-state"))
+        .scope(scopes!("user-read-playback-state"))
         .build()
         .unwrap();
 
