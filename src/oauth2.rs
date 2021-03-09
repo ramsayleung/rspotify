@@ -87,6 +87,7 @@ pub struct Token {
     pub refresh_token: Option<String>,
     /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
     /// which have been granted for this `access_token`
+    /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
     #[builder(default)]
     #[serde(default, with = "space_separated_scope")]
     pub scope: HashSet<String>,
@@ -169,6 +170,7 @@ pub struct OAuth {
     /// [Cross-Site Request Forgery](https://tools.ietf.org/html/rfc6749#section-10.12)
     #[builder(setter(into), default = "generate_random_string(16)")]
     pub state: String,
+    /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
     #[builder(default)]
     pub scope: HashSet<String>,
     #[builder(setter(into, strip_option), default)]
