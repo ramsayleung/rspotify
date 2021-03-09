@@ -6,7 +6,7 @@ use std::error::Error;
 pub trait StreamOrIterator<T>: futures::stream::Stream<Item = T> {}
 impl<T, I: futures::stream::Stream<Item = T>> StreamOrIterator<T> for I {}
 
-pub(in crate) fn page_stream<'a, T, E, Fut, Function>(
+pub fn page_stream<'a, T, E, Fut, Function>(
     f: Function,
     page_size: u32,
 ) -> impl futures::stream::Stream<Item = Result<T, E>> + 'a

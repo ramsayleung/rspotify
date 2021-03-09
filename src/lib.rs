@@ -165,7 +165,7 @@ pub mod model;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod pagination;
+pub(crate) mod pagination;
 
 #[macro_use]
 mod macros;

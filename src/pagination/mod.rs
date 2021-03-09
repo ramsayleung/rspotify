@@ -8,6 +8,6 @@ mod iter;
 mod stream;
 
 #[cfg(feature = "__sync")]
-pub use iter::*;
+pub use iter::{page_stream, StreamOrIterator};
 #[cfg(feature = "__async")]
-pub use stream::*;
+pub use stream::{page_stream, StreamOrIterator};
