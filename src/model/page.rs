@@ -1,4 +1,5 @@
 //! All kinds of page object
+
 use serde::{Deserialize, Serialize};
 
 /// Paging object

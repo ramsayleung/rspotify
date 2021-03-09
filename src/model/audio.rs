@@ -1,4 +1,5 @@
-//! All objects related to artist defined by Spotify API
+//! All objects related to audio defined by Spotify API
+
 use crate::model::{duration_ms, enums::Modality, modality};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;

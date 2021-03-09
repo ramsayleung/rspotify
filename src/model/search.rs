@@ -1,4 +1,5 @@
 //! All object related to search
+
 use super::album::SimplifiedAlbum;
 use super::artist::FullArtist;
 use super::page::Page;

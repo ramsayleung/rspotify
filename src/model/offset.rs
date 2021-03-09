@@ -1,4 +1,5 @@
 //! Offset object
+
 use crate::model::{Id, IdBuf, PlayableIdType};
 
 /// Offset object
