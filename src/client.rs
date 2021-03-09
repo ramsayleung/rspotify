@@ -2056,53 +2056,6 @@ mod test {
     }
 
     #[test]
-    fn test_get_id() {
-        // Assert artist
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let artist_id = "spotify:artist:2WX2uTcsvV5OnS0inACecP";
-        let id = spotify.get_id(Type::Artist, artist_id);
-        assert_eq!("2WX2uTcsvV5OnS0inACecP", &id);
-
-        // Assert album
-        let artist_id_a = "spotify/album/2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Album, artist_id_a)
-        );
-
-        // Mismatch type
-        let artist_id_b = "spotify:album:2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "spotify:album:2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, artist_id_b)
-        );
-
-        // Could not split
-        let artist_id_c = "spotify-album-2WX2uTcsvV5OnS0inACecP";
-        assert_eq!(
-            "spotify-album-2WX2uTcsvV5OnS0inACecP",
-            &spotify.get_id(Type::Artist, artist_id_c)
-        );
-
-        let playlist_id = "spotify:playlist:59ZbFPES4DQwEjBpWHzrtC";
-        assert_eq!(
-            "59ZbFPES4DQwEjBpWHzrtC",
-            &spotify.get_id(Type::Playlist, playlist_id)
-        );
-    }
-
-    #[test]
-    fn test_get_uri() {
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
-        let track_id2 = "1301WleyT98MSxVHPZCA6M";
-        let uri1 = spotify.get_uri(Type::Track, track_id1);
-        let uri2 = spotify.get_uri(Type::Track, track_id2);
-        assert_eq!(track_id1, uri1);
-        assert_eq!("spotify:track:1301WleyT98MSxVHPZCA6M", &uri2);
-    }
-
-    #[test]
     fn test_append_device_id_without_question_mark() {
         let path = "me/player/play";
         let device_id = Some("fdafdsadfa".to_owned());
