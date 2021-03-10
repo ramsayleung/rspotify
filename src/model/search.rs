@@ -1,4 +1,5 @@
 //! All object related to search
+
 use super::album::SimplifiedAlbum;
 use super::artist::FullArtist;
 use super::page::Page;
@@ -30,6 +31,7 @@ pub struct SearchAlbums {
 pub struct SearchArtists {
     pub artists: Page<FullArtist>,
 }
+
 ///[Search item](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchTracks {

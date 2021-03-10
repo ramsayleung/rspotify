@@ -1,4 +1,7 @@
-//! All Spotify API endpoint response object
+//! All Spotify API endpoint response objects.
+//!
+//! [Reference](https://developer.spotify.com/documentation/web-api/reference/#objects-index)
+
 pub mod album;
 pub mod artist;
 pub mod audio;
@@ -17,6 +20,7 @@ pub mod search;
 pub mod show;
 pub mod track;
 pub mod user;
+
 use serde::{Deserialize, Serialize};
 
 pub(in crate) mod duration_ms {
@@ -55,6 +59,7 @@ pub(in crate) mod duration_ms {
         s.serialize_u64(x.as_millis() as u64)
     }
 }
+
 pub(in crate) mod millisecond_timestamp {
     use chrono::{DateTime, NaiveDateTime, Utc};
     use serde::{de, Serializer};
@@ -66,12 +71,14 @@ pub(in crate) mod millisecond_timestamp {
 
     impl<'de> de::Visitor<'de> for DateTimeVisitor {
         type Value = DateTime<Utc>;
+
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 formatter,
                 "an unix millisecond timestamp represents DataTime<UTC>"
             )
         }
+
         fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
         where
             E: de::Error,
@@ -104,6 +111,7 @@ pub(in crate) mod millisecond_timestamp {
         s.serialize_i64(x.timestamp_millis())
     }
 }
+
 pub(in crate) mod option_duration_ms {
     use super::duration_ms;
     use serde::{de, Serializer};
@@ -115,12 +123,14 @@ pub(in crate) mod option_duration_ms {
 
     impl<'de> de::Visitor<'de> for OptionDurationVisitor {
         type Value = Option<Duration>;
+
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 formatter,
                 "a optional milliseconds represents std::time::Duration"
             )
         }
+
         fn visit_none<E>(self) -> Result<Self::Value, E>
         where
             E: de::Error,
@@ -159,6 +169,7 @@ pub(in crate) mod option_duration_ms {
         }
     }
 }
+
 /// Deserialize/Serialize `Modality` to integer(0, 1, -1).
 pub(in crate) mod modality {
     use super::enums::Modality;

@@ -17,68 +17,68 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Mark `SimplifiedEpisode.language` as deprecated.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Derive `PartialEq` and `Eq` for models:
-  + `SimplifiedAlbum`
-  + `Restrictions`
-  + `FullAlbum`
-  + `SimplifiedArtist`
-  + `FullArtist`
-  + `CursorPageFullArtists`
-  + `AudioFeatures`
-  + `AudioFeaturesPayload`
-  + `AudioAnalysis`
-  + `AudioAnalysisSection`
+  + `Actions`
   + `AudioAnalysisMeta`
+  + `AudioAnalysisSection`
   + `AudioAnalysisSegment`
   + `AudioAnalysisTrack`
+  + `AudioAnalysis`
+  + `AudioFeaturesPayload`
+  + `AudioFeatures`
   + `Category`
-  + `PageCategory`
   + `Context`
-  + `FullPlayingContext`
-  + `SimplifiedPlayingContext`
-  + `CurrentlyPlayingContext`
+  + `Copyright`
   + `CurrentPlaybackContext`
-  + `Actions`
-  + `PlaylistResult`
-  + `Device`
-  + `DevicePayload`
-  + `Image`
-  + `PlayableItem`
-  + `Offset`
-  + `Page`
+  + `CurrentlyPlayingContext`
   + `CursorBasedPage`
+  + `CursorPageFullArtists`
   + `Cursor`
-  + `PlayHistory`
-  + `SimplifiedPlaylist`
-  + `FullPlaylist`
-  + `PlaylistItem`
+  + `DevicePayload`
+  + `Device`
+  + `ExplicitContent`
   + `FeaturedPlaylists`
-  + `Recommendations`
-  + `RecommendationsSeed`
+  + `FullAlbum`
+  + `FullArtist`
+  + `FullEpisode`
+  + `FullPlayingContext`
+  + `FullPlaylist`
+  + `FullShow`
+  + `FullTrack`
+  + `Image`
+  + `Offset`
+  + `PageCategory`
+  + `Page`
+  + `PlayHistory`
+  + `PlayableItem`
+  + `PlayingItem` 
+  + `PlaylistItem`
+  + `PlaylistResult`
+  + `PrivateUser`
+  + `PublicUser`
   + `RecommendationsSeedType`
-  + `SearchPlaylists`
+  + `RecommendationsSeed`
+  + `Recommendations`
+  + `Restrictions`
+  + `ResumePoint`
+  + `SavedTrack`
   + `SearchAlbums`
   + `SearchArtists`
-  + `SearchTracks`
-  + `SearchShows`
   + `SearchEpisodes`
+  + `SearchPlaylists`
   + `SearchResult`
-  + `Copyright`
-  + `SimplifiedShow`
-  + `Show`
+  + `SearchShows`
+  + `SearchTracks`
   + `SeversalSimplifiedShows`
-  + `FullShow`
+  + `Show`
+  + `SimplifiedAlbum`
+  + `SimplifiedArtist`
   + `SimplifiedEpisode`
-  + `FullEpisode`
-  + `SeveralEpisodes`
-  + `ResumePoint`
-  + `FullTrack`
-  + `TrackLink`
+  + `SimplifiedPlayingContext`
+  + `SimplifiedPlaylist`
+  + `SimplifiedShow`
   + `SimplifiedTrack`
+  + `TrackLink`
   + `TrackRestriction`
-  + `SavedTrack`
-  + `PublicUser`
-  + `PrivateUser`
-  + `ExplicitContent`
   + Fix broken model links refering to Spotify documentation
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
@@ -110,28 +110,28 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
-	- `artists`
 	- `albums`
-	- `save_shows`
-	- `get_several_episodes`
+	- `artists`
 	- `check_users_saved_shows`
+	- `get_several_episodes`
 	- `remove_users_saved_shows`
+	- `save_shows`
   + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id<Type>>`:
-	- `user_playlist_add_tracks`
-	- `user_playlist_replace_tracks`
-	- `user_playlist_remove_all_occurrences_of_tracks`
-	- `current_user_saved_tracks_delete`
-	- `current_user_saved_tracks_contains`
-	- `current_user_saved_tracks_add`
-	- `current_user_saved_albums_add`
-	- `current_user_saved_albums_delete`
-	- `current_user_saved_albums_contains`
-	- `user_follow_artists`
-	- `user_unfollow_artists`
-	- `user_artist_check_follow`
-	- `user_follow_users`
-	- `user_unfollow_users`
 	- `audios_features`
+	- `current_user_saved_albums_add`
+	- `current_user_saved_albums_contains`
+	- `current_user_saved_albums_delete`
+	- `current_user_saved_tracks_add`
+	- `current_user_saved_tracks_contains`
+	- `current_user_saved_tracks_delete`
+	- `user_artist_check_follow`
+	- `user_follow_artists`
+	- `user_follow_users`
+	- `user_playlist_add_tracks`
+	- `user_playlist_remove_all_occurrences_of_tracks`
+	- `user_playlist_replace_tracks`
+	- `user_unfollow_artists`
+	- `user_unfollow_users`
   + The endpoints which changes parameter from `String` to `&Id<Type>`:
         - `get_a_show`
         - `get_an_episode`
@@ -178,6 +178,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Constrain visibility of `PageCategory` struct with `pub (in crate)`, make `categories` endpoints return a `Page<Category>` instead.
   + Constrain visibility of `DevicePayload` struct with `pub (in crate)`, make `device` endpoints return a `Vec<Device>` instead.
   + Constrain visibility of `SeversalSimplifiedShows` struct with `pub (in crate)`, make `get_several_shows` endpoints return a `Vec<SimplifiedShow>` instead.
+  + Constrain visibility of `SeversalEpisodes` struct with `pub (in crate)`, make `get_several_episodes` endpoints return a `Vec<FullEpisode>` instead.
   + Rename `AudioFeatures.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `FullEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `SimplifiedEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
