@@ -1,4 +1,5 @@
 //! All objects related to album defined by Spotify API
+
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 

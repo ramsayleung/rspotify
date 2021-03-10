@@ -1,4 +1,5 @@
 //! Offset object
+
 use crate::model::{Id, IdBuf, PlayableIdType};
 
 /// Offset object
@@ -14,6 +15,7 @@ impl<T: PlayableIdType> Offset<T> {
     pub fn for_position(position: u32) -> Offset<T> {
         Offset::Position(position)
     }
+
     pub fn for_uri(uri: &Id<T>) -> Offset<T> {
         Offset::Uri(uri.to_owned())
     }

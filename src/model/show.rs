@@ -138,8 +138,12 @@ pub struct FullEpisode {
     pub _type: String,
     pub uri: String,
 }
+
+/// Episodes feature object wrapped by `Vec`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SeveralEpisodes {
+pub(in crate) struct EpisodesPayload {
     pub episodes: Vec<FullEpisode>,
 }
 
