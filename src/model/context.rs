@@ -1,7 +1,7 @@
 //! All objects related to context
 
 use super::device::Device;
-use super::PlayingItem;
+use super::PlayableItem;
 use crate::model::{
     millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
 };
@@ -34,7 +34,7 @@ pub struct CurrentlyPlayingContext {
     #[serde(with = "option_duration_ms", rename = "progress_ms")]
     pub progress: Option<Duration>,
     pub is_playing: bool,
-    pub item: Option<PlayingItem>,
+    pub item: Option<PlayableItem>,
     pub currently_playing_type: CurrentlyPlayingType,
     pub actions: Actions,
 }
@@ -51,7 +51,7 @@ pub struct CurrentPlaybackContext {
     #[serde(with = "option_duration_ms", rename = "progress_ms")]
     pub progress: Option<Duration>,
     pub is_playing: bool,
-    pub item: Option<PlayingItem>,
+    pub item: Option<PlayableItem>,
     pub currently_playing_type: CurrentlyPlayingType,
     pub actions: Actions,
 }

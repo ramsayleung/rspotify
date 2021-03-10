@@ -227,7 +227,7 @@ pub struct Followers {
 /// + [Reference to full episode](https://developer.spotify.com/documentation/web-api/reference/#object-episodeobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum PlayingItem {
+pub enum PlayableItem {
     Track(track::FullTrack),
     Episode(show::FullEpisode),
 }
