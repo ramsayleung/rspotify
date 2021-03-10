@@ -42,7 +42,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `Device`
   + `DevicePayload`
   + `Image`
-  + `PlayingItem` 
+  + `PlayableItem`
   + `Offset`
   + `Page`
   + `CursorBasedPage`
@@ -198,6 +198,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `Token.scope` from `String` to `HashSet`.
   + Change `OAuth.scope` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
+- ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
 
 ## 0.10 (2020/07/01)
 
