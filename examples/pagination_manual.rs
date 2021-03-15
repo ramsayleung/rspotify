@@ -53,7 +53,10 @@ async fn main() {
     let mut offset = 0;
     println!("Items:");
     loop {
-        let page = spotify.current_user_saved_tracks(limit, offset).await.unwrap();
+        let page = spotify
+            .current_user_saved_tracks(limit, offset)
+            .await
+            .unwrap();
         for item in page.items {
             println!("* {}", item.track.name);
         }
