@@ -22,10 +22,12 @@ where
         done: false,
         page_size,
     };
+
     pages.flat_map(|result| ResultIter::new(result.map(|page| page.items.into_iter())))
 }
 
-/// Iterator that repeatedly calls a function that returns a page until an empty page is returned
+/// Iterator that repeatedly calls a function that returns a page until an empty
+/// page is returned.
 struct PageIterator<T, E, Function>
 where
     T: Unpin + 'static,
@@ -65,7 +67,8 @@ where
     }
 }
 
-/// Helper to transform a Result<Iterator<Item = T>, E> into an Iterator<Item = Result<T, E>>
+/// Helper to transform a `Result<Iterator<Item = T>, E>` into an `Iterator<Item
+/// = Result<T, E>>`.
 struct ResultIter<T, E, I: Iterator<Item = T>> {
     inner: Option<I>,
     err: Option<E>,
