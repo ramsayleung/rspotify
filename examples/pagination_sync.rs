@@ -1,14 +1,19 @@
-//! This example showcases how streams can be used for asynchronous automatic
-//! pagination.
+//! This example shows how automatic pagination works for synchronous clients.
+//!
+//! Synchronous iteration is easier than the async method shown in the
+//! `current_user_saved_tracks` example, but you can also use:
+//!
+//! ```
+//! while let Some(item) = stream.next() {
+//!     // ...
+//! }
+//! ```
 
-use futures_util::pin_mut;
-use futures_util::stream::StreamExt;
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::scopes;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
@@ -47,14 +52,12 @@ async fn main() {
         .unwrap();
 
     // Obtaining the access token
-    spotify.prompt_for_user_token().await.unwrap();
+    spotify.prompt_for_user_token().unwrap();
 
+    // Typical iteration, no extra boilerplate needed.
     let stream = spotify.current_user_saved_tracks_stream();
-
-    pin_mut!(stream);
-
-    while let Some(item) = stream.next().await {
-        let item = item.unwrap();
-        println!("{}", item.track.name);
+    println!("Items:");
+    for item in stream {
+        println!("* {}", item.unwrap().track.name);
     }
 }

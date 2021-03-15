@@ -1,8 +1,19 @@
+//! This example showcases how streams can be used for asynchronous automatic
+//! pagination.
+//!
+//! Asynchronous iteration is a bit uglier, since there's currently no
+//! syntactic sugar for `for` loops. See this article for more information:
+//!
+//! https://rust-lang.github.io/async-book/05_streams/02_iteration_and_concurrency.html
+
+use futures_util::pin_mut;
+use futures_util::stream::StreamExt;
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::scopes;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
@@ -41,12 +52,13 @@ fn main() {
         .unwrap();
 
     // Obtaining the access token
-    spotify.prompt_for_user_token().unwrap();
+    spotify.prompt_for_user_token().await.unwrap();
 
-    let mut stream = spotify.current_user_saved_tracks_stream();
+    let stream = spotify.current_user_saved_tracks_stream();
+    pin_mut!(stream);
 
-    while let Some(item) = stream.next() {
-        let item = item.unwrap();
-        println!("{}", item.track.name);
+    println!("Items:");
+    while let Some(item) = stream.next().await {
+        println!("* {}", item.unwrap().track.name);
     }
 }

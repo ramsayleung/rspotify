@@ -1,9 +1,9 @@
-//! This test is specially useful for the OAuth tests. It simply obtains
-//! an access token and a refresh token with all available scopes.
+//! This example is specially useful for the OAuth tests. It simply obtains an
+//! access token and a refresh token with all available scopes.
 //!
-//! Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and RSPOTIFY_REDIRECT_URI
-//! in an .env file or export them manually as environmental variables for this
-//! to work.
+//! Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and RSPOTIFY_REDIRECT_URI in
+//! an .env file or export them manually as environmental variables for this to
+//! work.
 
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};

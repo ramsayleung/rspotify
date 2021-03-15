@@ -1,8 +1,9 @@
+//! Asynchronous implementation of automatic pagination requests.
+
 use crate::model::Page;
 use std::error::Error;
 
-/// Alias for either std::iter::Iterator<Item = T> or futures::stream::Stream<Item = T>
-/// depending on whether sync or async mode is enabled
+/// Alias for `futures::stream::Stream<Item = T>`, since async mode is enabled.
 pub trait StreamOrIterator<T>: futures::stream::Stream<Item = T> {}
 impl<T, I: futures::stream::Stream<Item = T>> StreamOrIterator<T> for I {}
 

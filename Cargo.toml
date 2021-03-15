@@ -76,11 +76,6 @@ required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/current_user_recently_played.rs"
 
 [[example]]
-name = "current_user_saved_tracks_async"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/current_user_saved_tracks.rs"
-
-[[example]]
 name = "oauth_tokens"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/oauth_tokens.rs"
@@ -121,6 +116,16 @@ required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/seek_track.rs"
 
 [[example]]
-name = "current_user_saved_tracks_sync"
+name = "pagination_manual"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/pagination_manual.rs"
+
+[[example]]
+name = "pagination_sync"
 required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/current_user_saved_tracks.rs"
+path = "examples/pagination_sync.rs"
+
+[[example]]
+name = "pagination_async"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/pagination_async.rs"
