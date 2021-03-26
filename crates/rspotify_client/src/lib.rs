@@ -11,11 +11,13 @@ use thiserror::Error;
 
 use std::path::PathBuf;
 
-use super::http::{HTTPClient, Query};
-use super::json_insert;
-use super::model::*;
-use super::oauth2::{Credentials, OAuth, Token};
-use crate::model::idtypes::{IdType, PlayContextIdType};
+use rspotify_http::{HTTPClient, Query};
+use rspotify_macros::json_insert;
+use rspotify_auth::{Credentials, OAuth, Token};
+use rspotify_model::{
+    *,
+    idtypes::{IdType, PlayContextIdType}
+};
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]

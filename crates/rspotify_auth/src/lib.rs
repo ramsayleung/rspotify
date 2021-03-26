@@ -14,9 +14,21 @@ use std::{
     path::Path,
 };
 
-use super::client::{ClientResult, Spotify};
-use super::http::{headers, Form, Headers};
-use crate::generate_random_string;
+use rspotify_client::{ClientResult, Spotify};
+use rspotify_http::{headers, Form, Headers};
+
+/// Generate `length` random chars
+pub(in crate) fn generate_random_string(length: usize) -> String {
+    let alphanum: &[u8] =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+    let mut buf = vec![0u8; length];
+    getrandom(&mut buf).unwrap();
+    let range = alphanum.len();
+
+    buf.iter()
+        .map(|byte| alphanum[*byte as usize % range] as char)
+        .collect()
+}
 
 mod auth_urls {
     pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
@@ -431,5 +443,20 @@ impl Spotify {
             .ok_or_else(|| ClientError::CLI("unable to parse the response code".to_string()))?;
 
         Ok(code)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::generate_random_string;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_generate_random_string() {
+        let mut containers = HashSet::new();
+        for _ in 1..101 {
+            containers.insert(generate_random_string(10));
+        }
+        assert_eq!(containers.len(), 100);
     }
 }

@@ -157,48 +157,8 @@
 //! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool.
 
-use getrandom::getrandom;
-
-// Disable all modules when both client features are enabled or when none are.
-// This way only the compile error below gets shown instead of a whole list of
-// confusing errors..
-#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod client;
-#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-mod http;
-pub mod model;
-#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod oauth2;
+pub use rspotify_client as client;
+pub use rspotify_model as model;
+pub use rspotify_auth as oauth;
 #[macro_use]
-mod macros;
-
-/// Generate `length` random chars
-pub(in crate) fn generate_random_string(length: usize) -> String {
-    let alphanum: &[u8] =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
-    let mut buf = vec![0u8; length];
-    getrandom(&mut buf).unwrap();
-    let range = alphanum.len();
-
-    buf.iter()
-        .map(|byte| alphanum[*byte as usize % range] as char)
-        .collect()
-}
-
-#[cfg(test)]
-mod test {
-    use super::generate_random_string;
-    use std::collections::HashSet;
-
-    #[test]
-    fn test_generate_random_string() {
-        let mut containers = HashSet::new();
-        for _ in 1..101 {
-            containers.insert(generate_random_string(10));
-        }
-        assert_eq!(containers.len(), 100);
-    }
-}
+pub use rspotify_macros as macros;

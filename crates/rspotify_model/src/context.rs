@@ -2,7 +2,7 @@
 
 use super::device::Device;
 use super::PlayableItem;
-use crate::model::{
+use crate::{
     millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
 };
 use chrono::{DateTime, Utc};

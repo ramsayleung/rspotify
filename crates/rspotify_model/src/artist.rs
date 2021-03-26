@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;
-use crate::model::{Followers, Type};
+use crate::{Followers, Type};
 use std::collections::HashMap;
 
 /// Simplified Artist Object

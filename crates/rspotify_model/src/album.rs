@@ -10,7 +10,7 @@ use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
 use super::Restriction;
-use crate::model::{AlbumType, Copyright, DatePrecision, Type};
+use crate::{AlbumType, Copyright, DatePrecision, Type};
 
 /// Simplified Album Object
 ///

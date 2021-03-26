@@ -1,7 +1,7 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
 use super::{BaseHTTPClient, Form, Headers, Query};
-use crate::client::{ClientError, ClientResult};
+use rspotify_client::{ClientError, ClientResult};
 
 use maybe_async::sync_impl;
 use serde_json::Value;

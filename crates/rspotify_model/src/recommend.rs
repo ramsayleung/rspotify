@@ -1,7 +1,7 @@
 //! All objects related to recommendation
 
 use super::track::SimplifiedTrack;
-use crate::model::RecommendationsSeedType;
+use crate::RecommendationsSeedType;
 use serde::{Deserialize, Serialize};
 
 /// Recommendations object

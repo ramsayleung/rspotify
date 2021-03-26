@@ -1,5 +1,5 @@
 [package]
-name = "rspotify_oauth"
+name = "rspotify_auth"
 authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
 version = "0.10.0"
 license = "MIT"

@@ -1,4 +1,4 @@
-use crate::model::DeviceType;
+use crate::DeviceType;
 use serde::{Deserialize, Serialize};
 
 /// Device object
