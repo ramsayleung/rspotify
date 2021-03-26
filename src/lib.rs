@@ -175,19 +175,6 @@ pub mod oauth2;
 #[macro_use]
 mod macros;
 
-#[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
-compile_error!(
-    "`client-reqwest` and `client-ureq` features cannot both be enabled at \
-    the same time, if you want to use `client-ureq` you need to set \
-    `default-features = false`"
-);
-
-#[cfg(not(any(feature = "client-reqwest", feature = "client-ureq")))]
-compile_error!(
-    "You have to enable at least one of the available clients with the \
-    `client-reqwest` or `client-ureq` features."
-);
-
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {
     let alphanum: &[u8] =

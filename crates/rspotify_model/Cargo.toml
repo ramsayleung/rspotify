@@ -1,0 +1,17 @@
+[package]
+name = "rspotify_model"
+version = "0.10.0"
+authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+description = "Spotify API wrapper"
+homepage = "https://github.com/ramsayleung/rspotify"
+repository = "https://github.com/ramsayleung/rspotify"
+keywords = ["spotify", "api", "rspotify"]
+edition = "2018"
+
+[dependencies]
+chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
+serde = { version = "1.0.115", features = ["derive"] }
+serde_json = "1.0.57"
+strum = { version = "0.20", features = ["derive"] }
