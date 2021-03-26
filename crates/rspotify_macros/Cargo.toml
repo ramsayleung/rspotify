@@ -10,5 +10,6 @@ repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api", "rspotify"]
 edition = "2018"
 
-[dependencies]
+[dev-dependencies]
 serde_json = "1.0.57"
+rspotify = { path = "../..", version = "0.10.0" }

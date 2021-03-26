@@ -24,7 +24,7 @@ compile_error!(
     `client-reqwest` or `client-ureq` features."
 );
 
-use crate::client::{ClientResult, Spotify};
+use rspotify_client::{ClientResult, Spotify};
 
 use std::collections::HashMap;
 use std::fmt;
@@ -42,7 +42,7 @@ pub type Query = HashMap<String, String>;
 pub type Form = HashMap<String, String>;
 
 pub mod headers {
-    use crate::oauth2::Token;
+    use rspotify_auth::Token;
 
     // Common headers as constants
     pub const CLIENT_ID: &str = "client_id";
@@ -254,9 +254,9 @@ impl Spotify {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::client::SpotifyBuilder;
-    use crate::oauth2::TokenBuilder;
-    use crate::scopes;
+    use rspotify_client::SpotifyBuilder;
+    use rspotify_auth2::TokenBuilder;
+    use rspotify_macros::scopes;
     use chrono::prelude::*;
     use chrono::Duration;
 

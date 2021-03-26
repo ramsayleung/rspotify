@@ -12,6 +12,8 @@ edition = "2018"
 
 [dependencies]
 rspotify_client = { path = "../rspotify_client", version = "0.10.0" }
+rspotify_auth = { path = "../rspotify_auth", version = "0.10.0" }
+rspotify_macros = { path = "../rspotify_macros", version = "0.10.0" }
 
 # Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
 # `maybe_async`.
