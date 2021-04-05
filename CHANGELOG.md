@@ -105,7 +105,7 @@ If we missed any change or there's something you'd like to discuss about this ve
     + `get_token[_without_cache]` is now `Spotify::prompt_for_user_token[_without_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
 - CLI-exclusive functions and  are now optional under the `cli` feature:
     + `Spotify::prompt_for_user_token[_without_cache]`
-    + The `ClientError::CLI` variant, for whenever user interaction goes wrong
+    + The `ClientError::Cli` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
