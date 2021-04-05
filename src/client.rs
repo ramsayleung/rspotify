@@ -50,7 +50,7 @@ pub enum ClientError {
 
     #[cfg(feature = "cli")]
     #[error("cli error: {0}")]
-    CLI(String),
+    Cli(String),
 
     #[error("cache file error: {0}")]
     CacheFile(String),
