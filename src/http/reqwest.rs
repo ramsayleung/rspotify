@@ -7,7 +7,7 @@ use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{BaseHTTPClient, Form, Headers, Query};
+use super::{BaseHttpClient, Form, Headers, Query};
 use crate::client::{ApiError, ClientError, ClientResult};
 
 impl ClientError {
@@ -94,7 +94,7 @@ impl ReqwestClient {
 }
 
 #[async_impl]
-impl BaseHTTPClient for ReqwestClient {
+impl BaseHttpClient for ReqwestClient {
     #[inline]
     async fn get(
         &self,
