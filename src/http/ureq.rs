@@ -54,7 +54,7 @@ impl UreqClient {
 }
 
 #[sync_impl]
-impl BaseHTTPClient for UreqClient {
+impl BaseHttpClient for UreqClient {
     #[inline]
     fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> ClientResult<String> {
         let request = ureq::get(url);
