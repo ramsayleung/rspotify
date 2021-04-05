@@ -200,6 +200,12 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `OAuth.scope` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 - ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
+- ([#!97](https://github.com/ramsayleung/rspotify/pull/197)) Makeing acronym lowercase
+  + Rename `ClientError::ParseJSON` to `ClientError::ParseJson`
+  + Rename `ClientError::ParseURL` to `ClientError::ParseUrl`
+  + Rename `ClientError::IO` to `ClientError::Io`
+  + Rename `ClientError::CLI` to `ClientError::Cli`
+  + Rename `BaseHTTPClient` to `BaseHttpClient`
 
 ## 0.10 (2020/07/01)
 
