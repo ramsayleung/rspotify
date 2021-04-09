@@ -39,8 +39,8 @@ pub enum TimeRange {
 // TODO: Documentation
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
 pub enum TimeLimits {
-    Before(u32),
-    After(u32)
+    Before(i64),
+    After(i64)
 }
 
 /// Repeat state: `track`, `context` or `off`.
