@@ -14,6 +14,7 @@ use std::path::PathBuf;
 use super::http::{HTTPClient, Query};
 use super::json_insert;
 use super::model::*;
+use super::model::enums::TimeLimits;
 use super::oauth2::{Credentials, OAuth, Token};
 use crate::model::idtypes::{IdType, PlayContextIdType};
 
@@ -1079,15 +1080,32 @@ impl Spotify {
     ///
     /// Parameters:
     /// - limit - the number of entities to return
+    /// - time_limit - A Unix timestamp in milliseconds.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
     #[maybe_async]
-    pub async fn current_user_recently_played<L: Into<Option<u32>>>(
+    pub async fn current_user_recently_played<L: Into<Option<u32>>, T: Into<Option<TimeLimits>>>(
         &self,
         limit: L,
+        time_limit: T,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
-        let mut params = Query::with_capacity(1);
+        let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
+        
+        match time_limit.into() {
+            Some(x) => {
+                match x {
+                    TimeLimits::Before(y) => {
+                        params.insert("before".to_owned(), y.to_string());
+                    }
+                    TimeLimits::After(y) => {
+                        params.insert("after".to_owned(), y.to_string());
+                    }
+                };
+            }
+            None => {}
+        }
+
         let result = self
             .endpoint_get("me/player/recently-played", &params)
             .await?;

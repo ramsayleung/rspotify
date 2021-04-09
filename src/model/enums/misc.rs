@@ -36,6 +36,13 @@ pub enum TimeRange {
     ShortTerm,
 }
 
+// TODO: Documentation
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+pub enum TimeLimits {
+    Before(u32),
+    After(u32)
+}
+
 /// Repeat state: `track`, `context` or `off`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/set-repeat-mode-on-users-playback/)
