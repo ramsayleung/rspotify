@@ -1,3 +1,5 @@
+//! Client to Spotify API endpoint
+
 use chrono::prelude::*;
 use derive_builder::Builder;
 use log::error;
