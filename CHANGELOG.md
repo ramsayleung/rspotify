@@ -92,7 +92,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - All fallible calls in the client return a `ClientResult` rather than using `failure`, which is equivalent to a `Result<T, ClientError>`.
-- `ApiError` is now `APIError` for consistency.
+- ~~`ApiError` is now `APIError` for consistency.~~
 - A real builder pattern is used now. For example, `Token` is constructed now with `TokenBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)). These are the main changes:
@@ -106,7 +106,7 @@ If we missed any change or there's something you'd like to discuss about this ve
     + `get_token[_without_cache]` is now `Spotify::prompt_for_user_token[_without_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
 - CLI-exclusive functions and  are now optional under the `cli` feature:
     + `Spotify::prompt_for_user_token[_without_cache]`
-    + The `ClientError::CLI` variant, for whenever user interaction goes wrong
+    + The `ClientError::Cli` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
@@ -201,6 +201,12 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `OAuth.scope` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 - ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
+- ([#!97](https://github.com/ramsayleung/rspotify/pull/197)) Makeing acronym lowercase
+  + Rename `ClientError::ParseJSON` to `ClientError::ParseJson`
+  + Rename `ClientError::ParseURL` to `ClientError::ParseUrl`
+  + Rename `ClientError::IO` to `ClientError::Io`
+  + Rename `ClientError::CLI` to `ClientError::Cli`
+  + Rename `BaseHTTPClient` to `BaseHttpClient`
 
 ## 0.10 (2020/07/01)
 

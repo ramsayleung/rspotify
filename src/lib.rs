@@ -67,9 +67,9 @@
 //! rspotify = { version = "...", features = ["env-file"] }
 //! ```
 //!
-//! ### CLI utilities
+//! ### Cli utilities
 //!
-//! Rspotify includes basic support for CLI apps to obtain access tokens by
+//! Rspotify includes basic support for Cli apps to obtain access tokens by
 //! prompting the user, after enabling the `cli` feature. See the [Authorization
 //! ](#authorization) section for more information.
 //!
@@ -126,7 +126,7 @@
 //! example for more details on how you can implement it for something like a
 //! web server.
 //!
-//! If you're developing a CLI application, you might be interested in the
+//! If you're developing a Cli application, you might be interested in the
 //! `cli` feature, which brings the [`Spotify::prompt_for_user_token`
 //! ](crate::client::Spotify::prompt_for_user_token) and
 //! [`Spotify::prompt_for_user_token_without_cache`
@@ -135,7 +135,7 @@
 //! by opening the request URL in its default browser, and the requests will be
 //! performed automatically.
 //!
-//! An example of the CLI authentication:
+//! An example of the Cli authentication:
 //!
 //! ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
 //!
