@@ -6,6 +6,27 @@ on:
 name: Continuous Integration
 
 jobs:
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
   # Cross compilation is only needed for the main client and not the entire
   # workspace.
   cross-compile:
@@ -45,9 +66,8 @@ jobs:
           command: build
           args: --workspace --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
 
-  # Test once for each client
   test-client:
-    name: Test Suite for Client
+    name: Test and Lint for each Client
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -64,6 +84,13 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+          components: clippy
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --workspace --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
@@ -74,7 +101,7 @@ jobs:
   # The rest of the crates don't need to be tested with multiple feature
   # combinations.
   test-crates:
-    name: Test Suite for Crates
+    name: Simple Tests for Crates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -92,50 +119,3 @@ jobs:
         with:
           command: test
           args: -p rspotify-macros -p rspotify-model
-
-  formatting:
-    name: Formatting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
-  lints:
-    name: Lints
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        client:
-          - client-ureq,ureq-rustls-tls
-          - client-reqwest,reqwest-rustls-tls
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-
-      - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --workspace --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
