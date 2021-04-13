@@ -3,9 +3,9 @@ mod common;
 use chrono::prelude::*;
 use chrono::Duration;
 use maybe_async::maybe_async;
-use rspotify::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, Token, TokenBuilder};
 use rspotify::scopes;
+use rspotify::SpotifyBuilder;
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
 use url::Url;
 

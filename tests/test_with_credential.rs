@@ -3,8 +3,8 @@ mod common;
 use common::maybe_async_test;
 use rspotify::oauth2::CredentialsBuilder;
 use rspotify::{
-    Spotify, SpotifyBuilder,
     model::{AlbumType, Country, Id, Market},
+    Spotify, SpotifyBuilder,
 };
 
 use maybe_async::maybe_async;

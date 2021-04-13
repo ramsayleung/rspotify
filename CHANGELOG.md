@@ -82,6 +82,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Fix broken model links refering to Spotify documentation
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
+- Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
 
 **Breaking changes:**
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.

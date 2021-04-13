@@ -1,8 +1,8 @@
 //! User authorization and client credentials management.
 
 use chrono::prelude::*;
-use getrandom::getrandom;
 use derive_builder::Builder;
+use getrandom::getrandom;
 use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -15,8 +15,8 @@ use std::{
     path::Path,
 };
 
-use crate::{ClientResult, Spotify};
 use crate::http::{headers, Form, Headers};
+use crate::{ClientResult, Spotify};
 
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {

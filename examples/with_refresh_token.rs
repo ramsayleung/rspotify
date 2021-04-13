@@ -15,7 +15,7 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86),
 //! so in the case of Spotify it doesn't seem to revoke them at all.
 
-use rspotify::{Spotify, SpotifyBuilder};
+use rspotify::client::{Spotify, SpotifyBuilder};
 use rspotify::model::Id;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::scopes;

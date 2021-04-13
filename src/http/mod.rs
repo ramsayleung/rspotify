@@ -24,7 +24,7 @@ compile_error!(
     `client-reqwest` or `client-ureq` features."
 );
 
-use crate::{ClientResult, Spotify};
+use crate::client::{ClientResult, Spotify};
 
 use std::collections::HashMap;
 use std::fmt;
@@ -254,7 +254,7 @@ impl Spotify {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{SpotifyBuilder, scopes};
+    use crate::client::{scopes, SpotifyBuilder};
     use crate::oauth2::TokenBuilder;
     use chrono::prelude::*;
     use chrono::Duration;
