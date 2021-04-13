@@ -90,6 +90,6 @@ pub struct FeaturedPlaylists {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
 #[derive(Deserialize)]
-pub(in crate) struct CategoryPlaylists {
+pub struct CategoryPlaylists {
     pub playlists: Page<SimplifiedPlaylist>,
 }

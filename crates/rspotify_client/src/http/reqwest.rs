@@ -7,8 +7,8 @@ use serde_json::Value;
 
 use std::convert::TryInto;
 
-use crate::{BaseHTTPClient, Form, Headers, Query};
-use rspotify_client::{APIError, ClientError, ClientResult};
+use super::{BaseHTTPClient, Form, Headers, Query};
+use crate::{APIError, ClientError, ClientResult};
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {

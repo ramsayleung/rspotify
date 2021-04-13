@@ -68,7 +68,7 @@ pub struct FullAlbum {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
 #[derive(Deserialize)]
-pub(in crate) struct FullAlbums {
+pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
@@ -76,7 +76,7 @@ pub(in crate) struct FullAlbums {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
 #[derive(Deserialize)]
-pub(in crate) struct PageSimpliedAlbums {
+pub struct PageSimpliedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 

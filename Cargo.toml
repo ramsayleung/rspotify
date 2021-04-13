@@ -10,7 +10,7 @@ repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
 edition = "2018"
 
-[workspaces]
+[workspace]
 members = ["crates/*"]
 
 [dependencies]

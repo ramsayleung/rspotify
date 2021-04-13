@@ -19,6 +19,6 @@ pub struct Category {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
 #[derive(Deserialize)]
-pub(in crate) struct PageCategory {
+pub struct PageCategory {
     pub categories: Page<Category>,
 }

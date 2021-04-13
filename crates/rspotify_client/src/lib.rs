@@ -8,8 +8,7 @@ use derive_builder::Builder;
 use log::error;
 use maybe_async::maybe_async;
 use serde::Deserialize;
-use serde_json::map::Map;
-use serde_json::{json, Value};
+use serde_json::{json, Value, map::Map};
 use thiserror::Error;
 
 use std::path::PathBuf;

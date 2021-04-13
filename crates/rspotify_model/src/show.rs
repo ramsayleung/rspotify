@@ -42,7 +42,7 @@ pub struct SimplifiedShow {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
 #[derive(Deserialize)]
-pub(in crate) struct SeversalSimplifiedShows {
+pub struct SeversalSimplifiedShows {
     pub shows: Vec<SimplifiedShow>,
 }
 
@@ -143,7 +143,7 @@ pub struct FullEpisode {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub(in crate) struct EpisodesPayload {
+pub struct EpisodesPayload {
     pub episodes: Vec<FullEpisode>,
 }
 

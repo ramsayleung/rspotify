@@ -60,7 +60,7 @@ pub struct TrackLink {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
 #[derive(Deserialize)]
-pub(in crate) struct FullTracks {
+pub struct FullTracks {
     pub tracks: Vec<FullTrack>,
 }
 

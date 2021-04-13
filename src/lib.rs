@@ -159,6 +159,4 @@
 
 pub use rspotify_client as client;
 pub use rspotify_model as model;
-pub use rspotify_auth as oauth;
-#[macro_use]
 pub use rspotify_macros as macros;
