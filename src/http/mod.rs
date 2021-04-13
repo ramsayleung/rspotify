@@ -42,7 +42,7 @@ pub type Query = HashMap<String, String>;
 pub type Form = HashMap<String, String>;
 
 pub mod headers {
-    use crate::auth::Token;
+    use crate::oauth2::Token;
 
     // Common headers as constants
     pub const CLIENT_ID: &str = "client_id";

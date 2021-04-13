@@ -158,7 +158,7 @@
 //! which can serve as a learning tool.
 
 mod http;
-pub mod auth;
+pub mod oauth2;
 
 use chrono::prelude::*;
 use derive_builder::Builder;
@@ -171,12 +171,14 @@ use thiserror::Error;
 use std::path::PathBuf;
 
 use http::{HTTPClient, Query};
-use auth::{Credentials, OAuth, Token};
+use oauth2::{Credentials, OAuth, Token};
 use rspotify_macros::json_insert;
 use rspotify_model::{
     *,
     idtypes::{IdType, PlayContextIdType}
 };
+
+pub use rspotify_macros::scopes;
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]

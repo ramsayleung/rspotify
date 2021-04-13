@@ -1,7 +1,7 @@
 /// Create a [`HashSet`](std::collections::HashSet) from a list of `&str` (which
 /// will be converted to String internally), to easily create scopes for
-/// [`Token`](crate::oauth2::Token) or
-/// [`OAuthBuilder`](crate::oauth2::OAuthBuilder).
+/// [`Token`](rspotify::oauth2::Token) or
+/// [`OAuthBuilder`](rspotify::oauth2::OAuthBuilder).
 ///
 /// Example:
 ///
@@ -34,7 +34,6 @@ macro_rules! scopes {
 }
 
 /// Reduce boilerplate when inserting new elements in a JSON object.
-#[doc(hidden)]
 #[macro_export]
 macro_rules! json_insert {
     ($json:expr, $p1:expr, $p2:expr) => {
