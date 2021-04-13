@@ -1,5 +1,5 @@
 [package]
-name = "rspotify_model"
+name = "rspotify-model"
 version = "0.10.0"
 authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
 license = "MIT"

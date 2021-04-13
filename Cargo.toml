@@ -17,8 +17,8 @@ members = [
 ]
 
 [dependencies]
-rspotify_model = { path = "rspotify-model", version = "0.10.0" }
-rspotify_macros = { path = "rspotify-macros", version = "0.10.0" }
+rspotify-model = { path = "rspotify-model", version = "0.10.0" }
+rspotify-macros = { path = "rspotify-macros", version = "0.10.0" }
 
 ### Client ###
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
