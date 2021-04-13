@@ -8,7 +8,7 @@ use serde_json::Value;
 use std::convert::TryInto;
 
 use super::{BaseHTTPClient, Form, Headers, Query};
-use crate::{APIError, ClientError, ClientResult};
+use crate::client::{APIError, ClientError, ClientResult};
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {

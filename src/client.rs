@@ -1663,7 +1663,7 @@ impl Spotify {
         &self,
         uris: &[&Id<T>],
         device_id: Option<String>,
-        offset: Option<model::Offset<T>>,
+        offset: Option<crate::model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         use crate::model;

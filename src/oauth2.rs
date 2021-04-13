@@ -15,8 +15,8 @@ use std::{
     path::Path,
 };
 
+use crate::client::{ClientResult, Spotify};
 use crate::http::{headers, Form, Headers};
-use crate::{ClientResult, Spotify};
 
 /// Generate `length` random chars
 pub(in crate) fn generate_random_string(length: usize) -> String {
