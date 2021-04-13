@@ -157,9 +157,32 @@
 //! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
 //! which can serve as a learning tool.
 
+// Disable all modules when both client features are enabled or when none are.
+// This way only the compile error below gets shown instead of a whole list of
+// confusing errors..
+
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod client;
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 mod http;
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
 pub use rspotify_macros as macros;
 pub use rspotify_macros::scopes;
 pub use rspotify_model as model;
+
+#[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
+compile_error!(
+    "`client-reqwest` and `client-ureq` features cannot both be enabled at \
+    the same time, if you want to use `client-ureq` you need to set \
+    `default-features = false`"
+);
+
+#[cfg(not(any(feature = "client-reqwest", feature = "client-ureq")))]
+compile_error!(
+    "You have to enable at least one of the available clients with the \
+    `client-reqwest` or `client-ureq` features."
+);
