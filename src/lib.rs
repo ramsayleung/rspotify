@@ -89,7 +89,7 @@
 //! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow),
 //! consists on requesting a token to Spotify given some client credentials.
 //! This can be done with [`Spotify::request_client_token`
-//! ](crate::client::Spotify::request_client_token), as seen in
+//! ](crate::Spotify::request_client_token), as seen in
 //! [this example
 //! ](https://github.com/ramsayleung/rspotify/blob/master/examples/album.rs).
 //!
@@ -99,24 +99,24 @@
 //! instead. In a nutshell, these are the steps you need to make for this:
 //!
 //! 0. Generate a request URL with [`Spotify::get_authorize_url`
-//!    ](crate::client::Spotify::get_authorize_url).
+//!    ](crate::Spotify::get_authorize_url).
 //! 1. The user logs in with the request URL, which redirects to the redirect
 //!    URI and provides a code in the parameters. This happens on your side.
 //! 2. The code obtained in the previous step is parsed with
 //!    [`Spotify::parse_response_code`
-//!    ](crate::client::Spotify::parse_response_code).
+//!    ](crate::Spotify::parse_response_code).
 //! 3. The code is sent to Spotify in order to obtain an access token with
 //!    [`Spotify::request_user_token`
-//!    ](crate::client::Spotify::request_user_token) or
+//!    ](crate::Spotify::request_user_token) or
 //!    [`Spotify::request_user_token_without_cache`
-//!    ](crate::client::Spotify::prompt_for_user_token_without_cache).
+//!    ](crate::Spotify::prompt_for_user_token_without_cache).
 //! 4. Finally, this access token can be used internally for the requests.
 //!    This access token may expire relatively soon, so it can be refreshed
 //!    with the refresh token (obtained in the third step as well) using
 //!    [`Spotify::refresh_user_token`
-//!    ](crate::client::Spotify::refresh_user_token) or
+//!    ](crate::Spotify::refresh_user_token) or
 //!    [`Spotify::refresh_user_token_without_cache`
-//!    ](crate::client::Spotify::refresh_user_token_without_cache).
+//!    ](crate::Spotify::refresh_user_token_without_cache).
 //!    Otherwise, a new access token may be generated from scratch by repeating
 //!    these steps, but the advantage of refreshing it is that this doesn't
 //!    require the user to log in, and that it's a simpler procedure.
@@ -128,9 +128,9 @@
 //!
 //! If you're developing a CLI application, you might be interested in the
 //! `cli` feature, which brings the [`Spotify::prompt_for_user_token`
-//! ](crate::client::Spotify::prompt_for_user_token) and
+//! ](crate::Spotify::prompt_for_user_token) and
 //! [`Spotify::prompt_for_user_token_without_cache`
-//! ](crate::client::Spotify::prompt_for_user_token_without_cache)
+//! ](crate::Spotify::prompt_for_user_token_without_cache)
 //! methods. These will run all the authentication steps. The user wil log in
 //! by opening the request URL in its default browser, and the requests will be
 //! performed automatically.
@@ -160,6 +160,10 @@
 mod http;
 pub mod oauth2;
 
+pub use rspotify_model as model;
+pub use rspotify_macros as macros;
+pub use rspotify_macros::scopes;
+
 use chrono::prelude::*;
 use derive_builder::Builder;
 use log::error;
@@ -172,13 +176,11 @@ use std::path::PathBuf;
 
 use http::{HTTPClient, Query};
 use oauth2::{Credentials, OAuth, Token};
-use rspotify_macros::json_insert;
-use rspotify_model::{
+use macros::json_insert;
+use model::{
     *,
     idtypes::{IdType, PlayContextIdType}
 };
-
-pub use rspotify_macros::scopes;
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -1796,17 +1798,17 @@ impl Spotify {
         &self,
         context_uri: &Id<T>,
         device_id: Option<String>,
-        offset: Option<rspotify_model::Offset<U>>,
+        offset: Option<model::Offset<U>>,
         position_ms: Option<std::time::Duration>,
     ) -> ClientResult<()> {
         let mut params = json!({});
         json_insert!(params, "context_uri", context_uri.uri());
         if let Some(offset) = offset {
             match offset {
-                rspotify_model::Offset::Position(position) => {
+                model::Offset::Position(position) => {
                     json_insert!(params, "offset", json!({ "position": position }));
                 }
-                rspotify_model::Offset::Uri(uri) => {
+                model::Offset::Uri(uri) => {
                     json_insert!(params, "offset", json!({ "uri": uri.uri() }));
                 }
             }
@@ -1825,7 +1827,7 @@ impl Spotify {
         &self,
         uris: &[&Id<T>],
         device_id: Option<String>,
-        offset: Option<rspotify_model::Offset<T>>,
+        offset: Option<model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let mut params = json!({});
@@ -1836,10 +1838,10 @@ impl Spotify {
         );
         if let Some(offset) = offset {
             match offset {
-                rspotify_model::Offset::Position(position) => {
+                model::Offset::Position(position) => {
                     json_insert!(params, "offset", json!({ "position": position }));
                 }
-                rspotify_model::Offset::Uri(uri) => {
+                model::Offset::Uri(uri) => {
                     json_insert!(params, "offset", json!({ "uri": uri.uri() }));
                 }
             }

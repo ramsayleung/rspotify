@@ -254,9 +254,8 @@ impl Spotify {
 #[cfg(test)]
 mod test {
     use super::*;
-    use rspotify_client::SpotifyBuilder;
-    use rspotify_auth2::TokenBuilder;
-    use rspotify_macros::scopes;
+    use crate::{SpotifyBuilder, scopes};
+    use crate::oauth2::TokenBuilder;
     use chrono::prelude::*;
     use chrono::Duration;
 

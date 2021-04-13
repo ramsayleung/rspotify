@@ -1,4 +1,4 @@
-use rspotify::client::SpotifyBuilder;
+use rspotify::SpotifyBuilder;
 use rspotify::model::Id;
 use rspotify::oauth2::CredentialsBuilder;
 

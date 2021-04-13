@@ -20,12 +20,11 @@ use common::maybe_async_test;
 use rspotify::model::offset::Offset;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
-    client::{Spotify, SpotifyBuilder},
     model::{
         Country, EpisodeId, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId,
         TrackPositions,
     },
-    scopes,
+    scopes, Spotify, SpotifyBuilder,
 };
 
 use chrono::prelude::*;

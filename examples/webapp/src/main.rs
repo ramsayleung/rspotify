@@ -14,7 +14,7 @@ use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
-use rspotify::client::{ClientError, SpotifyBuilder};
+use rspotify::{ClientError, SpotifyBuilder};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::scope;
 

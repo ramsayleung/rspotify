@@ -5,7 +5,7 @@
 //! in an .env file or export them manually as environmental variables for this
 //! to work.
 
-use rspotify::client::SpotifyBuilder;
+use rspotify::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::scopes;
 

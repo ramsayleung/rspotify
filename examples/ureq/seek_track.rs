@@ -1,6 +1,5 @@
-use rspotify::client::SpotifyBuilder;
+use rspotify::{SpotifyBuilder, scopes};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scope;
 
 use std::collections::HashSet;
 
