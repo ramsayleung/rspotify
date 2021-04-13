@@ -17,8 +17,6 @@ members = ["crates/*"]
 rspotify_client = { path = "crates/rspotify_client", version = "0.10.0" }
 rspotify_macros = { path = "crates/rspotify_macros", version = "0.10.0" }
 rspotify_model = { path = "crates/rspotify_model", version = "0.10.0" }
-rspotify_auth = { path = "crates/rspotify_auth", version = "0.10.0" }
-rspotify_http = { path = "crates/rspotify_http", version = "0.10.0" }
 
 [dev-dependencies]
 env_logger = "0.8.1"
@@ -32,16 +30,16 @@ env-file = ["rspotify_client/env-file"]
 
 # Available clients. By default they don't include a TLS so that it can be
 # configured.
-client-ureq = ["rspotify_http/client-ureq"]
-client-reqwest = ["rspotify_http/client-reqwest"]
+client-ureq = ["rspotify_client/client-ureq"]
+client-reqwest = ["rspotify_client/client-reqwest"]
 
 # Passing the TLS features to reqwest.
-reqwest-default-tls = ["rspotify_http/reqwest-default-tls"]
-reqwest-rustls-tls = ["rspotify_http/reqwest-rustls-tls"]
-reqwest-native-tls = ["rspotify_http/reqwest-native-tls"]
-reqwest-native-tls-vendored = ["rspotify_http/reqwest-native-tls-vendored"]
+reqwest-default-tls = ["rspotify_client/reqwest-default-tls"]
+reqwest-rustls-tls = ["rspotify_client/reqwest-rustls-tls"]
+reqwest-native-tls = ["rspotify_client/reqwest-native-tls"]
+reqwest-native-tls-vendored = ["rspotify_client/reqwest-native-tls-vendored"]
 # Same for ureq.
-ureq-rustls-tls = ["rspotify_http/ureq-rustls-tls"]
+ureq-rustls-tls = ["rspotify_client/ureq-rustls-tls"]
 
 [package.metadata.docs.rs]
 # Also documenting the CLI methods

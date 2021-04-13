@@ -1,5 +1,8 @@
 //! Client to Spotify API endpoint
 
+mod http;
+pub mod auth;
+
 use chrono::prelude::*;
 use derive_builder::Builder;
 use log::error;
@@ -11,9 +14,9 @@ use thiserror::Error;
 
 use std::path::PathBuf;
 
-use rspotify_http::{HTTPClient, Query};
+use http::{HTTPClient, Query};
+use auth::{Credentials, OAuth, Token};
 use rspotify_macros::json_insert;
-use rspotify_auth::{Credentials, OAuth, Token};
 use rspotify_model::{
     *,
     idtypes::{IdType, PlayContextIdType}
@@ -1635,19 +1638,17 @@ impl Spotify {
         &self,
         context_uri: &Id<T>,
         device_id: Option<String>,
-        offset: Option<super::model::Offset<U>>,
+        offset: Option<rspotify_model::Offset<U>>,
         position_ms: Option<std::time::Duration>,
     ) -> ClientResult<()> {
-        use super::model::Offset;
-
         let mut params = json!({});
         json_insert!(params, "context_uri", context_uri.uri());
         if let Some(offset) = offset {
             match offset {
-                Offset::Position(position) => {
+                rspotify_model::Offset::Position(position) => {
                     json_insert!(params, "offset", json!({ "position": position }));
                 }
-                Offset::Uri(uri) => {
+                rspotify_model::Offset::Uri(uri) => {
                     json_insert!(params, "offset", json!({ "uri": uri.uri() }));
                 }
             }
@@ -1666,11 +1667,9 @@ impl Spotify {
         &self,
         uris: &[&Id<T>],
         device_id: Option<String>,
-        offset: Option<super::model::Offset<T>>,
+        offset: Option<rspotify_model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
-        use super::model::Offset;
-
         let mut params = json!({});
         json_insert!(
             params,
@@ -1679,10 +1678,10 @@ impl Spotify {
         );
         if let Some(offset) = offset {
             match offset {
-                Offset::Position(position) => {
+                rspotify_model::Offset::Position(position) => {
                     json_insert!(params, "offset", json!({ "position": position }));
                 }
-                Offset::Uri(uri) => {
+                rspotify_model::Offset::Uri(uri) => {
                     json_insert!(params, "offset", json!({ "uri": uri.uri() }));
                 }
             }
