@@ -24,8 +24,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --all-targets --features=cli,env-file
+          args: --workspace --all-targets --features=cli,env-file
 
+  # Cross compilation is only needed for the main client and not the entire
+  # workspace.
   cross-compile:
     name: Cross Compile
     runs-on: ubuntu-latest
@@ -61,11 +63,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
+          args: --workspace --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
 
-
-  test:
-    name: Test Suite
+  # Test once for each client
+  test-client:
+    name: Test Suite for Client
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -87,7 +89,50 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace -p rspotify --no-default-features --features=env-file,${{ matrix.client }}
+          args: --no-default-features --features=env-file,${{ matrix.client }}
+
+  # The rest of the crates don't need to be tested with multiple feature
+  # combinations.
+  test-crates:
+    name: Test Suite for Crates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p rspotify-macros -p rspotify-model
+
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
 
   lints:
     name: Lints
@@ -109,14 +154,8 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
+          args: --workspace --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings

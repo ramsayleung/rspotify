@@ -18,6 +18,9 @@ members = [
 exclude = [
     "examples/webapp"
 ]
+# For advanced features usage in the CLI, see:
+# https://doc.rust-lang.org/nightly/cargo/reference/features.html#resolver-version-2-command-line-flags
+resolver = "2"
 
 [dependencies]
 rspotify-macros = { path = "rspotify-macros", version = "0.10.0" }
