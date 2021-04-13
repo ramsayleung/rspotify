@@ -423,7 +423,7 @@ impl Spotify {
     /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
     fn get_code_from_user(&self) -> ClientResult<String> {
-        use crate::ClientError;
+        use crate::client::ClientError;
 
         let url = self.get_authorize_url(false)?;
 
