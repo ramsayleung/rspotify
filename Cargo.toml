@@ -1,7 +1,7 @@
 [package]
+authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
 name = "rspotify"
 version = "0.10.0"
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 description = "Spotify API wrapper"
@@ -14,6 +14,9 @@ edition = "2018"
 members = [
     "rspotify-macros",
     "rspotify-model"
+]
+exclude = [
+    "examples/webapp"
 ]
 
 [dependencies]
