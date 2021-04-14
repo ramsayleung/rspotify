@@ -7,8 +7,8 @@ use serde_json::Value;
 
 use std::convert::TryInto;
 
-use super::{BaseHTTPClient, Form, Headers, Query};
-use crate::client::{APIError, ClientError, ClientResult};
+use super::{BaseHttpClient, Form, Headers, Query};
+use crate::client::{ApiError, ClientError, ClientResult};
 
 impl ClientError {
     pub async fn from_response(response: reqwest::Response) -> Self {
@@ -22,7 +22,7 @@ impl ClientError {
                     .and_then(|duration| duration.parse().ok()),
             ),
             status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => response
-                .json::<APIError>()
+                .json::<ApiError>()
                 .await
                 .map(Into::into)
                 .unwrap_or_else(|_| status.into()),
@@ -94,7 +94,7 @@ impl ReqwestClient {
 }
 
 #[async_impl]
-impl BaseHTTPClient for ReqwestClient {
+impl BaseHttpClient for ReqwestClient {
     #[inline]
     async fn get(
         &self,
