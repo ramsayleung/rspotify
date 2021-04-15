@@ -1,6 +1,6 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
-use super::{BaseHTTPClient, Form, Headers, Query};
+use super::{BaseHttpClient, Form, Headers, Query};
 use crate::client::{ClientError, ClientResult};
 
 use maybe_async::sync_impl;
@@ -54,7 +54,7 @@ impl UreqClient {
 }
 
 #[sync_impl]
-impl BaseHTTPClient for UreqClient {
+impl BaseHttpClient for UreqClient {
     #[inline]
     fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> ClientResult<String> {
         let request = ureq::get(url);

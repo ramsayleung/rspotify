@@ -738,7 +738,7 @@ pub enum Country {
     VirginIslandsBritish,
     #[strum(serialize = "VI")]
     #[serde(rename = "VI")]
-    VirginIslandsUS,
+    VirginIslandsUs,
     #[strum(serialize = "WF")]
     #[serde(rename = "WF")]
     WallisAndFutuna,

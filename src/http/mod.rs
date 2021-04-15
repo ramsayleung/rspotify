@@ -70,7 +70,7 @@ pub mod headers {
 /// redundancy and edge cases (a `Some(Value::Null), for example, doesn't make
 /// much sense).
 #[maybe_async]
-pub trait BaseHTTPClient: Default + Clone + fmt::Debug {
+pub trait BaseHttpClient: Default + Clone + fmt::Debug {
     // This internal function should always be given an object value in JSON.
     async fn get(
         &self,

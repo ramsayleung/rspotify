@@ -17,68 +17,68 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Updated dependencies to the latest versions, integrated Dependabot to keep track of them ([#105](https://github.com/ramsayleung/rspotify/pull/105), [#111](https://github.com/ramsayleung/rspotify/pull/111)).
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Mark `SimplifiedEpisode.language` as deprecated.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Derive `PartialEq` and `Eq` for models:
-  + `SimplifiedAlbum`
-  + `Restrictions`
-  + `FullAlbum`
-  + `SimplifiedArtist`
-  + `FullArtist`
-  + `CursorPageFullArtists`
-  + `AudioFeatures`
-  + `AudioFeaturesPayload`
-  + `AudioAnalysis`
-  + `AudioAnalysisSection`
+  + `Actions`
   + `AudioAnalysisMeta`
+  + `AudioAnalysisSection`
   + `AudioAnalysisSegment`
   + `AudioAnalysisTrack`
+  + `AudioAnalysis`
+  + `AudioFeaturesPayload`
+  + `AudioFeatures`
   + `Category`
-  + `PageCategory`
   + `Context`
-  + `FullPlayingContext`
-  + `SimplifiedPlayingContext`
-  + `CurrentlyPlayingContext`
+  + `Copyright`
   + `CurrentPlaybackContext`
-  + `Actions`
-  + `PlaylistResult`
-  + `Device`
-  + `DevicePayload`
-  + `Image`
-  + `PlayingItem` 
-  + `Offset`
-  + `Page`
+  + `CurrentlyPlayingContext`
   + `CursorBasedPage`
+  + `CursorPageFullArtists`
   + `Cursor`
-  + `PlayHistory`
-  + `SimplifiedPlaylist`
-  + `FullPlaylist`
-  + `PlaylistItem`
+  + `DevicePayload`
+  + `Device`
+  + `ExplicitContent`
   + `FeaturedPlaylists`
-  + `Recommendations`
-  + `RecommendationsSeed`
+  + `FullAlbum`
+  + `FullArtist`
+  + `FullEpisode`
+  + `FullPlayingContext`
+  + `FullPlaylist`
+  + `FullShow`
+  + `FullTrack`
+  + `Image`
+  + `Offset`
+  + `PageCategory`
+  + `Page`
+  + `PlayHistory`
+  + `PlayableItem`
+  + `PlayingItem` 
+  + `PlaylistItem`
+  + `PlaylistResult`
+  + `PrivateUser`
+  + `PublicUser`
   + `RecommendationsSeedType`
-  + `SearchPlaylists`
+  + `RecommendationsSeed`
+  + `Recommendations`
+  + `Restrictions`
+  + `ResumePoint`
+  + `SavedTrack`
   + `SearchAlbums`
   + `SearchArtists`
-  + `SearchTracks`
-  + `SearchShows`
   + `SearchEpisodes`
+  + `SearchPlaylists`
   + `SearchResult`
-  + `Copyright`
-  + `SimplifiedShow`
-  + `Show`
+  + `SearchShows`
+  + `SearchTracks`
   + `SeversalSimplifiedShows`
-  + `FullShow`
+  + `Show`
+  + `SimplifiedAlbum`
+  + `SimplifiedArtist`
   + `SimplifiedEpisode`
-  + `FullEpisode`
-  + `SeveralEpisodes`
-  + `ResumePoint`
-  + `FullTrack`
-  + `TrackLink`
+  + `SimplifiedPlayingContext`
+  + `SimplifiedPlaylist`
+  + `SimplifiedShow`
   + `SimplifiedTrack`
+  + `TrackLink`
   + `TrackRestriction`
-  + `SavedTrack`
-  + `PublicUser`
-  + `PrivateUser`
-  + `ExplicitContent`
   + Fix broken model links refering to Spotify documentation
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
@@ -91,7 +91,6 @@ If we missed any change or there's something you'd like to discuss about this ve
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
 - All fallible calls in the client return a `ClientResult` rather than using `failure`, which is equivalent to a `Result<T, ClientError>`.
-- `ApiError` is now `APIError` for consistency.
 - A real builder pattern is used now. For example, `Token` is constructed now with `TokenBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)). These are the main changes:
@@ -105,33 +104,33 @@ If we missed any change or there's something you'd like to discuss about this ve
     + `get_token[_without_cache]` is now `Spotify::prompt_for_user_token[_without_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
 - CLI-exclusive functions and  are now optional under the `cli` feature:
     + `Spotify::prompt_for_user_token[_without_cache]`
-    + The `ClientError::CLI` variant, for whenever user interaction goes wrong
+    + The `ClientError::Cli` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
-	- `artists`
 	- `albums`
-	- `save_shows`
-	- `get_several_episodes`
+	- `artists`
 	- `check_users_saved_shows`
+	- `get_several_episodes`
 	- `remove_users_saved_shows`
+	- `save_shows`
   + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id<Type>>`:
-	- `user_playlist_add_tracks`
-	- `user_playlist_replace_tracks`
-	- `user_playlist_remove_all_occurrences_of_tracks`
-	- `current_user_saved_tracks_delete`
-	- `current_user_saved_tracks_contains`
-	- `current_user_saved_tracks_add`
-	- `current_user_saved_albums_add`
-	- `current_user_saved_albums_delete`
-	- `current_user_saved_albums_contains`
-	- `user_follow_artists`
-	- `user_unfollow_artists`
-	- `user_artist_check_follow`
-	- `user_follow_users`
-	- `user_unfollow_users`
 	- `audios_features`
+	- `current_user_saved_albums_add`
+	- `current_user_saved_albums_contains`
+	- `current_user_saved_albums_delete`
+	- `current_user_saved_tracks_add`
+	- `current_user_saved_tracks_contains`
+	- `current_user_saved_tracks_delete`
+	- `user_artist_check_follow`
+	- `user_follow_artists`
+	- `user_follow_users`
+	- `user_playlist_add_tracks`
+	- `user_playlist_remove_all_occurrences_of_tracks`
+	- `user_playlist_replace_tracks`
+	- `user_unfollow_artists`
+	- `user_unfollow_users`
   + The endpoints which changes parameter from `String` to `&Id<Type>`:
         - `get_a_show`
         - `get_an_episode`
@@ -178,6 +177,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Constrain visibility of `PageCategory` struct with `pub (in crate)`, make `categories` endpoints return a `Page<Category>` instead.
   + Constrain visibility of `DevicePayload` struct with `pub (in crate)`, make `device` endpoints return a `Vec<Device>` instead.
   + Constrain visibility of `SeversalSimplifiedShows` struct with `pub (in crate)`, make `get_several_shows` endpoints return a `Vec<SimplifiedShow>` instead.
+  + Constrain visibility of `SeversalEpisodes` struct with `pub (in crate)`, make `get_several_episodes` endpoints return a `Vec<FullEpisode>` instead.
   + Rename `AudioFeatures.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `FullEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
   + Rename `SimplifiedEpisode.duration_ms` to `duration`, and change its type from `u32` to `std::time::Duration`.
@@ -198,6 +198,13 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `Token.scope` from `String` to `HashSet`.
   + Change `OAuth.scope` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
+- ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
+- ([#!97](https://github.com/ramsayleung/rspotify/pull/197)) Makeing acronym lowercase
+  + Rename `ClientError::ParseJSON` to `ClientError::ParseJson`
+  + Rename `ClientError::ParseURL` to `ClientError::ParseUrl`
+  + Rename `ClientError::IO` to `ClientError::Io`
+  + Rename `ClientError::CLI` to `ClientError::Cli`
+  + Rename `BaseHTTPClient` to `BaseHttpClient`
 
 ## 0.10 (2020/07/01)
 
