@@ -14,7 +14,6 @@ use std::path::PathBuf;
 use super::http::{HTTPClient, Query};
 use super::json_insert;
 use super::model::*;
-use super::model::enums::TimeLimits;
 use super::oauth2::{Credentials, OAuth, Token};
 use crate::model::idtypes::{IdType, PlayContextIdType};
 
@@ -1091,7 +1090,6 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        
         match time_limit.into() {
             Some(x) => {
                 match x {
