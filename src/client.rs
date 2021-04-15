@@ -1090,18 +1090,15 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let mut params = Query::with_capacity(2);
         params.insert("limit".to_owned(), limit.into().unwrap_or(50).to_string());
-        match time_limit.into() {
-            Some(x) => {
-                match x {
-                    TimeLimits::Before(y) => {
-                        params.insert("before".to_owned(), y.to_string());
-                    }
-                    TimeLimits::After(y) => {
-                        params.insert("after".to_owned(), y.to_string());
-                    }
-                };
-            }
-            None => {}
+        if let Some(l) = time_limit.into() {
+            match l {
+                TimeLimits::Before(y) => {
+                    params.insert("before".to_owned(), y.to_string());
+                }
+                TimeLimits::After(y) => {
+                    params.insert("after".to_owned(), y.to_string());
+                }
+            };
         }
 
         let result = self
