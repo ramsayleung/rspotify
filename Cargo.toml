@@ -47,7 +47,7 @@ webbrowser = { version = "0.5.5", optional = true }
 ### HTTP ###
 # Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
 # `maybe_async`.
-async-trait = { version = "0.1.40", optional = true }
+async-trait = { version = "0.1.48", optional = true }
 base64 = "0.13.0"
 # log = "0.4.11"
 # maybe-async = "0.2.1"
