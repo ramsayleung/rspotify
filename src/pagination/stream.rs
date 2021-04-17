@@ -1,27 +1,29 @@
 //! Asynchronous implementation of automatic pagination requests.
 
+use crate::client::ClientResult;
 use crate::model::Page;
-use std::error::Error;
+use futures::future::Future;
+use futures::stream::Stream;
 
 /// Alias for `futures::stream::Stream<Item = T>`, since async mode is enabled.
-pub trait StreamOrIterator<T>: futures::stream::Stream<Item = T> {}
-impl<T, I: futures::stream::Stream<Item = T>> StreamOrIterator<T> for I {}
+pub trait Paginator<T>: Stream<Item = T> {}
+impl<T, I: Stream<Item = T>> Paginator<T> for I {}
 
-pub fn page_stream<'a, T, E, Fut, Function>(
-    f: Function,
+/// This is used to handle paginated requests automatically.
+pub fn paginate<'a, T, Fut, Request>(
+    req: Request,
     page_size: u32,
-) -> impl futures::stream::Stream<Item = Result<T, E>> + 'a
+) -> impl Stream<Item = ClientResult<T>> + 'a
 where
     T: Unpin + 'static,
-    E: Error + Unpin + 'static,
-    Fut: futures::future::Future<Output = Result<Page<T>, E>>,
-    Function: 'a + Fn(u32, u32) -> Fut,
+    Fut: Future<Output = ClientResult<Page<T>>>,
+    Request: Fn(u32, u32) -> Fut + 'a,
 {
     use async_stream::stream;
     let mut offset = 0;
     stream! {
         loop {
-            let page = f(page_size, offset).await?;
+            let page = req(page_size, offset).await?;
             offset += page.items.len() as u32;
             for item in page.items {
                 yield Ok(item);
