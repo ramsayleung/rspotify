@@ -190,11 +190,8 @@ async fn test_fake_playlist() {
 mod test_pagination {
     use super::*;
     use rspotify::client::ClientResult;
+    use rspotify::model::{idtypes::AlbumId, SimplifiedTrack};
     use rspotify::pagination::Paginator;
-    use rspotify::model::{
-        SimplifiedTrack,
-        idtypes::AlbumId,
-    };
 
     static ALBUM: &str = "spotify:album:2T7DdrOvsqOqU9bGTkjBYu";
     static SONG_NAMES: &[&str; 10] = &[
@@ -210,7 +207,10 @@ mod test_pagination {
         "Emotion",
     ];
 
-    pub fn custom_album_track_auto<'a>(client: &'a Spotify, album_id: &'a AlbumId) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
+    pub fn custom_album_track_auto<'a>(
+        client: &'a Spotify,
+        album_id: &'a AlbumId,
+    ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
         paginate(
             move |limit, offset| client.album_track(album_id, limit, offset),
             2,
