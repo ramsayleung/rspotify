@@ -15,7 +15,7 @@ use super::http::{HTTPClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
-use super::pagination::{page_stream, StreamOrIterator};
+use super::pagination::{paginate, Paginator};
 use crate::model::idtypes::{IdType, PlayContextIdType};
 
 /// Possible errors returned from the `rspotify` client.
@@ -920,6 +920,9 @@ impl Spotify {
     /// - offset - the index of the first track to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
+    /// See [`Spotify::current_user_saved_tracks_auto`] for an automatically
+    /// paginated version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
     #[maybe_async]
     pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
@@ -934,14 +937,10 @@ impl Spotify {
         self.convert_result(&result)
     }
 
-    /// Get a list of the songs saved in the current Spotify user's "Your Music"
-    /// library.
-    ///
-    /// [Reference](https://developer.spotify.com/web-api/get-users-saved-tracks/)
-    pub fn current_user_saved_tracks_stream(
-        &self,
-    ) -> impl StreamOrIterator<ClientResult<SavedTrack>> + '_ {
-        page_stream(
+    /// The automatically paginated version of
+    /// [`Spotify::current_user_saved_tracks`].
+    pub fn current_user_saved_tracks_auto(&self) -> impl Paginator<ClientResult<SavedTrack>> + '_ {
+        paginate(
             move |limit, offset| self.current_user_saved_tracks(limit, offset),
             50,
         )

@@ -1,23 +1,23 @@
 //! Synchronous implementation of automatic pagination requests.
 
+use crate::client::{ClientError, ClientResult};
 use crate::model::Page;
-use std::error::Error;
 
-/// Alias for `std::iter::Iterator<Item = T>`, since sync mode is enabled.
-pub trait StreamOrIterator<T>: std::iter::Iterator<Item = T> {}
-impl<T, I: std::iter::Iterator<Item = T>> StreamOrIterator<T> for I {}
+/// Alias for `Iterator<Item = T>`, since sync mode is enabled.
+pub trait Paginator<T>: Iterator<Item = T> {}
+impl<T, I: Iterator<Item = T>> Paginator<T> for I {}
 
-pub fn page_stream<'a, T, E, Function>(
-    f: Function,
+/// This is used to handle paginated requests automatically.
+pub fn paginate<'a, T, Request>(
+    req: Request,
     page_size: u32,
-) -> impl Iterator<Item = Result<T, E>> + 'a
+) -> impl Iterator<Item = ClientResult<T>> + 'a
 where
-    T: Unpin + 'static,
-    E: Error + Unpin + 'static,
-    Function: 'a + Fn(u32, u32) -> Result<Page<T>, E>,
+    T: 'a,
+    Request: Fn(u32, u32) -> ClientResult<Page<T>> + 'a,
 {
     let pages = PageIterator {
-        f,
+        req,
         offset: 0,
         done: false,
         page_size,
@@ -28,31 +28,27 @@ where
 
 /// Iterator that repeatedly calls a function that returns a page until an empty
 /// page is returned.
-struct PageIterator<T, E, Function>
+struct PageIterator<T, Request>
 where
-    T: Unpin + 'static,
-    E: Error + Unpin + 'static,
-    Function: Fn(u32, u32) -> Result<Page<T>, E>,
+    Request: Fn(u32, u32) -> ClientResult<Page<T>>,
 {
-    f: Function,
+    req: Request,
     offset: u32,
     done: bool,
     page_size: u32,
 }
 
-impl<T, E, Function> Iterator for PageIterator<T, E, Function>
+impl<T, Request> Iterator for PageIterator<T, Request>
 where
-    T: Unpin + 'static,
-    E: Error + Unpin + 'static,
-    Function: Fn(u32, u32) -> Result<Page<T>, E>,
+    Request: Fn(u32, u32) -> ClientResult<Page<T>>,
 {
-    type Item = Result<Page<T>, E>;
+    type Item = ClientResult<Page<T>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.done {
             None
         } else {
-            match (self.f)(self.page_size, self.offset) {
+            match (self.req)(self.page_size, self.offset) {
                 Ok(page) if page.items.is_empty() => {
                     self.done = true;
                     None
@@ -69,13 +65,13 @@ where
 
 /// Helper to transform a `Result<Iterator<Item = T>, E>` into an `Iterator<Item
 /// = Result<T, E>>`.
-struct ResultIter<T, E, I: Iterator<Item = T>> {
+struct ResultIter<T, I: Iterator<Item = T>> {
     inner: Option<I>,
-    err: Option<E>,
+    err: Option<ClientError>,
 }
 
-impl<T, E, I: Iterator<Item = T>> ResultIter<T, E, I> {
-    pub fn new(res: Result<I, E>) -> Self {
+impl<T, I: Iterator<Item = T>> ResultIter<T, I> {
+    pub fn new(res: ClientResult<I>) -> Self {
         match res {
             Ok(inner) => ResultIter {
                 inner: Some(inner),
@@ -89,8 +85,8 @@ impl<T, E, I: Iterator<Item = T>> ResultIter<T, E, I> {
     }
 }
 
-impl<T, E, I: Iterator<Item = T>> Iterator for ResultIter<T, E, I> {
-    type Item = Result<T, E>;
+impl<T, I: Iterator<Item = T>> Iterator for ResultIter<T, I> {
+    type Item = ClientResult<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match (self.err.take(), &mut self.inner) {
