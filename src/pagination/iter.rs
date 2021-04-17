@@ -43,19 +43,19 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.done {
-            None
-        } else {
-            match (self.req)(self.page_size, self.offset) {
-                Ok(page) if page.items.is_empty() => {
-                    self.done = true;
-                    None
-                }
-                Ok(page) => {
-                    self.offset += page.items.len() as u32;
-                    Some(Ok(page))
-                }
-                Err(e) => Some(Err(e)),
+            return None;
+        }
+
+        match (self.req)(self.page_size, self.offset) {
+            Ok(page) if page.items.is_empty() => {
+                self.done = true;
+                None
             }
+            Ok(page) => {
+                self.offset += page.items.len() as u32;
+                Some(Ok(page))
+            }
+            Err(e) => Some(Err(e)),
         }
     }
 }
