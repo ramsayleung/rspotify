@@ -28,17 +28,14 @@ where
 
 /// Iterator that repeatedly calls a function that returns a page until an empty
 /// page is returned.
-struct PageIterator<T, Request>
-where
-    Request: Fn(u32, u32) -> ClientResult<Page<T>>,
-{
+struct PageIterator<Request> {
     req: Request,
     offset: u32,
     done: bool,
     page_size: u32,
 }
 
-impl<T, Request> Iterator for PageIterator<T, Request>
+impl<T, Request> Iterator for PageIterator<Request>
 where
     Request: Fn(u32, u32) -> ClientResult<Page<T>>,
 {
