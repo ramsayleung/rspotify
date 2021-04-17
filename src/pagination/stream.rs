@@ -15,7 +15,7 @@ pub fn paginate<'a, T, Fut, Request>(
     page_size: u32,
 ) -> impl Stream<Item = ClientResult<T>> + 'a
 where
-    T: Unpin + 'static,
+    T: Unpin + 'a,
     Fut: Future<Output = ClientResult<Page<T>>>,
     Request: Fn(u32, u32) -> Fut + 'a,
 {
