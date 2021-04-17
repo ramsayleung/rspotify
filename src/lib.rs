@@ -7,16 +7,20 @@
 //!
 //! ## Configuration
 //!
-//! By default, Rspotify uses the [`reqwest`](reqwest)
-//! asynchronous HTTP client with its default TLS, but you can customize both
-//! the HTTP client and the TLS with the following features:
+//! ### HTTP Client
 //!
-//! - `client-reqwest`, TLS available:
+//! By default, Rspotify uses the [`reqwest`] asynchronous HTTP client with its
+//! default TLS, but you can customize both the HTTP client and the TLS with the
+//! following features:
+//!
+//! - [`reqwest`](https://github.com/seanmonstar/reqwest): enabling
+//!   `client-reqwest`, TLS available:
 //!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
-//! - `client-ureq`, TLS available:
+//! - [`ureq`](https://github.com/algesten/ureq): enabling `client-ureq`, TLS
+//!   available:
 //!     + `ureq-rustls-tls` (ureq's default)
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
@@ -31,15 +35,10 @@
 //!     features = ["client-reqwest", "reqwest-native-tls"]
 //! }
 //! ```
-//! Rspotify uses [maybe_async][maybe_async]
-//! crate to switch between different HTTP clients to get different features.
-//! In our case, `rspotify` supports async and blocking feature by triggering
-//! `maybe_async` inside `Cargo.toml`, so we don't have maintain two sets of
-//! code which are mostly same. By default, Rspotify uses asynchronous
-//! programming with `async` and `await` by leveraging `reqwest` crate by
-//! using `client-reqwest` feature. And the blocking IO feature can be
-//! enabled to access with `client-ureq` feature, with non-async methods
-//! and the `rustls` TLS:
+//!
+//! [`maybe_async`] internally enables Rspotify to  use both synchronous and
+//! asynchronous HTTP clients. You can also use `ureq`, a synchronous client,
+//! like so:
 //!
 //! ```toml
 //! [dependencies]
@@ -50,21 +49,28 @@
 //! }
 //! ```
 //!
-//! [`reqwest`](reqwest#proxies) supports system proxies by
-//! default. It reads the environment variables `HTTP_PROXY` and `HTTPS_PROXY`
-//! environmental variables to set HTTP and HTTPS proxies, respectively.
+//! ### Proxies
 //!
-//! Rspotify supports the [`dotenv` crate](dotenv), which allows you to save
-//! credentials in a `.env` file. These will then be available as environmental
-//! values when using methods like [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
+//! [`reqwest`](reqwest#proxies) supports system proxies by default. It reads
+//! the environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental
+//! variables to set HTTP and HTTPS proxies, respectively.
+//!
+//! ### Environmental variables
+//!
+//! Rspotify supports the [`dotenv`] crate, which allows you to save credentials
+//! in a `.env` file. These will then be automatically available as
+//! environmental values when using methods like
+//! [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
 //!
 //! ```toml
 //! [dependencies]
 //! rspotify = { version = "...", features = ["env-file"] }
 //! ```
 //!
-//! Rspotify includes support for CLI apps to obtain access tokens by prompting
-//! the user, after enabling the `cli` feature. See the [Authorization
+//! ### Cli utilities
+//!
+//! Rspotify includes basic support for Cli apps to obtain access tokens by
+//! prompting the user, after enabling the `cli` feature. See the [Authorization
 //! ](#authorization) section for more information.
 //!
 //! ## Getting Started
@@ -120,7 +126,7 @@
 //! example for more details on how you can implement it for something like a
 //! web server.
 //!
-//! If you're developing a CLI application, you might be interested in the
+//! If you're developing a Cli application, you might be interested in the
 //! `cli` feature, which brings the [`Spotify::prompt_for_user_token`
 //! ](crate::client::Spotify::prompt_for_user_token) and
 //! [`Spotify::prompt_for_user_token_without_cache`
@@ -129,7 +135,7 @@
 //! by opening the request URL in its default browser, and the requests will be
 //! performed automatically.
 //!
-//! An example of the CLI authentication:
+//! An example of the Cli authentication:
 //!
 //! ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
 //!
@@ -153,15 +159,17 @@
 
 use getrandom::getrandom;
 
-// disable all modules when both client features are enabled,
-// this way only the compile error below gets show
-// instead of showing a whole list of confusing errors
+// Disable all modules when both client features are enabled or when none are.
+// This way only the compile error below gets shown instead of a whole list of
+// confusing errors..
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod client;
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 mod http;
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod model;
+#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
@@ -172,8 +180,15 @@ mod macros;
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(
-    "`client-reqwest` and `client-ureq` features cannot both be enabled at the same time, \
-  if you want to use `client-ureq` you need to set `default-features = false`"
+    "`client-reqwest` and `client-ureq` features cannot both be enabled at \
+    the same time, if you want to use `client-ureq` you need to set \
+    `default-features = false`"
+);
+
+#[cfg(not(any(feature = "client-reqwest", feature = "client-ureq")))]
+compile_error!(
+    "You have to enable at least one of the available clients with the \
+    `client-reqwest` or `client-ureq` features."
 );
 
 /// Generate `length` random chars
@@ -191,19 +206,8 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_random_string, json_insert, scopes};
-    use serde_json::json;
+    use super::generate_random_string;
     use std::collections::HashSet;
-
-    #[test]
-    fn test_hashset() {
-        let scope = scopes!("hello", "world", "foo", "bar");
-        assert_eq!(scope.len(), 4);
-        assert!(scope.contains(&"hello".to_owned()));
-        assert!(scope.contains(&"world".to_owned()));
-        assert!(scope.contains(&"foo".to_owned()));
-        assert!(scope.contains(&"bar".to_owned()));
-    }
 
     #[test]
     fn test_generate_random_string() {
@@ -212,13 +216,5 @@ mod test {
             containers.insert(generate_random_string(10));
         }
         assert_eq!(containers.len(), 100);
-    }
-
-    #[test]
-    fn test_json_insert() {
-        let mut params = json!({});
-        let name = "ramsay";
-        json_insert!(params, "name", name);
-        assert_eq!(params["name"], name);
     }
 }

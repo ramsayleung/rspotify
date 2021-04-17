@@ -1,10 +1,12 @@
 //! All objects related to artist defined by Spotify API
+
 use serde::{Deserialize, Serialize};
 
 use super::image::Image;
 use super::page::CursorBasedPage;
 use crate::model::{Followers, Type};
 use std::collections::HashMap;
+
 /// Simplified Artist Object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedartistobject)

@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use rspotify::model::*;
 use std::time::Duration;
+
 #[test]
 fn test_simplified_track() {
     let json_str = r#"
@@ -66,6 +67,7 @@ fn test_public_user() {
     let user: PublicUser = serde_json::from_str(&json_str).unwrap();
     assert_eq!(user.id, "wizzler".to_string());
 }
+
 #[test]
 fn test_private_user() {
     let json_str = r#"
@@ -278,6 +280,7 @@ fn test_audio_analysis_section() {
     let session: AudioAnalysisSection = serde_json::from_str(&json_str).unwrap();
     assert_eq!(session.time_interval.duration, 18.32542);
 }
+
 #[test]
 fn test_audio_analysis_segments() {
     let json_str = r#"

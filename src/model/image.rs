@@ -1,4 +1,5 @@
 //! Image object
+
 use serde::{Deserialize, Serialize};
 
 /// Image object

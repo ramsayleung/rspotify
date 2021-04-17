@@ -428,7 +428,7 @@ impl Spotify {
         std::io::stdin().read_line(&mut input)?;
         let code = self
             .parse_response_code(&input)
-            .ok_or_else(|| ClientError::CLI("unable to parse the response code".to_string()))?;
+            .ok_or_else(|| ClientError::Cli("unable to parse the response code".to_string()))?;
 
         Ok(code)
     }

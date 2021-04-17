@@ -9,6 +9,9 @@ use thiserror::Error;
 // This is a sealed trait pattern implementation, it stops external code from
 // implementing the `IdType` trait. The `Sealed` trait must be in a private mod,
 // so external code can not see and implement it.
+//
+// We use the `sealed_types` macro for an easier implementation here.
+//
 // See also: https://rust-lang.github.io/api-guidelines/future-proofing.html
 mod private {
     pub trait Sealed {}
@@ -60,7 +63,7 @@ pub type EpisodeIdBuf = IdBuf<Episode>;
 
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
 ///
-/// This is a not-owning type, it stores a &str only.
+/// This is a not-owning type, it stores a `&str` only.
 /// See [IdBuf](crate::model::idtypes::IdBuf) for owned version of the type.
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Id<T> {
@@ -72,7 +75,7 @@ pub struct Id<T> {
 
 /// A Spotify object id of given [type](crate::model::enums::types::Type)
 ///
-/// This is an owning type, it stores a String.
+/// This is an owning type, it stores a `String`.
 /// See [Id](crate::model::idtypes::Id) for light-weight non-owning type.
 ///
 /// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or
@@ -201,8 +204,8 @@ impl<T: IdType> Id<T> {
 
     /// Full Spotify object URL, can be opened in a browser
     ///
-    /// Examples: https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an,
-    /// https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI
+    /// Examples: `https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an`,
+    /// `https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI`.
     pub fn url(&self) -> String {
         format!("https://open.spotify.com/{}/{}", T::TYPE, &self.id)
     }

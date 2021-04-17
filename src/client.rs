@@ -38,20 +38,20 @@ pub enum ClientError {
     StatusCode(u16, String),
 
     #[error("spotify error: {0}")]
-    API(#[from] APIError),
+    Api(#[from] ApiError),
 
     #[error("json parse error: {0}")]
-    ParseJSON(#[from] serde_json::Error),
+    ParseJson(#[from] serde_json::Error),
 
     #[error("url parse error: {0}")]
-    ParseURL(#[from] url::ParseError),
+    ParseUrl(#[from] url::ParseError),
 
     #[error("input/output error: {0}")]
-    IO(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
 
     #[cfg(feature = "cli")]
     #[error("cli error: {0}")]
-    CLI(String),
+    Cli(String),
 
     #[error("cache file error: {0}")]
     CacheFile(String),
@@ -62,7 +62,7 @@ pub type ClientResult<T> = Result<T, ClientError>;
 /// Matches errors that are returned from the Spotfiy
 /// API as part of the JSON response object.
 #[derive(Debug, Error, Deserialize)]
-pub enum APIError {
+pub enum ApiError {
     /// See [Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-errorobject)
     #[error("{status}: {message}")]
     #[serde(alias = "error")]
@@ -2000,14 +2000,16 @@ impl Spotify {
         &self,
         ids: impl IntoIterator<Item = &'a EpisodeId>,
         market: Option<Market>,
-    ) -> ClientResult<SeveralEpisodes> {
+    ) -> ClientResult<Vec<FullEpisode>> {
         let mut params = Query::with_capacity(1);
         params.insert("ids".to_owned(), join_ids(ids));
         if let Some(market) = market {
             params.insert("market".to_owned(), market.to_string());
         }
+
         let result = self.endpoint_get("episodes", &params).await?;
-        self.convert_result(&result)
+        self.convert_result::<EpisodesPayload>(&result)
+            .map(|x| x.episodes)
     }
 
     /// Check if one or more shows is already saved in the current Spotify user’s library.
