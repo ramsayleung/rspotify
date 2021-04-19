@@ -935,12 +935,21 @@ impl Spotify {
     /// - offset - the index of the first track to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
-    /// See [`Spotify::current_user_saved_tracks_auto`] for an automatically
+    /// See [`Spotify::current_user_saved_tracks_manual`] for a manually
     /// paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
+    pub fn current_user_saved_tracks(&self) -> impl Paginator<ClientResult<SavedTrack>> + '_ {
+        paginate(
+            move |limit, offset| self.current_user_saved_tracks_manual(limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of
+    /// [`Spotify::current_user_saved_tracks`].
     #[maybe_async]
-    pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_saved_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
         offset: O,
@@ -952,15 +961,6 @@ impl Spotify {
         params.insert("offset", &offset);
         let result = self.endpoint_get("me/tracks", &params).await?;
         self.convert_result(&result)
-    }
-
-    /// The automatically paginated version of
-    /// [`Spotify::current_user_saved_tracks`].
-    pub fn current_user_saved_tracks_auto(&self) -> impl Paginator<ClientResult<SavedTrack>> + '_ {
-        paginate(
-            move |limit, offset| self.current_user_saved_tracks(limit, offset),
-            50,
-        )
     }
 
     /// Gets a list of the artists followed by the current authorized user.
