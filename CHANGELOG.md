@@ -209,6 +209,8 @@ If we missed any change or there's something you'd like to discuss about this ve
 
   As a side effect, some methods now take references instead of values (so that they can be used multiple times when querying), and the parameters have been reordered so that the `limit` and `offset` are consistently the last two.
 
+  The pagination chunk size can be configured with the `Spotify::pagination_chunks` field, which is set to 50 items by default.
+
 ## 0.10 (2020/07/01)
 
 - Add `get_access_token_without_cache` and `refresh_access_token_without_cache` to get and refresh access token without caching it.
