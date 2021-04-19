@@ -20,7 +20,7 @@ pub use self::reqwest::ReqwestClient as HTTPClient;
 pub use self::ureq::UreqClient as HTTPClient;
 
 pub type Headers = HashMap<String, String>;
-pub type Query = HashMap<String, String>;
+pub type Query<'a> = HashMap<&'a str, &'a str>;
 pub type Form<'a> = HashMap<&'a str, &'a str>;
 
 pub mod headers {
@@ -144,11 +144,11 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub(crate) async fn get(
+    pub(crate) async fn get<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Query,
+        payload: &Query<'a>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
         self.http.get(&url, headers, payload).await
@@ -206,7 +206,7 @@ impl Spotify {
     /// autentication.
     #[inline]
     #[maybe_async]
-    pub(crate) async fn endpoint_get(&self, url: &str, payload: &Query) -> ClientResult<String> {
+    pub(crate) async fn endpoint_get<'a>(&self, url: &str, payload: &Query<'a>) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.get(url, Some(&headers), payload).await
     }

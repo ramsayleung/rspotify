@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::ToString;
+use strum::{ToString, AsRefStr};
 
 use super::Country;
 
@@ -27,7 +27,7 @@ pub enum DisallowKey {
 /// Time range: `long-term`, `medium-term`, `short-term`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/personalization/get-users-top-artists-and-tracks/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum TimeRange {
@@ -51,7 +51,7 @@ pub enum RepeatState {
 /// Type for include_external: `audio`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum IncludeExternal {
@@ -102,12 +102,24 @@ pub enum Market {
     Country(Country),
     FromToken,
 }
+pub trait AsRefStr {
+    fn as_ref(&self) -> &str;
+}
 
 impl ToString for Market {
     fn to_string(&self) -> String {
         match self {
             Market::Country(c) => c.to_string(),
             Market::FromToken => "from_token".to_string(),
+        }
+    }
+}
+
+impl AsRefStr for Market {
+    fn as_ref(&self) -> &str {
+        match self {
+            Market::Country(country) => country.as_ref(),
+            Market::FromToken => "from_token",
         }
     }
 }

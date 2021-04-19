@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString, ToString};
+use strum::{Display, EnumString, ToString, AsRefStr};
 
 /// Copyright type: `C` = the copyright, `P` = the sound recording (performance)
 /// copyright.
@@ -18,7 +18,7 @@ pub enum CopyrightType {
 /// Album type: `album`, `single`, `appears_on`, `compilation`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum AlbumType {
@@ -29,7 +29,7 @@ pub enum AlbumType {
 }
 
 /// Type: `artist`, `album`, `track`, `playlist`, `show` or `episode`
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Display, EnumString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Display, EnumString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Type {
@@ -45,7 +45,7 @@ pub enum Type {
 /// Additional typs: `track`, `episode`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum AdditionalType {
@@ -71,7 +71,7 @@ pub enum CurrentlyPlayingType {
 /// Type for search: `artist`, `album`, `track`, `playlist`, `show`, `episode`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum SearchType {
