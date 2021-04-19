@@ -110,3 +110,6 @@ path = "examples/ureq/search.rs"
 name = "seek_track"
 required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/seek_track.rs"
+
+[profile.dev]
+split-debuginfo = "unpacked"
