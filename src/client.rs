@@ -15,6 +15,7 @@ use super::http::{HTTPClient, Query};
 use super::json_insert;
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
+use super::pagination::{paginate, Paginator};
 use crate::model::idtypes::{IdType, PlayContextIdType};
 use std::collections::HashMap;
 
@@ -934,6 +935,9 @@ impl Spotify {
     /// - offset - the index of the first track to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
+    /// See [`Spotify::current_user_saved_tracks_auto`] for an automatically
+    /// paginated version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
     #[maybe_async]
     pub async fn current_user_saved_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
@@ -948,6 +952,15 @@ impl Spotify {
         params.insert("offset", &offset);
         let result = self.endpoint_get("me/tracks", &params).await?;
         self.convert_result(&result)
+    }
+
+    /// The automatically paginated version of
+    /// [`Spotify::current_user_saved_tracks`].
+    pub fn current_user_saved_tracks_auto(&self) -> impl Paginator<ClientResult<SavedTrack>> + '_ {
+        paginate(
+            move |limit, offset| self.current_user_saved_tracks(limit, offset),
+            50,
+        )
     }
 
     /// Gets a list of the artists followed by the current authorized user.
