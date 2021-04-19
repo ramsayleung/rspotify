@@ -129,12 +129,12 @@ impl BaseHttpClient for ReqwestClient {
     }
 
     #[inline]
-    async fn put(
+    async fn put<'a, T: Deserialize<'a>>(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> ClientResult<String> {
+    ) -> ClientResult<T> {
         self.request(Method::PUT, url, headers, |req| req.json(payload))
             .await
     }

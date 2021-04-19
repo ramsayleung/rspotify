@@ -95,7 +95,12 @@ impl BaseHttpClient for UreqClient {
     }
 
     #[inline]
-    fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
+    fn put<'a, T: Deserialize<'a>>(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<T> {
         let request = ureq::put(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)

@@ -93,12 +93,12 @@ pub trait BaseHttpClient: Default + Clone + fmt::Debug {
         payload: &Form,
     ) -> ClientResult<String>;
 
-    async fn put(
+    async fn put<'a, T: Deserialize<'a>>(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> ClientResult<String>;
+    ) -> ClientResult<T>;
 
     async fn delete(
         &self,
@@ -180,12 +180,12 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub(crate) async fn put(
+    pub(crate) async fn put<'a, T: Deserialize<'a>>(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> ClientResult<String> {
+    ) -> ClientResult<T> {
         let url = self.endpoint_url(url);
         self.http.put(&url, headers, payload).await
     }
