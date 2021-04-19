@@ -236,12 +236,27 @@ impl Spotify {
     /// - offset - the index of the first album to return
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
+    pub fn artist_albums<'a>(
+        &'a self,
+        artist_id: &'a ArtistId,
+        album_type: Option<AlbumType>,
+        market: Option<&'a Market>,
+    ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
+        paginate(
+            move |limit, offset| {
+                self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
+            },
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`artist_albums`].
     #[maybe_async]
-    pub async fn artist_albums(
+    pub async fn artist_albums_manual(
         &self,
         artist_id: &ArtistId,
         album_type: Option<AlbumType>,
-        market: Option<Market>,
+        market: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
@@ -389,8 +404,18 @@ impl Spotify {
     /// - offset - the index of the first item to return
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
+    pub fn album_track<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &'a self,
+        album_id: &'a AlbumId,
+    ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
+        paginate(
+            move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
+            50,
+        )
+    }
+
     #[maybe_async]
-    pub async fn album_track<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn album_track_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         album_id: &AlbumId,
         limit: L,
@@ -453,8 +478,17 @@ impl Spotify {
     /// - offset - the index of the first item to return
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
+    pub fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+    ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + '_ {
+        paginate(
+            move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
+            50,
+        )
+    }
+
     #[maybe_async]
-    pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
         offset: O,
@@ -477,8 +511,18 @@ impl Spotify {
     /// - offset - the index of the first item to return
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
+    pub fn user_playlists<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &'a self,
+        user_id: &'a UserId,
+    ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
+        paginate(
+            move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
+            50,
+        )
+    }
+
     #[maybe_async]
-    pub async fn user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn user_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         user_id: &UserId,
         limit: L,
@@ -537,14 +581,28 @@ impl Spotify {
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
+    pub fn playlist_tracks<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &'a self,
+        playlist_id: &'a PlaylistId,
+        fields: Option<&'a str>,
+        market: Option<&'a Market>,
+    ) -> impl Paginator<ClientResult<PlaylistItem>> + 'a {
+        paginate(
+            move |limit, offset| {
+                self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
+            },
+            50,
+        )
+    }
+
     #[maybe_async]
-    pub async fn playlist_tracks<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn playlist_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         playlist_id: &PlaylistId,
         fields: Option<&str>,
+        market: Option<&Market>,
         limit: L,
         offset: O,
-        market: Option<Market>,
     ) -> ClientResult<Page<PlaylistItem>> {
         let mut params = Query::with_capacity(2);
         let limit = limit.into().unwrap_or(50).to_string();
@@ -912,13 +970,24 @@ impl Spotify {
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
+    pub fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &self,
+    ) -> impl Paginator<ClientResult<SavedAlbum>> + '_ {
+        paginate(
+            move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
+            50,
+        )
+    }
+
     #[maybe_async]
-    pub async fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_saved_albums_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SavedAlbum>> {
         let mut params = Query::with_capacity(2);
+        // TODO: we should use the API's default value instead of
+        // `.unwrap_or(20)` and similars.
         let limit = limit.into().unwrap_or(20).to_string();
         let offset = offset.into().unwrap_or(0).to_string();
         params.insert("limit", &limit);
