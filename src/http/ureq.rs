@@ -75,17 +75,17 @@ impl BaseHttpClient for UreqClient {
     }
 
     #[inline]
-    fn post_form(
+    fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'a>,
     ) -> ClientResult<String> {
         let request = ureq::post(url);
         let sender = |req: Request| {
             let payload = payload
                 .iter()
-                .map(|(key, val)| (key.as_str(), val.as_str()))
+                .map(|(key, val)| (*key, *val))
                 .collect::<Vec<_>>();
 
             req.send_form(&payload)
