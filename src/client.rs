@@ -117,7 +117,10 @@ pub struct Spotify {
     /// The pagination chunk size used when performing automatically paginated
     /// requests, like [`Spotify::artist_albums`]. This means that a request
     /// will be performed every `pagination_chunks` items. By default this is
-    /// [`DEFAULT_PAGINATION_CHUNKS`]
+    /// [`DEFAULT_PAGINATION_CHUNKS`].
+    ///
+    /// Note that most endpoints set a maximum to the number of items per
+    /// request, which most times is 50.
     #[builder(default = "DEFAULT_PAGINATION_CHUNKS")]
     pub pagination_chunks: u32,
 }
