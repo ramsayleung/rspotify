@@ -45,22 +45,34 @@ macro_rules! params_internal {
     };
 }
 
+#[macro_export]
+macro_rules! opt {
+    (, $def:expr) => {
+        $def
+    };
+    ($opt:expr, $def:expr) => {
+        $opt
+    };
+}
+
 /// TODO: use with_capacity?
+/// The usage of this macro is similar to a struct initialization, in the sense
+/// that you may provide a single identifier if
 #[macro_export]
 macro_rules! map_query {
     (
         $(
-            $kind:ident $name:ident => $val:expr
+            $kind:ident $name:ident $( => $val:expr )?
         ),* $(,)?
     ) => ({
-        let mut params = crate::http::Query::new();
+        let mut params = $crate::http::Query::new();
         $(
-            crate::params_internal!(
+            $crate::params_internal!(
                 params,
                 $kind,
                 $name,
                 stringify!($name),
-                $val
+                $crate::opt!($( $val )?, $name)
             );
         )*
         params
@@ -71,18 +83,17 @@ macro_rules! map_query {
 macro_rules! map_json {
     (
         $(
-            $kind:ident $name:ident => $val:expr
+            $kind:ident $name:ident $( => $val:expr )?
         ),* $(,)?
     ) => ({
         let mut params = ::serde_json::map::Map::new();
         $(
-
-            crate::params_internal!(
+            $crate::params_internal!(
                 params,
                 $kind,
                 $name,
                 stringify!($name).to_string(),
-                json!($val)
+                json!($crate::opt!($( $val )?, $name))
             );
         )*
         ::serde_json::Value::from(params)
