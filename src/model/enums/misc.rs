@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, ToString};
+use strum::AsRefStr;
 
 use super::Country;
 
@@ -8,7 +8,7 @@ use super::Country;
 /// `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum DisallowKey {
@@ -27,7 +27,7 @@ pub enum DisallowKey {
 /// Time range: `long-term`, `medium-term`, `short-term`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/personalization/get-users-top-artists-and-tracks/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum TimeRange {
@@ -39,7 +39,7 @@ pub enum TimeRange {
 /// Repeat state: `track`, `context` or `off`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/set-repeat-mode-on-users-playback/)
-#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, ToString, AsRefStr)]
+#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RepeatState {
@@ -51,7 +51,7 @@ pub enum RepeatState {
 /// Type for include_external: `audio`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum IncludeExternal {
@@ -61,7 +61,7 @@ pub enum IncludeExternal {
 /// Date precision: `year`, `month`, `day`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/):
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum DatePrecision {
@@ -73,7 +73,7 @@ pub enum DatePrecision {
 /// The reason for the restriction: `market`, `product`, `explicit`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RestrictionReason {
@@ -87,7 +87,7 @@ pub enum RestrictionReason {
 /// a -1 for `no result`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 pub enum Modality {
     Minor = 0,
     Major = 1,
@@ -104,15 +104,6 @@ pub enum Market {
 }
 pub trait AsRefStr {
     fn as_ref(&self) -> &str;
-}
-
-impl ToString for Market {
-    fn to_string(&self) -> String {
-        match self {
-            Market::Country(c) => c.to_string(),
-            Market::FromToken => "from_token".to_string(),
-        }
-    }
 }
 
 impl AsRefStr for Market {

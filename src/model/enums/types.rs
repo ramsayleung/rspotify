@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, EnumString, ToString};
+use strum::{AsRefStr, Display, EnumString};
 
 /// Copyright type: `C` = the copyright, `P` = the sound recording (performance)
 /// copyright.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 pub enum CopyrightType {
     #[strum(serialize = "P")]
     #[serde(rename = "P")]
@@ -18,7 +18,7 @@ pub enum CopyrightType {
 /// Album type: `album`, `single`, `appears_on`, `compilation`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum AlbumType {
@@ -47,7 +47,7 @@ pub enum Type {
 /// Additional typs: `track`, `episode`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum AdditionalType {
@@ -58,7 +58,7 @@ pub enum AdditionalType {
 /// Currently playing type: `track`, `episode`, `ad`, `unknown`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-the-users-currently-playing-track/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum CurrentlyPlayingType {
@@ -73,7 +73,7 @@ pub enum CurrentlyPlayingType {
 /// Type for search: `artist`, `album`, `track`, `playlist`, `show`, `episode`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum SearchType {
@@ -90,7 +90,7 @@ pub enum SearchType {
 /// (The subscription level "open" can be considered the same as "free".)
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/users-profile/get-current-users-profile/)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum SubscriptionLevel {
@@ -102,7 +102,7 @@ pub enum SubscriptionLevel {
 /// Device Type: `computer`, `smartphone`, `speaker`, `TV`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
-#[derive(Clone, Debug, Serialize, Deserialize, ToString, PartialEq, Eq, AsRefStr)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, AsRefStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum DeviceType {
     Computer,
