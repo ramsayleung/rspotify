@@ -208,7 +208,7 @@ mod test_pagination {
     #[test]
     fn test_pagination_sync() {
         let mut client = creds_client();
-        client.pagination_chunks = 100;
+        client.pagination_chunks = 2;
         let album = Id::from_uri(ALBUM).unwrap();
 
         let names = client
