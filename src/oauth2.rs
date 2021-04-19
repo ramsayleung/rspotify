@@ -246,7 +246,7 @@ impl Spotify {
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
-    async fn fetch_access_token(&self, payload: &Form) -> ClientResult<Token> {
+    async fn fetch_access_token<'a>(&self, payload: &Form<'a>) -> ClientResult<Token> {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
@@ -267,16 +267,13 @@ impl Spotify {
     ///
     /// The obtained token will be saved internally.
     #[maybe_async]
-    pub async fn refresh_user_token_without_cache(
+    pub async fn refresh_user_token_without_cache<'a>(
         &mut self,
-        refresh_token: &str,
+        refresh_token: &'a str,
     ) -> ClientResult<()> {
         let mut data = Form::new();
-        data.insert(headers::REFRESH_TOKEN.to_owned(), refresh_token.to_owned());
-        data.insert(
-            headers::GRANT_TYPE.to_owned(),
-            headers::GRANT_REFRESH_TOKEN.to_owned(),
-        );
+        data.insert(headers::REFRESH_TOKEN, refresh_token);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
         let mut tok = self.fetch_access_token(&data).await?;
         tok.refresh_token = Some(refresh_token.to_string());
@@ -299,10 +296,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn request_client_token_without_cache(&mut self) -> ClientResult<()> {
         let mut data = Form::new();
-        data.insert(
-            headers::GRANT_TYPE.to_owned(),
-            headers::GRANT_CLIENT_CREDS.to_owned(),
-        );
+        data.insert(headers::GRANT_TYPE, headers::GRANT_CLIENT_CREDS);
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
@@ -338,22 +332,20 @@ impl Spotify {
     pub async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
         let oauth = self.get_oauth()?;
         let mut data = Form::new();
+        let scopes = oauth.scope
+        .clone()
+        .into_iter()
+        .collect::<Vec<_>>()
+        .join(" ");
+        data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
+        data.insert(headers::REDIRECT_URI, oauth.redirect_uri.as_ref());
+        data.insert(headers::CODE, code);
         data.insert(
-            headers::GRANT_TYPE.to_owned(),
-            headers::GRANT_AUTH_CODE.to_owned(),
+            headers::SCOPE,
+                
+            scopes.as_ref()
         );
-        data.insert(headers::REDIRECT_URI.to_owned(), oauth.redirect_uri.clone());
-        data.insert(headers::CODE.to_owned(), code.to_owned());
-        data.insert(
-            headers::SCOPE.to_owned(),
-            oauth
-                .scope
-                .clone()
-                .into_iter()
-                .collect::<Vec<_>>()
-                .join(" "),
-        );
-        data.insert(headers::STATE.to_owned(), oauth.state.clone());
+        data.insert(headers::STATE, oauth.state.as_ref());
 
         self.token = Some(self.fetch_access_token(&data).await?);
 

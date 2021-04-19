@@ -75,11 +75,11 @@ impl BaseHttpClient for UreqClient {
     }
 
     #[inline]
-    fn post_form(
+    fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'a>,
     ) -> ClientResult<String> {
         let request = ureq::post(url);
         let sender = |req: Request| {

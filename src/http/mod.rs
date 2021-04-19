@@ -21,7 +21,7 @@ pub use self::ureq::UreqClient as HTTPClient;
 
 pub type Headers = HashMap<String, String>;
 pub type Query = HashMap<String, String>;
-pub type Form = HashMap<String, String>;
+pub type Form<'a> = HashMap<&'a str, &'a str>;
 
 pub mod headers {
     use crate::oauth2::Token;
@@ -86,11 +86,11 @@ pub trait BaseHttpClient: Default + Clone + fmt::Debug {
         payload: &Value,
     ) -> ClientResult<String>;
 
-    async fn post_form(
+    async fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'a>,
     ) -> ClientResult<String>;
 
     async fn put(
@@ -168,11 +168,11 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub(crate) async fn post_form(
+    pub(crate) async fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'a>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
         self.http.post_form(&url, headers, payload).await
