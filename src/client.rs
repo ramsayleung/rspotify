@@ -12,7 +12,7 @@ use thiserror::Error;
 use std::path::PathBuf;
 
 use super::http::{HTTPClient, Query};
-use super::json_insert;
+use super::{json_params, map_params, json_insert};
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
 use super::pagination::{paginate, Paginator};
@@ -193,11 +193,9 @@ impl Spotify {
         market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
-
-        let mut params = Query::new();
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let params = map_params! {
+            opt market => market.as_ref(),
+        };
 
         let url = format!("tracks/?ids={}", ids);
         let result = self.endpoint_get(&url, &params).await?;
@@ -273,21 +271,15 @@ impl Spotify {
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let mut params = Query::new();
-        if let Some(ref album_type) = album_type {
-            params.insert("album_type", album_type.as_ref());
-        }
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
         let limit = limit.map(|x| x.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", limit);
-        }
         let offset = offset.map(|x| x.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", offset);
-        }
+        let params = map_params! {
+            opt album_type => album_type.as_ref(),
+            opt market => market.as_ref(),
+            opt limit => limit.as_ref(),
+            opt offset => offset.as_ref(),
+        };
+
         let url = format!("artists/{}/albums", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -307,9 +299,9 @@ impl Spotify {
         artist_id: &ArtistId,
         market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
-        let mut params = Query::with_capacity(1);
-
-        params.insert("market", market.as_ref());
+        let params = map_params! {
+            req market => market.as_ref()
+        };
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -385,29 +377,22 @@ impl Spotify {
     pub async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         q: &str,
-        _type: SearchType,
+        r#type: SearchType,
         market: Option<Market>,
         include_external: Option<IncludeExternal>,
         limit: L,
         offset: O,
     ) -> ClientResult<SearchResult> {
-        let mut params = Query::with_capacity(4);
-        params.insert("q", q);
-        params.insert("type", _type.as_ref());
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
-        if let Some(ref include_external) = include_external {
-            params.insert("include_external", include_external.as_ref());
-        }
         let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
         let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let params = map_params! {
+            req q => q,
+            req r#type => r#type.as_ref(),
+            opt market => market.as_ref(),
+            opt include_external => include_external.as_ref(),
+            opt limit => &limit,
+            opt offset => &offset,
+        };
 
         let result = self.endpoint_get("search", &params).await?;
         self.convert_result(&result)
@@ -442,15 +427,12 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedTrack>> {
-        let mut params = Query::with_capacity(2);
         let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
         let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+        };
 
         let url = format!("albums/{}/tracks", album_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -484,13 +466,10 @@ impl Spotify {
         fields: Option<&str>,
         market: Option<Market>,
     ) -> ClientResult<FullPlaylist> {
-        let mut params = Query::new();
-        if let Some(fields) = fields {
-            params.insert("fields", fields);
-        }
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let params = map_params! {
+            opt fields => fields,
+            opt market => market.as_ref(),
+        };
 
         let url = format!("playlists/{}", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -1622,14 +1601,11 @@ impl Spotify {
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        if let Some(ref market) = country {
-            params.insert("country", market.as_ref());
-        }
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+            opt market => market.as_ref(),
+        };
 
         let url = format!("browse/categories/{}/playlists", category_id);
         let result = self.endpoint_get(&url, &params).await?;

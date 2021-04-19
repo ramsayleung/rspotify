@@ -45,6 +45,41 @@ macro_rules! json_insert {
     };
 }
 
+#[macro_export]
+macro_rules! params_internal {
+    ($map:ident, req, $key:ident, $val:expr) => (
+        $map.insert(stringify!($key), $val);
+    );
+    ($map:ident, opt, $key:ident, $val:expr) => (
+        if let Some(ref $key) = $key {
+            $map.insert(stringify!($key), $val);
+        }
+    );
+}
+
+/// TODO: use with_capacity?
+#[macro_export]
+macro_rules! map_params {
+    (
+        $(
+            $kind:ident $key:ident => $val:expr
+        ),* $(,)?
+    ) => ({
+        let mut params = crate::http::Query::new();
+        $(
+            crate::params_internal!(params, $kind, $key, $val);
+        )*
+        params
+    });
+}
+
+#[macro_export]
+macro_rules! json_params {
+    () => {
+
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{json_insert, scopes};
