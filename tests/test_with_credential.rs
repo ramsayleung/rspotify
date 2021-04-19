@@ -5,7 +5,6 @@ use rspotify::oauth2::CredentialsBuilder;
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
     model::{AlbumType, Country, Id, Market},
-    pagination::paginate,
 };
 
 use maybe_async::maybe_async;
@@ -189,9 +188,6 @@ async fn test_fake_playlist() {
 
 mod test_pagination {
     use super::*;
-    use rspotify::client::ClientResult;
-    use rspotify::model::{idtypes::AlbumId, SimplifiedTrack};
-    use rspotify::pagination::Paginator;
 
     static ALBUM: &str = "spotify:album:2T7DdrOvsqOqU9bGTkjBYu";
     static SONG_NAMES: &[&str; 10] = &[
@@ -207,24 +203,16 @@ mod test_pagination {
         "Emotion",
     ];
 
-    pub fn custom_album_track_auto<'a>(
-        client: &'a Spotify,
-        album_id: &'a AlbumId,
-    ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
-        paginate(
-            move |limit, offset| client.album_track_manual(album_id, limit, offset),
-            2,
-        )
-    }
-
     /// This test iterates a request of 10 items, with 5 requests of 2 items.
     #[cfg(feature = "__sync")]
     #[test]
     fn test_pagination_sync() {
-        let client = creds_client();
+        let mut client = creds_client();
+        client.pagination_chunks = 100;
         let album = Id::from_uri(ALBUM).unwrap();
 
-        let names = custom_album_track_auto(&client, &album)
+        let names = client
+            .album_track(&album)
             .map(|track| track.unwrap().name)
             .collect::<Vec<_>>();
 
@@ -237,11 +225,12 @@ mod test_pagination {
     async fn test_pagination_async() {
         use futures_util::StreamExt;
 
-        let client = creds_client().await;
+        let mut client = creds_client().await;
+        client.pagination_chunks = 2;
         let album = Id::from_uri(ALBUM).unwrap();
 
-        let results = custom_album_track_auto(&client, &album);
-        let names = results
+        let names = client
+            .album_track(&album)
             .map(|track| track.unwrap().name)
             .collect::<Vec<_>>()
             .await;

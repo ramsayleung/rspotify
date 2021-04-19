@@ -417,7 +417,7 @@ impl Spotify {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
-    pub fn album_track<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub fn album_track<'a>(
         &'a self,
         album_id: &'a AlbumId,
     ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
@@ -495,9 +495,7 @@ impl Spotify {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
-    pub fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-    ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + '_ {
+    pub fn current_user_playlists(&self) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + '_ {
         paginate(
             move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
             self.pagination_chunks,
@@ -532,7 +530,7 @@ impl Spotify {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
-    pub fn user_playlists<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub fn user_playlists<'a>(
         &'a self,
         user_id: &'a UserId,
     ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
@@ -606,7 +604,7 @@ impl Spotify {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
-    pub fn playlist_tracks<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub fn playlist_tracks<'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
@@ -999,9 +997,7 @@ impl Spotify {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
-    pub fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-    ) -> impl Paginator<ClientResult<SavedAlbum>> + '_ {
+    pub fn current_user_saved_albums(&self) -> impl Paginator<ClientResult<SavedAlbum>> + '_ {
         paginate(
             move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
             self.pagination_chunks,
@@ -1444,7 +1440,7 @@ impl Spotify {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
-    pub fn new_releases<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub fn new_releases<'a>(
         &'a self,
         country: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
@@ -1541,7 +1537,7 @@ impl Spotify {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
-    pub fn category_playlists<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub fn category_playlists<'a>(
         &'a self,
         category_id: &'a str,
         country: Option<&'a Market>,
