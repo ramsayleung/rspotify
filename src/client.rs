@@ -1456,7 +1456,7 @@ impl Spotify {
             params.insert(key, value);
         }
 
-        let seed_artists = seed_artists.map(|x| join_ids(x));
+        let seed_artists = seed_artists.map(join_ids);
         if let Some(ref seed_artists) = seed_artists {
             params.insert("seed_artists", seed_artists);
         }
@@ -1466,7 +1466,7 @@ impl Spotify {
             params.insert("seed_genres", seed_genres);
         }
 
-        let seed_tracks = seed_tracks.map(|x| join_ids(x));
+        let seed_tracks = seed_tracks.map(join_ids);
         if let Some(ref seed_tracks) = seed_tracks {
             params.insert("seed_tracks", seed_tracks);
         }
@@ -1791,7 +1791,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
         let url = self.append_device_id(
-            &format!("me/player/repeat?state={}", state.to_string()),
+            &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
         );
         self.endpoint_put(&url, &json!({})).await?;

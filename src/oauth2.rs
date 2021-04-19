@@ -267,9 +267,9 @@ impl Spotify {
     ///
     /// The obtained token will be saved internally.
     #[maybe_async]
-    pub async fn refresh_user_token_without_cache<'a>(
+    pub async fn refresh_user_token_without_cache(
         &mut self,
-        refresh_token: &'a str,
+        refresh_token: &str,
     ) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
