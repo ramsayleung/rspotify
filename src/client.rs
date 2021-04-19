@@ -1399,11 +1399,11 @@ impl Spotify {
         let offset = offset.map(|x| x.to_string());
         let timestamp = timestamp.map(|x| x.to_rfc3339());
         let params = map_query! {
-            opt limit => &limit,
-            opt offset => &offset,
             opt locale,
             opt market => market.as_ref(),
             opt timestamp,
+            opt limit => &limit,
+            opt offset => &offset,
         };
 
         let result = self
@@ -1494,10 +1494,10 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = map_query! {
-            opt limit => &limit,
-            opt offset => &offset,
             opt locale,
             opt market => market.as_ref(),
+            opt limit => &limit,
+            opt offset => &offset,
         };
         let result = self.endpoint_get("browse/categories", &params).await?;
         self.convert_result::<PageCategory>(&result)
@@ -1543,9 +1543,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = map_query! {
+            opt market => market.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
-            opt market => market.as_ref(),
         };
 
         let url = format!("browse/categories/{}/playlists", category_id);
