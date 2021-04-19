@@ -1001,7 +1001,8 @@ impl Spotify {
         )
     }
 
-    /// The manually paginated version of [`Spotify::current_user_saved_albums`].
+    /// The manually paginated version of
+    /// [`Spotify::current_user_saved_albums`].
     #[maybe_async]
     pub async fn current_user_saved_albums_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -2070,7 +2071,7 @@ impl Spotify {
         )
     }
 
-    /// The manually paginated version of [`Spotify::category_playlists`].
+    /// The manually paginated version of [`Spotify::get_saved_show`].
     #[maybe_async]
     pub async fn get_saved_show_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
