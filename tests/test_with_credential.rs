@@ -55,7 +55,7 @@ async fn test_album_tracks() {
     let birdy_uri = Id::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
     creds_client()
         .await
-        .album_track(birdy_uri, Some(2), None)
+        .album_track_manual(birdy_uri, Some(2), None)
         .await
         .unwrap();
 }
@@ -84,10 +84,10 @@ async fn test_artists_albums() {
     let birdy_uri = Id::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
         .await
-        .artist_albums(
+        .artist_albums_manual(
             birdy_uri,
             Some(AlbumType::Album),
-            Some(Market::Country(Country::UnitedStates)),
+            Some(&Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -212,7 +212,7 @@ mod test_pagination {
         album_id: &'a AlbumId,
     ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
         paginate(
-            move |limit, offset| client.album_track(album_id, limit, offset),
+            move |limit, offset| client.album_track_manual(album_id, limit, offset),
             2,
         )
     }

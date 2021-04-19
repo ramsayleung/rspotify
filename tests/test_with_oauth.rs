@@ -101,7 +101,7 @@ pub async fn oauth_client() -> Spotify {
 async fn test_categories() {
     oauth_client()
         .await
-        .categories(None, Some(Market::Country(Country::UnitedStates)), 10, 0)
+        .categories_manual(None, Some(&Market::Country(Country::UnitedStates)), 10, 0)
         .await
         .unwrap();
 }
@@ -112,7 +112,7 @@ async fn test_categories() {
 async fn test_category_playlists() {
     oauth_client()
         .await
-        .category_playlists("pop", Some(Market::Country(Country::UnitedStates)), 10, 0)
+        .category_playlists_manual("pop", Some(&Market::Country(Country::UnitedStates)), 10, 0)
         .await
         .unwrap();
 }
@@ -167,7 +167,7 @@ async fn test_current_user_playing_track() {
 async fn test_current_user_playlists() {
     oauth_client()
         .await
-        .current_user_playlists(10, None)
+        .current_user_playlists_manual(10, None)
         .await
         .unwrap();
 }
@@ -221,7 +221,7 @@ async fn test_current_user_saved_albums_delete() {
 async fn test_current_user_saved_albums() {
     oauth_client()
         .await
-        .current_user_saved_albums(10, 0)
+        .current_user_saved_albums_manual(10, 0)
         .await
         .unwrap();
 }
@@ -280,7 +280,7 @@ async fn test_current_user_saved_tracks_delete() {
 async fn test_current_user_saved_tracks() {
     oauth_client()
         .await
-        .current_user_saved_tracks(10, 0)
+        .current_user_saved_tracks_manual(10, 0)
         .await
         .unwrap();
 }
@@ -291,7 +291,7 @@ async fn test_current_user_saved_tracks() {
 async fn test_current_user_top_artists() {
     oauth_client()
         .await
-        .current_user_top_artists(10, 0, TimeRange::ShortTerm)
+        .current_user_top_artists_manual(Some(&TimeRange::ShortTerm), 10, 0)
         .await
         .unwrap();
 }
@@ -302,7 +302,7 @@ async fn test_current_user_top_artists() {
 async fn test_current_user_top_tracks() {
     oauth_client()
         .await
-        .current_user_top_tracks(10, 0, TimeRange::ShortTerm)
+        .current_user_top_tracks_manual(Some(&TimeRange::ShortTerm), 10, 0)
         .await
         .unwrap();
 }
@@ -339,7 +339,7 @@ async fn test_me() {
 async fn test_new_releases() {
     oauth_client()
         .await
-        .new_releases(Some(Market::Country(Country::Sweden)), 10, 0)
+        .new_releases_manual(Some(&Market::Country(Country::Sweden)), 10, 0)
         .await
         .unwrap();
 }
@@ -350,7 +350,7 @@ async fn test_new_releases() {
 async fn test_new_releases_with_from_token() {
     oauth_client()
         .await
-        .new_releases(Some(Market::FromToken), 10, 0)
+        .new_releases_manual(Some(&Market::FromToken), 10, 0)
         .await
         .unwrap();
 }
@@ -752,7 +752,7 @@ async fn test_user_playlists() {
     let user_id = Id::from_id("2257tjys2e2u2ygfke42niy2q").unwrap();
     oauth_client()
         .await
-        .user_playlists(user_id, Some(10), None)
+        .user_playlists_manual(user_id, Some(10), None)
         .await
         .unwrap();
 }
@@ -764,7 +764,7 @@ async fn test_playlist_tracks() {
     let playlist_id = Id::from_uri("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC").unwrap();
     oauth_client()
         .await
-        .playlist_tracks(playlist_id, None, Some(2), None, None)
+        .playlist_tracks_manual(playlist_id, None, None, Some(2), None)
         .await
         .unwrap();
 }
