@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{ToString, AsRefStr};
+use strum::{AsRefStr, ToString};
 
 use super::Country;
 
@@ -8,7 +8,7 @@ use super::Country;
 /// `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum DisallowKey {
@@ -39,7 +39,7 @@ pub enum TimeRange {
 /// Repeat state: `track`, `context` or `off`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/set-repeat-mode-on-users-playback/)
-#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, ToString)]
+#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RepeatState {
@@ -61,7 +61,7 @@ pub enum IncludeExternal {
 /// Date precision: `year`, `month`, `day`.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/):
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum DatePrecision {
@@ -73,7 +73,7 @@ pub enum DatePrecision {
 /// The reason for the restriction: `market`, `product`, `explicit`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RestrictionReason {
@@ -87,7 +87,7 @@ pub enum RestrictionReason {
 /// a -1 for `no result`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, ToString, AsRefStr)]
 pub enum Modality {
     Minor = 0,
     Major = 1,
