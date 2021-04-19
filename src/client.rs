@@ -12,7 +12,7 @@ use thiserror::Error;
 use std::path::PathBuf;
 
 use super::http::{HTTPClient, Query};
-use super::{json_params, map_params, json_insert};
+use super::{map_params, json_insert};
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
 use super::pagination::{paginate, Paginator};
@@ -374,17 +374,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
     #[maybe_async]
-    pub async fn search<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn search(
         &self,
         q: &str,
         r#type: SearchType,
         market: Option<Market>,
         include_external: Option<IncludeExternal>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<SearchResult> {
-        let limit = limit.into().map(|s| s.to_string());
-        let offset = offset.into().map(|s| s.to_string());
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
         let params = map_params! {
             req q => q,
             req r#type => r#type.as_ref(),
@@ -421,14 +421,14 @@ impl Spotify {
 
     /// The manually paginated version of [`Spotify::album_track`].
     #[maybe_async]
-    pub async fn album_track_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn album_track_manual(
         &self,
         album_id: &AlbumId,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedTrack>> {
-        let limit = limit.into().map(|s| s.to_string());
-        let offset = offset.into().map(|s| s.to_string());
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
         let params = map_params! {
             opt limit => &limit,
             opt offset => &offset,
@@ -495,20 +495,17 @@ impl Spotify {
 
     /// The manually paginated version of [`Spotify::current_user_playlists`].
     #[maybe_async]
-    pub async fn current_user_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_playlists_manual(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
-        let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+        };
 
         let result = self.endpoint_get("me/playlists", &params).await?;
         self.convert_result(&result)
@@ -537,21 +534,18 @@ impl Spotify {
 
     /// The manually paginated version of [`Spotify::user_playlists`].
     #[maybe_async]
-    pub async fn user_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn user_playlists_manual(
         &self,
         user_id: &UserId,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
-        let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+        };
 
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -573,10 +567,9 @@ impl Spotify {
         playlist_id: Option<&PlaylistId>,
         fields: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
-        let mut params = Query::new();
-        if let Some(fields) = fields {
-            params.insert("fields", fields);
-        }
+        let params = map_params! {
+            opt fields => fields,
+        };
         match playlist_id {
             Some(playlist_id) => {
                 let url = format!("users/{}/playlists/{}", user_id.id(), playlist_id.id());
@@ -620,29 +613,22 @@ impl Spotify {
 
     /// The manually paginated version of [`Spotify::playlist_tracks`].
     #[maybe_async]
-    pub async fn playlist_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn playlist_tracks_manual(
         &self,
         playlist_id: &PlaylistId,
         fields: Option<&str>,
         market: Option<&Market>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<PlaylistItem>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
-        let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
-        if let Some(fields) = fields {
-            params.insert("fields", fields);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+            opt market => market.as_ref(),
+            opt fields => fields,
+        };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -1035,20 +1021,17 @@ impl Spotify {
     /// The manually paginated version of
     /// [`Spotify::current_user_saved_albums`].
     #[maybe_async]
-    pub async fn current_user_saved_albums_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_saved_albums_manual(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SavedAlbum>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
-        let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+        };
 
         let result = self.endpoint_get("me/albums", &params).await?;
         self.convert_result(&result)
@@ -1068,7 +1051,7 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
     pub fn current_user_saved_tracks(&self) -> impl Paginator<ClientResult<SavedTrack>> + '_ {
         paginate(
-            move |limit, offset| self.current_user_saved_tracks_manual(limit, offset),
+            move |limit, offset| self.current_user_saved_tracks_manual(Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
@@ -1076,20 +1059,18 @@ impl Spotify {
     /// The manually paginated version of
     /// [`Spotify::current_user_saved_tracks`].
     #[maybe_async]
-    pub async fn current_user_saved_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_saved_tracks_manual(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SavedTrack>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
-        let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+        };
+
         let result = self.endpoint_get("me/tracks", &params).await?;
         self.convert_result(&result)
     }
@@ -1102,20 +1083,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-followed)
     #[maybe_async]
-    pub async fn current_user_followed_artists<L: Into<Option<u32>>>(
+    pub async fn current_user_followed_artists(
         &self,
         after: Option<String>,
-        limit: L,
+        limit: Option<u32>,
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
-        let mut params = Query::with_capacity(2);
-        params.insert("type", Type::Artist.as_ref());
-        if let Some(ref after) = after {
-            params.insert("after", &after);
-        }
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let params = map_params! {
+            req r#type => Type::Artist.as_ref(),
+            opt after => &after,
+            opt limit => &limit,
+        };
 
         let result = self.endpoint_get("me/following", &params).await?;
         self.convert_result::<CursorPageFullArtists>(&result)
@@ -1189,35 +1167,26 @@ impl Spotify {
         time_range: Option<&'a TimeRange>,
     ) -> impl Paginator<ClientResult<FullArtist>> + 'a {
         paginate(
-            move |limit, offset| self.current_user_top_artists_manual(time_range, limit, offset),
+            move |limit, offset| self.current_user_top_artists_manual(time_range, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
 
     /// The manually paginated version of [`Spotify::current_user_top_artists`].
     #[maybe_async]
-    pub async fn current_user_top_artists_manual<
-        'a,
-        L: Into<Option<u32>>,
-        O: Into<Option<u32>>,
-    >(
-        &'a self,
-        time_range: Option<&'a TimeRange>,
-        limit: L,
-        offset: O,
+    pub async fn current_user_top_artists_manual(
+        &self,
+        time_range: Option<&TimeRange>,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<FullArtist>> {
-        let mut params = Query::with_capacity(3);
-        if let Some(ref time_range) = time_range {
-            params.insert("time_range", time_range.as_ref());
-        }
-        let limit = limit.into().map(|s| s.to_string());
-        if let Some(ref limit) = limit {
-            params.insert("limit", &limit);
-        }
-        let offset = offset.into().map(|s| s.to_string());
-        if let Some(ref offset) = offset {
-            params.insert("offset", &offset);
-        }
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let params = map_params! {
+            opt time_range => time_range.as_ref(),
+            opt limit => &limit,
+            opt offset => &offset,
+        };
 
         let result = self.endpoint_get(&"me/top/artists", &params).await?;
         self.convert_result(&result)
@@ -1239,26 +1208,27 @@ impl Spotify {
         time_range: Option<&'a TimeRange>,
     ) -> impl Paginator<ClientResult<FullTrack>> + 'a {
         paginate(
-            move |limit, offset| self.current_user_top_tracks_manual(time_range, limit, offset),
+            move |limit, offset| self.current_user_top_tracks_manual(time_range, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
 
     /// The manually paginated version of [`Spotify::current_user_top_tracks`].
     #[maybe_async]
-    pub async fn current_user_top_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn current_user_top_tracks_manual(
         &self,
         time_range: Option<&TimeRange>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<FullTrack>> {
-        let mut params = Query::with_capacity(3);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        let time_range = time_range.unwrap_or(&TimeRange::MediumTerm);
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        params.insert("time_range", time_range.as_ref());
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
+        let params = map_params! {
+            opt time_range => time_range.as_ref(),
+            opt limit => &limit,
+            opt offset => &offset,
+        };
+
         let result = self.endpoint_get("me/top/tracks", &params).await?;
         self.convert_result(&result)
     }
@@ -1270,13 +1240,15 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
     #[maybe_async]
-    pub async fn current_user_recently_played<L: Into<Option<u32>>>(
+    pub async fn current_user_recently_played(
         &self,
-        limit: L,
+        limit: Option<u32>,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
-        let mut params = Query::with_capacity(1);
-        let limit = limit.into().unwrap_or(50).to_string();
-        params.insert("limit", &limit);
+        let limit = limit.map(|x| x.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+        };
+
         let result = self
             .endpoint_get("me/player/recently-played", &params)
             .await?;
@@ -1440,29 +1412,25 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-featured-playlists)
     #[maybe_async]
-    pub async fn featured_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn featured_playlists(
         &self,
         locale: Option<String>,
-        country: Option<Market>,
+        market: Option<Market>,
         timestamp: Option<DateTime<Utc>>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<FeaturedPlaylists> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        if let Some(ref locale) = locale {
-            params.insert("locale", locale);
-        }
-        if let Some(ref market) = country {
-            params.insert("country", market.as_ref());
-        }
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
         let timestamp = timestamp.map(|x| x.to_rfc3339());
-        if let Some(ref timestamp) = timestamp {
-            params.insert("timestamp", timestamp);
-        }
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+            opt locale => locale,
+            opt market => market.as_ref(),
+            opt timestamp => timestamp,
+        };
+
         let result = self
             .endpoint_get("browse/featured-playlists", &params)
             .await?;
@@ -1484,30 +1452,29 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
     pub fn new_releases<'a>(
         &'a self,
-        country: Option<&'a Market>,
+        market: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
         paginate(
-            move |limit, offset| self.new_releases_manual(country, limit, offset),
+            move |limit, offset| self.new_releases_manual(market, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
 
     /// The manually paginated version of [`Spotify::new_releases`].
     #[maybe_async]
-    pub async fn new_releases_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn new_releases_manual(
         &self,
-        country: Option<&Market>,
-        limit: L,
-        offset: O,
+        market: Option<&Market>,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        if let Some(ref market) = country {
-            params.insert("country", market.as_ref());
-        }
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+            opt market => market.as_ref(),
+        };
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
         self.convert_result::<PageSimpliedAlbums>(&result)
@@ -1532,34 +1499,31 @@ impl Spotify {
     pub fn categories<'a>(
         &'a self,
         locale: Option<&'a str>,
-        country: Option<&'a Market>,
+        market: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<Category>> + 'a {
         paginate(
-            move |limit, offset| self.categories_manual(locale, country, limit, offset),
+            move |limit, offset| self.categories_manual(locale, market, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
 
     /// The manually paginated version of [`Spotify::categories`].
     #[maybe_async]
-    pub async fn categories_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn categories_manual(
         &self,
         locale: Option<&str>,
-        country: Option<&Market>,
-        limit: L,
-        offset: O,
+        market: Option<&Market>,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<Category>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        if let Some(locale) = locale {
-            params.insert("locale", locale);
-        }
-        if let Some(ref market) = country {
-            params.insert("country", market.as_ref());
-        }
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+            opt locale => locale,
+            opt market => market.as_ref(),
+        };
         let result = self.endpoint_get("browse/categories", &params).await?;
         self.convert_result::<PageCategory>(&result)
             .map(|x| x.categories)
@@ -1582,11 +1546,11 @@ impl Spotify {
     pub fn category_playlists<'a>(
         &'a self,
         category_id: &'a str,
-        country: Option<&'a Market>,
+        market: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
         paginate(
             move |limit, offset| {
-                self.category_playlists_manual(category_id, country, limit, offset)
+                self.category_playlists_manual(category_id, market, Some(limit), Some(offset))
             },
             self.pagination_chunks,
         )
@@ -1594,13 +1558,15 @@ impl Spotify {
 
     /// The manually paginated version of [`Spotify::category_playlists`].
     #[maybe_async]
-    pub async fn category_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn category_playlists_manual(
         &self,
         category_id: &str,
-        country: Option<&Market>,
-        limit: L,
-        offset: O,
+        market: Option<&Market>,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
         let params = map_params! {
             opt limit => &limit,
             opt offset => &offset,
@@ -1629,18 +1595,27 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     #[maybe_async]
-    pub async fn recommendations<L: Into<Option<u32>>>(
+    pub async fn recommendations(
         &self,
         seed_artists: Option<Vec<&ArtistId>>,
         seed_genres: Option<Vec<String>>,
         seed_tracks: Option<Vec<&TrackId>>,
-        limit: L,
+        limit: Option<u32>,
         market: Option<Market>,
         payload: &Map<String, Value>,
     ) -> ClientResult<Recommendations> {
-        let mut params = Query::with_capacity(payload.len() + 1);
-        let limit = limit.into().unwrap_or(20).to_string();
-        params.insert("limit", &limit);
+        let seed_artists = seed_artists.map(join_ids);
+        let seed_genres = seed_genres.map(|x| x.join(","));
+        let seed_tracks = seed_tracks.map(join_ids);
+        let limit = limit.map(|x| x.to_string());
+        let mut params = map_params! {
+            opt seed_artists => seed_artists,
+            opt seed_genres => seed_genres,
+            opt seed_tracks => seed_tracks,
+            opt market => market.as_ref(),
+            opt limit => &limit,
+        };
+
         // TODO: this probably can be improved.
         let attributes = [
             "acousticness",
@@ -1675,24 +1650,6 @@ impl Spotify {
             params.insert(key, value);
         }
 
-        let seed_artists = seed_artists.map(join_ids);
-        if let Some(ref seed_artists) = seed_artists {
-            params.insert("seed_artists", seed_artists);
-        }
-
-        let seed_genres = seed_genres.map(|x| x.join(","));
-        if let Some(ref seed_genres) = seed_genres {
-            params.insert("seed_genres", seed_genres);
-        }
-
-        let seed_tracks = seed_tracks.map(join_ids);
-        if let Some(ref seed_tracks) = seed_tracks {
-            params.insert("seed_tracks", seed_tracks);
-        }
-
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
         let result = self.endpoint_get("recommendations", &params).await?;
         self.convert_result(&result)
     }
@@ -1772,16 +1729,12 @@ impl Spotify {
         market: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
-        let mut params = Query::new();
-        if let Some(ref market) = market {
-            params.insert("country", market.as_ref());
-        }
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
-
-        if let Some(ref additional_types) = additional_types {
-            params.insert("additional_types", additional_types);
-        }
+        let params = map_params! {
+            opt market => market.as_ref(),
+            opt additional_types => additional_types,
+        };
 
         let result = self.endpoint_get("me/player", &params).await?;
         if result.is_empty() {
@@ -1806,15 +1759,12 @@ impl Spotify {
         market: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
-        let mut params = Query::new();
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
-        if let Some(ref additional_types) = additional_types {
-            params.insert("additional_types", additional_types);
-        }
+        let params = map_params! {
+            opt market => market.as_ref(),
+            opt additional_types => additional_types,
+        };
 
         let result = self
             .get("me/player/currently-playing", None, &params)
@@ -2108,23 +2058,25 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
     pub fn get_saved_show(&self) -> impl Paginator<ClientResult<Show>> + '_ {
         paginate(
-            move |limit, offset| self.get_saved_show_manual(limit, offset),
+            move |limit, offset| self.get_saved_show_manual(Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
 
     /// The manually paginated version of [`Spotify::get_saved_show`].
     #[maybe_async]
-    pub async fn get_saved_show_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn get_saved_show_manual(
         &self,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<Show>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+        };
+
         let result = self.endpoint_get("me/shows", &params).await?;
         self.convert_result(&result)
     }
@@ -2140,10 +2092,10 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-show)
     #[maybe_async]
     pub async fn get_a_show(&self, id: &ShowId, market: Option<Market>) -> ClientResult<FullShow> {
-        let mut params = Query::new();
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let params = map_params! {
+            opt market => market.as_ref(),
+        };
+
         let url = format!("shows/{}", id.id());
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -2163,12 +2115,12 @@ impl Spotify {
         ids: impl IntoIterator<Item = &'a ShowId>,
         market: Option<Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
-        let mut params = Query::with_capacity(1);
         let ids = join_ids(ids);
-        params.insert("ids", ids.as_ref());
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let params = map_params! {
+            req ids => ids.as_ref(),
+            opt market => market.as_ref(),
+        };
+
         let result = self.endpoint_get("shows", &params).await?;
         self.convert_result::<SeversalSimplifiedShows>(&result)
             .map(|x| x.shows)
@@ -2195,28 +2147,28 @@ impl Spotify {
         market: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedEpisode>> + 'a {
         paginate(
-            move |limit, offset| self.get_shows_episodes_manual(id, market, limit, offset),
+            move |limit, offset| self.get_shows_episodes_manual(id, market, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
 
     /// The manually paginated version of [`Spotify::get_shows_episodes`].
     #[maybe_async]
-    pub async fn get_shows_episodes_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn get_shows_episodes_manual(
         &self,
         id: &ShowId,
         market: Option<&Market>,
-        limit: L,
-        offset: O,
+        limit: Option<u32>,
+        offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
-        let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let limit = limit.map(|x| x.to_string());
+        let offset = offset.map(|x| x.to_string());
+        let params = map_params! {
+            opt limit => &limit,
+            opt offset => &offset,
+            opt market => market.as_ref(),
+        };
+
         let url = format!("shows/{}/episodes", id.id());
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -2238,10 +2190,9 @@ impl Spotify {
         market: Option<Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
-        let mut params = Query::new();
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let params = map_params! {
+            opt market => market.as_ref(),
+        };
 
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -2260,12 +2211,11 @@ impl Spotify {
         ids: impl IntoIterator<Item = &'a EpisodeId>,
         market: Option<Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
-        let mut params = Query::with_capacity(1);
         let ids = join_ids(ids);
-        params.insert("ids", ids.as_ref());
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
-        }
+        let params = map_params! {
+            req ids => ids.as_ref(),
+            opt market => market.as_ref(),
+        };
 
         let result = self.endpoint_get("episodes", &params).await?;
         self.convert_result::<EpisodesPayload>(&result)
@@ -2283,9 +2233,10 @@ impl Spotify {
         &self,
         ids: impl IntoIterator<Item = &'a ShowId>,
     ) -> ClientResult<Vec<bool>> {
-        let mut params = Query::with_capacity(1);
         let ids = join_ids(ids);
-        params.insert("ids", ids.as_str());
+        let params = map_params! {
+            req ids => ids.as_str(),
+        };
         let result = self.endpoint_get("me/shows/contains", &params).await?;
         self.convert_result(&result)
     }
