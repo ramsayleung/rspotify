@@ -85,7 +85,7 @@ impl BaseHttpClient for UreqClient {
         let sender = |req: Request| {
             let payload = payload
                 .iter()
-                .map(|(key, val)| (key.as_str(), val.as_str()))
+                .map(|(key, val)| (*key, *val))
                 .collect::<Vec<_>>();
 
             req.send_form(&payload)
