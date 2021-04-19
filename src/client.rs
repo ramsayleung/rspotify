@@ -81,6 +81,7 @@ pub enum ApiError {
 
 pub const DEFAULT_API_PREFIX: &str = "https://api.spotify.com/v1/";
 pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
+pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
 
 /// Spotify API object
 #[derive(Builder, Debug, Clone)]
@@ -104,15 +105,21 @@ pub struct Spotify {
     #[builder(setter(strip_option), default)]
     pub oauth: Option<OAuth>,
 
-    /// The Spotify API prefix, [`DEFAULT_API_PREFIX`
-    /// ](DEFAULT_CACHE_PATH) by default.
+    /// The Spotify API prefix, [`DEFAULT_API_PREFIX`] by default.
     #[builder(setter(into), default = "String::from(DEFAULT_API_PREFIX)")]
     pub prefix: String,
 
     /// The cache file path, in case it's used. By default it's
-    /// [`DEFAULT_CACHE_PATH`](DEFAULT_API_PREFIX).
-    #[builder(default = r#"PathBuf::from(DEFAULT_CACHE_PATH)"#)]
+    /// [`DEFAULT_CACHE_PATH`]
+    #[builder(default = "PathBuf::from(DEFAULT_CACHE_PATH)")]
     pub cache_path: PathBuf,
+
+    /// The pagination chunk size used when performing automatically paginated
+    /// requests, like [`Spotify::artist_albums`]. This means that a request
+    /// will be performed every `pagination_chunks` items. By default this is
+    /// [`DEFAULT_PAGINATION_CHUNKS`]
+    #[builder(default = "DEFAULT_PAGINATION_CHUNKS")]
+    pub pagination_chunks: u32,
 }
 
 // Endpoint-related methods for the client.
@@ -249,7 +256,7 @@ impl Spotify {
             move |limit, offset| {
                 self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
             },
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -416,7 +423,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
         paginate(
             move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -493,7 +500,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + '_ {
         paginate(
             move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -531,7 +538,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
         paginate(
             move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -609,7 +616,7 @@ impl Spotify {
             move |limit, offset| {
                 self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
             },
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -997,7 +1004,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<SavedAlbum>> + '_ {
         paginate(
             move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -1035,7 +1042,7 @@ impl Spotify {
     pub fn current_user_saved_tracks(&self) -> impl Paginator<ClientResult<SavedTrack>> + '_ {
         paginate(
             move |limit, offset| self.current_user_saved_tracks_manual(limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -1150,7 +1157,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<FullArtist>> + 'a {
         paginate(
             move |limit, offset| self.current_user_top_artists_manual(time_range, limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -1195,7 +1202,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<FullTrack>> + 'a {
         paginate(
             move |limit, offset| self.current_user_top_tracks_manual(time_range, limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -1443,7 +1450,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
         paginate(
             move |limit, offset| self.new_releases_manual(country, limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -1491,7 +1498,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<Category>> + 'a {
         paginate(
             move |limit, offset| self.categories_manual(locale, country, limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -1543,7 +1550,7 @@ impl Spotify {
             move |limit, offset| {
                 self.category_playlists_manual(category_id, country, limit, offset)
             },
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -2067,7 +2074,7 @@ impl Spotify {
     pub fn get_saved_show(&self) -> impl Paginator<ClientResult<Show>> + '_ {
         paginate(
             move |limit, offset| self.get_saved_show_manual(limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
@@ -2154,7 +2161,7 @@ impl Spotify {
     ) -> impl Paginator<ClientResult<SimplifiedEpisode>> + 'a {
         paginate(
             move |limit, offset| self.get_shows_episodes_manual(id, market, limit, offset),
-            50,
+            self.pagination_chunks,
         )
     }
 
