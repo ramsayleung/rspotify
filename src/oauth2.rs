@@ -246,7 +246,7 @@ impl Spotify {
 
     /// Sends a request to Spotify for an access token.
     #[maybe_async]
-    async fn fetch_access_token<'a>(&self, payload: &Form<'a>) -> ClientResult<Token> {
+    async fn fetch_access_token(&self, payload: &Form<'_>) -> ClientResult<Token> {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();

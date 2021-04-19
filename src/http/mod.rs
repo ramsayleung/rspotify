@@ -144,11 +144,11 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub(crate) async fn get<'a>(
+    pub(crate) async fn get(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Query<'a>,
+        payload: &Query<'_>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
         self.http.get(&url, headers, payload).await
@@ -168,11 +168,11 @@ impl Spotify {
 
     #[inline]
     #[maybe_async]
-    pub(crate) async fn post_form<'a>(
+    pub(crate) async fn post_form(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form<'a>,
+        payload: &Form<'_>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
         self.http.post_form(&url, headers, payload).await
@@ -206,10 +206,10 @@ impl Spotify {
     /// autentication.
     #[inline]
     #[maybe_async]
-    pub(crate) async fn endpoint_get<'a>(
+    pub(crate) async fn endpoint_get(
         &self,
         url: &str,
-        payload: &Query<'a>,
+        payload: &Query<'_>,
     ) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.get(url, Some(&headers), payload).await
