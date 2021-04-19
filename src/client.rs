@@ -570,18 +570,13 @@ impl Spotify {
         let params = map_query! {
             opt fields => fields,
         };
-        match playlist_id {
-            Some(playlist_id) => {
-                let url = format!("users/{}/playlists/{}", user_id.id(), playlist_id.id());
-                let result = self.endpoint_get(&url, &params).await?;
-                self.convert_result(&result)
-            }
-            None => {
-                let url = format!("users/{}/starred", user_id.id());
-                let result = self.endpoint_get(&url, &params).await?;
-                self.convert_result(&result)
-            }
-        }
+
+        let url = match playlist_id {
+            Some(playlist_id) => format!("users/{}/playlists/{}", user_id.id(), playlist_id.id()),
+            None => format!("users/{}/starred", user_id.id()),
+        };
+        let result = self.endpoint_get(&url, &params).await?;
+        self.convert_result(&result)
     }
 
     /// Get full details of the tracks of a playlist owned by a user.
