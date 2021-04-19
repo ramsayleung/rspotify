@@ -235,6 +235,9 @@ impl Spotify {
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
     ///
+    /// See [`Spotify::artist_albums_manual`] for a manually paginated version
+    /// of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
     pub fn artist_albums<'a>(
         &'a self,
@@ -250,7 +253,7 @@ impl Spotify {
         )
     }
 
-    /// The manually paginated version of [`artist_albums`].
+    /// The manually paginated version of [`Spotify::artist_albums`].
     #[maybe_async]
     pub async fn artist_albums_manual(
         &self,
@@ -403,6 +406,9 @@ impl Spotify {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
+    /// See [`Spotify::album_track_manual`] for a manually paginated version of
+    /// this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
     pub fn album_track<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &'a self,
@@ -414,6 +420,7 @@ impl Spotify {
         )
     }
 
+    /// The manually paginated version of [`Spotify::album_track`].
     #[maybe_async]
     pub async fn album_track_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -477,6 +484,9 @@ impl Spotify {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
+    /// See [`Spotify::current_user_playlists_manual`] for a manually paginated
+    /// version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
     pub fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -487,6 +497,7 @@ impl Spotify {
         )
     }
 
+    /// The manually paginated version of [`Spotify::current_user_playlists`].
     #[maybe_async]
     pub async fn current_user_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -510,6 +521,9 @@ impl Spotify {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
+    /// See [`Spotify::user_playlists_manual`] for a manually paginated version
+    /// of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
     pub fn user_playlists<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &'a self,
@@ -521,6 +535,7 @@ impl Spotify {
         )
     }
 
+    /// The manually paginated version of [`Spotify::user_playlists`].
     #[maybe_async]
     pub async fn user_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -580,6 +595,9 @@ impl Spotify {
     /// - offset - the index of the first track to return
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
+    /// See [`Spotify::playlist_tracks`] for a manually paginated version of
+    /// this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
     pub fn playlist_tracks<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &'a self,
@@ -595,6 +613,7 @@ impl Spotify {
         )
     }
 
+    /// The manually paginated version of [`Spotify::playlist_tracks`].
     #[maybe_async]
     pub async fn playlist_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -969,6 +988,9 @@ impl Spotify {
     /// - offset - the index of the first album to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
+    /// See [`Spotify::current_user_saved_albums`] for a manually paginated
+    /// version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
     pub fn current_user_saved_albums<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -979,6 +1001,7 @@ impl Spotify {
         )
     }
 
+    /// The manually paginated version of [`Spotify::current_user_saved_albums`].
     #[maybe_async]
     pub async fn current_user_saved_albums_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
@@ -1116,22 +1139,37 @@ impl Spotify {
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
     ///
+    /// See [`Spotify::current_user_top_artists_manual`] for a manually
+    /// paginated version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
+    pub fn current_user_top_artists<'a>(
+        &'a self,
+        time_range: Option<&'a TimeRange>,
+    ) -> impl Paginator<ClientResult<FullArtist>> + 'a {
+        paginate(
+            move |limit, offset| self.current_user_top_artists_manual(time_range, limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::current_user_top_artists`].
     #[maybe_async]
-    pub async fn current_user_top_artists<
+    pub async fn current_user_top_artists_manual<
+        'a,
+        T: Into<Option<&'a TimeRange>>,
         L: Into<Option<u32>>,
         O: Into<Option<u32>>,
-        T: Into<Option<TimeRange>>,
     >(
-        &self,
+        &'a self,
+        time_range: T,
         limit: L,
         offset: O,
-        time_range: T,
     ) -> ClientResult<Page<FullArtist>> {
         let mut params = Query::with_capacity(3);
         let limit = limit.into().unwrap_or(20).to_string();
         let offset = offset.into().unwrap_or(0).to_string();
-        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
+        let time_range = time_range.into().unwrap_or(&TimeRange::MediumTerm);
         params.insert("limit", &limit);
         params.insert("offset", &offset);
         params.insert("time_range", time_range.as_ref());
