@@ -274,19 +274,19 @@ impl Spotify {
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let mut params = Query::new();
+        if let Some(ref album_type) = album_type {
+            params.insert("album_type", album_type.as_ref());
+        }
+        if let Some(ref market) = market {
+            params.insert("market", market.as_ref());
+        }
         let limit = limit.map(|x| x.to_string());
         if let Some(ref limit) = limit {
             params.insert("limit", limit);
         }
-        if let Some(ref album_type) = album_type {
-            params.insert("album_type", album_type.as_ref());
-        }
         let offset = offset.map(|x| x.to_string());
         if let Some(ref offset) = offset {
             params.insert("offset", offset);
-        }
-        if let Some(ref market) = market {
-            params.insert("market", market.as_ref());
         }
         let url = format!("artists/{}/albums", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -386,16 +386,12 @@ impl Spotify {
         &self,
         q: &str,
         _type: SearchType,
-        limit: L,
-        offset: O,
         market: Option<Market>,
         include_external: Option<IncludeExternal>,
+        limit: L,
+        offset: O,
     ) -> ClientResult<SearchResult> {
         let mut params = Query::with_capacity(4);
-        let limit = limit.into().unwrap_or(10).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
         params.insert("q", q);
         params.insert("type", _type.as_ref());
         if let Some(ref market) = market {
@@ -403,6 +399,14 @@ impl Spotify {
         }
         if let Some(ref include_external) = include_external {
             params.insert("include_external", include_external.as_ref());
+        }
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
         }
 
         let result = self.endpoint_get("search", &params).await?;
@@ -439,10 +443,15 @@ impl Spotify {
         offset: O,
     ) -> ClientResult<Page<SimplifiedTrack>> {
         let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(50).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
+
         let url = format!("albums/{}/tracks", album_id.id());
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -513,10 +522,14 @@ impl Spotify {
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(50).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
 
         let result = self.endpoint_get("me/playlists", &params).await?;
         self.convert_result(&result)
@@ -552,10 +565,15 @@ impl Spotify {
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(50).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
+
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -632,16 +650,21 @@ impl Spotify {
         offset: O,
     ) -> ClientResult<Page<PlaylistItem>> {
         let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(50).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
         if let Some(ref market) = market {
             params.insert("market", market.as_ref());
         }
         if let Some(fields) = fields {
             params.insert("fields", fields);
         }
+
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
         self.convert_result(&result)
@@ -654,6 +677,7 @@ impl Spotify {
     /// - name - the name of the playlist
     /// - public - is the created playlist public
     /// - description - the description of the playlist
+    /// - collaborative - if the playlist will be collaborative
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-create-playlist)
     #[maybe_async]
@@ -662,15 +686,23 @@ impl Spotify {
         user_id: &UserId,
         name: &str,
         public: P,
+        collaborative: Option<bool>,
         description: D,
     ) -> ClientResult<FullPlaylist> {
-        let public = public.into().unwrap_or(true);
-        let description = description.into().unwrap_or_else(|| "".to_owned());
-        let params = json!({
+        let mut params = json!({
             "name": name,
-            "public": public,
-            "description": description
         });
+
+        if let Some(public) = public.into() {
+            json_insert!(params, "public", public);
+        }
+        if let Some(collaborative) = collaborative {
+            json_insert!(params, "collaborative", collaborative);
+        }
+        if let Some(description) = description.into() {
+            json_insert!(params, "description", description);
+        }
+
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.endpoint_post(&url, &params).await?;
         self.convert_result(&result)
@@ -777,27 +809,41 @@ impl Spotify {
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
+    /// - uris - a list of Spotify URIs to replace or clear
     /// - range_start - the position of the first track to be reordered
+    /// - insert_before - the position where the tracks should be inserted
     /// - range_length - optional the number of tracks to be reordered (default:
     ///   1)
-    /// - insert_before - the position where the tracks should be inserted
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
     #[maybe_async]
-    pub async fn playlist_reorder_tracks<R: Into<Option<u32>>>(
+    pub async fn playlist_reorder_tracks(
         &self,
         playlist_id: &PlaylistId,
-        range_start: i32,
-        range_length: R,
-        insert_before: i32,
+        uris: Option<&[&Id<impl PlayableIdType>]>,
+        range_start: Option<i32>,
+        insert_before: Option<i32>,
+        range_length: Option<u32>,
         snapshot_id: Option<String>,
     ) -> ClientResult<PlaylistResult> {
         let mut params = json! ({
-            "range_start": range_start,
-            "range_length": range_length.into().unwrap_or(1),
-            "insert_before": insert_before
+            "playlist_id": playlist_id
         });
+
+        let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
+        if let Some(uris) = uris {
+            json_insert!(params, "uris", uris);
+        }
+        if let Some(range_start) = range_start {
+            json_insert!(params, "range_start", range_start);
+        }
+        if let Some(insert_before) = insert_before {
+            json_insert!(params, "insert_before", insert_before);
+        }
+        if let Some(range_length) = range_length {
+            json_insert!(params, "range_length", range_length);
+        }
         if let Some(snapshot_id) = snapshot_id {
             json_insert!(params, "snapshot_id", snapshot_id);
         }
@@ -904,19 +950,19 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-follow-playlist)
     #[maybe_async]
-    pub async fn playlist_follow<P: Into<Option<bool>>>(
+    pub async fn playlist_follow(
         &self,
         playlist_id: &PlaylistId,
-        public: P,
+        public: Option<bool>,
     ) -> ClientResult<()> {
         let url = format!("playlists/{}/followers", playlist_id.id());
 
-        self.endpoint_put(
-            &url,
-            &json! ({
-                "public": public.into().unwrap_or(true)
-            }),
-        )
+        let mut params = json!({});
+        if let Some(public) = public {
+            json_insert!(params, "public", public);
+        }
+
+        self.endpoint_put(&url, &params)
         .await?;
 
         Ok(())
@@ -1016,12 +1062,15 @@ impl Spotify {
         offset: O,
     ) -> ClientResult<Page<SavedAlbum>> {
         let mut params = Query::with_capacity(2);
-        // TODO: we should use the API's default value instead of
-        // `.unwrap_or(20)` and similars.
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
+
         let result = self.endpoint_get("me/albums", &params).await?;
         self.convert_result(&result)
     }
@@ -1054,10 +1103,14 @@ impl Spotify {
         offset: O,
     ) -> ClientResult<Page<SavedTrack>> {
         let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
         let result = self.endpoint_get("me/tracks", &params).await?;
         self.convert_result(&result)
     }
@@ -1065,22 +1118,24 @@ impl Spotify {
     /// Gets a list of the artists followed by the current authorized user.
     ///
     /// Parameters:
-    /// - limit - the number of tracks to return
     /// - after - the last artist ID retrieved from the previous request
+    /// - limit - the number of tracks to return
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-followed)
     #[maybe_async]
     pub async fn current_user_followed_artists<L: Into<Option<u32>>>(
         &self,
-        limit: L,
         after: Option<String>,
+        limit: L,
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let mut params = Query::with_capacity(2);
-        let limit = limit.into().unwrap_or(20).to_string();
-        params.insert("limit", &limit);
         params.insert("type", Type::Artist.as_ref());
         if let Some(ref after) = after {
             params.insert("after", &after);
+        }
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
         }
 
         let result = self.endpoint_get("me/following", &params).await?;
@@ -1164,22 +1219,27 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_user_top_artists_manual<
         'a,
-        T: Into<Option<&'a TimeRange>>,
         L: Into<Option<u32>>,
         O: Into<Option<u32>>,
     >(
         &'a self,
-        time_range: T,
+        time_range: Option<&'a TimeRange>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<FullArtist>> {
         let mut params = Query::with_capacity(3);
-        let limit = limit.into().unwrap_or(20).to_string();
-        let offset = offset.into().unwrap_or(0).to_string();
-        let time_range = time_range.into().unwrap_or(&TimeRange::MediumTerm);
-        params.insert("limit", &limit);
-        params.insert("offset", &offset);
-        params.insert("time_range", time_range.as_ref());
+        if let Some(ref time_range) = time_range {
+            params.insert("time_range", time_range.as_ref());
+        }
+        let limit = limit.into().map(|s| s.to_string());
+        if let Some(ref limit) = limit {
+            params.insert("limit", &limit);
+        }
+        let offset = offset.into().map(|s| s.to_string());
+        if let Some(ref offset) = offset {
+            params.insert("offset", &offset);
+        }
+
         let result = self.endpoint_get(&"me/top/artists", &params).await?;
         self.convert_result(&result)
     }
@@ -1835,11 +1895,11 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
     #[maybe_async]
-    pub async fn start_context_playback<T: PlayContextIdType, U: PlayableIdType>(
+    pub async fn start_context_playback(
         &self,
-        context_uri: &Id<T>,
+        context_uri: &Id<impl PlayContextIdType>,
         device_id: Option<String>,
-        offset: Option<super::model::Offset<U>>,
+        offset: Option<super::model::Offset<impl PlayableIdType>>,
         position_ms: Option<std::time::Duration>,
     ) -> ClientResult<()> {
         use super::model::Offset;
@@ -2028,9 +2088,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue)
     #[maybe_async]
-    pub async fn add_item_to_queue<T: PlayableIdType>(
+    pub async fn add_item_to_queue(
         &self,
-        item: &Id<T>,
+        item: &Id<impl PlayableIdType>,
         device_id: Option<String>,
     ) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/queue?uri={}", item), device_id);

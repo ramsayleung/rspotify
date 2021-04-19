@@ -210,6 +210,9 @@ If we missed any change or there's something you'd like to discuss about this ve
   As a side effect, some methods now take references instead of values (so that they can be used multiple times when querying), and the parameters have been reordered so that the `limit` and `offset` are consistently the last two.
 
   The pagination chunk size can be configured with the `Spotify::pagination_chunks` field, which is set to 50 items by default.
+- No default values are set from Rspotify now, they will be left to the Spotify API.
+- []() Add a `collaborative` parameter to `user_playlist_create`.
+- []() Add a `uris` parameter to `playlist_reorder_tracks`.
 
 ## 0.10 (2020/07/01)
 
