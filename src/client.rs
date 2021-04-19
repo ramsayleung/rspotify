@@ -1184,22 +1184,32 @@ impl Spotify {
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
     ///
+    /// See [`Spotify::current_user_top_tracks_manual`] for a manually paginated
+    /// version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
+    pub fn current_user_top_tracks<'a>(
+        &'a self,
+        time_range: Option<&'a TimeRange>,
+    ) -> impl Paginator<ClientResult<FullTrack>> + 'a {
+        paginate(
+            move |limit, offset| self.current_user_top_tracks_manual(time_range, limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::current_user_top_tracks`].
     #[maybe_async]
-    pub async fn current_user_top_tracks<
-        L: Into<Option<u32>>,
-        O: Into<Option<u32>>,
-        T: Into<Option<TimeRange>>,
-    >(
+    pub async fn current_user_top_tracks_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
+        time_range: Option<&TimeRange>,
         limit: L,
         offset: O,
-        time_range: T,
     ) -> ClientResult<Page<FullTrack>> {
         let mut params = Query::with_capacity(3);
         let limit = limit.into().unwrap_or(20).to_string();
         let offset = offset.into().unwrap_or(0).to_string();
-        let time_range = time_range.into().unwrap_or(TimeRange::MediumTerm);
+        let time_range = time_range.unwrap_or(&TimeRange::MediumTerm);
         params.insert("limit", &limit);
         params.insert("offset", &offset);
         params.insert("time_range", time_range.as_ref());
@@ -1422,11 +1432,25 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
+    /// See [`Spotify::new_releases_manual`] for a manually paginated version of
+    /// this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
+    pub fn new_releases<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &'a self,
+        country: Option<&'a Market>,
+    ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
+        paginate(
+            move |limit, offset| self.new_releases_manual(country, limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::new_releases`].
     #[maybe_async]
-    pub async fn new_releases<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn new_releases_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        country: Option<Market>,
+        country: Option<&Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
@@ -1455,12 +1479,27 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
+    /// See [`Spotify::categories_manual`] for a manually paginated version of
+    /// this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
+    pub fn categories<'a>(
+        &'a self,
+        locale: Option<&'a str>,
+        country: Option<&'a Market>,
+    ) -> impl Paginator<ClientResult<Category>> + 'a {
+        paginate(
+            move |limit, offset| self.categories_manual(locale, country, limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::categories`].
     #[maybe_async]
-    pub async fn categories<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn categories_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
-        locale: Option<String>,
-        country: Option<Market>,
+        locale: Option<&str>,
+        country: Option<&Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<Category>> {
@@ -1469,7 +1508,7 @@ impl Spotify {
         let offset = offset.into().unwrap_or(0).to_string();
         params.insert("limit", &limit);
         params.insert("offset", &offset);
-        if let Some(ref locale) = locale {
+        if let Some(locale) = locale {
             params.insert("locale", locale);
         }
         if let Some(ref market) = country {
@@ -1490,12 +1529,29 @@ impl Spotify {
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
+    /// See [`Spotify::category_playlists_manual`] for a manually paginated
+    /// version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
+    pub fn category_playlists<'a, L: Into<Option<u32>>, O: Into<Option<u32>>>(
+        &'a self,
+        category_id: &'a str,
+        country: Option<&'a Market>,
+    ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
+        paginate(
+            move |limit, offset| {
+                self.category_playlists_manual(category_id, country, limit, offset)
+            },
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::category_playlists`].
     #[maybe_async]
-    pub async fn category_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn category_playlists_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         category_id: &str,
-        country: Option<Market>,
+        country: Option<&Market>,
         limit: L,
         offset: O,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
@@ -2003,9 +2059,20 @@ impl Spotify {
     /// - offset(Optional). The index of the first show to return. Default: 0
     ///   (the first object). Use with limit to get the next set of shows.
     ///
+    /// See [`Spotify::get_saved_show_manual`] for a manually paginated version
+    /// of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
+    pub fn get_saved_show(&self) -> impl Paginator<ClientResult<Show>> + '_ {
+        paginate(
+            move |limit, offset| self.get_saved_show_manual(limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::category_playlists`].
     #[maybe_async]
-    pub async fn get_saved_show<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn get_saved_show_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         limit: L,
         offset: O,
@@ -2075,14 +2142,29 @@ impl Spotify {
     /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
+    /// See [`Spotify::get_shows_episodes_manual`] for a manually paginated
+    /// version of this.
+    ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-shows-episodes)
+    pub fn get_shows_episodes<'a>(
+        &'a self,
+        id: &'a ShowId,
+        market: Option<&'a Market>,
+    ) -> impl Paginator<ClientResult<SimplifiedEpisode>> + 'a {
+        paginate(
+            move |limit, offset| self.get_shows_episodes_manual(id, market, limit, offset),
+            50,
+        )
+    }
+
+    /// The manually paginated version of [`Spotify::get_shows_episodes`].
     #[maybe_async]
-    pub async fn get_shows_episodes<L: Into<Option<u32>>, O: Into<Option<u32>>>(
+    pub async fn get_shows_episodes_manual<L: Into<Option<u32>>, O: Into<Option<u32>>>(
         &self,
         id: &ShowId,
+        market: Option<&Market>,
         limit: L,
         offset: O,
-        market: Option<Market>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let mut params = Query::with_capacity(2);
         let limit = limit.into().unwrap_or(20).to_string();
