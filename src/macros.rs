@@ -33,51 +33,60 @@ macro_rules! scopes {
     }};
 }
 
-/// Reduce boilerplate when inserting new elements in a JSON object.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! json_insert {
-    ($json:expr, $p1:expr, $p2:expr) => {
-        $json
-            .as_object_mut()
-            .unwrap()
-            .insert($p1.to_string(), json!($p2))
-    };
-}
-
 #[macro_export]
 macro_rules! params_internal {
-    ($map:ident, req, $key:ident, $val:expr) => (
-        $map.insert(stringify!($key), $val);
-    );
-    ($map:ident, opt, $key:ident, $val:expr) => (
-        if let Some(ref $key) = $key {
-            $map.insert(stringify!($key), $val);
+    ($map:ident, req, $name:ident, $key:expr, $val:expr) => {
+        $map.insert($key, $val);
+    };
+    ($map:ident, opt, $name:ident, $key:expr, $val:expr) => {
+        if let Some(ref $name) = $name {
+            $map.insert($key, $val);
         }
-    );
+    };
 }
 
 /// TODO: use with_capacity?
 #[macro_export]
-macro_rules! map_params {
+macro_rules! map_query {
     (
         $(
-            $kind:ident $key:ident => $val:expr
+            $kind:ident $name:ident => $val:expr
         ),* $(,)?
     ) => ({
         let mut params = crate::http::Query::new();
         $(
-            crate::params_internal!(params, $kind, $key, $val);
+            crate::params_internal!(
+                params,
+                $kind,
+                $name,
+                stringify!($name),
+                $val
+            );
         )*
         params
     });
 }
 
 #[macro_export]
-macro_rules! json_params {
-    () => {
+macro_rules! map_json {
+    (
+        $(
+            $kind:ident $name:ident => $val:expr
+        ),* $(,)?
+    ) => ({
+        let mut params = ::serde_json::map::Map::new();
+        $(
 
-    }
+            crate::params_internal!(
+                params,
+                $kind,
+                $name,
+                stringify!($name).to_string(),
+                json!($val)
+            );
+        )*
+        ::serde_json::Value::from(params)
+    });
 }
 
 #[cfg(test)]
