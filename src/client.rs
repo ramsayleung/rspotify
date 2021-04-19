@@ -1452,7 +1452,7 @@ impl Spotify {
             }
         }
 
-        for (ref key, ref value) in &map_to_hold_owned_value{
+        for (ref key, ref value) in &map_to_hold_owned_value {
             params.insert(key, value);
         }
 

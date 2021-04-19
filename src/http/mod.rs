@@ -206,7 +206,11 @@ impl Spotify {
     /// autentication.
     #[inline]
     #[maybe_async]
-    pub(crate) async fn endpoint_get<'a>(&self, url: &str, payload: &Query<'a>) -> ClientResult<String> {
+    pub(crate) async fn endpoint_get<'a>(
+        &self,
+        url: &str,
+        payload: &Query<'a>,
+    ) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.get(url, Some(&headers), payload).await
     }

@@ -332,19 +332,16 @@ impl Spotify {
     pub async fn request_user_token_without_cache(&mut self, code: &str) -> ClientResult<()> {
         let oauth = self.get_oauth()?;
         let mut data = Form::new();
-        let scopes = oauth.scope
-        .clone()
-        .into_iter()
-        .collect::<Vec<_>>()
-        .join(" ");
+        let scopes = oauth
+            .scope
+            .clone()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .join(" ");
         data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
         data.insert(headers::REDIRECT_URI, oauth.redirect_uri.as_ref());
         data.insert(headers::CODE, code);
-        data.insert(
-            headers::SCOPE,
-                
-            scopes.as_ref()
-        );
+        data.insert(headers::SCOPE, scopes.as_ref());
         data.insert(headers::STATE, oauth.state.as_ref());
 
         self.token = Some(self.fetch_access_token(&data).await?);

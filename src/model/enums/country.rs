@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{ToString,AsRefStr};
+use strum::{AsRefStr, ToString};
 
 /// ISO 3166-1 alpha-2 country code, from
 /// [country-list](https://datahub.io/core/country-list)
