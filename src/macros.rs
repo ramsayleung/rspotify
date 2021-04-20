@@ -47,6 +47,21 @@ macro_rules! opt {
     };
 }
 
+/// Count items in a list of items within a macro, taken from here:
+/// https://danielkeep.github.io/tlborm/book/blk-counting.html
+#[doc(hidden)]
+#[macro_export]
+macro_rules! replace_expr {
+    ($_t:tt $sub:expr) => {
+        $sub
+    };
+}
+#[doc(hidden)]
+#[macro_export]
+macro_rules! count_items {
+    ($($item:expr),*) => {<[()]>::len(&[$($crate::replace_expr!($item ())),*])};
+}
+
 /// Hack to convert an identifier to a string, including raw identifiers.
 #[doc(hidden)]
 #[macro_export]
@@ -76,7 +91,6 @@ macro_rules! params_internal {
     };
 }
 
-/// TODO: use with_capacity?
 /// This macro and [`build_json`] help make the endpoints as concise as possible
 /// and boilerplate-free, which is specially important when initializing the
 /// parameters of the query with a HashMap/similar. Their items follow the
@@ -104,7 +118,9 @@ macro_rules! build_map {
             $kind:ident $name:ident $( => $val:expr )?
         ),* $(,)?
     ) => {{
-        let mut params = $crate::http::Query::new();
+        let mut params = $crate::http::Query::with_capacity(
+            $crate::count_items!($( $name ),*)
+        );
         $(
             $crate::params_internal!(
                 params,
@@ -128,7 +144,9 @@ macro_rules! build_json {
             $kind:ident $name:ident $( => $val:expr )?
         ),* $(,)?
     ) => {{
-        let mut params = ::serde_json::map::Map::new();
+        let mut params = ::serde_json::map::Map::with_capacity(
+            $crate::count_items!($( $name ),*)
+        );
         $(
             $crate::params_internal!(
                 params,
