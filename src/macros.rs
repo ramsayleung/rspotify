@@ -152,10 +152,10 @@ mod test {
     fn test_hashset() {
         let scope = scopes!("hello", "world", "foo", "bar");
         assert_eq!(scope.len(), 4);
-        assert!(scope.contains(&"hello".to_owned()));
-        assert!(scope.contains(&"world".to_owned()));
-        assert!(scope.contains(&"foo".to_owned()));
-        assert!(scope.contains(&"bar".to_owned()));
+        assert!(scope.contains("hello"));
+        assert!(scope.contains("world"));
+        assert!(scope.contains("foo"));
+        assert!(scope.contains("bar"));
     }
 
     #[test]
