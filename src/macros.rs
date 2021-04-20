@@ -99,10 +99,10 @@ macro_rules! params_internal {
 ///   [req|opt] key [=> value]
 ///
 /// The first keyword is just to distinguish between a direct insert into the
-/// hashmap (required parameter), and an insert only if the value is
-/// `Some(...)`, respectively (optional parameter). This is followed by the
-/// variable to be inserted, which shall have the same name as the key in the
-/// map (meaning that `r#type` may have to be used).
+/// hashmap (required parameter), and an insert only if the value is `Some(...)`
+/// (optional parameter). This is followed by the variable to be inserted, which
+/// shall have the same name as the key in the map (meaning that `r#type` may
+/// have to be used).
 ///
 /// It also works similarly to how struct initialization works. You may provide
 /// a key and a value with `MyStruct { key: value }`, or if both have the same
