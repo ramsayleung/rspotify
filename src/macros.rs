@@ -103,7 +103,7 @@ macro_rules! build_map {
         $(
             $kind:ident $name:ident $( => $val:expr )?
         ),* $(,)?
-    ) => ({
+    ) => {{
         let mut params = $crate::http::Query::new();
         $(
             $crate::params_internal!(
@@ -115,7 +115,7 @@ macro_rules! build_map {
             );
         )*
         params
-    });
+    }};
 }
 
 /// Refer to the [`build_map`] documentation; this is the same but for JSON
@@ -127,7 +127,7 @@ macro_rules! build_json {
         $(
             $kind:ident $name:ident $( => $val:expr )?
         ),* $(,)?
-    ) => ({
+    ) => {{
         let mut params = ::serde_json::map::Map::new();
         $(
             $crate::params_internal!(
@@ -139,7 +139,7 @@ macro_rules! build_json {
             );
         )*
         ::serde_json::Value::from(params)
-    });
+    }};
 }
 
 #[cfg(test)]
