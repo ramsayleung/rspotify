@@ -1391,7 +1391,7 @@ impl Spotify {
     pub async fn featured_playlists(
         &self,
         locale: Option<&str>,
-        market: Option<Market>,
+        country: Option<Market>,
         timestamp: Option<DateTime<Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -1401,7 +1401,7 @@ impl Spotify {
         let timestamp = timestamp.map(|x| x.to_rfc3339());
         let params = build_map! {
             opt locale,
-            opt market => market.as_ref(),
+            opt country => country.as_ref(),
             opt timestamp,
             opt limit,
             opt offset,
@@ -1428,10 +1428,10 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
     pub fn new_releases<'a>(
         &'a self,
-        market: Option<&'a Market>,
+        country: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
         paginate(
-            move |limit, offset| self.new_releases_manual(market, Some(limit), Some(offset)),
+            move |limit, offset| self.new_releases_manual(country, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
@@ -1440,14 +1440,14 @@ impl Spotify {
     #[maybe_async]
     pub async fn new_releases_manual(
         &self,
-        market: Option<&Market>,
+        country: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            opt market => market.as_ref(),
+            opt country => country.as_ref(),
             opt limit,
             opt offset,
         };
@@ -1475,10 +1475,10 @@ impl Spotify {
     pub fn categories<'a>(
         &'a self,
         locale: Option<&'a str>,
-        market: Option<&'a Market>,
+        country: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<Category>> + 'a {
         paginate(
-            move |limit, offset| self.categories_manual(locale, market, Some(limit), Some(offset)),
+            move |limit, offset| self.categories_manual(locale, country, Some(limit), Some(offset)),
             self.pagination_chunks,
         )
     }
@@ -1488,7 +1488,7 @@ impl Spotify {
     pub async fn categories_manual(
         &self,
         locale: Option<&str>,
-        market: Option<&Market>,
+        country: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<Category>> {
@@ -1496,7 +1496,7 @@ impl Spotify {
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
             opt locale,
-            opt market => market.as_ref(),
+            opt country => country.as_ref(),
             opt limit,
             opt offset,
         };
@@ -1522,11 +1522,11 @@ impl Spotify {
     pub fn category_playlists<'a>(
         &'a self,
         category_id: &'a str,
-        market: Option<&'a Market>,
+        country: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
         paginate(
             move |limit, offset| {
-                self.category_playlists_manual(category_id, market, Some(limit), Some(offset))
+                self.category_playlists_manual(category_id, country, Some(limit), Some(offset))
             },
             self.pagination_chunks,
         )
@@ -1537,14 +1537,14 @@ impl Spotify {
     pub async fn category_playlists_manual(
         &self,
         category_id: &str,
-        market: Option<&Market>,
+        country: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            opt market => market.as_ref(),
+            opt country => country.as_ref(),
             opt limit,
             opt offset,
         };
@@ -1702,13 +1702,13 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_playback(
         &self,
-        market: Option<Market>,
+        country: Option<Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
         let params = build_map! {
-            opt market => market.as_ref(),
+            opt country => country.as_ref(),
             opt additional_types,
         };
 
