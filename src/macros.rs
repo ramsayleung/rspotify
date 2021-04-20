@@ -62,7 +62,8 @@ macro_rules! count_items {
     ($($item:expr),*) => {<[()]>::len(&[$($crate::replace_expr!($item ())),*])};
 }
 
-/// Hack to convert an identifier to a string, including raw identifiers.
+/// Hack to convert an identifier to a string, including raw identifiers like
+/// `r#type`.
 #[doc(hidden)]
 #[macro_export]
 macro_rules! ident_str {
