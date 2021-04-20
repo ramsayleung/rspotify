@@ -193,7 +193,7 @@ mod test {
             opt modality => modality.as_ref(),
         };
 
-        let mut manually = Query::new();
+        let mut manually = Query::with_capacity(3);
         manually.insert("id", id);
         if let Some(ref artist) = artist {
             manually.insert("artist", artist);
@@ -218,7 +218,7 @@ mod test {
             opt modality => modality.as_ref(),
         };
 
-        let mut manually = Map::new();
+        let mut manually = Map::with_capacity(3);
         manually.insert("id".to_string(), json!(id));
         if let Some(ref artist) = artist {
             manually.insert("artist".to_string(), json!(artist));
