@@ -1770,7 +1770,7 @@ impl Spotify {
         force_play: Option<bool>,
     ) -> ClientResult<()> {
         let params = build_json! {
-            req device_ids => vec![device_id.to_owned()],
+            req device_ids => [device_id],
             opt force_play,
         };
 
