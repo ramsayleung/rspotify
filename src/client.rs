@@ -621,9 +621,9 @@ impl Spotify {
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
             opt fields,
+            opt market => market.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
-            opt market => market.as_ref(),
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -745,10 +745,10 @@ impl Spotify {
         track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
-
         let params = build_json! {
-            req uris => uris
+            req uris
         };
+
         let url = format!("playlists/{}/tracks", playlist_id.id());
         self.endpoint_put(&url, &params).await?;
 
@@ -1063,8 +1063,8 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let params = build_map! {
             req r#type => Type::Artist.as_ref(),
-            opt after => &after,
-            opt limit => &limit,
+            opt after,
+            opt limit,
         };
 
         let result = self.endpoint_get("me/following", &params).await?;
@@ -1447,9 +1447,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
+            opt market => market.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
-            opt market => market.as_ref(),
         };
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
@@ -1809,7 +1809,7 @@ impl Spotify {
                 Offset::Position(position) => json!({ "position": position }),
                 Offset::Uri(uri) => json!({ "uri": uri.uri() }),
             },
-            opt position_ms => position_ms
+            opt position_ms,
 
         };
 
@@ -2120,9 +2120,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
+            opt market => market.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
-            opt market => market.as_ref(),
         };
 
         let url = format!("shows/{}/episodes", id.id());
@@ -2191,7 +2191,7 @@ impl Spotify {
     ) -> ClientResult<Vec<bool>> {
         let ids = join_ids(ids);
         let params = build_map! {
-            req ids => ids.as_str(),
+            req ids => &ids,
         };
         let result = self.endpoint_get("me/shows/contains", &params).await?;
         self.convert_result(&result)
