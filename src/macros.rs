@@ -55,7 +55,7 @@ macro_rules! ident_str {
         const NAME: &str = stringify!($name);
         match &NAME.get(..2) {
             Some("r#") => &NAME[2..],
-            _ => &NAME[..]
+            _ => &NAME[..],
         }
     }};
 }
@@ -144,10 +144,10 @@ macro_rules! build_json {
 
 #[cfg(test)]
 mod test {
-    use crate::{build_map, build_json, scopes};
     use crate::http::Query;
     use crate::model::Modality;
-    use serde_json::{Map, Value, json};
+    use crate::{build_json, build_map, scopes};
+    use serde_json::{json, Map, Value};
 
     #[test]
     fn test_hashset() {

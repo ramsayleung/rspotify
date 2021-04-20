@@ -101,7 +101,14 @@ fn main() {
     }
 
     let episode_query = "love";
-    let result = spotify.search(episode_query, SearchType::Episode, None, None, Some(10), None);
+    let result = spotify.search(
+        episode_query,
+        SearchType::Episode,
+        None,
+        None,
+        Some(10),
+        None,
+    );
     match result {
         Ok(episode) => println!("searched episode:{:?}", episode),
         Err(err) => println!("search error!{:?}", err),
