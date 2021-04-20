@@ -80,10 +80,10 @@ macro_rules! ident_str {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! params_internal {
-    ($map:ident, req, $name:ident, $key:expr, $val:expr) => {
+    ($map:ident, required, $name:ident, $key:expr, $val:expr) => {
         $map.insert($key, $val);
     };
-    ($map:ident, opt, $name:ident, $key:expr, $val:expr) => {
+    ($map:ident, optional, $name:ident, $key:expr, $val:expr) => {
         // Will only insert when `$name` is not None.
         if let Some(ref $name) = $name {
             $map.insert($key, $val);
@@ -96,7 +96,7 @@ macro_rules! params_internal {
 /// parameters of the query with a HashMap/similar. Their items follow the
 /// syntax:
 ///
-///   [req|opt] key [=> value]
+///   [required|optional] key [=> value]
 ///
 /// The first keyword is just to distinguish between a direct insert into the
 /// hashmap (required parameter), and an insert only if the value is `Some(...)`
@@ -186,11 +186,11 @@ mod test {
 
         let with_macro = build_map! {
             // Mandatory (not an `Option<T>`)
-            req id,
+            required id,
             // Can be used directly
-            opt artist,
+            optional artist,
             // `Modality` needs to be converted to &str
-            opt modality => modality.as_ref(),
+            optional modality => modality.as_ref(),
         };
 
         let mut manually = Query::with_capacity(3);
@@ -213,9 +213,9 @@ mod test {
         let modality: Option<Modality> = None;
 
         let with_macro = build_json! {
-            req id,
-            opt artist,
-            opt modality => modality.as_ref(),
+            required id,
+            optional artist,
+            optional modality => modality.as_ref(),
         };
 
         let mut manually = Map::with_capacity(3);
