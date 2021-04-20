@@ -154,7 +154,7 @@ impl Spotify {
     }
 
     /// Append device ID to an API path.
-    fn append_device_id(&self, path: &str, device_id: Option<String>) -> String {
+    fn append_device_id(&self, path: &str, device_id: Option<&str>) -> String {
         let mut new_path = path.to_string();
         if let Some(_device_id) = device_id {
             if path.contains('?') {
@@ -677,7 +677,7 @@ impl Spotify {
         playlist_id: &str,
         name: Option<&str>,
         public: Option<bool>,
-        description: Option<String>,
+        description: Option<&str>,
         collaborative: Option<bool>,
     ) -> ClientResult<String> {
         let params = map_json! {
@@ -774,7 +774,7 @@ impl Spotify {
         range_start: Option<i32>,
         insert_before: Option<i32>,
         range_length: Option<u32>,
-        snapshot_id: Option<String>,
+        snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = map_json! {
@@ -804,7 +804,7 @@ impl Spotify {
         &self,
         playlist_id: &PlaylistId,
         track_ids: impl IntoIterator<Item = &'a TrackId>,
-        snapshot_id: Option<String>,
+        snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = track_ids
             .into_iter()
@@ -859,7 +859,7 @@ impl Spotify {
         &self,
         playlist_id: &PlaylistId,
         tracks: Vec<TrackPositions<'_>>,
-        snapshot_id: Option<String>,
+        snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
             .into_iter()
@@ -1056,7 +1056,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_user_followed_artists(
         &self,
-        after: Option<String>,
+        after: Option<&str>,
         limit: Option<u32>,
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
@@ -1389,7 +1389,7 @@ impl Spotify {
     #[maybe_async]
     pub async fn featured_playlists(
         &self,
-        locale: Option<String>,
+        locale: Option<&str>,
         market: Option<Market>,
         timestamp: Option<DateTime<Utc>>,
         limit: Option<u32>,
@@ -1572,12 +1572,12 @@ impl Spotify {
     #[maybe_async]
     pub async fn recommendations(
         &self,
+        payload: &Map<String, Value>,
         seed_artists: Option<Vec<&ArtistId>>,
         seed_genres: Option<Vec<String>>,
         seed_tracks: Option<Vec<&TrackId>>,
         limit: Option<u32>,
         market: Option<Market>,
-        payload: &Map<String, Value>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
         let seed_genres = seed_genres.map(|x| x.join(","));
@@ -1796,7 +1796,7 @@ impl Spotify {
     pub async fn start_context_playback(
         &self,
         context_uri: &Id<impl PlayContextIdType>,
-        device_id: Option<String>,
+        device_id: Option<&str>,
         offset: Option<super::model::Offset<impl PlayableIdType>>,
         position_ms: Option<std::time::Duration>,
     ) -> ClientResult<()> {
@@ -1822,7 +1822,7 @@ impl Spotify {
     pub async fn start_uris_playback<T: PlayableIdType>(
         &self,
         uris: &[&Id<T>],
-        device_id: Option<String>,
+        device_id: Option<&str>,
         offset: Option<super::model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
@@ -1850,7 +1850,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-pause-a-users-playback)
     #[maybe_async]
-    pub async fn pause_playback(&self, device_id: Option<String>) -> ClientResult<()> {
+    pub async fn pause_playback(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/pause", device_id);
         self.endpoint_put(&url, &json!({})).await?;
 
@@ -1864,7 +1864,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-skip-users-playback-to-next-track)
     #[maybe_async]
-    pub async fn next_track(&self, device_id: Option<String>) -> ClientResult<()> {
+    pub async fn next_track(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/next", device_id);
         self.endpoint_post(&url, &json!({})).await?;
 
@@ -1878,7 +1878,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-skip-users-playback-to-previous-track)
     #[maybe_async]
-    pub async fn previous_track(&self, device_id: Option<String>) -> ClientResult<()> {
+    pub async fn previous_track(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id("me/player/previous", device_id);
         self.endpoint_post(&url, &json!({})).await?;
 
@@ -1893,11 +1893,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-seek-to-position-in-currently-playing-track)
     #[maybe_async]
-    pub async fn seek_track(
-        &self,
-        position_ms: u32,
-        device_id: Option<String>,
-    ) -> ClientResult<()> {
+    pub async fn seek_track(&self, position_ms: u32, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id(
             &format!("me/player/seek?position_ms={}", position_ms),
             device_id,
@@ -1915,7 +1911,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-repeat-mode-on-users-playback)
     #[maybe_async]
-    pub async fn repeat(&self, state: RepeatState, device_id: Option<String>) -> ClientResult<()> {
+    pub async fn repeat(&self, state: RepeatState, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id(
             &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
@@ -1933,7 +1929,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     #[maybe_async]
-    pub async fn volume(&self, volume_percent: u8, device_id: Option<String>) -> ClientResult<()> {
+    pub async fn volume(&self, volume_percent: u8, device_id: Option<&str>) -> ClientResult<()> {
         if volume_percent > 100u8 {
             error!("volume must be between 0 and 100, inclusive");
         }
@@ -1954,7 +1950,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-toggle-shuffle-for-users-playback)
     #[maybe_async]
-    pub async fn shuffle(&self, state: bool, device_id: Option<String>) -> ClientResult<()> {
+    pub async fn shuffle(&self, state: bool, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
         self.endpoint_put(&url, &json!({})).await?;
 
@@ -1974,7 +1970,7 @@ impl Spotify {
     pub async fn add_item_to_queue(
         &self,
         item: &Id<impl PlayableIdType>,
-        device_id: Option<String>,
+        device_id: Option<&str>,
     ) -> ClientResult<()> {
         let url = self.append_device_id(&format!("me/player/queue?uri={}", item), device_id);
         self.endpoint_post(&url, &json!({})).await?;
@@ -2244,7 +2240,7 @@ mod test {
     #[test]
     fn test_append_device_id_without_question_mark() {
         let path = "me/player/play";
-        let device_id = Some("fdafdsadfa".to_owned());
+        let device_id = Some("fdafdsadfa");
         let spotify = SpotifyBuilder::default().build().unwrap();
         let new_path = spotify.append_device_id(path, device_id);
         assert_eq!(new_path, "me/player/play?device_id=fdafdsadfa");
@@ -2253,7 +2249,7 @@ mod test {
     #[test]
     fn test_append_device_id_with_question_mark() {
         let path = "me/player/shuffle?state=true";
-        let device_id = Some("fdafdsadfa".to_owned());
+        let device_id = Some("fdafdsadfa");
         let spotify = SpotifyBuilder::default().build().unwrap();
         let new_path = spotify.append_device_id(path, device_id);
         assert_eq!(

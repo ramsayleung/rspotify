@@ -101,7 +101,12 @@ pub async fn oauth_client() -> Spotify {
 async fn test_categories() {
     oauth_client()
         .await
-        .categories_manual(None, Some(&Market::Country(Country::UnitedStates)), 10, 0)
+        .categories_manual(
+            None,
+            Some(&Market::Country(Country::UnitedStates)),
+            Some(10),
+            Some(0),
+        )
         .await
         .unwrap();
 }
@@ -112,7 +117,12 @@ async fn test_categories() {
 async fn test_category_playlists() {
     oauth_client()
         .await
-        .category_playlists_manual("pop", Some(&Market::Country(Country::UnitedStates)), 10, 0)
+        .category_playlists_manual(
+            "pop",
+            Some(&Market::Country(Country::UnitedStates)),
+            Some(10),
+            Some(0),
+        )
         .await
         .unwrap();
 }
@@ -145,7 +155,7 @@ async fn test_current_playing() {
 async fn test_current_user_followed_artists() {
     oauth_client()
         .await
-        .current_user_followed_artists(10, None)
+        .current_user_followed_artists(None, Some(10))
         .await
         .unwrap();
 }
@@ -167,7 +177,7 @@ async fn test_current_user_playing_track() {
 async fn test_current_user_playlists() {
     oauth_client()
         .await
-        .current_user_playlists_manual(10, None)
+        .current_user_playlists_manual(Some(10), None)
         .await
         .unwrap();
 }
@@ -178,7 +188,7 @@ async fn test_current_user_playlists() {
 async fn test_current_user_recently_played() {
     oauth_client()
         .await
-        .current_user_recently_played(10)
+        .current_user_recently_played(Some(10))
         .await
         .unwrap();
 }
@@ -221,7 +231,7 @@ async fn test_current_user_saved_albums_delete() {
 async fn test_current_user_saved_albums() {
     oauth_client()
         .await
-        .current_user_saved_albums_manual(10, 0)
+        .current_user_saved_albums_manual(Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -280,7 +290,7 @@ async fn test_current_user_saved_tracks_delete() {
 async fn test_current_user_saved_tracks() {
     oauth_client()
         .await
-        .current_user_saved_tracks_manual(10, 0)
+        .current_user_saved_tracks_manual(Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -291,7 +301,7 @@ async fn test_current_user_saved_tracks() {
 async fn test_current_user_top_artists() {
     oauth_client()
         .await
-        .current_user_top_artists_manual(Some(&TimeRange::ShortTerm), 10, 0)
+        .current_user_top_artists_manual(Some(&TimeRange::ShortTerm), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -302,7 +312,7 @@ async fn test_current_user_top_artists() {
 async fn test_current_user_top_tracks() {
     oauth_client()
         .await
-        .current_user_top_tracks_manual(Some(&TimeRange::ShortTerm), 10, 0)
+        .current_user_top_tracks_manual(Some(&TimeRange::ShortTerm), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -321,7 +331,7 @@ async fn test_featured_playlists() {
     let now: DateTime<Utc> = Utc::now();
     oauth_client()
         .await
-        .featured_playlists(None, None, Some(now), 10, 0)
+        .featured_playlists(None, None, Some(now), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -339,7 +349,7 @@ async fn test_me() {
 async fn test_new_releases() {
     oauth_client()
         .await
-        .new_releases_manual(Some(&Market::Country(Country::Sweden)), 10, 0)
+        .new_releases_manual(Some(&Market::Country(Country::Sweden)), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -350,7 +360,7 @@ async fn test_new_releases() {
 async fn test_new_releases_with_from_token() {
     oauth_client()
         .await
-        .new_releases_manual(Some(&Market::FromToken), 10, 0)
+        .new_releases_manual(Some(&Market::FromToken), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -359,7 +369,7 @@ async fn test_new_releases_with_from_token() {
 #[maybe_async_test]
 #[ignore]
 async fn test_next_playback() {
-    let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
+    let device_id = "74ASZWbe4lXaubB36ztrGX";
     oauth_client()
         .await
         .next_track(Some(device_id))
@@ -371,7 +381,7 @@ async fn test_next_playback() {
 #[maybe_async_test]
 #[ignore]
 async fn test_pause_playback() {
-    let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
+    let device_id = "74ASZWbe4lXaubB36ztrGX";
     oauth_client()
         .await
         .pause_playback(Some(device_id))
@@ -383,7 +393,7 @@ async fn test_pause_playback() {
 #[maybe_async_test]
 #[ignore]
 async fn test_previous_playback() {
-    let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
+    let device_id = "74ASZWbe4lXaubB36ztrGX";
     oauth_client()
         .await
         .previous_track(Some(device_id))
@@ -403,12 +413,12 @@ async fn test_recommendations() {
     oauth_client()
         .await
         .recommendations(
+            &payload,
             Some(seed_artists),
             None,
             Some(seed_tracks),
-            10,
+            Some(10),
             Some(Market::Country(Country::UnitedStates)),
-            &payload,
         )
         .await
         .unwrap();
@@ -432,7 +442,7 @@ async fn test_search_album() {
     let query = "album:arrival artist:abba";
     oauth_client()
         .await
-        .search(query, SearchType::Album, 10, 0, None, None)
+        .search(query, SearchType::Album, None, None, Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -447,10 +457,10 @@ async fn test_search_artist() {
         .search(
             query,
             SearchType::Artist,
-            10,
-            0,
             Some(Market::Country(Country::UnitedStates)),
             None,
+            Some(10),
+            Some(0),
         )
         .await
         .unwrap();
@@ -466,10 +476,10 @@ async fn test_search_playlist() {
         .search(
             query,
             SearchType::Playlist,
-            10,
-            0,
             Some(Market::Country(Country::UnitedStates)),
             None,
+            Some(10),
+            Some(0),
         )
         .await
         .unwrap();
@@ -485,10 +495,10 @@ async fn test_search_track() {
         .search(
             query,
             SearchType::Track,
-            10,
-            0,
             Some(Market::Country(Country::UnitedStates)),
             None,
+            Some(10),
+            Some(0),
         )
         .await
         .unwrap();
@@ -512,7 +522,7 @@ async fn test_shuffle() {
 #[maybe_async_test]
 #[ignore]
 async fn test_start_playback() {
-    let device_id = String::from("74ASZWbe4lXaubB36ztrGX");
+    let device_id = "74ASZWbe4lXaubB36ztrGX";
     let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
     oauth_client()
         .await
@@ -528,7 +538,7 @@ async fn test_transfer_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
     oauth_client()
         .await
-        .transfer_playback(device_id, true)
+        .transfer_playback(device_id, Some(true))
         .await
         .unwrap();
 }
@@ -644,7 +654,7 @@ async fn test_user_playlist_create() {
     let playlist_name = "A New Playlist";
     oauth_client()
         .await
-        .user_playlist_create(user_id, playlist_name, false, None)
+        .user_playlist_create(user_id, playlist_name, Some(false), None, None)
         .await
         .unwrap();
 }
@@ -656,7 +666,7 @@ async fn test_playlist_follow_playlist() {
     let playlist_id = Id::from_id("2v3iNvBX8Ay1Gt2uXtUKUT").unwrap();
     oauth_client()
         .await
-        .playlist_follow(playlist_id, true)
+        .playlist_follow(playlist_id, Some(true))
         .await
         .unwrap();
 }
@@ -665,13 +675,21 @@ async fn test_playlist_follow_playlist() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_recorder_tracks() {
+    let uris: Option<&[&EpisodeId]> = None;
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let range_start = 0;
     let insert_before = 1;
     let range_length = 1;
     oauth_client()
         .await
-        .playlist_reorder_tracks(playlist_id, range_start, range_length, insert_before, None)
+        .playlist_reorder_tracks(
+            playlist_id,
+            uris,
+            Some(range_start),
+            Some(insert_before),
+            Some(range_length),
+            None,
+        )
         .await
         .unwrap();
 }

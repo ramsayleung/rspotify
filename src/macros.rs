@@ -70,7 +70,7 @@ macro_rules! params_internal {
 /// syntax:
 ///
 ///   [req|opt] key [=> value]
-/// 
+///
 /// The first keyword is just to distinguish between a direct insert into the
 /// hashmap (required parameter), and an insert only if the value is
 /// `Some(...)`, respectively (optional parameter). This is followed by the
@@ -131,9 +131,9 @@ macro_rules! map_json {
 
 #[cfg(test)]
 mod test {
-    use crate::{map_query, scopes};
-    use crate::model::{AlbumId, Market};
     use crate::http::Query;
+    use crate::model::Modality;
+    use crate::{map_query, scopes};
 
     #[test]
     fn test_hashset() {
@@ -145,22 +145,20 @@ mod test {
         assert!(scope.contains(&"bar".to_owned()));
     }
 
+    #[test]
     fn test_map_query() {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
-        let artist: Option<&str> = None;
-        let album = Some(AlbumId::from_uri("spotify:album:0XOseclZGO4NnaBz5Shjxp").unwrap());
-        let market = Some(Market::FromToken);
+        let artist = Some("The Wombats");
+        let modality: Option<Modality> = None;
 
         let with_macro = map_query! {
             // Mandatory (not an `Option<T>`)
             req id,
-            // Is `None`, so it won't be inserted
-            opt artist,
             // Can be used directly
-            opt album,
-            // `Market` needs to be converted to &str
-            opt market => market.as_ref(),
+            opt artist,
+            // `Modality` needs to be converted to &str
+            opt modality => modality.as_ref(),
         };
 
         let mut manually = Query::new();
@@ -168,8 +166,8 @@ mod test {
         if let Some(ref artist) = artist {
             manually.insert("artist", artist);
         }
-        if let Some(ref market) = market {
-            manually.insert("market", market.as_ref());
+        if let Some(ref modality) = modality {
+            manually.insert("modality", modality.as_ref());
         }
 
         assert_eq!(with_macro, manually);
