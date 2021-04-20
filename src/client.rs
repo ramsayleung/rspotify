@@ -15,7 +15,7 @@ use super::http::{HTTPClient, Query};
 use super::model::*;
 use super::oauth2::{Credentials, OAuth, Token};
 use super::pagination::{paginate, Paginator};
-use super::{map_json, map_query};
+use super::{build_json, build_map};
 use crate::model::idtypes::{IdType, PlayContextIdType};
 use std::collections::HashMap;
 
@@ -193,7 +193,7 @@ impl Spotify {
         market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
-        let params = map_query! {
+        let params = build_map! {
             opt market => market.as_ref(),
         };
 
@@ -273,7 +273,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt album_type => album_type.as_ref(),
             opt market => &market.as_ref(),
             opt limit => &limit,
@@ -299,7 +299,7 @@ impl Spotify {
         artist_id: &ArtistId,
         market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
-        let params = map_query! {
+        let params = build_map! {
             req market => market.as_ref()
         };
 
@@ -385,7 +385,7 @@ impl Spotify {
     ) -> ClientResult<SearchResult> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             req q,
             req r#type => r#type.as_ref(),
             opt market => market.as_ref(),
@@ -430,7 +430,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
         };
@@ -467,7 +467,7 @@ impl Spotify {
         fields: Option<&str>,
         market: Option<Market>,
     ) -> ClientResult<FullPlaylist> {
-        let params = map_query! {
+        let params = build_map! {
             opt fields,
             opt market => market.as_ref(),
         };
@@ -503,7 +503,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
         };
@@ -543,7 +543,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
         };
@@ -568,7 +568,7 @@ impl Spotify {
         playlist_id: Option<&PlaylistId>,
         fields: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
-        let params = map_query! {
+        let params = build_map! {
             opt fields,
         };
 
@@ -619,7 +619,7 @@ impl Spotify {
     ) -> ClientResult<Page<PlaylistItem>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt fields,
             opt limit => &limit,
             opt offset => &offset,
@@ -650,7 +650,7 @@ impl Spotify {
         collaborative: Option<bool>,
         description: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
-        let params = map_json! {
+        let params = build_json! {
             req name,
             opt public,
             opt collaborative,
@@ -681,7 +681,7 @@ impl Spotify {
         description: Option<&str>,
         collaborative: Option<bool>,
     ) -> ClientResult<String> {
-        let params = map_json! {
+        let params = build_json! {
             opt name,
             opt public,
             opt collaborative,
@@ -720,7 +720,7 @@ impl Spotify {
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
-        let params = map_json! {
+        let params = build_json! {
             req uris,
             req position,
         };
@@ -746,7 +746,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
 
-        let params = map_json! {
+        let params = build_json! {
             req uris => uris
         };
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -778,7 +778,7 @@ impl Spotify {
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
-        let params = map_json! {
+        let params = build_json! {
             req playlist_id,
             opt uris,
             opt range_start,
@@ -816,7 +816,7 @@ impl Spotify {
             })
             .collect::<Vec<_>>();
 
-        let params = map_json! {
+        let params = build_json! {
             req tracks,
             opt snapshot_id,
         };
@@ -872,7 +872,7 @@ impl Spotify {
             })
             .collect::<Vec<_>>();
 
-        let params = map_json! {
+        let params = build_json! {
             req tracks,
             opt snapshot_id,
         };
@@ -896,7 +896,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         let url = format!("playlists/{}/followers", playlist_id.id());
 
-        let params = map_json! {
+        let params = build_json! {
             opt public,
         };
 
@@ -1000,7 +1000,7 @@ impl Spotify {
     ) -> ClientResult<Page<SavedAlbum>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
         };
@@ -1038,7 +1038,7 @@ impl Spotify {
     ) -> ClientResult<Page<SavedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
         };
@@ -1061,7 +1061,7 @@ impl Spotify {
         limit: Option<u32>,
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             req r#type => Type::Artist.as_ref(),
             opt after => &after,
             opt limit => &limit,
@@ -1156,7 +1156,7 @@ impl Spotify {
     ) -> ClientResult<Page<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt time_range => time_range.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
@@ -1199,7 +1199,7 @@ impl Spotify {
     ) -> ClientResult<Page<FullTrack>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt time_range => time_range.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
@@ -1221,7 +1221,7 @@ impl Spotify {
         limit: Option<u32>,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let limit = limit.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
         };
 
@@ -1399,7 +1399,7 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let timestamp = timestamp.map(|x| x.to_rfc3339());
-        let params = map_query! {
+        let params = build_map! {
             opt locale,
             opt market => market.as_ref(),
             opt timestamp,
@@ -1446,7 +1446,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
             opt market => market.as_ref(),
@@ -1494,7 +1494,7 @@ impl Spotify {
     ) -> ClientResult<Page<Category>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt locale,
             opt market => market.as_ref(),
             opt limit => &limit,
@@ -1543,7 +1543,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt market => market.as_ref(),
             opt limit => &limit,
             opt offset => &offset,
@@ -1584,7 +1584,7 @@ impl Spotify {
         let seed_genres = seed_genres.map(|x| x.join(","));
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
-        let mut params = map_query! {
+        let mut params = build_map! {
             opt seed_artists,
             opt seed_genres,
             opt seed_tracks,
@@ -1707,7 +1707,7 @@ impl Spotify {
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
-        let params = map_query! {
+        let params = build_map! {
             opt market => market.as_ref(),
             opt additional_types,
         };
@@ -1737,7 +1737,7 @@ impl Spotify {
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
-        let params = map_query! {
+        let params = build_map! {
             opt market => market.as_ref(),
             opt additional_types,
         };
@@ -1769,7 +1769,7 @@ impl Spotify {
         device_id: &str,
         force_play: Option<bool>,
     ) -> ClientResult<()> {
-        let params = map_json! {
+        let params = build_json! {
             req device_ids => vec![device_id.to_owned()],
             opt force_play,
         };
@@ -1803,7 +1803,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         use super::model::Offset;
 
-        let params = map_json! {
+        let params = build_json! {
             req context_uri => context_uri.uri(),
             opt offset => match offset {
                 Offset::Position(position) => json!({ "position": position }),
@@ -1829,7 +1829,7 @@ impl Spotify {
     ) -> ClientResult<()> {
         use super::model::Offset;
 
-        let params = map_json! {
+        let params = build_json! {
             req uris => uris.iter().map(|id| id.uri()).collect::<Vec<_>>(),
             opt position_ms,
             opt offset => match offset {
@@ -2026,7 +2026,7 @@ impl Spotify {
     ) -> ClientResult<Page<Show>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
         };
@@ -2046,7 +2046,7 @@ impl Spotify {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-show)
     #[maybe_async]
     pub async fn get_a_show(&self, id: &ShowId, market: Option<Market>) -> ClientResult<FullShow> {
-        let params = map_query! {
+        let params = build_map! {
             opt market => market.as_ref(),
         };
 
@@ -2070,7 +2070,7 @@ impl Spotify {
         market: Option<Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
-        let params = map_query! {
+        let params = build_map! {
             req ids => ids.as_ref(),
             opt market => market.as_ref(),
         };
@@ -2119,7 +2119,7 @@ impl Spotify {
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = map_query! {
+        let params = build_map! {
             opt limit => &limit,
             opt offset => &offset,
             opt market => market.as_ref(),
@@ -2146,7 +2146,7 @@ impl Spotify {
         market: Option<Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
-        let params = map_query! {
+        let params = build_map! {
             opt market => market.as_ref(),
         };
 
@@ -2168,7 +2168,7 @@ impl Spotify {
         market: Option<Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
-        let params = map_query! {
+        let params = build_map! {
             req ids => ids.as_ref(),
             opt market => market.as_ref(),
         };
@@ -2190,7 +2190,7 @@ impl Spotify {
         ids: impl IntoIterator<Item = &'a ShowId>,
     ) -> ClientResult<Vec<bool>> {
         let ids = join_ids(ids);
-        let params = map_query! {
+        let params = build_map! {
             req ids => ids.as_str(),
         };
         let result = self.endpoint_get("me/shows/contains", &params).await?;
@@ -2212,7 +2212,7 @@ impl Spotify {
         country: Option<Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
-        let params = map_json! {
+        let params = build_json! {
             opt country => country.as_ref()
         };
         self.endpoint_delete(&url, &params).await?;

@@ -77,7 +77,7 @@ macro_rules! params_internal {
 }
 
 /// TODO: use with_capacity?
-/// This macro and [`map_json`] help make the endpoints as concise as possible
+/// This macro and [`build_json`] help make the endpoints as concise as possible
 /// and boilerplate-free, which is specially important when initializing the
 /// parameters of the query with a HashMap/similar. Their items follow the
 /// syntax:
@@ -94,11 +94,11 @@ macro_rules! params_internal {
 /// a key and a value with `MyStruct { key: value }`, or if both have the same
 /// name as the key, `MyStruct { key }` is enough.
 ///
-/// For more information, please refer to the `test::test_map_query` function in
+/// For more information, please refer to the `test::test_build_map` function in
 /// this module to see an example, or the real usages in Rspotify's client.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! map_query {
+macro_rules! build_map {
     (
         $(
             $kind:ident $name:ident $( => $val:expr )?
@@ -118,11 +118,11 @@ macro_rules! map_query {
     });
 }
 
-/// Refer to the [`map_query`] documentation; this is the same but for JSON
+/// Refer to the [`build_map`] documentation; this is the same but for JSON
 /// maps.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! map_json {
+macro_rules! build_json {
     (
         $(
             $kind:ident $name:ident $( => $val:expr )?
@@ -144,7 +144,7 @@ macro_rules! map_json {
 
 #[cfg(test)]
 mod test {
-    use crate::{map_query, map_json, scopes};
+    use crate::{build_map, build_json, scopes};
     use crate::http::Query;
     use crate::model::Modality;
     use serde_json::{Map, Value, json};
@@ -160,13 +160,13 @@ mod test {
     }
 
     #[test]
-    fn test_map_query() {
+    fn test_build_map() {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
         let modality: Option<Modality> = None;
 
-        let with_macro = map_query! {
+        let with_macro = build_map! {
             // Mandatory (not an `Option<T>`)
             req id,
             // Can be used directly
@@ -194,7 +194,7 @@ mod test {
         let artist = Some("The Wombats");
         let modality: Option<Modality> = None;
 
-        let with_macro = map_json! {
+        let with_macro = build_json! {
             req id,
             opt artist,
             opt modality => modality.as_ref(),
