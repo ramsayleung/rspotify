@@ -144,9 +144,10 @@ macro_rules! map_json {
 
 #[cfg(test)]
 mod test {
+    use crate::{map_query, map_json, scopes};
     use crate::http::Query;
     use crate::model::Modality;
-    use crate::{map_query, scopes};
+    use serde_json::{Map, Value, json};
 
     #[test]
     fn test_hashset() {
@@ -184,6 +185,31 @@ mod test {
         }
 
         assert_eq!(with_macro, manually);
+    }
+
+    #[test]
+    fn test_json_query() {
+        // Passed as parameters, for example.
+        let id = "Pink Lemonade";
+        let artist = Some("The Wombats");
+        let modality: Option<Modality> = None;
+
+        let with_macro = map_json! {
+            req id,
+            opt artist,
+            opt modality => modality.as_ref(),
+        };
+
+        let mut manually = Map::new();
+        manually.insert("id".to_string(), json!(id));
+        if let Some(ref artist) = artist {
+            manually.insert("artist".to_string(), json!(artist));
+        }
+        if let Some(ref modality) = modality {
+            manually.insert("modality".to_string(), json!(modality.as_ref()));
+        }
+
+        assert_eq!(with_macro, Value::from(manually));
     }
 
     #[test]

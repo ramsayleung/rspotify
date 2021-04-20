@@ -5,6 +5,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
 - Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
+- Rspotify now uses macros internally to make the endpoints as concise as possible and nice to read.
 - Add `add_item_to_queue` endpoint.
 - Add `category_playlists` endpoint ([#153](https://github.com/ramsayleung/rspotify/pull/153)).
 - Fix race condition when using a single client from multiple threads ([#114](https://github.com/ramsayleung/rspotify/pull/114)).
