@@ -47,6 +47,19 @@ macro_rules! opt {
     };
 }
 
+/// Hack to convert an identifier to a string, including raw identifiers.
+#[doc(hidden)]
+#[macro_export]
+macro_rules! ident_str {
+    ($name:ident) => {{
+        const NAME: &str = stringify!($name);
+        match &NAME.get(..2) {
+            Some("r#") => &NAME[2..],
+            _ => &NAME[..]
+        }
+    }};
+}
+
 /// Private macro to insert either required or optional fields. Pattern matching
 /// will accordingly pick the branch, and then insert ($key, $val) into $map.
 #[doc(hidden)]
@@ -97,7 +110,7 @@ macro_rules! map_query {
                 params,
                 $kind,
                 $name,
-                stringify!($name),
+                $crate::ident_str!($name),
                 $crate::opt!($( $val )?, $name)
             );
         )*
@@ -121,7 +134,7 @@ macro_rules! map_json {
                 params,
                 $kind,
                 $name,
-                stringify!($name).to_string(),
+                $crate::ident_str!($name).to_string(),
                 json!($crate::opt!($( $val )?, $name))
             );
         )*
@@ -171,5 +184,14 @@ mod test {
         }
 
         assert_eq!(with_macro, manually);
+    }
+
+    #[test]
+    fn test_ident_str() {
+        assert_eq!(ident_str!(i), "i");
+        assert_eq!(ident_str!(r#i), "i");
+        assert_eq!(ident_str!(test), "test");
+        assert_eq!(ident_str!(a_b_c_d), "a_b_c_d");
+        assert_eq!(ident_str!(r#type), "type");
     }
 }

@@ -1,9 +1,7 @@
 use rspotify::client::SpotifyBuilder;
 use rspotify::model::{Country, Market, SearchType};
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scope;
-
-use std::collections::HashSet;
+use rspotify::scopes;
 
 fn main() {
     // You can use any logger for debugging.
@@ -47,7 +45,7 @@ fn main() {
     spotify.request_client_token().unwrap();
 
     let album_query = "album:arrival artist:abba";
-    let result = spotify.search(album_query, SearchType::Album, 10, 0, None, None);
+    let result = spotify.search(album_query, SearchType::Album, None, None, Some(10), None);
     match result {
         Ok(album) => println!("searched album:{:?}", album),
         Err(err) => println!("search error!{:?}", err),
@@ -57,9 +55,9 @@ fn main() {
     let result = spotify.search(
         artist_query,
         SearchType::Artist,
-        10,
-        0,
         Some(Market::Country(Country::UnitedStates)),
+        None,
+        Some(10),
         None,
     );
     match result {
@@ -71,9 +69,9 @@ fn main() {
     let result = spotify.search(
         playlist_query,
         SearchType::Playlist,
-        10,
-        0,
         Some(Market::Country(Country::UnitedStates)),
+        None,
+        Some(10),
         None,
     );
     match result {
@@ -85,9 +83,9 @@ fn main() {
     let result = spotify.search(
         track_query,
         SearchType::Track,
-        10,
-        0,
         Some(Market::Country(Country::UnitedStates)),
+        None,
+        Some(10),
         None,
     );
     match result {
@@ -96,14 +94,14 @@ fn main() {
     }
 
     let show_query = "love";
-    let result = spotify.search(show_query, SearchType::Show, 10, 0, None, None);
+    let result = spotify.search(show_query, SearchType::Show, None, None, Some(10), None);
     match result {
         Ok(show) => println!("searched show:{:?}", show),
         Err(err) => println!("search error!{:?}", err),
     }
 
     let episode_query = "love";
-    let result = spotify.search(episode_query, SearchType::Episode, 10, 0, None, None);
+    let result = spotify.search(episode_query, SearchType::Episode, None, None, Some(10), None);
     match result {
         Ok(episode) => println!("searched episode:{:?}", episode),
         Err(err) => println!("search error!{:?}", err),

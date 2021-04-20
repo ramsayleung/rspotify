@@ -393,6 +393,7 @@ impl Spotify {
             opt limit => &limit,
             opt offset => &offset,
         };
+        println!("params: {:#?}", params);
 
         let result = self.endpoint_get("search", &params).await?;
         self.convert_result(&result)
