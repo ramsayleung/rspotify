@@ -117,7 +117,7 @@ macro_rules! build_map {
     (
         $(
             $kind:ident $name:ident $( => $val:expr )?
-        ),* $(,)?
+        ),+ $(,)?
     ) => {{
         let mut params = $crate::http::Query::with_capacity(
             $crate::count_items!($( $name ),*)
@@ -130,7 +130,7 @@ macro_rules! build_map {
                 $crate::ident_str!($name),
                 $crate::opt!($( $val )?, $name)
             );
-        )*
+        )+
         params
     }};
 }
@@ -143,7 +143,7 @@ macro_rules! build_json {
     (
         $(
             $kind:ident $name:ident $( => $val:expr )?
-        ),* $(,)?
+        ),+ $(,)?
     ) => {{
         let mut params = ::serde_json::map::Map::with_capacity(
             $crate::count_items!($( $name ),*)
@@ -156,7 +156,7 @@ macro_rules! build_json {
                 $crate::ident_str!($name).to_string(),
                 json!($crate::opt!($( $val )?, $name))
             );
-        )*
+        )+
         ::serde_json::Value::from(params)
     }};
 }
