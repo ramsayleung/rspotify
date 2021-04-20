@@ -55,7 +55,7 @@ macro_rules! ident_str {
         const NAME: &str = stringify!($name);
         match &NAME.get(..2) {
             Some("r#") => &NAME[2..],
-            _ => &NAME[..],
+            _ => NAME,
         }
     }};
 }
