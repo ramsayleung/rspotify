@@ -97,7 +97,7 @@ macro_rules! params_internal {
 /// parameters of the query with a HashMap/similar. Their items follow the
 /// syntax:
 ///
-///   [required|optional] key [=> value]
+///   (required|optional) key [=> value]
 ///
 /// The first keyword is just to distinguish between a direct insert into the
 /// hashmap (required parameter), and an insert only if the value is `Some(...)`
