@@ -211,8 +211,8 @@ If we missed any change or there's something you'd like to discuss about this ve
 
   The pagination chunk size can be configured with the `Spotify::pagination_chunks` field, which is set to 50 items by default.
 - No default values are set from Rspotify now, they will be left to the Spotify API.
-- []() Add a `collaborative` parameter to `user_playlist_create`.
-- []() Add a `uris` parameter to `playlist_reorder_tracks`.
+- [#202](https://github.com/ramsayleung/rspotify/pull/202) Add a `collaborative` parameter to `user_playlist_create`.
+- [#202](https://github.com/ramsayleung/rspotify/pull/202) Add a `uris` parameter to `playlist_reorder_tracks`.
 
 ## 0.10 (2020/07/01)
 
