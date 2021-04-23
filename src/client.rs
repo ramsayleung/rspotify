@@ -190,7 +190,7 @@ impl Spotify {
     pub async fn tracks<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a TrackId>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
         let params = build_map! {
@@ -250,7 +250,7 @@ impl Spotify {
     pub fn artist_albums<'a>(
         &'a self,
         artist_id: &'a ArtistId,
-        album_type: Option<AlbumType>,
+        album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
         paginate(
@@ -266,7 +266,7 @@ impl Spotify {
     pub async fn artist_albums_manual(
         &self,
         artist_id: &ArtistId,
-        album_type: Option<AlbumType>,
+        album_type: Option<&AlbumType>,
         market: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -297,7 +297,7 @@ impl Spotify {
     pub async fn artist_top_tracks(
         &self,
         artist_id: &ArtistId,
-        market: Market,
+        market: &Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let params = build_map! {
             required market => market.as_ref()
@@ -377,9 +377,9 @@ impl Spotify {
     pub async fn search(
         &self,
         q: &str,
-        r#type: SearchType,
-        market: Option<Market>,
-        include_external: Option<IncludeExternal>,
+        r#type: &SearchType,
+        market: Option<&Market>,
+        include_external: Option<&IncludeExternal>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<SearchResult> {
@@ -465,7 +465,7 @@ impl Spotify {
         &self,
         playlist_id: &PlaylistId,
         fields: Option<&str>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<FullPlaylist> {
         let params = build_map! {
             optional fields,
@@ -856,10 +856,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
     #[maybe_async]
-    pub async fn playlist_remove_specific_occurrences_of_tracks(
+    pub async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: Vec<TrackPositions<'_>>,
+        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -867,7 +867,7 @@ impl Spotify {
             .map(|track| {
                 let mut map = Map::new();
                 map.insert("uri".to_owned(), track.id.uri().into());
-                map.insert("positions".to_owned(), track.positions.into());
+                map.insert("positions".to_owned(), track.positions.clone().into());
                 map
             })
             .collect::<Vec<_>>();
@@ -1391,8 +1391,8 @@ impl Spotify {
     pub async fn featured_playlists(
         &self,
         locale: Option<&str>,
-        country: Option<Market>,
-        timestamp: Option<DateTime<Utc>>,
+        country: Option<&Market>,
+        timestamp: Option<&DateTime<Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<FeaturedPlaylists> {
@@ -1571,17 +1571,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     #[maybe_async]
-    pub async fn recommendations(
+    pub async fn recommendations<'a>(
         &self,
         payload: &Map<String, Value>,
-        seed_artists: Option<Vec<&ArtistId>>,
-        seed_genres: Option<Vec<String>>,
-        seed_tracks: Option<Vec<&TrackId>>,
+        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId>>,
+        seed_genres: Option<impl IntoIterator<Item = &'a str>>,
+        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId>>,
         limit: Option<u32>,
         market: Option<Market>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
-        let seed_genres = seed_genres.map(|x| x.join(","));
+        let seed_genres = seed_genres.map(|x| x.into_iter().collect::<Vec<_>>().join(","));
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
         let mut params = build_map! {
@@ -1730,13 +1730,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     #[maybe_async]
-    pub async fn current_playing(
+    pub async fn current_playing<'a>(
         &self,
-        market: Option<Market>,
-        additional_types: Option<Vec<AdditionalType>>,
+        market: Option<&'a Market>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
-        let additional_types =
-            additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+        let additional_types = additional_types.map(|x| {
+            x.into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let params = build_map! {
             optional market => market.as_ref(),
             optional additional_types,
@@ -1912,7 +1916,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-repeat-mode-on-users-playback)
     #[maybe_async]
-    pub async fn repeat(&self, state: RepeatState, device_id: Option<&str>) -> ClientResult<()> {
+    pub async fn repeat(&self, state: &RepeatState, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id(
             &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
@@ -2067,7 +2071,7 @@ impl Spotify {
     pub async fn get_several_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a ShowId>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
         let params = build_map! {
@@ -2143,7 +2147,7 @@ impl Spotify {
     pub async fn get_an_episode(
         &self,
         id: &EpisodeId,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
         let params = build_map! {
@@ -2165,7 +2169,7 @@ impl Spotify {
     pub async fn get_several_episodes<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a EpisodeId>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
         let params = build_map! {
@@ -2209,7 +2213,7 @@ impl Spotify {
     pub async fn remove_users_saved_shows<'a>(
         &self,
         show_ids: impl IntoIterator<Item = &'a ShowId>,
-        country: Option<Market>,
+        country: Option<&Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
         let params = build_json! {
