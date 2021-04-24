@@ -27,9 +27,11 @@ rspotify-macros = { path = "rspotify-macros", version = "0.10.0" }
 rspotify-model = { path = "rspotify-model", version = "0.10.0" }
 
 ### Client ###
+async-stream = { version = "0.3.0", optional = true }
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
 derive_builder = "0.10.0"
 dotenv = { version = "0.15.0", optional = true }
+futures = { version = "0.3.8", optional = true }
 getrandom = "0.2.0"
 log = "0.4.11"
 maybe-async = "0.2.1"
@@ -58,8 +60,8 @@ url = "2.1.1"
 
 [dev-dependencies]
 env_logger = "0.8.1"
-futures = "0.3.5"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
+futures-util = "0.3.8"
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]
@@ -83,7 +85,7 @@ reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 ureq-rustls-tls = ["ureq/tls"]
 
 # Internal features for checking async or sync compilation
-__async = ["async-trait"]
+__async = ["async-trait", "async-stream", "futures"]
 __sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
@@ -139,3 +141,18 @@ path = "examples/ureq/search.rs"
 name = "seek_track"
 required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/seek_track.rs"
+
+[[example]]
+name = "pagination_manual"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/pagination_manual.rs"
+
+[[example]]
+name = "pagination_sync"
+required-features = ["env-file", "cli", "client-ureq"]
+path = "examples/pagination_sync.rs"
+
+[[example]]
+name = "pagination_async"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/pagination_async.rs"

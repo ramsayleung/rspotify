@@ -54,7 +54,7 @@ async fn test_album_tracks() {
     let birdy_uri = Id::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
     creds_client()
         .await
-        .album_track(birdy_uri, Some(2), None)
+        .album_track_manual(birdy_uri, Some(2), None)
         .await
         .unwrap();
 }
@@ -83,10 +83,10 @@ async fn test_artists_albums() {
     let birdy_uri = Id::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
         .await
-        .artist_albums(
+        .artist_albums_manual(
             birdy_uri,
-            Some(AlbumType::Album),
-            Some(Market::Country(Country::UnitedStates)),
+            Some(&AlbumType::Album),
+            Some(&Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -184,4 +184,57 @@ async fn test_fake_playlist() {
         .playlist(Id::from_id("fakeid").unwrap(), None, None)
         .await;
     assert!(!playlist.is_ok());
+}
+
+mod test_pagination {
+    use super::*;
+
+    static ALBUM: &str = "spotify:album:2T7DdrOvsqOqU9bGTkjBYu";
+    static SONG_NAMES: &[&str; 10] = &[
+        "Human After All",
+        "The Prime Time of Your Life",
+        "Robot Rock",
+        "Steam Machine",
+        "Make Love",
+        "The Brainwasher",
+        "On / Off",
+        "Television Rules the Nation",
+        "Technologic",
+        "Emotion",
+    ];
+
+    /// This test iterates a request of 10 items, with 5 requests of 2 items.
+    #[cfg(feature = "__sync")]
+    #[test]
+    fn test_pagination_sync() {
+        let mut client = creds_client();
+        client.pagination_chunks = 2;
+        let album = Id::from_uri(ALBUM).unwrap();
+
+        let names = client
+            .album_track(&album)
+            .map(|track| track.unwrap().name)
+            .collect::<Vec<_>>();
+
+        assert_eq!(names, SONG_NAMES);
+    }
+
+    /// This test iterates a request of 10 items, with 5 requests of 2 items.
+    #[cfg(feature = "__async")]
+    #[tokio::test]
+    async fn test_pagination_async() {
+        use futures_util::StreamExt;
+
+        let mut client = creds_client().await;
+        client.pagination_chunks = 2;
+        let album = Id::from_uri(ALBUM).unwrap();
+
+        let names = client
+            .album_track(&album)
+            .map(|track| track.unwrap().name)
+            .collect::<Vec<_>>()
+            .await;
+
+        assert_eq!(names, SONG_NAMES);
+    }
 }

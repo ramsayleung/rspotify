@@ -20,8 +20,8 @@ pub use self::reqwest::ReqwestClient as HTTPClient;
 pub use self::ureq::UreqClient as HTTPClient;
 
 pub type Headers = HashMap<String, String>;
-pub type Query = HashMap<String, String>;
-pub type Form = HashMap<String, String>;
+pub type Query<'a> = HashMap<&'a str, &'a str>;
+pub type Form<'a> = HashMap<&'a str, &'a str>;
 
 pub mod headers {
     use crate::oauth2::Token;
@@ -86,11 +86,11 @@ pub trait BaseHttpClient: Default + Clone + fmt::Debug {
         payload: &Value,
     ) -> ClientResult<String>;
 
-    async fn post_form(
+    async fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'a>,
     ) -> ClientResult<String>;
 
     async fn put(
@@ -148,7 +148,7 @@ impl Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Query,
+        payload: &Query<'_>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
         self.http.get(&url, headers, payload).await
@@ -172,7 +172,7 @@ impl Spotify {
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'_>,
     ) -> ClientResult<String> {
         let url = self.endpoint_url(url);
         self.http.post_form(&url, headers, payload).await
@@ -206,7 +206,11 @@ impl Spotify {
     /// autentication.
     #[inline]
     #[maybe_async]
-    pub(crate) async fn endpoint_get(&self, url: &str, payload: &Query) -> ClientResult<String> {
+    pub(crate) async fn endpoint_get(
+        &self,
+        url: &str,
+        payload: &Query<'_>,
+    ) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         self.get(url, Some(&headers), payload).await
     }

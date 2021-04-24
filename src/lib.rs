@@ -170,9 +170,15 @@ mod http;
 #[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
+#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
+pub mod pagination;
+
+// Subcrate re-exports
 pub use rspotify_macros as macros;
-pub use rspotify_macros::scopes;
 pub use rspotify_model as model;
+
+// Top-level re-exports
+pub use macros::scopes;
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(

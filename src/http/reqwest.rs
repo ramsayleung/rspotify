@@ -118,11 +118,11 @@ impl BaseHttpClient for ReqwestClient {
     }
 
     #[inline]
-    async fn post_form(
+    async fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form,
+        payload: &Form<'a>,
     ) -> ClientResult<String> {
         self.request(Method::POST, url, headers, |req| req.form(payload))
             .await

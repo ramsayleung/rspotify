@@ -1,9 +1,19 @@
+//! This example shows how automatic pagination works for synchronous clients.
+//!
+//! Synchronous iteration is easier than the async method shown in the
+//! `current_user_saved_tracks` example, but you can also use:
+//!
+//! ```
+//! while let Some(item) = stream.next() {
+//!     // ...
+//! }
+//! ```
+
 use rspotify::client::SpotifyBuilder;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
 use rspotify::scopes;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
@@ -31,7 +41,7 @@ async fn main() {
     //     .build()
     //     .unwrap();
     let oauth = OAuthBuilder::from_env()
-        .scope(scopes!("user-read-recently-played"))
+        .scope(scopes!("user-library-read"))
         .build()
         .unwrap();
 
@@ -42,10 +52,12 @@ async fn main() {
         .unwrap();
 
     // Obtaining the access token
-    spotify.prompt_for_user_token().await.unwrap();
+    spotify.prompt_for_user_token().unwrap();
 
-    // Running the requests
-    let history = spotify.current_user_recently_played(Some(10)).await;
-
-    println!("Response: {:?}", history);
+    // Typical iteration, no extra boilerplate needed.
+    let stream = spotify.current_user_saved_tracks();
+    println!("Items:");
+    for item in stream {
+        println!("* {}", item.unwrap().track.name);
+    }
 }
