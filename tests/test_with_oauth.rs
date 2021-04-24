@@ -418,7 +418,7 @@ async fn test_recommendations() {
             None,
             Some(seed_tracks),
             Some(10),
-            Some(Market::Country(Country::UnitedStates)),
+            Some(&Market::Country(Country::UnitedStates)),
         )
         .await
         .unwrap();
@@ -457,7 +457,7 @@ async fn test_search_artist() {
         .search(
             query,
             SearchType::Artist,
-            Some(Market::Country(Country::UnitedStates)),
+            Some(&Market::Country(Country::UnitedStates)),
             None,
             Some(10),
             Some(0),
@@ -476,7 +476,7 @@ async fn test_search_playlist() {
         .search(
             query,
             SearchType::Playlist,
-            Some(Market::Country(Country::UnitedStates)),
+            Some(&Market::Country(Country::UnitedStates)),
             None,
             Some(10),
             Some(0),
@@ -495,7 +495,7 @@ async fn test_search_track() {
         .search(
             query,
             SearchType::Track,
-            Some(Market::Country(Country::UnitedStates)),
+            Some(&Market::Country(Country::UnitedStates)),
             None,
             Some(10),
             Some(0),
