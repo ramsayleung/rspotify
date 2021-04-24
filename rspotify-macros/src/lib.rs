@@ -138,10 +138,10 @@ macro_rules! build_json {
 
 #[cfg(test)]
 mod test {
-    use crate::http::Query;
-    use crate::model::Market;
     use crate::{build_json, build_map, scopes};
+    use rspotify::model::Market;
     use serde_json::{json, Map, Value};
+    use std::collections::HashMap;
 
     #[test]
     fn test_hashset() {
@@ -169,7 +169,7 @@ mod test {
             optional "market": market.map(|x| x.as_ref()),
         };
 
-        let mut manually = Query::with_capacity(3);
+        let mut manually = HashMap::<&str, &str>::with_capacity(3);
         manually.insert("id", id);
         if let Some(val) = artist {
             manually.insert("artist", val);
