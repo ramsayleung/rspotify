@@ -187,9 +187,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
     #[maybe_async]
-    pub async fn tracks(
+    pub async fn tracks<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &TrackId>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
@@ -222,9 +222,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
     #[maybe_async]
-    pub async fn artists(
+    pub async fn artists<'a>(
         &self,
-        artist_ids: impl IntoIterator<Item = &ArtistId>,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
         let url = format!("artists/?ids={}", ids);
@@ -348,9 +348,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
     #[maybe_async]
-    pub async fn albums(
+    pub async fn albums<'a>(
         &self,
-        album_ids: impl IntoIterator<Item = &AlbumId>,
+        album_ids: impl IntoIterator<Item = &'a AlbumId>,
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
         let url = format!("albums/?ids={}", ids);
@@ -712,10 +712,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
     #[maybe_async]
-    pub async fn playlist_add_tracks(
+    pub async fn playlist_add_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &TrackId>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
@@ -738,10 +738,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
     #[maybe_async]
-    pub async fn playlist_replace_tracks(
+    pub async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &TrackId>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
@@ -800,10 +800,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
     #[maybe_async]
-    pub async fn playlist_remove_all_occurrences_of_tracks(
+    pub async fn playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &TrackId>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = track_ids
@@ -1078,9 +1078,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-user)
     #[maybe_async]
-    pub async fn current_user_saved_tracks_delete(
+    pub async fn current_user_saved_tracks_delete<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &TrackId>,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
     ) -> ClientResult<()> {
         let url = format!("me/tracks/?ids={}", join_ids(track_ids));
         self.endpoint_delete(&url, &json!({})).await?;
@@ -2205,9 +2205,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-shows-user)
     #[maybe_async]
-    pub async fn remove_users_saved_shows(
+    pub async fn remove_users_saved_shows<'a>(
         &self,
-        show_ids: impl IntoIterator<Item = &ShowId>,
+        show_ids: impl IntoIterator<Item = &'a ShowId>,
         country: Option<&Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
