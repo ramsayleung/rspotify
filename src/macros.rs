@@ -33,20 +33,6 @@ macro_rules! scopes {
     }};
 }
 
-/// If there's an optional value, the macro will return its value. Otherwise, a
-/// default value will be returned. This is helpful to handle `$( expr )?`
-/// cases in macros.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! opt {
-    (, $default:expr) => {
-        $default
-    };
-    ($optional:expr, $default:expr) => {
-        $optional
-    };
-}
-
 /// Count items in a list of items within a macro, taken from here:
 /// https://danielkeep.github.io/tlborm/book/blk-counting.html
 #[doc(hidden)]
@@ -62,42 +48,12 @@ macro_rules! count_items {
     ($($item:expr),*) => {<[()]>::len(&[$($crate::replace_expr!($item ())),*])};
 }
 
-/// Hack to convert an identifier to a string, including raw identifiers like
-/// `r#type`.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! ident_str {
-    ($name:ident) => {{
-        const NAME: &str = stringify!($name);
-        match &NAME.get(..2) {
-            Some("r#") => &NAME[2..],
-            _ => NAME,
-        }
-    }};
-}
-
-/// Private macro to insert either required or optional fields. Pattern matching
-/// will accordingly pick the branch, and then insert ($key, $val) into $map.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! params_internal {
-    ($map:ident, required, $name:ident, $key:expr, $val:expr) => {
-        $map.insert($key, $val);
-    };
-    ($map:ident, optional, $name:ident, $key:expr, $val:expr) => {
-        // Will only insert when `$name` is not None.
-        if let Some(ref $name) = $name {
-            $map.insert($key, $val);
-        }
-    };
-}
-
 /// This macro and [`build_json`] help make the endpoints as concise as possible
 /// and boilerplate-free, which is specially important when initializing the
 /// parameters of the query with a HashMap/similar. Their items follow the
 /// syntax:
 ///
-///   (required|optional) key [=> value]
+///   [optional] "key": value
 ///
 /// The first keyword is just to distinguish between a direct insert into the
 /// hashmap (required parameter), and an insert only if the value is `Some(...)`
@@ -114,21 +70,29 @@ macro_rules! params_internal {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! build_map {
+    (@/* required */, $map:ident, $key:expr, $val:expr) => {
+        $map.insert($key, $val);
+    };
+    (@optional, $map:ident, $key:expr, $val:expr) => {
+        if let Some(val) = $val {
+            $map.insert($key, val);
+        }
+    };
+
     (
         $(
-            $kind:ident $name:ident $( => $val:expr )?
+            $( $kind:ident )? $key:literal : $val:expr
         ),+ $(,)?
     ) => {{
         let mut params = $crate::http::Query::with_capacity(
-            $crate::count_items!($( $name ),*)
+            $crate::count_items!($( $key ),*)
         );
         $(
-            $crate::params_internal!(
+            $crate::build_map!(
+                @$( $kind )?,
                 params,
-                $kind,
-                $name,
-                $crate::ident_str!($name),
-                $crate::opt!($( $val )?, $name)
+                $key,
+                $val
             );
         )+
         params
@@ -140,21 +104,29 @@ macro_rules! build_map {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! build_json {
+    (@/* required */, $map:ident, $key:expr, $val:expr) => {
+        $map.insert($key.to_string(), json!($val));
+    };
+    (@optional, $map:ident, $key:expr, $val:expr) => {
+        if let Some(val) = $val {
+            $map.insert($key.to_string(), json!(val));
+        }
+    };
+
     (
         $(
-            $kind:ident $name:ident $( => $val:expr )?
+            $( $kind:ident )? $key:literal : $val:expr
         ),+ $(,)?
     ) => {{
         let mut params = ::serde_json::map::Map::with_capacity(
-            $crate::count_items!($( $name ),*)
+            $crate::count_items!($( $key ),*)
         );
         $(
-            $crate::params_internal!(
+            $crate::build_json!(
+                @$( $kind )?,
                 params,
-                $kind,
-                $name,
-                $crate::ident_str!($name).to_string(),
-                json!($crate::opt!($( $val )?, $name))
+                $key,
+                $val
             );
         )+
         ::serde_json::Value::from(params)
@@ -164,7 +136,7 @@ macro_rules! build_json {
 #[cfg(test)]
 mod test {
     use crate::http::Query;
-    use crate::model::Modality;
+    use crate::model::Market;
     use crate::{build_json, build_map, scopes};
     use serde_json::{json, Map, Value};
 
@@ -183,24 +155,24 @@ mod test {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
-        let modality: Option<Modality> = None;
+        let market: Option<Market> = None;
 
         let with_macro = build_map! {
             // Mandatory (not an `Option<T>`)
-            required id,
+            "id": id,
             // Can be used directly
-            optional artist,
+            optional "artist": artist,
             // `Modality` needs to be converted to &str
-            optional modality => modality.as_ref(),
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let mut manually = Query::with_capacity(3);
         manually.insert("id", id);
-        if let Some(ref artist) = artist {
-            manually.insert("artist", artist);
+        if let Some(val) = artist {
+            manually.insert("artist", val);
         }
-        if let Some(ref modality) = modality {
-            manually.insert("modality", modality.as_ref());
+        if let Some(val) = market.map(|x| x.as_ref()) {
+            manually.insert("market", val);
         }
 
         assert_eq!(with_macro, manually);
@@ -211,32 +183,23 @@ mod test {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
-        let modality: Option<Modality> = None;
+        let market: Option<Market> = None;
 
         let with_macro = build_json! {
-            required id,
-            optional artist,
-            optional modality => modality.as_ref(),
+            "id": id,
+            optional "artist": artist,
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let mut manually = Map::with_capacity(3);
         manually.insert("id".to_string(), json!(id));
-        if let Some(ref artist) = artist {
-            manually.insert("artist".to_string(), json!(artist));
+        if let Some(val) = artist.map(|x| json!(x)) {
+            manually.insert("artist".to_string(), val);
         }
-        if let Some(ref modality) = modality {
-            manually.insert("modality".to_string(), json!(modality.as_ref()));
+        if let Some(val) = market.map(|x| x.as_ref()).map(|x| json!(x)) {
+            manually.insert("market".to_string(), val);
         }
 
         assert_eq!(with_macro, Value::from(manually));
-    }
-
-    #[test]
-    fn test_ident_str() {
-        assert_eq!(ident_str!(i), "i");
-        assert_eq!(ident_str!(r#i), "i");
-        assert_eq!(ident_str!(test), "test");
-        assert_eq!(ident_str!(a_b_c_d), "a_b_c_d");
-        assert_eq!(ident_str!(r#type), "type");
     }
 }

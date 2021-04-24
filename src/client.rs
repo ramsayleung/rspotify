@@ -187,14 +187,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
     #[maybe_async]
-    pub async fn tracks<'a>(
+    pub async fn tracks(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
-        market: Option<Market>,
+        track_ids: impl IntoIterator<Item = &TrackId>,
+        market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
         let params = build_map! {
-            optional market => market.as_ref(),
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let url = format!("tracks/?ids={}", ids);
@@ -222,9 +222,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
     #[maybe_async]
-    pub async fn artists<'a>(
+    pub async fn artists(
         &self,
-        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
+        artist_ids: impl IntoIterator<Item = &ArtistId>,
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
         let url = format!("artists/?ids={}", ids);
@@ -250,7 +250,7 @@ impl Spotify {
     pub fn artist_albums<'a>(
         &'a self,
         artist_id: &'a ArtistId,
-        album_type: Option<AlbumType>,
+        album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
     ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
         paginate(
@@ -266,18 +266,18 @@ impl Spotify {
     pub async fn artist_albums_manual(
         &self,
         artist_id: &ArtistId,
-        album_type: Option<AlbumType>,
+        album_type: Option<&AlbumType>,
         market: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let limit = limit.map(|x| x.to_string());
+        let limit: Option<String> = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional album_type => album_type.as_ref(),
-            optional market => market.as_ref(),
-            optional limit,
-            optional offset,
+            optional "album_type": album_type.map(|x| x.as_ref()),
+            optional "market": market.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let url = format!("artists/{}/albums", artist_id.id());
@@ -300,7 +300,7 @@ impl Spotify {
         market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let params = build_map! {
-            required market => market.as_ref()
+            "market": market.as_ref()
         };
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
@@ -348,9 +348,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
     #[maybe_async]
-    pub async fn albums<'a>(
+    pub async fn albums(
         &self,
-        album_ids: impl IntoIterator<Item = &'a AlbumId>,
+        album_ids: impl IntoIterator<Item = &AlbumId>,
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
         let url = format!("albums/?ids={}", ids);
@@ -377,23 +377,22 @@ impl Spotify {
     pub async fn search(
         &self,
         q: &str,
-        r#type: SearchType,
-        market: Option<Market>,
-        include_external: Option<IncludeExternal>,
+        _type: SearchType,
+        market: Option<&Market>,
+        include_external: Option<&IncludeExternal>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<SearchResult> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            required q,
-            required r#type => r#type.as_ref(),
-            optional market => market.as_ref(),
-            optional include_external => include_external.as_ref(),
-            optional limit,
-            optional offset,
+            "q": q,
+            "type": _type.as_ref(),
+            optional "market": market.map(|x| x.as_ref()),
+            optional "include_external": include_external.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
-        println!("params: {:#?}", params);
 
         let result = self.endpoint_get("search", &params).await?;
         self.convert_result(&result)
@@ -431,8 +430,8 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional limit,
-            optional offset,
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let url = format!("albums/{}/tracks", album_id.id());
@@ -465,11 +464,11 @@ impl Spotify {
         &self,
         playlist_id: &PlaylistId,
         fields: Option<&str>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<FullPlaylist> {
         let params = build_map! {
-            optional fields,
-            optional market => market.as_ref(),
+            optional "fields": fields,
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let url = format!("playlists/{}", playlist_id.id());
@@ -504,8 +503,8 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional limit,
-            optional offset,
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self.endpoint_get("me/playlists", &params).await?;
@@ -544,8 +543,8 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional limit,
-            optional offset,
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let url = format!("users/{}/playlists", user_id.id());
@@ -569,7 +568,7 @@ impl Spotify {
         fields: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
         let params = build_map! {
-            optional fields,
+            optional "fields": fields,
         };
 
         let url = match playlist_id {
@@ -620,10 +619,10 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional fields,
-            optional market => market.as_ref(),
-            optional limit,
-            optional offset,
+            optional "fields": fields,
+            optional "market": market.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -651,10 +650,10 @@ impl Spotify {
         description: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
         let params = build_json! {
-            required name,
-            optional public,
-            optional collaborative,
-            optional description,
+            "name": name,
+            optional "public": public,
+            optional "collaborative": collaborative,
+            optional "description": description,
         };
 
         let url = format!("users/{}/playlists", user_id.id());
@@ -682,10 +681,10 @@ impl Spotify {
         collaborative: Option<bool>,
     ) -> ClientResult<String> {
         let params = build_json! {
-            optional name,
-            optional public,
-            optional collaborative,
-            optional description,
+            optional "name": name,
+            optional "public": public,
+            optional "collaborative": collaborative,
+            optional "description": description,
         };
 
         let url = format!("playlists/{}", playlist_id);
@@ -713,16 +712,16 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
     #[maybe_async]
-    pub async fn playlist_add_tracks<'a>(
+    pub async fn playlist_add_tracks(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: impl IntoIterator<Item = &TrackId>,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
-            required uris,
-            required position,
+            "uris": uris,
+            "position": position,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -739,14 +738,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
     #[maybe_async]
-    pub async fn playlist_replace_tracks<'a>(
+    pub async fn playlist_replace_tracks(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: impl IntoIterator<Item = &TrackId>,
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
-            required uris
+            "uris": uris
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -779,12 +778,12 @@ impl Spotify {
     ) -> ClientResult<PlaylistResult> {
         let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = build_json! {
-            required playlist_id,
-            optional uris,
-            optional range_start,
-            optional insert_before,
-            optional range_length,
-            optional snapshot_id,
+            "playlist_id": playlist_id,
+            optional "uris": uris,
+            optional "range_start": range_start,
+            optional "insert_before": insert_before,
+            optional "range_length": range_length,
+            optional "snapshot_id": snapshot_id,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -801,10 +800,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
     #[maybe_async]
-    pub async fn playlist_remove_all_occurrences_of_tracks<'a>(
+    pub async fn playlist_remove_all_occurrences_of_tracks(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: impl IntoIterator<Item = &TrackId>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = track_ids
@@ -817,8 +816,8 @@ impl Spotify {
             .collect::<Vec<_>>();
 
         let params = build_json! {
-            required tracks,
-            optional snapshot_id,
+            "tracks": tracks,
+            optional "snapshot_id": snapshot_id,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -873,8 +872,8 @@ impl Spotify {
             .collect::<Vec<_>>();
 
         let params = build_json! {
-            required tracks,
-            optional snapshot_id,
+            "tracks": tracks,
+            optional "snapshot_id": snapshot_id,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -897,7 +896,7 @@ impl Spotify {
         let url = format!("playlists/{}/followers", playlist_id.id());
 
         let params = build_json! {
-            optional public,
+            optional "public": public,
         };
 
         self.endpoint_put(&url, &params).await?;
@@ -914,10 +913,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-if-user-follows-playlist)
     #[maybe_async]
-    pub async fn playlist_check_follow<'a>(
+    pub async fn playlist_check_follow(
         &self,
         playlist_id: &PlaylistId,
-        user_ids: &'a [&'a UserId],
+        user_ids: &[&UserId],
     ) -> ClientResult<Vec<bool>> {
         if user_ids.len() > 5 {
             error!("The maximum length of user ids is limited to 5 :-)");
@@ -1001,8 +1000,8 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional limit,
-            optional offset,
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self.endpoint_get("me/albums", &params).await?;
@@ -1039,8 +1038,8 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional limit,
-            optional offset,
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self.endpoint_get("me/tracks", &params).await?;
@@ -1062,9 +1061,9 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let params = build_map! {
-            required r#type => Type::Artist.as_ref(),
-            optional after,
-            optional limit,
+            "r#type": Type::Artist.as_ref(),
+            optional "after": after,
+            optional "limit": limit.as_deref(),
         };
 
         let result = self.endpoint_get("me/following", &params).await?;
@@ -1079,9 +1078,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-user)
     #[maybe_async]
-    pub async fn current_user_saved_tracks_delete<'a>(
+    pub async fn current_user_saved_tracks_delete(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: impl IntoIterator<Item = &TrackId>,
     ) -> ClientResult<()> {
         let url = format!("me/tracks/?ids={}", join_ids(track_ids));
         self.endpoint_delete(&url, &json!({})).await?;
@@ -1157,9 +1156,9 @@ impl Spotify {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
-            optional time_range => time_range.as_ref(),
-            optional limit,
-            optional offset,
+            optional "time_range": time_range.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self.endpoint_get(&"me/top/artists", &params).await?;
@@ -1200,9 +1199,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional time_range => time_range.as_ref(),
-            optional limit,
-            optional offset,
+            optional "time_range": time_range.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self.endpoint_get("me/top/tracks", &params).await?;
@@ -1222,7 +1221,7 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let limit = limit.map(|x| x.to_string());
         let params = build_map! {
-            optional limit,
+            optional "limit": limit.as_deref(),
         };
 
         let result = self
@@ -1391,7 +1390,7 @@ impl Spotify {
     pub async fn featured_playlists(
         &self,
         locale: Option<&str>,
-        country: Option<Market>,
+        country: Option<&Market>,
         timestamp: Option<DateTime<Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -1400,11 +1399,11 @@ impl Spotify {
         let offset = offset.map(|x| x.to_string());
         let timestamp = timestamp.map(|x| x.to_rfc3339());
         let params = build_map! {
-            optional locale,
-            optional country => country.as_ref(),
-            optional timestamp,
-            optional limit,
-            optional offset,
+            optional "locale": locale,
+            optional "country": country.map(|x| x.as_ref()),
+            optional "timestamp": timestamp.as_deref(),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self
@@ -1447,9 +1446,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional country => country.as_ref(),
-            optional limit,
-            optional offset,
+            optional "country": country.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
@@ -1495,10 +1494,10 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional locale,
-            optional country => country.as_ref(),
-            optional limit,
-            optional offset,
+            optional "locale": locale,
+            optional "country": country.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
         let result = self.endpoint_get("browse/categories", &params).await?;
         self.convert_result::<PageCategory>(&result)
@@ -1544,9 +1543,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional country => country.as_ref(),
-            optional limit,
-            optional offset,
+            optional "country": country.map(|x| x.as_ref()),
+            optional "limit": limit.as_deref(),
+            optional "offset": offset.as_deref(),
         };
 
         let url = format!("browse/categories/{}/playlists", category_id);
@@ -1575,21 +1574,21 @@ impl Spotify {
         &self,
         payload: &Map<String, Value>,
         seed_artists: Option<Vec<&ArtistId>>,
-        seed_genres: Option<Vec<String>>,
+        seed_genres: Option<Vec<&str>>,
         seed_tracks: Option<Vec<&TrackId>>,
         limit: Option<u32>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
         let seed_genres = seed_genres.map(|x| x.join(","));
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
         let mut params = build_map! {
-            optional seed_artists,
-            optional seed_genres,
-            optional seed_tracks,
-            optional market => market.as_ref(),
-            optional limit,
+            optional "seed_artists": seed_artists.as_ref(),
+            optional "seed_genres": seed_genres.as_ref(),
+            optional "seed_tracks": seed_tracks.as_ref(),
+            optional "market": market.map(|x| x.as_ref()),
+            optional "limit": limit.as_ref(),
         };
 
         // TODO: this probably can be improved.
@@ -1702,14 +1701,14 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_playback(
         &self,
-        country: Option<Market>,
+        country: Option<&Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
         let params = build_map! {
-            optional country => country.as_ref(),
-            optional additional_types,
+            optional "country": country.map(|x| x.as_ref()),
+            optional "additional_types": additional_types.as_ref(),
         };
 
         let result = self.endpoint_get("me/player", &params).await?;
@@ -1732,14 +1731,14 @@ impl Spotify {
     #[maybe_async]
     pub async fn current_playing(
         &self,
-        market: Option<Market>,
+        market: Option<&Market>,
         additional_types: Option<Vec<AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types =
             additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
         let params = build_map! {
-            optional market => market.as_ref(),
-            optional additional_types,
+            optional "market": market.map(|x| x.as_ref()),
+            optional "additional_types": additional_types.as_ref(),
         };
 
         let result = self
@@ -1770,8 +1769,8 @@ impl Spotify {
         force_play: Option<bool>,
     ) -> ClientResult<()> {
         let params = build_json! {
-            required device_ids => [device_id],
-            optional force_play,
+            "device_ids": [device_id],
+            optional "force_play": force_play,
         };
 
         self.endpoint_put("me/player", &params).await?;
@@ -1804,12 +1803,12 @@ impl Spotify {
         use super::model::Offset;
 
         let params = build_json! {
-            required context_uri => context_uri.uri(),
-            optional offset => match offset {
+            "context_uri": context_uri.uri(),
+            optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
                 Offset::Uri(uri) => json!({ "uri": uri.uri() }),
-            },
-            optional position_ms,
+            }),
+            optional "position_ms": position_ms,
 
         };
 
@@ -1830,12 +1829,12 @@ impl Spotify {
         use super::model::Offset;
 
         let params = build_json! {
-            required uris => uris.iter().map(|id| id.uri()).collect::<Vec<_>>(),
-            optional position_ms,
-            optional offset => match offset {
+            "uris": uris.iter().map(|id| id.uri()).collect::<Vec<_>>(),
+            optional "position_ms": position_ms,
+            optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
                 Offset::Uri(uri) => json!({ "uri": uri.uri() }),
-            },
+            }),
         };
 
         let url = self.append_device_id("me/player/play", device_id);
@@ -2027,8 +2026,8 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional limit,
-            optional offset,
+            optional "limit": limit.as_ref(),
+            optional "offset": offset.as_ref(),
         };
 
         let result = self.endpoint_get("me/shows", &params).await?;
@@ -2045,9 +2044,9 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-show)
     #[maybe_async]
-    pub async fn get_a_show(&self, id: &ShowId, market: Option<Market>) -> ClientResult<FullShow> {
+    pub async fn get_a_show(&self, id: &ShowId, market: Option<&Market>) -> ClientResult<FullShow> {
         let params = build_map! {
-            optional market => market.as_ref(),
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let url = format!("shows/{}", id.id());
@@ -2067,12 +2066,12 @@ impl Spotify {
     pub async fn get_several_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a ShowId>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
         let params = build_map! {
-            required ids => &ids,
-            optional market => market.as_ref(),
+            "ids": &ids,
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let result = self.endpoint_get("shows", &params).await?;
@@ -2120,9 +2119,9 @@ impl Spotify {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
-            optional market => market.as_ref(),
-            optional limit,
-            optional offset,
+            optional "market": market.map(|x| x.as_ref()),
+            optional "limit": limit.as_ref(),
+            optional "offset": offset.as_ref(),
         };
 
         let url = format!("shows/{}/episodes", id.id());
@@ -2143,11 +2142,11 @@ impl Spotify {
     pub async fn get_an_episode(
         &self,
         id: &EpisodeId,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
         let params = build_map! {
-            optional market => market.as_ref(),
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let result = self.endpoint_get(&url, &params).await?;
@@ -2165,12 +2164,12 @@ impl Spotify {
     pub async fn get_several_episodes<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a EpisodeId>,
-        market: Option<Market>,
+        market: Option<&Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
         let params = build_map! {
-            required ids => &ids,
-            optional market => market.as_ref(),
+            "ids": &ids,
+            optional "market": market.map(|x| x.as_ref()),
         };
 
         let result = self.endpoint_get("episodes", &params).await?;
@@ -2191,7 +2190,7 @@ impl Spotify {
     ) -> ClientResult<Vec<bool>> {
         let ids = join_ids(ids);
         let params = build_map! {
-            required ids => &ids,
+            "ids": &ids,
         };
         let result = self.endpoint_get("me/shows/contains", &params).await?;
         self.convert_result(&result)
@@ -2206,14 +2205,14 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-shows-user)
     #[maybe_async]
-    pub async fn remove_users_saved_shows<'a>(
+    pub async fn remove_users_saved_shows(
         &self,
-        show_ids: impl IntoIterator<Item = &'a ShowId>,
-        country: Option<Market>,
+        show_ids: impl IntoIterator<Item = &ShowId>,
+        country: Option<&Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
         let params = build_json! {
-            optional country => country.as_ref()
+            optional "country": country.map(|x| x.as_ref())
         };
         self.endpoint_delete(&url, &params).await?;
 
