@@ -778,7 +778,6 @@ impl Spotify {
     ) -> ClientResult<PlaylistResult> {
         let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = build_json! {
-            "playlist_id": playlist_id,
             optional "uris": uris,
             optional "range_start": range_start,
             optional "insert_before": insert_before,
@@ -1061,7 +1060,7 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let params = build_map! {
-            "r#type": Type::Artist.as_ref(),
+            "type": Type::Artist.as_ref(),
             optional "after": after,
             optional "limit": limit.as_deref(),
         };
@@ -1576,8 +1575,8 @@ impl Spotify {
         seed_artists: Option<Vec<&ArtistId>>,
         seed_genres: Option<Vec<&str>>,
         seed_tracks: Option<Vec<&TrackId>>,
-        limit: Option<u32>,
         market: Option<&Market>,
+        limit: Option<u32>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
         let seed_genres = seed_genres.map(|x| x.join(","));
@@ -1758,19 +1757,18 @@ impl Spotify {
     ///
     /// Parameters:
     /// - device_id - transfer playback to this device
-    /// - force_play - true: after transfer, play. false:
-    ///   keep current state.
+    /// - force_play - true: after transfer, play. false: keep current state.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-transfer-a-users-playback)
     #[maybe_async]
     pub async fn transfer_playback(
         &self,
         device_id: &str,
-        force_play: Option<bool>,
+        play: Option<bool>,
     ) -> ClientResult<()> {
         let params = build_json! {
             "device_ids": [device_id],
-            optional "force_play": force_play,
+            optional "play": play,
         };
 
         self.endpoint_put("me/player", &params).await?;
