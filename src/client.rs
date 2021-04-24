@@ -1711,7 +1711,7 @@ impl Spotify {
         });
         let params = build_map! {
             optional "country": country.map(|x| x.as_ref()),
-            optional "additional_types": additional_types.as_ref(),
+            optional "additional_types": additional_types.as_deref(),
         };
 
         let result = self.endpoint_get("me/player", &params).await?;
