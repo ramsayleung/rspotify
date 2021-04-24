@@ -1698,13 +1698,13 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
     #[maybe_async]
-    pub async fn current_playback(
+    pub async fn current_playback<'a>(
         &self,
         country: Option<&Market>,
-        additional_types: Option<Vec<AdditionalType>>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types =
-            additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+            additional_types.map(|x| x.into_iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
         let params = build_map! {
             optional "country": country.map(|x| x.as_ref()),
             optional "additional_types": additional_types.as_ref(),
