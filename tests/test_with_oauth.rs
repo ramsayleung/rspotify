@@ -133,7 +133,7 @@ async fn test_category_playlists() {
 async fn test_current_playback() {
     oauth_client()
         .await
-        .current_playback(None, Option::<&[_]>::None)
+        .current_playback::<&[_]>(None, None)
         .await
         .unwrap();
 }

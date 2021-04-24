@@ -1698,13 +1698,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
     #[maybe_async]
-    pub async fn current_playback<'a>(
+    pub async fn current_playback<'a, A: IntoIterator<Item = &'a AdditionalType>>(
         &self,
         country: Option<&Market>,
-        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
+        additional_types: Option<A>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
-        let additional_types =
-            additional_types.map(|x| x.into_iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+        let additional_types = additional_types.map(|x| {
+            x.into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let params = build_map! {
             optional "country": country.map(|x| x.as_ref()),
             optional "additional_types": additional_types.as_ref(),
@@ -1761,11 +1765,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-transfer-a-users-playback)
     #[maybe_async]
-    pub async fn transfer_playback(
-        &self,
-        device_id: &str,
-        play: Option<bool>,
-    ) -> ClientResult<()> {
+    pub async fn transfer_playback(&self, device_id: &str, play: Option<bool>) -> ClientResult<()> {
         let params = build_json! {
             "device_ids": [device_id],
             optional "play": play,
