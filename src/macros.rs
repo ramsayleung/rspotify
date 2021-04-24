@@ -50,35 +50,35 @@ macro_rules! count_items {
 
 /// This macro and [`build_json`] help make the endpoints as concise as possible
 /// and boilerplate-free, which is specially important when initializing the
-/// parameters of the query with a HashMap/similar. Their items follow the
-/// syntax:
+/// parameters of the query. In the case of `build_map` this will construct a
+/// `HashMap<&str, &str>`, and `build_json` will initialize a
+/// `HashMap<String, serde_json::Value>`.
+///
+/// The syntax is the following:
 ///
 ///   [optional] "key": value
 ///
-/// The first keyword is just to distinguish between a direct insert into the
-/// hashmap (required parameter), and an insert only if the value is `Some(...)`
-/// (optional parameter). This is followed by the variable to be inserted, which
-/// shall have the same name as the key in the map (meaning that `r#type` may
-/// have to be used).
+/// For an example, refer to the `test::test_build_map` function in this module,
+/// or the real usages in Rspotify's client.
 ///
-/// It also works similarly to how struct initialization works. You may provide
-/// a key and a value with `MyStruct { key: value }`, or if both have the same
-/// name as the key, `MyStruct { key }` is enough.
-///
-/// For more information, please refer to the `test::test_build_map` function in
-/// this module to see an example, or the real usages in Rspotify's client.
+/// The `key` and `value` parameters are what's to be inserted in the HashMap.
+/// If `optional` is used, the value will only be inserted if it's a
+/// `Some(...)`.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! build_map {
-    (@/* required */, $map:ident, $key:expr, $val:expr) => {
+macro_rules! internal_build_map {
+    (/* required */, $map:ident, $key:expr, $val:expr) => {
         $map.insert($key, $val);
     };
-    (@optional, $map:ident, $key:expr, $val:expr) => {
+    (optional, $map:ident, $key:expr, $val:expr) => {
         if let Some(val) = $val {
             $map.insert($key, val);
         }
     };
-
+}
+#[doc(hidden)]
+#[macro_export]
+macro_rules! build_map {
     (
         $(
             $( $kind:ident )? $key:literal : $val:expr
@@ -88,8 +88,8 @@ macro_rules! build_map {
             $crate::count_items!($( $key ),*)
         );
         $(
-            $crate::build_map!(
-                @$( $kind )?,
+            $crate::internal_build_map!(
+                $( $kind )?,
                 params,
                 $key,
                 $val
@@ -103,16 +103,19 @@ macro_rules! build_map {
 /// maps.
 #[doc(hidden)]
 #[macro_export]
-macro_rules! build_json {
-    (@/* required */, $map:ident, $key:expr, $val:expr) => {
+macro_rules! internal_build_json {
+    (/* required */, $map:ident, $key:expr, $val:expr) => {
         $map.insert($key.to_string(), json!($val));
     };
-    (@optional, $map:ident, $key:expr, $val:expr) => {
+    (optional, $map:ident, $key:expr, $val:expr) => {
         if let Some(val) = $val {
             $map.insert($key.to_string(), json!(val));
         }
     };
-
+}
+#[doc(hidden)]
+#[macro_export]
+macro_rules! build_json {
     (
         $(
             $( $kind:ident )? $key:literal : $val:expr
@@ -122,8 +125,8 @@ macro_rules! build_json {
             $crate::count_items!($( $key ),*)
         );
         $(
-            $crate::build_json!(
-                @$( $kind )?,
+            $crate::internal_build_json!(
+                $( $kind )?,
                 params,
                 $key,
                 $val
@@ -155,7 +158,7 @@ mod test {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
-        let market: Option<Market> = None;
+        let market: Option<&Market> = None;
 
         let with_macro = build_map! {
             // Mandatory (not an `Option<T>`)
@@ -183,7 +186,7 @@ mod test {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
-        let market: Option<Market> = None;
+        let market: Option<&Market> = None;
 
         let with_macro = build_json! {
             "id": id,
