@@ -1,6 +1,5 @@
 //! Client to Spotify API endpoint
 
-use chrono;
 use derive_builder::Builder;
 use log::error;
 use maybe_async::maybe_async;
