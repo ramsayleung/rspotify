@@ -1592,7 +1592,6 @@ impl Spotify {
             optional limit,
         };
 
-        // TODO: this probably can be improved.
         let attributes = [
             "acousticness",
             "danceability",
@@ -1609,18 +1608,24 @@ impl Spotify {
             "time_signature",
             "valence",
         ];
-        let mut map_to_hold_owned_value = HashMap::new();
         let prefixes = ["min", "max", "target"];
-        for attribute in attributes.iter() {
-            for prefix in prefixes.iter() {
-                let param = format!("{}_{}", prefix, attribute);
-                if let Some(value) = payload.get(&param) {
-                    // TODO: not sure if this `to_string` is what we want. It
-                    // might add quotes to the strings.
-                    map_to_hold_owned_value.insert(param, value.to_string());
-                }
-            }
-        }
+
+        // This map is used to store the intermediate data which lives long enough
+        // to be borrowed into the `params`
+        let map_to_hold_owned_value = attributes
+            .iter()
+            // create cartesian product for attributes and prefixes
+            .flat_map(|attribute| {
+                prefixes
+                    .iter()
+                    .map(move |prefix| format!("{}_{}", prefix, attribute))
+            })
+            .filter_map(
+                // TODO: not sure if this `to_string` is what we want. It
+                // might add quotes to the strings.
+                |param| payload.get(&param).map(|value| (param, value.to_string())),
+            )
+            .collect::<HashMap<String, String>>();
 
         for (ref key, ref value) in &map_to_hold_owned_value {
             params.insert(key, value);
@@ -2260,6 +2265,87 @@ mod test {
         assert_eq!(
             new_path,
             "me/player/shuffle?state=true&device_id=fdafdsadfa"
+        );
+    }
+
+    #[test]
+    fn test_cartesian_product() {
+        let attributes = [
+            "acousticness",
+            "danceability",
+            "duration_ms",
+            "energy",
+            "instrumentalness",
+            "key",
+            "liveness",
+            "loudness",
+            "mode",
+            "popularity",
+            "speechiness",
+            "tempo",
+            "time_signature",
+            "valence",
+        ];
+        let prefixes = ["min", "max", "target"];
+
+        let iterator_product_result = attributes
+            .iter()
+            .flat_map(|attribute| {
+                prefixes
+                    .iter()
+                    .map(move |prefix| format!("{}_{}", prefix, attribute))
+            })
+            .collect::<Vec<_>>();
+        let mut loop_product_result = vec![];
+        for attribute in attributes.iter() {
+            for prefix in prefixes.iter() {
+                let param = format!("{}_{}", prefix, attribute);
+                loop_product_result.push(param);
+            }
+        }
+        assert!(iterator_product_result
+            .iter()
+            .eq(loop_product_result.iter()));
+    }
+    #[test]
+    fn test_cartesian_product_and_filter_map() {
+        let attributes = [
+            "acousticness",
+            "danceability",
+            "duration_ms",
+            "energy",
+            "instrumentalness",
+            "key",
+            "liveness",
+            "loudness",
+            "mode",
+            "popularity",
+            "speechiness",
+            "tempo",
+            "time_signature",
+            "valence",
+        ];
+        let prefixes = ["min", "max", "target"];
+        let mut store = HashMap::new();
+        store.insert("min_valence".to_owned(), "foo".to_owned());
+        store.insert("max_tempo".to_owned(), "bar".to_owned());
+        let found_key_value = attributes
+            .iter()
+            .flat_map(|attribute| {
+                prefixes
+                    .iter()
+                    .map(move |prefix| format!("{}_{}", prefix, attribute))
+            })
+            .filter_map(|param| store.get(&param).map(|value| (param, value.to_owned())))
+            .collect::<HashMap<String, String>>();
+        assert_eq!(found_key_value.len(), 2);
+        assert_eq!(
+            found_key_value.get(&"min_valence".to_string()),
+            Some(&"foo".to_string())
+        );
+        assert_eq!(
+            found_key_value.get(&"max_tempo".to_string()),
+            Some(&"bar".to_string())
         );
     }
 }
