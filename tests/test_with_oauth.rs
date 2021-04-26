@@ -527,7 +527,7 @@ async fn test_start_playback() {
     let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
     oauth_client()
         .await
-        .start_uris_playback(&uris, Some(device_id), Some(Offset::for_position(0)), None)
+        .start_uris_playback(uris, Some(device_id), Some(Offset::for_position(0)), None)
         .await
         .unwrap();
 }
@@ -676,7 +676,7 @@ async fn test_playlist_follow_playlist() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_recorder_tracks() {
-    let uris: Option<&[&EpisodeId]> = None;
+    let uris = Some(vec![EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()]);
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let range_start = 0;
     let insert_before = 1;
