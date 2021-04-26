@@ -134,7 +134,7 @@ async fn test_category_playlists() {
 async fn test_current_playback() {
     oauth_client()
         .await
-        .current_playback(None, None)
+        .current_playback::<&[_]>(None, None)
         .await
         .unwrap();
 }
@@ -418,8 +418,8 @@ async fn test_recommendations() {
             Some(seed_artists),
             None::<Box<dyn Iterator<Item = &str>>>,
             Some(seed_tracks),
+            Some(&Market::Country(Country::UnitedStates)),
             Some(10),
-            Some(Market::Country(Country::UnitedStates)),
         )
         .await
         .unwrap();
