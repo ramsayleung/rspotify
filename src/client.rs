@@ -721,7 +721,7 @@ impl Spotify {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
             "uris": uris,
-            "position": position,
+            optional "position": position,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
