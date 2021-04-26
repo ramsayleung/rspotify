@@ -102,11 +102,8 @@ pub enum Market {
     Country(Country),
     FromToken,
 }
-pub trait AsRefStr {
-    fn as_ref(&self) -> &str;
-}
 
-impl AsRefStr for Market {
+impl AsRef<str> for Market {
     fn as_ref(&self) -> &str {
         match self {
             Market::Country(country) => country.as_ref(),

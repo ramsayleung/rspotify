@@ -5,6 +5,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
 - Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
+- Rspotify now uses macros internally to make the endpoints as concise as possible and nice to read.
 - Add `add_item_to_queue` endpoint.
 - Add `category_playlists` endpoint ([#153](https://github.com/ramsayleung/rspotify/pull/153)).
 - Fix race condition when using a single client from multiple threads ([#114](https://github.com/ramsayleung/rspotify/pull/114)).
@@ -84,6 +85,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
 
 **Breaking changes:**
+- ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Rspotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
 - `TokenInfo` has been renamed to `Token`. It no longer has the `token_type` member, as it's always `Bearer` for now ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - `SpotifyOAuth` has been renamed to `OAuth`. It only contains the necessary parameters for OAuth authorization instead of repeating the items from `Credentials` and `Spotify`, so `client_id`, `client_secret` and `cache_path` are no longer in `OAuth` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
@@ -205,11 +207,14 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Rename `ClientError::IO` to `ClientError::Io`
   + Rename `ClientError::CLI` to `ClientError::Cli`
   + Rename `BaseHTTPClient` to `BaseHttpClient`
-- [#166](https://github.com/ramsayleung/rspotify/pull/166) [#201](https://github.com/ramsayleung/rspotify/pull/201) Add automatic pagination, which is now enabled by default. You can still use the methods with the `_manual` suffix to have access to manual pagination. There are three new examples for this, check out `examples/pagination*` to learn more!
+- ([#166](https://github.com/ramsayleung/rspotify/pull/166) [#201](https://github.com/ramsayleung/rspotify/pull/201)) Add automatic pagination, which is now enabled by default. You can still use the methods with the `_manual` suffix to have access to manual pagination. There are three new examples for this, check out `examples/pagination*` to learn more!
 
   As a side effect, some methods now take references instead of values (so that they can be used multiple times when querying), and the parameters have been reordered so that the `limit` and `offset` are consistently the last two.
 
   The pagination chunk size can be configured with the `Spotify::pagination_chunks` field, which is set to 50 items by default.
+- No default values are set from Rspotify now, they will be left to the Spotify API.
+- ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Add a `collaborative` parameter to `user_playlist_create`.
+- ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Add a `uris` parameter to `playlist_reorder_tracks`.
 
 ## 0.10 (2020/07/01)
 

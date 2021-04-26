@@ -85,7 +85,7 @@ async fn test_artists_albums() {
         .await
         .artist_albums_manual(
             birdy_uri,
-            Some(AlbumType::Album),
+            Some(&AlbumType::Album),
             Some(&Market::Country(Country::UnitedStates)),
             Some(10),
             None,
