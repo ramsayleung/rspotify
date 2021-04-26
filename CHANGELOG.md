@@ -215,7 +215,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 - No default values are set from Rspotify now, they will be left to the Spotify API.
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Add a `collaborative` parameter to `user_playlist_create`.
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Add a `uris` parameter to `playlist_reorder_tracks`.
-- ([]()) Update the endpoint signatures to pass parameters by reference, affected endpoint list:
+- ([#206](https://github.com/ramsayleung/rspotify/pull/206)) Update the endpoint signatures to pass parameters by reference, affected endpoint list:
     + `tracks`
     + `artist_albums`
     + `artist_albums_manual`
