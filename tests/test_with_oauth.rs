@@ -30,6 +30,7 @@ use rspotify::{
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
+use serde_json::map::Map;
 use std::env;
 
 /// Generating a new OAuth client for the requests.
@@ -414,7 +415,7 @@ async fn test_recommendations() {
         .recommendations(
             &payload,
             Some(seed_artists),
-            None::<&[&str]>,
+            None::<Vec<&str>>,
             Some(seed_tracks),
             Some(&Market::Country(Country::UnitedStates)),
             Some(10),
