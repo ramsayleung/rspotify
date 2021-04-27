@@ -728,7 +728,7 @@ async fn test_playlist_remove_specific_occurrences_of_tracks() {
     let tracks = vec![&track_position_0_3, &track_position_7];
     oauth_client()
         .await
-        .playlist_remove_specific_occurrences_of_tracks(&playlist_id, tracks, None::<&str>)
+        .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks, None::<&str>)
         .await
         .unwrap();
 }

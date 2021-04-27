@@ -865,7 +865,7 @@ impl Spotify {
             .map(|track| {
                 let mut map = Map::new();
                 map.insert("uri".to_owned(), track.id.uri().into());
-                map.insert("positions".to_owned(), track.positions.clone().into());
+                map.insert("positions".to_owned(), json!(track.positions));
                 map
             })
             .collect::<Vec<_>>();
@@ -2262,87 +2262,6 @@ mod test {
         assert_eq!(
             new_path,
             "me/player/shuffle?state=true&device_id=fdafdsadfa"
-        );
-    }
-
-    #[test]
-    fn test_cartesian_product() {
-        let attributes = [
-            "acousticness",
-            "danceability",
-            "duration_ms",
-            "energy",
-            "instrumentalness",
-            "key",
-            "liveness",
-            "loudness",
-            "mode",
-            "popularity",
-            "speechiness",
-            "tempo",
-            "time_signature",
-            "valence",
-        ];
-        let prefixes = ["min", "max", "target"];
-
-        let iterator_product_result = attributes
-            .iter()
-            .flat_map(|attribute| {
-                prefixes
-                    .iter()
-                    .map(move |prefix| format!("{}_{}", prefix, attribute))
-            })
-            .collect::<Vec<_>>();
-        let mut loop_product_result = vec![];
-        for attribute in attributes.iter() {
-            for prefix in prefixes.iter() {
-                let param = format!("{}_{}", prefix, attribute);
-                loop_product_result.push(param);
-            }
-        }
-        assert!(iterator_product_result
-            .iter()
-            .eq(loop_product_result.iter()));
-    }
-    #[test]
-    fn test_cartesian_product_and_filter_map() {
-        let attributes = [
-            "acousticness",
-            "danceability",
-            "duration_ms",
-            "energy",
-            "instrumentalness",
-            "key",
-            "liveness",
-            "loudness",
-            "mode",
-            "popularity",
-            "speechiness",
-            "tempo",
-            "time_signature",
-            "valence",
-        ];
-        let prefixes = ["min", "max", "target"];
-        let mut store = HashMap::new();
-        store.insert("min_valence".to_owned(), "foo".to_owned());
-        store.insert("max_tempo".to_owned(), "bar".to_owned());
-        let found_key_value = attributes
-            .iter()
-            .flat_map(|attribute| {
-                prefixes
-                    .iter()
-                    .map(move |prefix| format!("{}_{}", prefix, attribute))
-            })
-            .filter_map(|param| store.get(&param).map(|value| (param, value.to_owned())))
-            .collect::<HashMap<String, String>>();
-        assert_eq!(found_key_value.len(), 2);
-        assert_eq!(
-            found_key_value.get(&"min_valence".to_string()),
-            Some(&"foo".to_string())
-        );
-        assert_eq!(
-            found_key_value.get(&"max_tempo".to_string()),
-            Some(&"bar".to_string())
         );
     }
 }
