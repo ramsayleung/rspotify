@@ -1623,7 +1623,7 @@ impl Spotify {
                 // might add quotes to the strings.
                 |param| payload.get(&param).map(|value| (param, value.to_string())),
             )
-            .collect::<HashMap<String, String>>();
+            .collect::<HashMap<_, _>>();
 
         for (ref key, ref value) in &map_to_hold_owned_value {
             params.insert(key, value);

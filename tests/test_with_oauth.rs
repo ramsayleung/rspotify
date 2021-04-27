@@ -18,7 +18,6 @@ mod common;
 
 use common::maybe_async_test;
 use rspotify::model::offset::Offset;
-use rspotify::model::AdditionalType;
 use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
     client::{Spotify, SpotifyBuilder},
@@ -31,7 +30,6 @@ use rspotify::{
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
-use serde_json::map::Map;
 use std::env;
 
 /// Generating a new OAuth client for the requests.
@@ -145,7 +143,7 @@ async fn test_current_playback() {
 async fn test_current_playing() {
     oauth_client()
         .await
-        .current_playing(None, None::<Box<dyn Iterator<Item = &AdditionalType>>>)
+        .current_playing(None, None::<&[_]>)
         .await
         .unwrap();
 }
@@ -416,7 +414,7 @@ async fn test_recommendations() {
         .recommendations(
             &payload,
             Some(seed_artists),
-            None::<Box<dyn Iterator<Item = &str>>>,
+            None::<&[&str]>,
             Some(seed_tracks),
             Some(&Market::Country(Country::UnitedStates)),
             Some(10),
