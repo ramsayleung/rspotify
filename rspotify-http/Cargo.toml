@@ -1,82 +1,52 @@
 [package]
 authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
-name = "rspotify"
+name = "rspotify-http"
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
-description = "Spotify API wrapper"
+description = "HTTP compatibility layer for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
 edition = "2018"
 
-[workspace]
-members = [
-    "rspotify-macros",
-    "rspotify-model",
-    "rspotify-http"
-]
-exclude = [
-    "examples/webapp"
-]
-# For advanced features usage in the CLI, see:
-# https://doc.rust-lang.org/nightly/cargo/reference/features.html#resolver-version-2-command-line-flags
-resolver = "2"
-
 [dependencies]
-rspotify-macros = { path = "rspotify-macros", version = "0.10.0" }
-rspotify-model = { path = "rspotify-model", version = "0.10.0" }
-rspotify-http = { path = "rspotify-http", version = "0.10.0" }
-
-### Client ###
-chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-derive_builder = "0.10.0"
-dotenv = { version = "0.15.0", optional = true }
+async-stream = { version = "0.3.0", optional = true }
+# Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
+# `maybe_async`.
+async-trait = { version = "0.1.48", optional = true }
+base64 = "0.13.0"
 futures = { version = "0.3.8", optional = true }
-getrandom = "0.2.0"
 log = "0.4.11"
 maybe-async = "0.2.1"
-serde = { version = "1.0.115", features = ["derive"] }
-serde_json = "1.0.57"
+reqwest = { version = "0.11.0", default-features = false, features = ["json", "socks"], optional = true }
 thiserror = "1.0.20"
+ureq = { version = "2.0", default-features = false, features = ["json", "cookies"], optional = true }
 url = "2.1.1"
-webbrowser = { version = "0.5.5", optional = true }
-
-### Auth ###
-# chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-# log = "0.4.11"
-# maybe-async = "0.2.1"
-# thiserror = "1.0.20"
 
 [dev-dependencies]
 env_logger = "0.8.1"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
-futures-util = "0.3.8"
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]
 
-### Client ###
-cli = ["webbrowser"]
-env-file = ["dotenv"]
-
-### HTTP ###
 # Available clients. By default they don't include a TLS so that it can be
 # configured.
-client-ureq = ["rspotify-http/client-ureq", "__sync"]
-client-reqwest = ["rspotify-http/client-reqwest", "__async"]
+client-ureq = ["ureq", "__sync"]
+client-reqwest = ["reqwest", "__async"]
 
 # Passing the TLS features to reqwest.
-reqwest-default-tls = ["rspotify-http/reqwest-default-tls"]
-reqwest-rustls-tls = ["rspotify-http/reqwest-rustls-tls"]
-reqwest-native-tls = ["rspotify-http/reqwest-native-tls"]
-reqwest-native-tls-vendored = ["rspotify-http/reqwest-native-tls-vendored"]
+reqwest-default-tls = ["reqwest/default-tls"]
+reqwest-rustls-tls = ["reqwest/rustls-tls"]
+reqwest-native-tls = ["reqwest/native-tls"]
+reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 # Same for ureq.
-ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
+ureq-rustls-tls = ["ureq/tls"]
 
 # Internal features for checking async or sync compilation
-__async = ["futures"]
-__sync = []
+__async = ["async-trait", "async-stream", "futures"]
+__sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
 # Also documenting the CLI methods

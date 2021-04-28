@@ -161,34 +161,13 @@
 // This way only the compile error below gets shown instead of a whole list of
 // confusing errors..
 
-#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod client;
-#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-mod http;
-#[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 pub mod oauth2;
-#[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub mod pagination;
 
 // Subcrate re-exports
 pub use rspotify_macros as macros;
 pub use rspotify_model as model;
+pub use rspotify_http as http;
 
 // Top-level re-exports
 pub use macros::scopes;
-
-#[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
-compile_error!(
-    "`client-reqwest` and `client-ureq` features cannot both be enabled at \
-    the same time, if you want to use `client-ureq` you need to set \
-    `default-features = false`"
-);
-
-#[cfg(not(any(feature = "client-reqwest", feature = "client-ureq")))]
-compile_error!(
-    "You have to enable at least one of the available clients with the \
-    `client-reqwest` or `client-ureq` features."
-);
