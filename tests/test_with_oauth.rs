@@ -144,7 +144,7 @@ async fn test_current_playback() {
 async fn test_current_playing() {
     oauth_client()
         .await
-        .current_playing(None, None)
+        .current_playing(None, None::<&[_]>)
         .await
         .unwrap();
 }
@@ -331,7 +331,7 @@ async fn test_featured_playlists() {
     let now: DateTime<Utc> = Utc::now();
     oauth_client()
         .await
-        .featured_playlists(None, None, Some(now), Some(10), Some(0))
+        .featured_playlists(None, None, Some(&now), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -415,7 +415,7 @@ async fn test_recommendations() {
         .recommendations(
             &payload,
             Some(seed_artists),
-            None,
+            None::<Vec<&str>>,
             Some(seed_tracks),
             Some(&Market::Country(Country::UnitedStates)),
             Some(10),
@@ -430,7 +430,7 @@ async fn test_recommendations() {
 async fn test_repeat() {
     oauth_client()
         .await
-        .repeat(RepeatState::Context, None)
+        .repeat(&RepeatState::Context, None)
         .await
         .unwrap();
 }
@@ -442,7 +442,7 @@ async fn test_search_album() {
     let query = "album:arrival artist:abba";
     oauth_client()
         .await
-        .search(query, SearchType::Album, None, None, Some(10), Some(0))
+        .search(query, &SearchType::Album, None, None, Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -456,7 +456,7 @@ async fn test_search_artist() {
         .await
         .search(
             query,
-            SearchType::Artist,
+            &SearchType::Artist,
             Some(&Market::Country(Country::UnitedStates)),
             None,
             Some(10),
@@ -475,7 +475,7 @@ async fn test_search_playlist() {
         .await
         .search(
             query,
-            SearchType::Playlist,
+            &SearchType::Playlist,
             Some(&Market::Country(Country::UnitedStates)),
             None,
             Some(10),
@@ -494,7 +494,7 @@ async fn test_search_track() {
         .await
         .search(
             query,
-            SearchType::Track,
+            &SearchType::Track,
             Some(&Market::Country(Country::UnitedStates)),
             None,
             Some(10),
@@ -526,7 +526,7 @@ async fn test_start_playback() {
     let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
     oauth_client()
         .await
-        .start_uris_playback(&uris, Some(device_id), Some(Offset::for_position(0)), None)
+        .start_uris_playback(uris, Some(device_id), Some(Offset::for_position(0)), None)
         .await
         .unwrap();
 }
@@ -675,7 +675,7 @@ async fn test_playlist_follow_playlist() {
 #[maybe_async_test]
 #[ignore]
 async fn test_playlist_recorder_tracks() {
-    let uris: Option<&[&EpisodeId]> = None;
+    let uris = Some(vec![EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()]);
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
     let range_start = 0;
     let insert_before = 1;
@@ -716,19 +716,18 @@ async fn test_playlist_remove_all_occurrences_of_tracks() {
 #[ignore]
 async fn test_playlist_remove_specific_occurrences_of_tracks() {
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
-    let tracks = vec![
-        TrackPositions::new(
-            Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-            vec![0, 3],
-        ),
-        TrackPositions::new(
-            Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
-            vec![7],
-        ),
-    ];
+    let track_position_0_3 = TrackPositions::new(
+        Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+        vec![0, 3],
+    );
+    let track_position_7 = TrackPositions::new(
+        Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
+        vec![7],
+    );
+    let tracks = vec![&track_position_0_3, &track_position_7];
     oauth_client()
         .await
-        .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks, None)
+        .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks, None::<&str>)
         .await
         .unwrap();
 }
