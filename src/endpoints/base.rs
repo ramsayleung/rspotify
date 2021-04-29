@@ -1,11 +1,10 @@
 use crate::{
     endpoints::{
-        join_ids,
+        join_ids, bearer_auth, convert_result,
         pagination::{paginate, Paginator},
     },
-    http::HttpClient,
-    http::Query,
-    macros::{build_json, build_map},
+    http::{Query, Headers, HttpClient, Form, BaseHttpClient},
+    macros::build_map,
     model::*,
     ClientResult, Config, Credentials, Token,
 };
@@ -13,6 +12,21 @@ use crate::{
 use std::collections::HashMap;
 
 use maybe_async::maybe_async;
+use serde_json::{Map, Value};
+
+/// HTTP-related methods for the Spotify client. It wraps the basic HTTP client
+/// with features needed of higher level.
+///
+/// The Spotify client has two different wrappers to perform requests:
+///
+/// * Basic wrappers: `get`, `post`, `put`, `delete`, `post_form`. These only
+///   append the configured Spotify API URL to the relative URL provided so that
+///   it's not forgotten. They're used in the authentication process to request
+///   an access token and similars.
+/// * Endpoint wrappers: `endpoint_get`, `endpoint_post`, `endpoint_put`,
+///   `endpoint_delete`. These append the authentication headers for endpoint
+///   requests to reduce the code needed for endpoints and make them as concise
+///   as possible.
 
 #[maybe_async]
 pub trait BaseClient {
@@ -21,18 +35,109 @@ pub trait BaseClient {
     fn get_token(&self) -> Option<&Token>;
     fn get_creds(&self) -> &Credentials;
 
-    // Existing
-    fn request(&self, mut params: HashMap<String, String>) {
-        let http = self.get_http();
-        params.insert("url".to_string(), "...".to_string());
-        http.request(params);
+    /// If it's a relative URL like "me", the prefix is appended to it.
+    /// Otherwise, the same URL is returned.
+    fn endpoint_url(&self, url: &str) -> String {
+        // Using the client's prefix in case it's a relative route.
+        if !url.starts_with("http") {
+            self.get_config().prefix.clone() + url
+        } else {
+            url.to_string()
+        }
     }
 
-    // Existing
-    fn endpoint_request(&self) {
-        let mut params = HashMap::new();
-        params.insert("token".to_string(), self.get_token().unwrap().0.clone());
-        self.request(params);
+    /// The headers required for authenticated requests to the API
+    fn auth_headers(&self) -> ClientResult<Headers> {
+        let mut auth = Headers::new();
+        let (key, val) = bearer_auth(self.get_token().expect("Rspotify not authenticated"));
+        auth.insert(key, val);
+
+        Ok(auth)
+    }
+
+    #[inline]
+    async fn get(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Query<'_>,
+    ) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        Ok(self.get_http().get(&url, headers, payload).await?)
+    }
+
+    #[inline]
+    async fn post(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        Ok(self.get_http().post(&url, headers, payload).await?)
+    }
+
+    #[inline]
+    async fn post_form(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Form<'_>,
+    ) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        Ok(self.get_http().post_form(&url, headers, payload).await?)
+    }
+
+    #[inline]
+    async fn put(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        Ok(self.get_http().put(&url, headers, payload).await?)
+    }
+
+    #[inline]
+    async fn delete(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        Ok(self.get_http().delete(&url, headers, payload).await?)
+    }
+
+    /// The wrapper for the endpoints, which also includes the required
+    /// autentication.
+    #[inline]
+    async fn endpoint_get(
+        &self,
+        url: &str,
+        payload: &Query<'_>,
+    ) -> ClientResult<String> {
+        let headers = self.auth_headers()?;
+        Ok(self.get(url, Some(&headers), payload).await?)
+    }
+
+    #[inline]
+    async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let headers = self.auth_headers()?;
+        self.post(url, Some(&headers), payload).await
+    }
+
+    #[inline]
+    async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let headers = self.auth_headers()?;
+        self.put(url, Some(&headers), payload).await
+    }
+
+    #[inline]
+    async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let headers = self.auth_headers()?;
+        self.delete(url, Some(&headers), payload).await
     }
 
     /// Returns a single track given the track's ID, URI or URL.
@@ -44,7 +149,7 @@ pub trait BaseClient {
     async fn track(&self, track_id: &TrackId) -> ClientResult<FullTrack> {
         let url = format!("tracks/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Returns a list of tracks given a list of track IDs, URIs, or URLs.
@@ -54,9 +159,9 @@ pub trait BaseClient {
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
-    async fn tracks<'a>(
+    async fn tracks<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: Tracks,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
@@ -66,7 +171,7 @@ pub trait BaseClient {
 
         let url = format!("tracks/?ids={}", ids);
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
+        convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
     /// Returns a single artist given the artist's ID, URI or URL.
@@ -78,7 +183,7 @@ pub trait BaseClient {
     async fn artist(&self, artist_id: &ArtistId) -> ClientResult<FullArtist> {
         let url = format!("artists/{}", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Returns a list of artists given the artist IDs, URIs, or URLs.
@@ -87,15 +192,15 @@ pub trait BaseClient {
     /// - artist_ids - a list of artist IDs, URIs or URLs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
-    async fn artists<'a>(
+    async fn artists<'a, Artists: IntoIterator<Item = &'a ArtistId>>(
         &self,
-        artist_ids: impl IntoIterator<Item = &'a ArtistId>,
+        artist_ids: Artists,
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
         let url = format!("artists/?ids={}", ids);
         let result = self.endpoint_get(&url, &Query::new()).await?;
 
-        self.convert_result::<FullArtists>(&result)
+        convert_result::<FullArtists>(&result)
             .map(|x| x.artists)
     }
 
@@ -112,17 +217,17 @@ pub trait BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
-    fn artist_albums<'a>(
+    fn artist_albums<'a, Pag: Paginator<ClientResult<SimplifiedAlbum>> + 'a>(
         &'a self,
         artist_id: &'a ArtistId,
         album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
-    ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| {
                 self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
             },
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -146,7 +251,7 @@ pub trait BaseClient {
 
         let url = format!("artists/{}/albums", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information about an artist's top 10 tracks by
@@ -168,7 +273,7 @@ pub trait BaseClient {
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result::<FullTracks>(&result).map(|x| x.tracks)
+        convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
     /// Get Spotify catalog information about artists similar to an identified
@@ -182,7 +287,7 @@ pub trait BaseClient {
     async fn artist_related_artists(&self, artist_id: &ArtistId) -> ClientResult<Vec<FullArtist>> {
         let url = format!("artists/{}/related-artists", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result::<FullArtists>(&result)
+        convert_result::<FullArtists>(&result)
             .map(|x| x.artists)
     }
 
@@ -196,7 +301,7 @@ pub trait BaseClient {
         let url = format!("albums/{}", album_id.id());
 
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Returns a list of albums given the album IDs, URIs, or URLs.
@@ -205,14 +310,14 @@ pub trait BaseClient {
     /// - albums_ids - a list of album IDs, URIs or URLs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
-    async fn albums<'a>(
+    async fn albums<'a, Albums: IntoIterator<Item = &'a AlbumId>>(
         &self,
-        album_ids: impl IntoIterator<Item = &'a AlbumId>,
+        album_ids: Albums,
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
         let url = format!("albums/?ids={}", ids);
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result::<FullAlbums>(&result).map(|x| x.albums)
+        convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
 
     /// Search for an Item. Get Spotify catalog information about artists,
@@ -251,7 +356,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("search", &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information about an album's tracks.
@@ -265,13 +370,13 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
-    fn album_track<'a>(
+    fn album_track<'a, Pag: Paginator<ClientResult<SimplifiedTrack>> + 'a>(
         &'a self,
         album_id: &'a AlbumId,
-    ) -> impl Paginator<ClientResult<SimplifiedTrack>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -291,7 +396,7 @@ pub trait BaseClient {
 
         let url = format!("albums/{}/tracks", album_id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Gets basic profile information about a Spotify User.
@@ -303,7 +408,7 @@ pub trait BaseClient {
     async fn user(&self, user_id: &UserId) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get full details about Spotify playlist.
@@ -326,7 +431,7 @@ pub trait BaseClient {
 
         let url = format!("playlists/{}", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
@@ -345,7 +450,7 @@ pub trait BaseClient {
 
         let url = format!("shows/{}", id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information for multiple shows based on their
@@ -356,9 +461,9 @@ pub trait BaseClient {
     /// - market(Optional) An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
-    async fn get_several_shows<'a>(
+    async fn get_several_shows<'a, Shows: IntoIterator<Item = &'a ShowId>>(
         &self,
-        ids: impl IntoIterator<Item = &'a ShowId>,
+        ids: Shows,
         market: Option<&Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
@@ -368,7 +473,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("shows", &params).await?;
-        self.convert_result::<SeversalSimplifiedShows>(&result)
+        convert_result::<SeversalSimplifiedShows>(&result)
             .map(|x| x.shows)
     }
 
@@ -387,16 +492,16 @@ pub trait BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-shows-episodes)
-    fn get_shows_episodes<'a>(
+    fn get_shows_episodes<'a, Pag: Paginator<ClientResult<SimplifiedEpisode>> + 'a>(
         &'a self,
         id: &'a ShowId,
         market: Option<&'a Market>,
-    ) -> impl Paginator<ClientResult<SimplifiedEpisode>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| {
                 self.get_shows_episodes_manual(id, market, Some(limit), Some(offset))
             },
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -418,7 +523,7 @@ pub trait BaseClient {
 
         let url = format!("shows/{}/episodes", id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information for a single episode identified by its unique Spotify ID.
@@ -441,7 +546,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information for multiple episodes based on their Spotify IDs.
@@ -451,9 +556,9 @@ pub trait BaseClient {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
-    async fn get_several_episodes<'a>(
+    async fn get_several_episodes<'a, Eps: IntoIterator<Item = &'a EpisodeId>>(
         &self,
-        ids: impl IntoIterator<Item = &'a EpisodeId>,
+        ids: Eps,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
@@ -463,7 +568,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("episodes", &params).await?;
-        self.convert_result::<EpisodesPayload>(&result)
+        convert_result::<EpisodesPayload>(&result)
             .map(|x| x.episodes)
     }
 
@@ -476,7 +581,7 @@ pub trait BaseClient {
     async fn track_features(&self, track_id: &TrackId) -> ClientResult<AudioFeatures> {
         let url = format!("audio-features/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get Audio Features for Several Tracks
@@ -485,9 +590,9 @@ pub trait BaseClient {
     /// - tracks a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
-    async fn tracks_features<'a>(
+    async fn tracks_features<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: Tracks,
     ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let url = format!("audio-features/?ids={}", join_ids(track_ids));
 
@@ -495,7 +600,7 @@ pub trait BaseClient {
         if result.is_empty() {
             Ok(None)
         } else {
-            self.convert_result::<Option<AudioFeaturesPayload>>(&result)
+            convert_result::<Option<AudioFeaturesPayload>>(&result)
                 .map(|option_payload| option_payload.map(|x| x.audio_features))
         }
     }
@@ -509,7 +614,7 @@ pub trait BaseClient {
     async fn track_analysis(&self, track_id: &TrackId) -> ClientResult<AudioAnalysis> {
         let url = format!("audio-analysis/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get a list of new album releases featured in Spotify
@@ -527,14 +632,14 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
-    fn categories<'a>(
+    fn categories<'a, Pag: Paginator<ClientResult<Category>> + 'a>(
         &'a self,
         locale: Option<&'a str>,
         country: Option<&'a Market>,
-    ) -> impl Paginator<ClientResult<Category>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| self.categories_manual(locale, country, Some(limit), Some(offset)),
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -555,7 +660,7 @@ pub trait BaseClient {
             optional "offset": offset.as_deref(),
         };
         let result = self.endpoint_get("browse/categories", &params).await?;
-        self.convert_result::<PageCategory>(&result)
+        convert_result::<PageCategory>(&result)
             .map(|x| x.categories)
     }
 
@@ -573,16 +678,16 @@ pub trait BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
-    fn category_playlists<'a>(
+    fn category_playlists<'a, Pag: Paginator<ClientResult<SimplifiedPlaylist>> + 'a>(
         &'a self,
         category_id: &'a str,
         country: Option<&'a Market>,
-    ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| {
                 self.category_playlists_manual(category_id, country, Some(limit), Some(offset))
             },
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -604,7 +709,7 @@ pub trait BaseClient {
 
         let url = format!("browse/categories/{}/playlists", category_id);
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result::<CategoryPlaylists>(&result)
+        convert_result::<CategoryPlaylists>(&result)
             .map(|x| x.playlists)
     }
 
@@ -647,7 +752,7 @@ pub trait BaseClient {
         let result = self
             .endpoint_get("browse/featured-playlists", &params)
             .await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get a list of new album releases featured in Spotify.
@@ -663,13 +768,13 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
-    fn new_releases<'a>(
+    fn new_releases<'a, Pag: Paginator<ClientResult<SimplifiedAlbum>> + 'a>(
         &'a self,
         country: Option<&'a Market>,
-    ) -> impl Paginator<ClientResult<SimplifiedAlbum>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| self.new_releases_manual(country, Some(limit), Some(offset)),
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -689,7 +794,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
-        self.convert_result::<PageSimpliedAlbums>(&result)
+        convert_result::<PageSimpliedAlbums>(&result)
             .map(|x| x.albums)
     }
 
@@ -764,7 +869,7 @@ pub trait BaseClient {
         }
 
         let result = self.endpoint_get("recommendations", &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get full details of the tracks of a playlist owned by a user.
@@ -780,17 +885,17 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
-    fn playlist_tracks<'a>(
+    fn playlist_tracks<'a, Pag: Paginator<ClientResult<PlaylistItem>> + 'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
         market: Option<&'a Market>,
-    ) -> impl Paginator<ClientResult<PlaylistItem>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| {
                 self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
             },
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -814,7 +919,7 @@ pub trait BaseClient {
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Gets playlists of a user.
@@ -828,13 +933,13 @@ pub trait BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
-    fn user_playlists<'a>(
+    fn user_playlists<'a, Pag: Paginator<ClientResult<SimplifiedPlaylist>> + 'a>(
         &'a self,
         user_id: &'a UserId,
-    ) -> impl Paginator<ClientResult<SimplifiedPlaylist>> + 'a {
+    ) -> Pag {
         paginate(
             move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
-            self.pagination_chunks,
+            self.get_config().pagination_chunks,
         )
     }
 
@@ -854,6 +959,6 @@ pub trait BaseClient {
 
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.endpoint_get(&url, &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 }

@@ -174,7 +174,7 @@ pub use rspotify_model as model;
 pub use macros::scopes;
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     env, fs,
     io::{Read, Write},
     path::Path,
@@ -186,6 +186,10 @@ use derive_builder::Builder;
 use getrandom::getrandom;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+pub mod prelude {
+    pub use crate::endpoints::{BaseClient, OAuthClient};
+}
 
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
@@ -199,6 +203,9 @@ pub enum ClientError {
 
     #[error("url parse error: {0}")]
     ParseUrl(#[from] url::ParseError),
+
+    #[error("http error: {0}")]
+    Http(#[from] http::Error),
 
     #[error("input/output error: {0}")]
     Io(#[from] std::io::Error),
@@ -218,6 +225,7 @@ pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
 pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
 
 /// Struct to configure the Spotify client.
+#[derive(Debug, Clone)]
 pub struct Config {
     /// The Spotify API prefix, [`DEFAULT_API_PREFIX`] by default.
     pub prefix: String,

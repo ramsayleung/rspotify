@@ -1,6 +1,6 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
-use super::{BaseClient, Error, Form, Headers, Query, Result};
+use super::{BaseHttpClient, Error, Form, Headers, Query, Result};
 
 use maybe_async::sync_impl;
 use serde_json::Value;
@@ -53,7 +53,7 @@ impl UreqClient {
 }
 
 #[sync_impl]
-impl BaseClient for UreqClient {
+impl BaseHttpClient for UreqClient {
     #[inline]
     fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String> {
         let request = ureq::get(url);

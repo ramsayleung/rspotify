@@ -1,7 +1,7 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::{BaseClient, Error, Form, Headers, Query, Result};
+use super::{BaseHttpClient, Error, Form, Headers, Query, Result};
 
 use std::convert::TryInto;
 
@@ -94,7 +94,7 @@ impl ReqwestClient {
 }
 
 #[async_impl]
-impl BaseClient for ReqwestClient {
+impl BaseHttpClient for ReqwestClient {
     #[inline]
     async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String> {
         self.request(Method::GET, url, headers, |req| req.query(payload))

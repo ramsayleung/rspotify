@@ -1,11 +1,11 @@
-use crate::{prelude::*, Credentials, HTTPClient, OAuth, Token};
+use crate::{endpoints::{BaseClient, OAuthClient}, Credentials, http::HttpClient, OAuth, Token, Config};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct CodeAuthPKCESpotify {
     creds: Credentials,
     oauth: OAuth,
     tok: Option<Token>,
-    http: HTTPClient,
+    http: HttpClient,
 }
 
 impl CodeAuthPKCESpotify {
@@ -13,18 +13,17 @@ impl CodeAuthPKCESpotify {
         CodeAuthPKCESpotify {
             creds,
             oauth,
-            tok: None,
-            http: HTTPClient {},
+            ..Default::default()
         }
     }
 
     pub fn prompt_for_user_token(&mut self) {
-        self.tok = Some(Token("code auth pkce token".to_string()))
+        todo!()
     }
 }
 
 impl BaseClient for CodeAuthPKCESpotify {
-    fn get_http(&self) -> &HTTPClient {
+    fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
@@ -34,6 +33,10 @@ impl BaseClient for CodeAuthPKCESpotify {
 
     fn get_creds(&self) -> &Credentials {
         &self.creds
+    }
+
+    fn get_config(&self) -> &Config {
+        todo!()
     }
 }
 
