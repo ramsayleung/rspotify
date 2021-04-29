@@ -29,6 +29,7 @@ rspotify-model = { path = "rspotify-model", version = "0.10.0" }
 rspotify-http = { path = "rspotify-http", version = "0.10.0" }
 
 ### Client ###
+async-stream = { version = "0.3.0", optional = true }
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
 derive_builder = "0.10.0"
 dotenv = { version = "0.15.0", optional = true }
@@ -75,7 +76,7 @@ reqwest-native-tls-vendored = ["rspotify-http/reqwest-native-tls-vendored"]
 ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
 
 # Internal features for checking async or sync compilation
-__async = ["futures"]
+__async = ["futures", "async-stream"]
 __sync = []
 
 [package.metadata.docs.rs]

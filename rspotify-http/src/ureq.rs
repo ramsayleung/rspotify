@@ -1,15 +1,14 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
-use super::{BaseHttpClient, Form, Headers, Query};
-use crate::client::{ClientError, ClientResult};
+use super::{BaseClient, Form, Headers, Query, Result, Error};
 
 use maybe_async::sync_impl;
 use serde_json::Value;
 use ureq::{Request, Response};
 
-impl ClientError {
+impl Error {
     pub fn from_response(r: ureq::Response) -> Self {
-        ClientError::StatusCode(r.status(), r.status_text().to_string())
+        Error::StatusCode(r.status(), r.status_text().to_string())
     }
 }
 
@@ -30,9 +29,9 @@ impl UreqClient {
         mut request: Request,
         headers: Option<&Headers>,
         send_request: D,
-    ) -> ClientResult<String>
+    ) -> Result<String>
     where
-        D: Fn(Request) -> Result<Response, ureq::Error>,
+        D: Fn(Request) -> std::result::Result<Response, ureq::Error>,
     {
         // Setting the headers, which will be the token auth if unspecified.
         if let Some(headers) = headers {
@@ -46,17 +45,17 @@ impl UreqClient {
             // Successful request
             Ok(response) => response.into_string().map_err(Into::into),
             // HTTP status error
-            Err(ureq::Error::Status(_, response)) => Err(ClientError::from_response(response)),
+            Err(ureq::Error::Status(_, response)) => Err(Error::from_response(response)),
             // Some kind of IO/transport error
-            Err(err) => Err(ClientError::Request(err.to_string())),
+            Err(err) => Err(Error::Request(err.to_string())),
         }
     }
 }
 
 #[sync_impl]
-impl BaseHttpClient for UreqClient {
+impl BaseClient for UreqClient {
     #[inline]
-    fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> ClientResult<String> {
+    fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String> {
         let request = ureq::get(url);
         let sender = |mut req: Request| {
             for (key, val) in payload.iter() {
@@ -68,7 +67,7 @@ impl BaseHttpClient for UreqClient {
     }
 
     #[inline]
-    fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
+    fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
         let request = ureq::post(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
@@ -80,7 +79,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> ClientResult<String> {
+    ) -> Result<String> {
         let request = ureq::post(url);
         let sender = |req: Request| {
             let payload = payload
@@ -95,7 +94,7 @@ impl BaseHttpClient for UreqClient {
     }
 
     #[inline]
-    fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> ClientResult<String> {
+    fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
         let request = ureq::put(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
@@ -107,7 +106,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> ClientResult<String> {
+    ) -> Result<String> {
         let request = ureq::delete(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
