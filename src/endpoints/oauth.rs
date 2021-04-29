@@ -1152,9 +1152,9 @@ pub trait OAuthClient: BaseClient {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-shows-user)
-    async fn remove_users_saved_shows<'a, Shows: IntoIterator<Item = &'a ShowId>>(
+    async fn remove_users_saved_shows<'a>(
         &self,
-        show_ids: Shows,
+        show_ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
         country: Option<&Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));

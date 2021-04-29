@@ -8,22 +8,9 @@ use crate::{
 pub struct CodeAuthPKCESpotify {
     creds: Credentials,
     oauth: OAuth,
+    config: Config,
     tok: Option<Token>,
     http: HttpClient,
-}
-
-impl CodeAuthPKCESpotify {
-    pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        CodeAuthPKCESpotify {
-            creds,
-            oauth,
-            ..Default::default()
-        }
-    }
-
-    pub fn prompt_for_user_token(&mut self) {
-        todo!()
-    }
 }
 
 impl BaseClient for CodeAuthPKCESpotify {
@@ -40,12 +27,31 @@ impl BaseClient for CodeAuthPKCESpotify {
     }
 
     fn get_config(&self) -> &Config {
-        todo!()
+        &self.config
     }
 }
 
 impl OAuthClient for CodeAuthPKCESpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
+    }
+}
+
+impl CodeAuthPKCESpotify {
+    pub fn new(creds: Credentials, oauth: OAuth) -> Self {
+        CodeAuthPKCESpotify {
+            creds,
+            oauth,
+            ..Default::default()
+        }
+    }
+
+    pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
+        CodeAuthPKCESpotify {
+            creds,
+            oauth,
+            config,
+            ..Default::default()
+        }
     }
 }

@@ -78,7 +78,7 @@ reqwest-native-tls-vendored = ["rspotify-http/reqwest-native-tls-vendored"]
 ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
 
 # Internal features for checking async or sync compilation
-__async = ["futures", "async-stream"]
+__async = ["futures", "async-stream", "async-trait"]
 __sync = []
 
 [package.metadata.docs.rs]

@@ -38,23 +38,6 @@ pub type Headers = HashMap<String, String>;
 pub type Query<'a> = HashMap<&'a str, &'a str>;
 pub type Form<'a> = HashMap<&'a str, &'a str>;
 
-pub mod headers {
-    // Common headers as constants
-    pub const CLIENT_ID: &str = "client_id";
-    pub const CODE: &str = "code";
-    pub const GRANT_AUTH_CODE: &str = "authorization_code";
-    pub const GRANT_CLIENT_CREDS: &str = "client_credentials";
-    pub const GRANT_REFRESH_TOKEN: &str = "refresh_token";
-    pub const GRANT_TYPE: &str = "grant_type";
-    pub const REDIRECT_URI: &str = "redirect_uri";
-    pub const REFRESH_TOKEN: &str = "refresh_token";
-    pub const RESPONSE_CODE: &str = "code";
-    pub const RESPONSE_TYPE: &str = "response_type";
-    pub const SCOPE: &str = "scope";
-    pub const SHOW_DIALOG: &str = "show_dialog";
-    pub const STATE: &str = "state";
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("request unauthorized")]

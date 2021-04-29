@@ -171,6 +171,9 @@ pub use rspotify_http as http;
 pub use rspotify_macros as macros;
 pub use rspotify_model as model;
 // Top-level re-exports
+pub use client_creds::ClientCredentialsSpotify;
+pub use code_auth::CodeAuthSpotify;
+pub use code_auth_pkce::CodeAuthPKCESpotify;
 pub use macros::scopes;
 
 use std::{
@@ -189,6 +192,28 @@ use thiserror::Error;
 
 pub mod prelude {
     pub use crate::endpoints::{BaseClient, OAuthClient};
+}
+
+pub(in crate) mod headers {
+    // Common headers as constants
+    pub const CLIENT_ID: &str = "client_id";
+    pub const CODE: &str = "code";
+    pub const GRANT_AUTH_CODE: &str = "authorization_code";
+    pub const GRANT_CLIENT_CREDS: &str = "client_credentials";
+    pub const GRANT_REFRESH_TOKEN: &str = "refresh_token";
+    pub const GRANT_TYPE: &str = "grant_type";
+    pub const REDIRECT_URI: &str = "redirect_uri";
+    pub const REFRESH_TOKEN: &str = "refresh_token";
+    pub const RESPONSE_CODE: &str = "code";
+    pub const RESPONSE_TYPE: &str = "response_type";
+    pub const SCOPE: &str = "scope";
+    pub const SHOW_DIALOG: &str = "show_dialog";
+    pub const STATE: &str = "state";
+}
+
+pub(in crate) mod auth_urls {
+    pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
+    pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
 }
 
 /// Possible errors returned from the `rspotify` client.
@@ -242,6 +267,12 @@ pub struct Config {
     /// Note that most endpoints set a maximum to the number of items per
     /// request, which most times is 50.
     pub pagination_chunks: u32,
+
+    /// TODO
+    pub token_cached: bool,
+
+    /// TODO
+    pub token_refreshing: bool,
 }
 
 impl Default for Config {
@@ -250,6 +281,8 @@ impl Default for Config {
             prefix: String::from(DEFAULT_API_PREFIX),
             cache_path: PathBuf::from(DEFAULT_CACHE_PATH),
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
+            token_cached: false,
+            token_refreshing: false,
         }
     }
 }
@@ -265,11 +298,6 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
     buf.iter()
         .map(|byte| alphanum[*byte as usize % range] as char)
         .collect()
-}
-
-mod auth_urls {
-    pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
-    pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
 }
 
 mod duration_second {
@@ -445,12 +473,12 @@ impl OAuthBuilder {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::ClientCredentialsSpotify;
 
     #[test]
     fn test_parse_response_code() {
         let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_";
-        let spotify = SpotifyBuilder::default().build().unwrap();
+        let spotify = ClientCredentialsSpotify::default();
         let code = spotify.parse_response_code(url).unwrap();
         assert_eq!(code, "AQD0yXvFEOvw");
     }
