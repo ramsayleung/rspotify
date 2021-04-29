@@ -7,14 +7,13 @@ pub trait Paginator<T>: Iterator<Item = T> {}
 impl<T, I: Iterator<Item = T>> Paginator<T> for I {}
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<'a, T, Request, It>(
+pub fn paginate<'a, T, Request>(
     req: Request,
     page_size: u32,
-) -> It
+) -> impl Iterator<Item = ClientResult<T>> + 'a
 where
     T: 'a,
     Request: Fn(u32, u32) -> ClientResult<Page<T>> + 'a,
-    It: Iterator<Item = ClientResult<T>> + 'a
 {
     let pages = PageIterator {
         req,

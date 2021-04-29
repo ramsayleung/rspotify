@@ -1,4 +1,4 @@
-use crate::{prelude::*, Credentials, http::HttpClient, OAuth, Token, Config};
+use crate::{http::HttpClient, prelude::*, Config, Credentials, OAuth, Token};
 
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthSpotify {

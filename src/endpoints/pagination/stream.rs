@@ -1,7 +1,7 @@
 //! Asynchronous implementation of automatic pagination requests.
 
-use crate::ClientResult;
 use crate::model::Page;
+use crate::ClientResult;
 use futures::future::Future;
 use futures::stream::Stream;
 
@@ -10,15 +10,14 @@ pub trait Paginator<T>: Stream<Item = T> {}
 impl<T, I: Stream<Item = T>> Paginator<T> for I {}
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<'a, T, Fut, Request, S>(
+pub fn paginate<'a, T, Fut, Request>(
     req: Request,
     page_size: u32,
-) -> S
+) -> impl Stream<Item = ClientResult<T>> + 'a
 where
     T: Unpin + 'a,
     Fut: Future<Output = ClientResult<Page<T>>>,
     Request: Fn(u32, u32) -> Fut + 'a,
-    S: Stream<Item = ClientResult<T>> + 'a
 {
     use async_stream::stream;
     let mut offset = 0;

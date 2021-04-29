@@ -2,7 +2,7 @@ use std::time;
 
 use crate::{
     endpoints::{
-        join_ids, convert_result, append_device_id,
+        append_device_id, convert_result, join_ids,
         pagination::{paginate, Paginator},
         BaseClient,
     },
@@ -31,11 +31,11 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
-    fn current_user_playlists<Pag: Paginator<ClientResult<SimplifiedPlaylist>>>(&self) -> Pag {
-        paginate(
+    fn current_user_playlists(&self) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + '_>{
+        Box::new(paginate(
             move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::current_user_playlists`].
@@ -244,7 +244,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
-    async fn playlist_remove_all_occurrences_of_tracks<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn playlist_remove_all_occurrences_of_tracks<
+        'a,
+        Tracks: IntoIterator<Item = &'a TrackId>,
+    >(
         &self,
         playlist_id: &PlaylistId,
         track_ids: Tracks,
@@ -418,11 +421,11 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
-    fn current_user_saved_albums<Pag: Paginator<ClientResult<SavedAlbum>>>(&self) -> Pag {
-        paginate(
+    fn current_user_saved_albums(&self) -> Box<dyn Paginator<ClientResult<SavedAlbum>> + '_> {
+        Box::new(paginate(
             move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of
@@ -455,11 +458,11 @@ pub trait OAuthClient: BaseClient {
     /// paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
-    fn current_user_saved_tracks<Pag: Paginator<ClientResult<SavedTrack>>>(&self) -> Pag {
-        paginate(
+    fn current_user_saved_tracks(&self) -> Box<dyn Paginator<ClientResult<SavedTrack>> + '_> {
+        Box::new(paginate(
             move |limit, offset| self.current_user_saved_tracks_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of
@@ -500,8 +503,7 @@ pub trait OAuthClient: BaseClient {
         };
 
         let result = self.endpoint_get("me/following", &params).await?;
-        convert_result::<CursorPageFullArtists>(&result)
-            .map(|x| x.artists)
+        convert_result::<CursorPageFullArtists>(&result).map(|x| x.artists)
     }
 
     /// Remove one or more tracks from the current user's "Your Music" library.
@@ -563,16 +565,16 @@ pub trait OAuthClient: BaseClient {
     /// paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
-    fn current_user_top_artists<'a, Pag: Paginator<ClientResult<FullArtist>> + 'a>(
+    fn current_user_top_artists<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<FullArtist>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| {
                 self.current_user_top_artists_manual(time_range, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::current_user_top_artists`].
@@ -605,16 +607,16 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
-    fn current_user_top_tracks<'a, Pag: Paginator<ClientResult<FullTrack>> + 'a>(
+    fn current_user_top_tracks<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<FullTrack>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| {
                 self.current_user_top_tracks_manual(time_range, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::current_user_top_tracks`].
@@ -795,8 +797,7 @@ pub trait OAuthClient: BaseClient {
         let result = self
             .endpoint_get("me/player/devices", &Query::new())
             .await?;
-        convert_result::<DevicePayload>(&result)
-            .map(|x| x.devices)
+        convert_result::<DevicePayload>(&result).map(|x| x.devices)
     }
 
     /// Get Information About The User’s Current Playback
@@ -1101,11 +1102,11 @@ pub trait OAuthClient: BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
-    fn get_saved_show<Pag: Paginator<ClientResult<Show>>>(&self) -> Pag {
-        paginate(
+    fn get_saved_show(&self) -> Box<dyn Paginator<ClientResult<Show>> + '_> {
+        Box::new(paginate(
             move |limit, offset| self.get_saved_show_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::get_saved_show`].

@@ -1,9 +1,9 @@
 use crate::{
     endpoints::{
-        join_ids, bearer_auth, convert_result,
+        bearer_auth, convert_result, join_ids,
         pagination::{paginate, Paginator},
     },
-    http::{Query, Headers, HttpClient, Form, BaseHttpClient},
+    http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     macros::build_map,
     model::*,
     ClientResult, Config, Credentials, Token,
@@ -113,11 +113,7 @@ pub trait BaseClient {
     /// The wrapper for the endpoints, which also includes the required
     /// autentication.
     #[inline]
-    async fn endpoint_get(
-        &self,
-        url: &str,
-        payload: &Query<'_>,
-    ) -> ClientResult<String> {
+    async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let headers = self.auth_headers()?;
         Ok(self.get(url, Some(&headers), payload).await?)
     }
@@ -200,8 +196,7 @@ pub trait BaseClient {
         let url = format!("artists/?ids={}", ids);
         let result = self.endpoint_get(&url, &Query::new()).await?;
 
-        convert_result::<FullArtists>(&result)
-            .map(|x| x.artists)
+        convert_result::<FullArtists>(&result).map(|x| x.artists)
     }
 
     /// Get Spotify catalog information about an artist's albums.
@@ -217,18 +212,18 @@ pub trait BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
-    fn artist_albums<'a, Pag: Paginator<ClientResult<SimplifiedAlbum>> + 'a>(
+    fn artist_albums<'a>(
         &'a self,
         artist_id: &'a ArtistId,
         album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<SimplifiedAlbum>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| {
                 self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::artist_albums`].
@@ -287,8 +282,7 @@ pub trait BaseClient {
     async fn artist_related_artists(&self, artist_id: &ArtistId) -> ClientResult<Vec<FullArtist>> {
         let url = format!("artists/{}/related-artists", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
-        convert_result::<FullArtists>(&result)
-            .map(|x| x.artists)
+        convert_result::<FullArtists>(&result).map(|x| x.artists)
     }
 
     /// Returns a single album given the album's ID, URIs or URL.
@@ -373,11 +367,11 @@ pub trait BaseClient {
     fn album_track<'a, Pag: Paginator<ClientResult<SimplifiedTrack>> + 'a>(
         &'a self,
         album_id: &'a AlbumId,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<SimplifiedTrack>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::album_track`].
@@ -473,8 +467,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("shows", &params).await?;
-        convert_result::<SeversalSimplifiedShows>(&result)
-            .map(|x| x.shows)
+        convert_result::<SeversalSimplifiedShows>(&result).map(|x| x.shows)
     }
 
     /// Get Spotify catalog information about an show’s episodes. Optional
@@ -492,17 +485,17 @@ pub trait BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-shows-episodes)
-    fn get_shows_episodes<'a, Pag: Paginator<ClientResult<SimplifiedEpisode>> + 'a>(
+    fn get_shows_episodes<'a>(
         &'a self,
         id: &'a ShowId,
         market: Option<&'a Market>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<SimplifiedEpisode>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| {
                 self.get_shows_episodes_manual(id, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::get_shows_episodes`].
@@ -568,8 +561,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("episodes", &params).await?;
-        convert_result::<EpisodesPayload>(&result)
-            .map(|x| x.episodes)
+        convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
     }
 
     /// Get audio features for a track
@@ -632,15 +624,15 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
-    fn categories<'a, Pag: Paginator<ClientResult<Category>> + 'a>(
+    fn categories<'a>(
         &'a self,
         locale: Option<&'a str>,
         country: Option<&'a Market>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<Category>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| self.categories_manual(locale, country, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::categories`].
@@ -660,8 +652,7 @@ pub trait BaseClient {
             optional "offset": offset.as_deref(),
         };
         let result = self.endpoint_get("browse/categories", &params).await?;
-        convert_result::<PageCategory>(&result)
-            .map(|x| x.categories)
+        convert_result::<PageCategory>(&result).map(|x| x.categories)
     }
 
     /// Get a list of playlists in a category in Spotify
@@ -678,17 +669,17 @@ pub trait BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
-    fn category_playlists<'a, Pag: Paginator<ClientResult<SimplifiedPlaylist>> + 'a>(
+    fn category_playlists<'a>(
         &'a self,
         category_id: &'a str,
         country: Option<&'a Market>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| {
                 self.category_playlists_manual(category_id, country, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::category_playlists`].
@@ -709,8 +700,7 @@ pub trait BaseClient {
 
         let url = format!("browse/categories/{}/playlists", category_id);
         let result = self.endpoint_get(&url, &params).await?;
-        convert_result::<CategoryPlaylists>(&result)
-            .map(|x| x.playlists)
+        convert_result::<CategoryPlaylists>(&result).map(|x| x.playlists)
     }
 
     /// Get a list of Spotify featured playlists.
@@ -768,14 +758,14 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
-    fn new_releases<'a, Pag: Paginator<ClientResult<SimplifiedAlbum>> + 'a>(
+    fn new_releases<'a>(
         &'a self,
         country: Option<&'a Market>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<SimplifiedAlbum>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| self.new_releases_manual(country, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::new_releases`].
@@ -794,8 +784,7 @@ pub trait BaseClient {
         };
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
-        convert_result::<PageSimpliedAlbums>(&result)
-            .map(|x| x.albums)
+        convert_result::<PageSimpliedAlbums>(&result).map(|x| x.albums)
     }
 
     /// Get Recommendations Based on Seeds
@@ -885,18 +874,18 @@ pub trait BaseClient {
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
-    fn playlist_tracks<'a, Pag: Paginator<ClientResult<PlaylistItem>> + 'a>(
+    fn playlist_tracks<'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
         market: Option<&'a Market>,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<PlaylistItem>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| {
                 self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::playlist_tracks`].
@@ -933,14 +922,14 @@ pub trait BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
-    fn user_playlists<'a, Pag: Paginator<ClientResult<SimplifiedPlaylist>> + 'a>(
+    fn user_playlists<'a>(
         &'a self,
         user_id: &'a UserId,
-    ) -> Pag {
-        paginate(
+    ) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + 'a> {
+        Box::new(paginate(
             move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        )
+        ))
     }
 
     /// The manually paginated version of [`Spotify::user_playlists`].

@@ -1,4 +1,8 @@
-use crate::{endpoints::{BaseClient, OAuthClient}, Credentials, http::HttpClient, OAuth, Token, Config};
+use crate::{
+    endpoints::{BaseClient, OAuthClient},
+    http::HttpClient,
+    Config, Credentials, OAuth, Token,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthPKCESpotify {

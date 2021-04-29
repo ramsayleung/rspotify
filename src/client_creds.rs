@@ -1,4 +1,4 @@
-use crate::{endpoints::BaseClient, Config, Credentials, http::HttpClient, Token};
+use crate::{endpoints::BaseClient, http::HttpClient, Config, Credentials, Token};
 
 #[derive(Clone, Debug, Default)]
 pub struct ClientCredentialsSpotify {
