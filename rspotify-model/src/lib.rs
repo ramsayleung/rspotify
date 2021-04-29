@@ -239,9 +239,9 @@ pub use idtypes::{
     UserIdBuf,
 };
 pub use {
-    album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, error::*, image::*,
-    offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*, track::*,
-    user::*,
+    album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, error::*,
+    image::*, offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*,
+    track::*, user::*,
 };
 
 #[cfg(test)]

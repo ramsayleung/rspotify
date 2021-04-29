@@ -1,7 +1,7 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::{BaseClient, Error, Result, Form, Headers, Query};
+use super::{BaseClient, Error, Form, Headers, Query, Result};
 
 use std::convert::TryInto;
 
@@ -96,23 +96,13 @@ impl ReqwestClient {
 #[async_impl]
 impl BaseClient for ReqwestClient {
     #[inline]
-    async fn get(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Query,
-    ) -> Result<String> {
+    async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String> {
         self.request(Method::GET, url, headers, |req| req.query(payload))
             .await
     }
 
     #[inline]
-    async fn post(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String> {
+    async fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
         self.request(Method::POST, url, headers, |req| req.json(payload))
             .await
     }
@@ -129,12 +119,7 @@ impl BaseClient for ReqwestClient {
     }
 
     #[inline]
-    async fn put(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String> {
+    async fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
         self.request(Method::PUT, url, headers, |req| req.json(payload))
             .await
     }

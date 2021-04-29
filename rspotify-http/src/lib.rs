@@ -26,13 +26,13 @@ use std::collections::HashMap;
 use std::fmt;
 
 use maybe_async::maybe_async;
-use serde_json::Value;
 use rspotify_model::ApiError;
+use serde_json::Value;
 
 #[cfg(feature = "client-reqwest")]
-pub use self::reqwest::ReqwestClient as Client;
+pub use self::reqwest::ReqwestClient as HttpClient;
 #[cfg(feature = "client-ureq")]
-pub use self::ureq::UreqClient as Client;
+pub use self::ureq::UreqClient as HttpClient;
 
 pub type Headers = HashMap<String, String>;
 pub type Query<'a> = HashMap<&'a str, &'a str>;
@@ -91,19 +91,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[maybe_async]
 pub trait BaseClient: Default + Clone + fmt::Debug {
     // This internal function should always be given an object value in JSON.
-    async fn get(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Query,
-    ) -> Result<String>;
+    async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String>;
 
-    async fn post(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String>;
+    async fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String>;
 
     async fn post_form<'a>(
         &self,
@@ -112,21 +102,11 @@ pub trait BaseClient: Default + Clone + fmt::Debug {
         payload: &Form<'a>,
     ) -> Result<String>;
 
-    async fn put(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String>;
+    async fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String>;
 
-    async fn delete(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String>;
+    async fn delete(&self, url: &str, headers: Option<&Headers>, payload: &Value)
+        -> Result<String>;
 }
-
 
 #[cfg(test)]
 mod test {

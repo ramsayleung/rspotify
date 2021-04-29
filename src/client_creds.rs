@@ -1,23 +1,34 @@
-use crate::{prelude::*, Credentials, HTTPClient, Token};
+use crate::{endpoints::BaseClient, prelude::*, Config, Credentials, HTTPClient, Token};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ClientCredentialsSpotify {
-    creds: Credentials,
-    tok: Option<Token>,
-    http: HTTPClient,
+    pub config: Config,
+    pub creds: Credentials,
+    pub token: Option<Token>,
+    pub(in crate) http: HTTPClient,
 }
 
 impl ClientCredentialsSpotify {
     pub fn new(creds: Credentials) -> Self {
         ClientCredentialsSpotify {
             creds,
-            tok: None,
+            token: None,
+            http: HTTPClient {},
+            ..Default::default()
+        }
+    }
+
+    pub fn with_config(creds: Credentials, config: Config) {
+        ClientCredentialsSpotify {
+            creds,
+            config,
+            token: None,
             http: HTTPClient {},
         }
     }
 
     pub fn request_token(&mut self) {
-        self.tok = Some(Token("client credentials token".to_string()))
+        self.token = Some(Token("client credentials token".to_string()))
     }
 }
 
@@ -28,7 +39,7 @@ impl BaseClient for ClientCredentialsSpotify {
     }
 
     fn get_token(&self) -> Option<&Token> {
-        self.tok.as_ref()
+        self.token.as_ref()
     }
 
     fn get_creds(&self) -> &Credentials {

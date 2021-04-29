@@ -1,6 +1,6 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
-use super::{BaseClient, Form, Headers, Query, Result, Error};
+use super::{BaseClient, Error, Form, Headers, Query, Result};
 
 use maybe_async::sync_impl;
 use serde_json::Value;
@@ -101,12 +101,7 @@ impl BaseClient for UreqClient {
     }
 
     #[inline]
-    fn delete(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> Result<String> {
+    fn delete(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
         let request = ureq::delete(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
