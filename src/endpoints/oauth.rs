@@ -31,7 +31,7 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
-    fn current_user_playlists(&self) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + '_>{
+    fn current_user_playlists(&self) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + '_> {
         Box::new(paginate(
             move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
