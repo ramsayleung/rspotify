@@ -15,20 +15,6 @@ use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::{Map, Value};
 
-/// HTTP-related methods for the Spotify client. It wraps the basic HTTP client
-/// with features needed of higher level.
-///
-/// The Spotify client has two different wrappers to perform requests:
-///
-/// * Basic wrappers: `get`, `post`, `put`, `delete`, `post_form`. These only
-///   append the configured Spotify API URL to the relative URL provided so that
-///   it's not forgotten. They're used in the authentication process to request
-///   an access token and similars.
-/// * Endpoint wrappers: `endpoint_get`, `endpoint_post`, `endpoint_put`,
-///   `endpoint_delete`. These append the authentication headers for endpoint
-///   requests to reduce the code needed for endpoints and make them as concise
-///   as possible.
-
 #[maybe_async(?Send)]
 pub trait BaseClient
 where
@@ -59,6 +45,20 @@ where
 
         Ok(auth)
     }
+
+    // HTTP-related methods for the Spotify client. It wraps the basic HTTP
+    // client with features needed of higher level.
+    //
+    // The Spotify client has two different wrappers to perform requests:
+    //
+    // * Basic wrappers: `get`, `post`, `put`, `delete`, `post_form`. These only
+    //   append the configured Spotify API URL to the relative URL provided so
+    //   that it's not forgotten. They're used in the authentication process to
+    //   request an access token and similars.
+    // * Endpoint wrappers: `endpoint_get`, `endpoint_post`, `endpoint_put`,
+    //   `endpoint_delete`. These append the authentication headers for endpoint
+    //   requests to reduce the code needed for endpoints and make them as
+    //   concise as possible.
 
     #[inline]
     async fn get(
@@ -260,7 +260,7 @@ where
         artist_id: &'a ArtistId,
         album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
-    ) -> DynPaginator<'a, ClientResult<SimplifiedAlbum>> {
+    ) -> DynPaginator<'_, ClientResult<SimplifiedAlbum>> {
         Box::pin(paginate(
             move |limit, offset| {
                 self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
@@ -410,7 +410,7 @@ where
     fn album_track<'a>(
         &'a self,
         album_id: &'a AlbumId,
-    ) -> DynPaginator<'a, ClientResult<SimplifiedTrack>> {
+    ) -> DynPaginator<'_, ClientResult<SimplifiedTrack>> {
         Box::pin(paginate(
             move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
@@ -532,7 +532,7 @@ where
         &'a self,
         id: &'a ShowId,
         market: Option<&'a Market>,
-    ) -> DynPaginator<'a, ClientResult<SimplifiedEpisode>> {
+    ) -> DynPaginator<'_, ClientResult<SimplifiedEpisode>> {
         Box::pin(paginate(
             move |limit, offset| {
                 self.get_shows_episodes_manual(id, market, Some(limit), Some(offset))
@@ -671,7 +671,7 @@ where
         &'a self,
         locale: Option<&'a str>,
         country: Option<&'a Market>,
-    ) -> DynPaginator<'a, ClientResult<Category>> {
+    ) -> DynPaginator<'_, ClientResult<Category>> {
         Box::pin(paginate(
             move |limit, offset| self.categories_manual(locale, country, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
@@ -716,7 +716,7 @@ where
         &'a self,
         category_id: &'a str,
         country: Option<&'a Market>,
-    ) -> DynPaginator<'a, ClientResult<SimplifiedPlaylist>> {
+    ) -> DynPaginator<'_, ClientResult<SimplifiedPlaylist>> {
         Box::pin(paginate(
             move |limit, offset| {
                 self.category_playlists_manual(category_id, country, Some(limit), Some(offset))
@@ -804,7 +804,7 @@ where
     fn new_releases<'a>(
         &'a self,
         country: Option<&'a Market>,
-    ) -> DynPaginator<'a, ClientResult<SimplifiedAlbum>> {
+    ) -> DynPaginator<'_, ClientResult<SimplifiedAlbum>> {
         Box::pin(paginate(
             move |limit, offset| self.new_releases_manual(country, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
@@ -927,7 +927,7 @@ where
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
         market: Option<&'a Market>,
-    ) -> DynPaginator<'a, ClientResult<PlaylistItem>> {
+    ) -> DynPaginator<'_, ClientResult<PlaylistItem>> {
         Box::pin(paginate(
             move |limit, offset| {
                 self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
@@ -973,7 +973,7 @@ where
     fn user_playlists<'a>(
         &'a self,
         user_id: &'a UserId,
-    ) -> DynPaginator<'a, ClientResult<SimplifiedPlaylist>> {
+    ) -> DynPaginator<'_, ClientResult<SimplifiedPlaylist>> {
         Box::pin(paginate(
             move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,

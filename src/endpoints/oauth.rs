@@ -612,7 +612,7 @@ pub trait OAuthClient: BaseClient {
     fn current_user_top_artists<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> DynPaginator<'a, ClientResult<FullArtist>> {
+    ) -> DynPaginator<'_, ClientResult<FullArtist>> {
         Box::pin(paginate(
             move |limit, offset| {
                 self.current_user_top_artists_manual(time_range, Some(limit), Some(offset))
@@ -654,7 +654,7 @@ pub trait OAuthClient: BaseClient {
     fn current_user_top_tracks<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> DynPaginator<'a, ClientResult<FullTrack>> {
+    ) -> DynPaginator<'_, ClientResult<FullTrack>> {
         Box::pin(paginate(
             move |limit, offset| {
                 self.current_user_top_tracks_manual(time_range, Some(limit), Some(offset))
