@@ -46,33 +46,6 @@ pub trait OAuthClient: BaseClient {
         Some(url.to_string())
     }
 
-    /// Tries to open the authorization URL in the user's browser, and returns
-    /// the obtained code.
-    ///
-    /// Note: this method requires the `cli` feature.
-    #[cfg(feature = "cli")]
-    fn get_code_from_user(&self) -> ClientResult<String> {
-        let url = self.get_authorize_url(false)?;
-
-        match webbrowser::open(&url) {
-            Ok(_) => println!("Opened {} in your browser.", url),
-            Err(why) => eprintln!(
-                "Error when trying to open an URL in your browser: {:?}. \
-                 Please navigate here manually: {}",
-                why, url
-            ),
-        }
-
-        println!("Please enter the URL you were redirected to: ");
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input)?;
-        let code = self
-            .parse_response_code(&input)
-            .ok_or_else(|| ClientError::Cli("unable to parse the response code".to_string()))?;
-
-        Ok(code)
-    }
-
     /// Get current user playlists without required getting his profile.
     ///
     /// Parameters:

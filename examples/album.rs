@@ -1,5 +1,5 @@
 use rspotify::model::Id;
-use rspotify::{ClientCredentialsSpotify, Credentials};
+use rspotify::{ClientCredentialsSpotify, CredentialsBuilder, prelude::*};
 
 #[tokio::main]
 async fn main() {
@@ -23,15 +23,12 @@ async fn main() {
     //     .unwrap();
     let creds = CredentialsBuilder::from_env().build().unwrap();
 
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds)
-        .build()
-        .unwrap();
+    let mut spotify = ClientCredentialsSpotify::new(creds);
 
     // Obtaining the access token. Requires to be mutable because the internal
     // token will be modified. We don't need OAuth for this specific endpoint,
     // so `...` is used instead of `prompt_for_user_token`.
-    spotify.request_client_token().await.unwrap();
+    spotify.request_token().await.unwrap();
 
     // Running the requests
     let birdy_uri = Id::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
