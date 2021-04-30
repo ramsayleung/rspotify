@@ -38,7 +38,6 @@ async fn main() {
     // ```
     let mut oauth = OAuth::from_env().unwrap();
     oauth.scope = scopes!("user-read-currently-playing");
-    println!("{:?}", oauth);
 
     let mut spotify = CodeAuthSpotify::new(creds, oauth);
 
