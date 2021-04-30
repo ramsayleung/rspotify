@@ -135,32 +135,29 @@ impl CodeAuthSpotify {
         Ok(())
     }
 
-    /// Tries to open the authorization URL in the user's browser, and returns
-    /// the obtained code.
+    /// The same as the `prompt_for_user_token_without_cache` method, but it
+    /// will try to use the user token into the cache file, and save it in
+    /// case it didn't exist/was invalid.
     ///
     /// Note: this method requires the `cli` feature.
+    // TODO: handle with and without cache
     #[cfg(feature = "cli")]
-    pub fn get_code_from_user(&self) -> ClientResult<String> {
-        use crate::ClientError;
-
-        let url = self.get_authorize_url(false)?;
-
-        match webbrowser::open(&url) {
-            Ok(_) => println!("Opened {} in your browser.", url),
-            Err(why) => eprintln!(
-                "Error when trying to open an URL in your browser: {:?}. \
-                 Please navigate here manually: {}",
-                why, url
-            ),
+    #[maybe_async]
+    pub async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
+        match self.read_oauth_token_cache().await {
+            // TODO: shouldn't this also refresh the obtained token?
+            Some(mut new_token) => {
+                let mut cur_token = self.get_token_mut();
+                cur_token.replace(&mut new_token);
+            }
+            // Otherwise following the usual procedure to get the token.
+            None => {
+                let code = self.get_code_from_user(url)?;
+                // Will write to the cache file if successful
+                self.request_token(&code).await?;
+            }
         }
 
-        println!("Please enter the URL you were redirected to: ");
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input)?;
-        let code = self
-            .parse_response_code(&input)
-            .ok_or_else(|| ClientError::Cli("unable to parse the response code".to_string()))?;
-
-        Ok(code)
+        Ok(())
     }
 }

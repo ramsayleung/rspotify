@@ -35,7 +35,8 @@ async fn main() {
     let mut spotify = CodeAuthSpotify::new(creds, oauth);
 
     // Obtaining the access token
-    spotify.prompt_for_token().await.unwrap();
+    let url = spotify.get_authorize_url(false).unwrap();
+    spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests
     let history = spotify.current_user_recently_played(Some(10)).await;

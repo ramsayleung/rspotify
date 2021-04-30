@@ -23,7 +23,7 @@ pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
 
     /// Tries to read the cache file's token, which may not exist.
-    async fn read_token_cache(&mut self) -> Option<Token> {
+    async fn read_oauth_token_cache(&mut self) -> Option<Token> {
         let tok = Token::from_cache(&self.get_config().cache_path)?;
 
         if !self.get_oauth().scope.is_subset(&tok.scope) || tok.is_expired() {
@@ -35,27 +35,31 @@ pub trait OAuthClient: BaseClient {
         }
     }
 
-    /// The same as the `prompt_for_user_token_without_cache` method, but it
-    /// will try to use the user token into the cache file, and save it in
-    /// case it didn't exist/was invalid.
+    /// Tries to open the authorization URL in the user's browser, and returns
+    /// the obtained code.
     ///
     /// Note: this method requires the `cli` feature.
-    // TODO: handle with and without cache
     #[cfg(feature = "cli")]
-    #[maybe_async]
-    async fn prompt_for_token(&mut self) -> ClientResult<()> {
-        // TODO: shouldn't this also refresh the obtained token?
-        let mut token = self.get_token_mut();
-        token = OAuthClient::read_token_cache(&mut self).await;
+    fn get_code_from_user(&self, url: &str) -> ClientResult<String> {
+        use crate::ClientError;
 
-        // Otherwise following the usual procedure to get the token.
-        if self.get_token().is_none() {
-            let code = self.get_code_from_user()?;
-            // Will write to the cache file if successful
-            self.request_user_token(&code).await?;
+        match webbrowser::open(&url) {
+            Ok(_) => println!("Opened {} in your browser.", url),
+            Err(why) => eprintln!(
+                "Error when trying to open an URL in your browser: {:?}. \
+                 Please navigate here manually: {}",
+                why, url
+            ),
         }
 
-        Ok(())
+        println!("Please enter the URL you were redirected to: ");
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        let code = self
+            .parse_response_code(&input)
+            .ok_or_else(|| ClientError::Cli("unable to parse the response code".to_string()))?;
+
+        Ok(code)
     }
 
     /// Parse the response code in the given response url. If the URL cannot be
