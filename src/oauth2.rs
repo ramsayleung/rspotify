@@ -3,28 +3,6 @@
 
 /// Authorization-related methods for the client.
 impl Spotify {
-    /// Updates the cache file at the internal cache path.
-    pub fn write_token_cache(&self) -> ClientResult<()> {
-        if let Some(tok) = self.token.as_ref() {
-            tok.write_cache(&self.cache_path)?;
-        }
-
-        Ok(())
-    }
-
-    /// Tries to read the cache file's token, which may not exist.
-    #[maybe_async]
-    pub async fn read_token_cache(&mut self) -> Option<Token> {
-        let tok = TokenBuilder::from_cache(&self.cache_path).build().ok()?;
-
-        if !self.get_oauth().ok()?.scope.is_subset(&tok.scope) || tok.is_expired() {
-            // Invalid token, since it doesn't have at least the currently
-            // required scopes or it's expired.
-            None
-        } else {
-            Some(tok)
-        }
-    }
 
 
 

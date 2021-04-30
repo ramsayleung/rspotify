@@ -7,7 +7,7 @@ use crate::{
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     macros::build_map,
     model::*,
-    ClientResult, Config, Credentials, Token,
+    ClientResult, Config, Credentials, Token, TokenBuilder,
 };
 
 use std::{collections::HashMap, fmt};
@@ -141,8 +141,31 @@ where
         self.delete(url, Some(&headers), payload).await
     }
 
+    /// Updates the cache file at the internal cache path.
+    fn write_token_cache(&self) -> ClientResult<()> {
+        if let Some(tok) = self.get_token().as_ref() {
+            tok.write_cache(&self.get_config().cache_path)?;
+        }
+
+        Ok(())
+    }
+
+    /// Tries to read the cache file's token, which may not exist.
+    async fn read_token_cache(&mut self) -> Option<Token> {
+        let tok = TokenBuilder::from_cache(&self.get_config().cache_path)
+            .build()
+            .ok()?;
+
+        if tok.is_expired() {
+            // Invalid token, since it doesn't have at least the currently
+            // required scopes or it's expired.
+            None
+        } else {
+            Some(tok)
+        }
+    }
+
     /// Sends a request to Spotify for an access token.
-    #[maybe_async]
     async fn fetch_access_token(&self, payload: &Form<'_>) -> ClientResult<Token> {
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
@@ -179,7 +202,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
     async fn tracks<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId>,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
@@ -827,9 +850,9 @@ where
     async fn recommendations<'a>(
         &self,
         payload: &Map<String, Value>,
-        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId>>,
-        seed_genres: Option<impl IntoIterator<Item = &'a str>>,
-        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId>>,
+        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + 'a>,
+        seed_genres: Option<impl IntoIterator<Item = &'a str> + 'a>,
+        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + 'a>,
         market: Option<&Market>,
         limit: Option<u32>,
     ) -> ClientResult<Recommendations> {
@@ -885,7 +908,7 @@ where
         }
 
         let result = self.endpoint_get("recommendations", &params).await?;
-        self.convert_result(&result)
+        convert_result(&result)
     }
 
     /// Get full details of the tracks of a playlist owned by a user.

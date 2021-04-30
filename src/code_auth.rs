@@ -1,14 +1,13 @@
 use crate::{
     auth_urls,
-    endpoints::{basic_auth, BaseClient, OAuthClient},
+    endpoints::{BaseClient, OAuthClient},
     headers,
-    http::{Form, Headers, HttpClient},
+    http::{Form, HttpClient},
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
 
-use chrono::Utc;
 use maybe_async::maybe_async;
 use url::Url;
 
@@ -69,7 +68,12 @@ impl CodeAuthSpotify {
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
-        let scope = oauth.scope.into_iter().collect::<Vec<_>>().join(" ");
+        let scope = oauth
+            .scope
+            .clone()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .join(" ");
         payload.insert(headers::CLIENT_ID, &self.get_creds().id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);

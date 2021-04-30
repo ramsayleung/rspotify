@@ -9,7 +9,7 @@ use crate::{
     http::Query,
     macros::{build_json, build_map},
     model::*,
-    ClientError, ClientResult, OAuth,
+    ClientResult, OAuth, Token, TokenBuilder,
 };
 
 use log::error;
@@ -21,6 +21,21 @@ use url::Url;
 #[maybe_async(?Send)]
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
+
+    /// Tries to read the cache file's token, which may not exist.
+    async fn read_token_cache(&mut self) -> Option<Token> {
+        let tok = TokenBuilder::from_cache(&self.get_config().cache_path)
+            .build()
+            .ok()?;
+
+        if !self.get_oauth().scope.is_subset(&tok.scope) || tok.is_expired() {
+            // Invalid token, since it doesn't have at least the currently
+            // required scopes or it's expired.
+            None
+        } else {
+            Some(tok)
+        }
+    }
 
     /// Parse the response code in the given response url. If the URL cannot be
     /// parsed or the `code` parameter is not present, this will return `None`.
@@ -337,7 +352,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>>,
+        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>> + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -845,7 +860,7 @@ pub trait OAuthClient: BaseClient {
     async fn current_playback<'a>(
         &self,
         country: Option<&Market>,
-        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + 'a>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
@@ -862,7 +877,7 @@ pub trait OAuthClient: BaseClient {
         if result.is_empty() {
             Ok(None)
         } else {
-            self.convert_result(&result)
+            convert_result(&result)
         }
     }
 
@@ -878,7 +893,7 @@ pub trait OAuthClient: BaseClient {
     async fn current_playing<'a>(
         &self,
         market: Option<&'a Market>,
-        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + 'a>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
@@ -897,7 +912,7 @@ pub trait OAuthClient: BaseClient {
         if result.is_empty() {
             Ok(None)
         } else {
-            self.convert_result(&result)
+            convert_result(&result)
         }
     }
 
@@ -961,7 +976,7 @@ pub trait OAuthClient: BaseClient {
 
     async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
         &self,
-        uris: impl IntoIterator<Item = &'a Id<T>>,
+        uris: impl IntoIterator<Item = &'a Id<T>> + 'a,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset<T>>,
         position_ms: Option<u32>,
@@ -975,7 +990,7 @@ pub trait OAuthClient: BaseClient {
             }),
         };
 
-        let url = self.append_device_id("me/player/play", device_id);
+        let url = append_device_id("me/player/play", device_id);
         self.endpoint_put(&url, &params).await?;
 
         Ok(())
@@ -1045,7 +1060,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-repeat-mode-on-users-playback)
     async fn repeat(&self, state: &RepeatState, device_id: Option<&str>) -> ClientResult<()> {
-        let url = self.append_device_id(
+        let url = append_device_id(
             &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
         );

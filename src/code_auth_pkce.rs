@@ -61,12 +61,17 @@ impl CodeAuthPKCESpotify {
         }
     }
 
-    /// Gets the required URL to authorize the current client to start the
-    /// [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow).
-    pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
+    /// Gets the required URL to authorize the current client to begin the
+    /// authorization flow.
+    pub fn get_authorize_url(&self) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
-        let scope = oauth.scope.into_iter().collect::<Vec<_>>().join(" ");
+        let scope = oauth
+            .scope
+            .clone()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .join(" ");
         payload.insert(headers::CLIENT_ID, &self.get_creds().id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
