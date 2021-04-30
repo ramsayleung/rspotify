@@ -13,11 +13,11 @@ use url::Url;
 
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthSpotify {
-    creds: Credentials,
-    oauth: OAuth,
-    config: Config,
-    token: Option<Token>,
-    http: HttpClient,
+    pub creds: Credentials,
+    pub oauth: OAuth,
+    pub config: Config,
+    pub token: Option<Token>,
+    pub(in crate) http: HttpClient,
 }
 
 impl BaseClient for CodeAuthSpotify {

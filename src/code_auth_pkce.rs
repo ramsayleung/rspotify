@@ -12,11 +12,11 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthPKCESpotify {
-    creds: Credentials,
-    oauth: OAuth,
-    config: Config,
-    tok: Option<Token>,
-    http: HttpClient,
+    pub creds: Credentials,
+    pub oauth: OAuth,
+    pub config: Config,
+    pub tok: Option<Token>,
+    pub(in crate) http: HttpClient,
 }
 
 impl BaseClient for CodeAuthPKCESpotify {

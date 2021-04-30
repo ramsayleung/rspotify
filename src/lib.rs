@@ -459,7 +459,7 @@ impl OAuth {
     /// Parses the credentials from the environment variable
     /// `RSPOTIFY_REDIRECT_URI`. You can optionally activate the `env-file`
     /// feature in order to read these variables from a `.env` file.
-    pub fn from_env() -> Option<Self> {
+    pub fn from_env(scope: HashSet<String>) -> Option<Self> {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
@@ -467,6 +467,7 @@ impl OAuth {
 
         Some(OAuth {
             redirect_uri: env::var("RSPOTIFY_REDIRECT_URI").ok()?,
+            scope,
             ..Default::default()
         })
     }

@@ -8,7 +8,7 @@
 
 use futures::stream::TryStreamExt;
 use futures_util::pin_mut;
-use rspotify::{scopes, CodeAuthSpotify, Credentials};
+use rspotify::{prelude::*, scopes, CodeAuthSpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {
@@ -16,14 +16,13 @@ async fn main() {
     env_logger::init();
 
     let creds = Credentials::from_env().unwrap();
-    let mut oauth = OAuth::from_env().unwrap();
-    oauth.scope = scopes!("user-library-read");
+    let mut oauth = OAuth::from_env(scopes!("user-library-read")).unwrap();
 
     let mut spotify = CodeAuthSpotify::new(creds, oauth);
 
     // Obtaining the access token
-    let url = spotify.get_authorize_url(false);
-    spotify.prompt_for_user_token(url).await.unwrap();
+    let url = spotify.get_authorize_url(false).unwrap();
+    spotify.prompt_for_token(&url).await.unwrap();
 
     // Executing the futures sequentially
     let stream = spotify.current_user_saved_tracks();
