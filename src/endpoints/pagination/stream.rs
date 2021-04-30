@@ -10,14 +10,14 @@ pub trait Paginator<T>: Stream<Item = T> {}
 impl<T, I: Stream<Item = T>> Paginator<T> for I {}
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<'a, T, Fut, Request>(
+pub fn paginate<T, Fut, Request>(
     req: Request,
     page_size: u32,
-) -> impl Stream<Item = ClientResult<T>> + 'a
+) -> impl Stream<Item = ClientResult<T>>
 where
-    T: Unpin + 'a,
+    T: Unpin,
     Fut: Future<Output = ClientResult<Page<T>>>,
-    Request: Fn(u32, u32) -> Fut + 'a,
+    Request: Fn(u32, u32) -> Fut,
 {
     use async_stream::stream;
     let mut offset = 0;

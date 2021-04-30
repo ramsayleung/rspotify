@@ -247,7 +247,7 @@ pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let limit: Option<String> = limit.map(|x| x.to_string());
+        let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
             optional "album_type": album_type.map(|x| x.as_ref()),
@@ -272,7 +272,7 @@ pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
     async fn artist_top_tracks(
         &self,
         artist_id: &ArtistId,
-        market: Market,
+        market: &Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let params = build_map! {
             "market": market.as_ref()
@@ -344,7 +344,7 @@ pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
     async fn search(
         &self,
         q: &str,
-        _type: SearchType,
+        _type: &SearchType,
         market: Option<&Market>,
         include_external: Option<&IncludeExternal>,
         limit: Option<u32>,
@@ -814,17 +814,17 @@ pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
     ///   results.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
-    async fn recommendations(
+    async fn recommendations<'a>(
         &self,
         payload: &Map<String, Value>,
-        seed_artists: Option<Vec<&ArtistId>>,
-        seed_genres: Option<Vec<&str>>,
-        seed_tracks: Option<Vec<&TrackId>>,
-        limit: Option<u32>,
+        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId>>,
+        seed_genres: Option<impl IntoIterator<Item = &'a str>>,
+        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId>>,
         market: Option<&Market>,
+        limit: Option<u32>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
-        let seed_genres = seed_genres.map(|x| x.join(","));
+        let seed_genres = seed_genres.map(|x| x.into_iter().collect::<Vec<_>>().join(","));
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
         let mut params = build_map! {
@@ -835,7 +835,6 @@ pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
             optional "limit": limit.as_ref(),
         };
 
-        // TODO: this probably can be improved.
         let attributes = [
             "acousticness",
             "danceability",
@@ -852,25 +851,31 @@ pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
             "time_signature",
             "valence",
         ];
-        let mut map_to_hold_owned_value = HashMap::new();
         let prefixes = ["min", "max", "target"];
-        for attribute in attributes.iter() {
-            for prefix in prefixes.iter() {
-                let param = format!("{}_{}", prefix, attribute);
-                if let Some(value) = payload.get(&param) {
-                    // TODO: not sure if this `to_string` is what we want. It
-                    // might add quotes to the strings.
-                    map_to_hold_owned_value.insert(param, value.to_string());
-                }
-            }
-        }
+
+        // This map is used to store the intermediate data which lives long enough
+        // to be borrowed into the `params`
+        let map_to_hold_owned_value = attributes
+            .iter()
+            // create cartesian product for attributes and prefixes
+            .flat_map(|attribute| {
+                prefixes
+                    .iter()
+                    .map(move |prefix| format!("{}_{}", prefix, attribute))
+            })
+            .filter_map(
+                // TODO: not sure if this `to_string` is what we want. It
+                // might add quotes to the strings.
+                |param| payload.get(&param).map(|value| (param, value.to_string())),
+            )
+            .collect::<HashMap<_, _>>();
 
         for (ref key, ref value) in &map_to_hold_owned_value {
             params.insert(key, value);
         }
 
         let result = self.endpoint_get("recommendations", &params).await?;
-        convert_result(&result)
+        self.convert_result(&result)
     }
 
     /// Get full details of the tracks of a playlist owned by a user.

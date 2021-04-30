@@ -205,7 +205,7 @@ pub trait OAuthClient: BaseClient {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
             "uris": uris,
-            "position": position,
+            optional "position": position,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -260,7 +260,6 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<PlaylistResult> {
         let uris = uris.map(|u| u.into_iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = build_json! {
-            "playlist_id": playlist_id,
             optional "uris": uris,
             optional "range_start": range_start,
             optional "insert_before": insert_before,
@@ -335,10 +334,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id: optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
-    async fn playlist_remove_specific_occurrences_of_tracks(
+    async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: Vec<TrackPositions<'_>>,
+        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -346,7 +345,7 @@ pub trait OAuthClient: BaseClient {
             .map(|track| {
                 let mut map = Map::new();
                 map.insert("uri".to_owned(), track.id.uri().into());
-                map.insert("positions".to_owned(), track.positions.into());
+                map.insert("positions".to_owned(), json!(track.positions));
                 map
             })
             .collect::<Vec<_>>();
@@ -531,7 +530,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let params = build_map! {
-            "r#type": Type::Artist.as_ref(),
+            "type": Type::Artist.as_ref(),
             optional "after": after,
             optional "limit": limit.as_deref(),
         };
@@ -843,23 +842,27 @@ pub trait OAuthClient: BaseClient {
     ///   `track` and `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
-    async fn current_playback(
+    async fn current_playback<'a>(
         &self,
         country: Option<&Market>,
-        additional_types: Option<Vec<AdditionalType>>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
-        let additional_types =
-            additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+        let additional_types = additional_types.map(|x| {
+            x.into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let params = build_map! {
             optional "country": country.map(|x| x.as_ref()),
-            optional "additional_types": additional_types.as_ref(),
+            optional "additional_types": additional_types.as_deref(),
         };
 
         let result = self.endpoint_get("me/player", &params).await?;
         if result.is_empty() {
             Ok(None)
         } else {
-            convert_result(&result)
+            self.convert_result(&result)
         }
     }
 
@@ -872,13 +875,17 @@ pub trait OAuthClient: BaseClient {
     ///   `track` and `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-    async fn current_playing(
+    async fn current_playing<'a>(
         &self,
-        market: Option<&Market>,
-        additional_types: Option<Vec<AdditionalType>>,
+        market: Option<&'a Market>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
-        let additional_types =
-            additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+        let additional_types = additional_types.map(|x| {
+            x.into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let params = build_map! {
             optional "market": market.map(|x| x.as_ref()),
             optional "additional_types": additional_types.as_ref(),
@@ -890,7 +897,7 @@ pub trait OAuthClient: BaseClient {
         if result.is_empty() {
             Ok(None)
         } else {
-            convert_result(&result)
+            self.convert_result(&result)
         }
     }
 
@@ -901,18 +908,13 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Parameters:
     /// - device_id - transfer playback to this device
-    /// - force_play - true: after transfer, play. false:
-    ///   keep current state.
+    /// - force_play - true: after transfer, play. false: keep current state.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-transfer-a-users-playback)
-    async fn transfer_playback(
-        &self,
-        device_id: &str,
-        force_play: Option<bool>,
-    ) -> ClientResult<()> {
+    async fn transfer_playback(&self, device_id: &str, play: Option<bool>) -> ClientResult<()> {
         let params = build_json! {
             "device_ids": [device_id],
-            optional "force_play": force_play,
+            optional "play": play,
         };
 
         self.endpoint_put("me/player", &params).await?;
@@ -959,7 +961,7 @@ pub trait OAuthClient: BaseClient {
 
     async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
         &self,
-        uris: impl IntoIterator<Item = &'a Id<T>> + 'a,
+        uris: impl IntoIterator<Item = &'a Id<T>>,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset<T>>,
         position_ms: Option<u32>,
@@ -973,7 +975,7 @@ pub trait OAuthClient: BaseClient {
             }),
         };
 
-        let url = append_device_id("me/player/play", device_id);
+        let url = self.append_device_id("me/player/play", device_id);
         self.endpoint_put(&url, &params).await?;
 
         Ok(())
@@ -1042,8 +1044,8 @@ pub trait OAuthClient: BaseClient {
     /// - device_id - device target for playback
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-repeat-mode-on-users-playback)
-    async fn repeat(&self, state: RepeatState, device_id: Option<&str>) -> ClientResult<()> {
-        let url = append_device_id(
+    async fn repeat(&self, state: &RepeatState, device_id: Option<&str>) -> ClientResult<()> {
+        let url = self.append_device_id(
             &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
         );
