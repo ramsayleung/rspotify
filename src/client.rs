@@ -272,7 +272,7 @@ impl Spotify {
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
-        let limit: Option<String> = limit.map(|x| x.to_string());
+        let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map! {
             optional "album_type": album_type.map(|x| x.as_ref()),
@@ -298,7 +298,7 @@ impl Spotify {
     pub async fn artist_top_tracks(
         &self,
         artist_id: &ArtistId,
-        market: Market,
+        market: &Market,
     ) -> ClientResult<Vec<FullTrack>> {
         let params = build_map! {
             "market": market.as_ref()
@@ -378,7 +378,7 @@ impl Spotify {
     pub async fn search(
         &self,
         q: &str,
-        _type: SearchType,
+        _type: &SearchType,
         market: Option<&Market>,
         include_external: Option<&IncludeExternal>,
         limit: Option<u32>,
@@ -722,7 +722,7 @@ impl Spotify {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
             "uris": uris,
-            "position": position,
+            optional "position": position,
         };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -768,18 +768,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
     #[maybe_async]
-    pub async fn playlist_reorder_tracks(
+    pub async fn playlist_reorder_tracks<'a, T: PlayableIdType + 'a>(
         &self,
         playlist_id: &PlaylistId,
-        uris: Option<&[&Id<impl PlayableIdType>]>,
+        uris: Option<impl IntoIterator<Item = &'a Id<T>>>,
         range_start: Option<i32>,
         insert_before: Option<i32>,
         range_length: Option<u32>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
-        let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
+        let uris = uris.map(|u| u.into_iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = build_json! {
-            "playlist_id": playlist_id,
             optional "uris": uris,
             optional "range_start": range_start,
             optional "insert_before": insert_before,
@@ -856,10 +855,10 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
     #[maybe_async]
-    pub async fn playlist_remove_specific_occurrences_of_tracks(
+    pub async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: Vec<TrackPositions<'_>>,
+        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -867,7 +866,7 @@ impl Spotify {
             .map(|track| {
                 let mut map = Map::new();
                 map.insert("uri".to_owned(), track.id.uri().into());
-                map.insert("positions".to_owned(), track.positions.into());
+                map.insert("positions".to_owned(), json!(track.positions));
                 map
             })
             .collect::<Vec<_>>();
@@ -1062,7 +1061,7 @@ impl Spotify {
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let params = build_map! {
-            "r#type": Type::Artist.as_ref(),
+            "type": Type::Artist.as_ref(),
             optional "after": after,
             optional "limit": limit.as_deref(),
         };
@@ -1571,17 +1570,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     #[maybe_async]
-    pub async fn recommendations(
+    pub async fn recommendations<'a>(
         &self,
         payload: &Map<String, Value>,
-        seed_artists: Option<Vec<&ArtistId>>,
-        seed_genres: Option<Vec<&str>>,
-        seed_tracks: Option<Vec<&TrackId>>,
-        limit: Option<u32>,
+        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId>>,
+        seed_genres: Option<impl IntoIterator<Item = &'a str>>,
+        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId>>,
         market: Option<&Market>,
+        limit: Option<u32>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
-        let seed_genres = seed_genres.map(|x| x.join(","));
+        let seed_genres = seed_genres.map(|x| x.into_iter().collect::<Vec<_>>().join(","));
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
         let mut params = build_map! {
@@ -1592,7 +1591,6 @@ impl Spotify {
             optional "limit": limit.as_ref(),
         };
 
-        // TODO: this probably can be improved.
         let attributes = [
             "acousticness",
             "danceability",
@@ -1609,18 +1607,24 @@ impl Spotify {
             "time_signature",
             "valence",
         ];
-        let mut map_to_hold_owned_value = HashMap::new();
         let prefixes = ["min", "max", "target"];
-        for attribute in attributes.iter() {
-            for prefix in prefixes.iter() {
-                let param = format!("{}_{}", prefix, attribute);
-                if let Some(value) = payload.get(&param) {
-                    // TODO: not sure if this `to_string` is what we want. It
-                    // might add quotes to the strings.
-                    map_to_hold_owned_value.insert(param, value.to_string());
-                }
-            }
-        }
+
+        // This map is used to store the intermediate data which lives long enough
+        // to be borrowed into the `params`
+        let map_to_hold_owned_value = attributes
+            .iter()
+            // create cartesian product for attributes and prefixes
+            .flat_map(|attribute| {
+                prefixes
+                    .iter()
+                    .map(move |prefix| format!("{}_{}", prefix, attribute))
+            })
+            .filter_map(
+                // TODO: not sure if this `to_string` is what we want. It
+                // might add quotes to the strings.
+                |param| payload.get(&param).map(|value| (param, value.to_string())),
+            )
+            .collect::<HashMap<_, _>>();
 
         for (ref key, ref value) in &map_to_hold_owned_value {
             params.insert(key, value);
@@ -1700,16 +1704,20 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
     #[maybe_async]
-    pub async fn current_playback(
+    pub async fn current_playback<'a, A: IntoIterator<Item = &'a AdditionalType>>(
         &self,
         country: Option<&Market>,
-        additional_types: Option<Vec<AdditionalType>>,
+        additional_types: Option<A>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
-        let additional_types =
-            additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+        let additional_types = additional_types.map(|x| {
+            x.into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let params = build_map! {
             optional "country": country.map(|x| x.as_ref()),
-            optional "additional_types": additional_types.as_ref(),
+            optional "additional_types": additional_types.as_deref(),
         };
 
         let result = self.endpoint_get("me/player", &params).await?;
@@ -1730,13 +1738,17 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     #[maybe_async]
-    pub async fn current_playing(
+    pub async fn current_playing<'a>(
         &self,
-        market: Option<&Market>,
-        additional_types: Option<Vec<AdditionalType>>,
+        market: Option<&'a Market>,
+        additional_types: Option<impl IntoIterator<Item = &'a AdditionalType>>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
-        let additional_types =
-            additional_types.map(|x| x.iter().map(|x| x.as_ref()).collect::<Vec<_>>().join(","));
+        let additional_types = additional_types.map(|x| {
+            x.into_iter()
+                .map(|x| x.as_ref())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let params = build_map! {
             optional "market": market.map(|x| x.as_ref()),
             optional "additional_types": additional_types.as_ref(),
@@ -1759,19 +1771,14 @@ impl Spotify {
     ///
     /// Parameters:
     /// - device_id - transfer playback to this device
-    /// - force_play - true: after transfer, play. false:
-    ///   keep current state.
+    /// - force_play - true: after transfer, play. false: keep current state.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-transfer-a-users-playback)
     #[maybe_async]
-    pub async fn transfer_playback(
-        &self,
-        device_id: &str,
-        force_play: Option<bool>,
-    ) -> ClientResult<()> {
+    pub async fn transfer_playback(&self, device_id: &str, play: Option<bool>) -> ClientResult<()> {
         let params = build_json! {
             "device_ids": [device_id],
-            optional "force_play": force_play,
+            optional "play": play,
         };
 
         self.endpoint_put("me/player", &params).await?;
@@ -1818,15 +1825,15 @@ impl Spotify {
     }
 
     #[maybe_async]
-    pub async fn start_uris_playback<T: PlayableIdType>(
+    pub async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
         &self,
-        uris: &[&Id<T>],
+        uris: impl IntoIterator<Item = &'a Id<T>>,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = build_json! {
-            "uris": uris.iter().map(|id| id.uri()).collect::<Vec<_>>(),
+            "uris": uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>(),
             optional "position_ms": position_ms,
             optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
@@ -1908,7 +1915,7 @@ impl Spotify {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-repeat-mode-on-users-playback)
     #[maybe_async]
-    pub async fn repeat(&self, state: RepeatState, device_id: Option<&str>) -> ClientResult<()> {
+    pub async fn repeat(&self, state: &RepeatState, device_id: Option<&str>) -> ClientResult<()> {
         let url = self.append_device_id(
             &format!("me/player/repeat?state={}", state.as_ref()),
             device_id,
