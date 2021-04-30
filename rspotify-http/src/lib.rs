@@ -72,7 +72,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// redundancy and edge cases (a `Some(Value::Null), for example, doesn't make
 /// much sense).
 #[maybe_async]
-pub trait BaseHttpClient: Default + Clone + fmt::Debug {
+pub trait BaseHttpClient: Send + Default + Clone + fmt::Debug {
     // This internal function should always be given an object value in JSON.
     async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String>;
 

@@ -30,11 +30,13 @@ pub(in crate) fn append_device_id(path: &str, device_id: Option<&str>) -> String
     new_path
 }
 
+// TODO: move to `lib.rs`
 #[inline]
 pub(in crate) fn join_ids<'a, T: 'a + IdType>(ids: impl IntoIterator<Item = &'a Id<T>>) -> String {
     ids.into_iter().collect::<Vec<_>>().join(",")
 }
 
+// TODO: move to `lib.rs` or integrate into Token.
 /// Generates an HTTP token authorization header with proper formatting
 pub fn bearer_auth(tok: &Token) -> (String, String) {
     let auth = "authorization".to_owned();
@@ -43,6 +45,7 @@ pub fn bearer_auth(tok: &Token) -> (String, String) {
     (auth, value)
 }
 
+// TODO: move to `lib.rs` or integrate into Credentials.
 /// Generates an HTTP basic authorization header with proper formatting
 pub fn basic_auth(user: &str, password: &str) -> (String, String) {
     let auth = "authorization".to_owned();

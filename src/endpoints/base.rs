@@ -1,16 +1,11 @@
-use crate::{
-    endpoints::{
-        bearer_auth, convert_result, join_ids,
+use crate::{ClientResult, Config, Credentials, Token, auth_urls, endpoints::{
+        bearer_auth, convert_result, join_ids, basic_auth,
         pagination::{paginate, Paginator},
-    },
-    http::{BaseHttpClient, Form, Headers, HttpClient, Query},
-    macros::build_map,
-    model::*,
-    ClientResult, Config, Credentials, Token,
-};
+    }, http::{BaseHttpClient, Form, Headers, HttpClient, Query}, macros::build_map, model::*};
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
+use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::{Map, Value};
 
@@ -28,8 +23,8 @@ use serde_json::{Map, Value};
 ///   requests to reduce the code needed for endpoints and make them as concise
 ///   as possible.
 
-#[maybe_async]
-pub trait BaseClient {
+#[maybe_async(?Send)]
+pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
     fn get_token(&self) -> Option<&Token>;
@@ -136,6 +131,23 @@ pub trait BaseClient {
         self.delete(url, Some(&headers), payload).await
     }
 
+    /// Sends a request to Spotify for an access token.
+    #[maybe_async]
+    async fn fetch_access_token(&self, payload: &Form<'_>) -> ClientResult<Token> {
+        // This request uses a specific content type, and the client ID/secret
+        // as the authentication, since the access token isn't available yet.
+        let mut head = Headers::new();
+        let (key, val) = basic_auth(&self.get_creds().id, &self.get_creds().secret);
+        head.insert(key, val);
+
+        let response = self
+            .post_form(auth_urls::TOKEN, Some(&head), payload)
+            .await?;
+        let mut tok = serde_json::from_str::<Token>(&response)?;
+        tok.expires_at = Utc::now().checked_add_signed(tok.expires_in);
+        Ok(tok)
+    }
+
     /// Returns a single track given the track's ID, URI or URL.
     ///
     /// Parameters:
@@ -155,9 +167,9 @@ pub trait BaseClient {
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
-    async fn tracks<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn tracks<'a>(
         &self,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId>,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
@@ -455,9 +467,9 @@ pub trait BaseClient {
     /// - market(Optional) An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
-    async fn get_several_shows<'a, Shows: IntoIterator<Item = &'a ShowId>>(
+    async fn get_several_shows<'a>(
         &self,
-        ids: Shows,
+        ids: impl IntoIterator<Item = &'a ShowId> + 'a,
         market: Option<&Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
@@ -549,9 +561,9 @@ pub trait BaseClient {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
-    async fn get_several_episodes<'a, Eps: IntoIterator<Item = &'a EpisodeId>>(
+    async fn get_several_episodes<'a>(
         &self,
-        ids: Eps,
+        ids: impl IntoIterator<Item = &'a EpisodeId> + 'a,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
@@ -582,9 +594,9 @@ pub trait BaseClient {
     /// - tracks a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
-    async fn tracks_features<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn tracks_features<'a>(
         &self,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
     ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let url = format!("audio-features/?ids={}", join_ids(track_ids));
 

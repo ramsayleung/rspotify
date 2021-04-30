@@ -9,17 +9,54 @@ use crate::{
     http::Query,
     macros::{build_json, build_map},
     model::*,
-    ClientResult, OAuth,
+    ClientResult, ClientError, OAuth,
 };
 
 use log::error;
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextIdType;
 use serde_json::{json, Map};
+use url::Url;
 
-#[maybe_async]
+#[maybe_async(?Send)]
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
+
+    /// Parse the response code in the given response url. If the URL cannot be
+    /// parsed or the `code` parameter is not present, this will return `None`.
+    fn parse_response_code(&self, url: &str) -> Option<String> {
+        let url = Url::parse(url).ok()?;
+        let mut params = url.query_pairs();
+        let (_, url) = params.find(|(key, _)| key == "code")?;
+        Some(url.to_string())
+    }
+
+    /// Tries to open the authorization URL in the user's browser, and returns
+    /// the obtained code.
+    ///
+    /// Note: this method requires the `cli` feature.
+    #[cfg(feature = "cli")]
+    fn get_code_from_user(&self) -> ClientResult<String> {
+        let url = self.get_authorize_url(false)?;
+
+        match webbrowser::open(&url) {
+            Ok(_) => println!("Opened {} in your browser.", url),
+            Err(why) => eprintln!(
+                "Error when trying to open an URL in your browser: {:?}. \
+                 Please navigate here manually: {}",
+                why, url
+            ),
+        }
+
+        println!("Please enter the URL you were redirected to: ");
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        let code = self
+            .parse_response_code(&input)
+            .ok_or_else(|| ClientError::Cli("unable to parse the response code".to_string()))?;
+
+        Ok(code)
+    }
 
     /// Get current user playlists without required getting his profile.
     ///
@@ -159,10 +196,10 @@ pub trait OAuthClient: BaseClient {
     /// - position - the position to add the tracks
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
-    async fn playlist_add_tracks<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn playlist_add_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
@@ -184,10 +221,10 @@ pub trait OAuthClient: BaseClient {
     /// - tracks - the list of track ids to add to the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
-    async fn playlist_replace_tracks<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
@@ -212,16 +249,16 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
-    async fn playlist_reorder_tracks<Uris: PlayableIdType>(
+    async fn playlist_reorder_tracks<'a, T: PlayableIdType + 'a>(
         &self,
         playlist_id: &PlaylistId,
-        uris: Option<&[&Id<Uris>]>,
+        uris: Option<impl IntoIterator<Item = &'a Id<T>> + 'a>,
         range_start: Option<i32>,
         insert_before: Option<i32>,
         range_length: Option<u32>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
-        let uris = uris.map(|u| u.iter().map(|id| id.uri()).collect::<Vec<_>>());
+        let uris = uris.map(|u| u.into_iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = build_json! {
             "playlist_id": playlist_id,
             optional "uris": uris,
@@ -244,13 +281,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
-    async fn playlist_remove_all_occurrences_of_tracks<
-        'a,
-        Tracks: IntoIterator<Item = &'a TrackId>,
-    >(
+    async fn playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = track_ids
@@ -512,9 +546,9 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-user)
-    async fn current_user_saved_tracks_delete<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn current_user_saved_tracks_delete<'a>(
         &self,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/tracks/?ids={}", join_ids(track_ids));
         self.endpoint_delete(&url, &json!({})).await?;
@@ -529,9 +563,9 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-users-saved-tracks)
-    async fn current_user_saved_tracks_contains<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn current_user_saved_tracks_contains<'a>(
         &self,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
     ) -> ClientResult<Vec<bool>> {
         let url = format!("me/tracks/contains/?ids={}", join_ids(track_ids));
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -544,9 +578,9 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-save-tracks-user)
-    async fn current_user_saved_tracks_add<'a, Tracks: IntoIterator<Item = &'a TrackId>>(
+    async fn current_user_saved_tracks_add<'a>(
         &self,
-        track_ids: Tracks,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/tracks/?ids={}", join_ids(track_ids));
         self.endpoint_put(&url, &json!({})).await?;
@@ -665,9 +699,9 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-save-albums-user)
-    async fn current_user_saved_albums_add<'a, Albums: IntoIterator<Item = &'a AlbumId>>(
+    async fn current_user_saved_albums_add<'a>(
         &self,
-        album_ids: Albums,
+        album_ids: impl IntoIterator<Item = &'a AlbumId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/albums/?ids={}", join_ids(album_ids));
         self.endpoint_put(&url, &json!({})).await?;
@@ -681,9 +715,9 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-albums-user)
-    async fn current_user_saved_albums_delete<'a, Albums: IntoIterator<Item = &'a AlbumId>>(
+    async fn current_user_saved_albums_delete<'a>(
         &self,
-        album_ids: Albums,
+        album_ids: impl IntoIterator<Item = &'a AlbumId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/albums/?ids={}", join_ids(album_ids));
         self.endpoint_delete(&url, &json!({})).await?;
@@ -698,9 +732,9 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-users-saved-albums)
-    async fn current_user_saved_albums_contains<'a, Albums: IntoIterator<Item = &'a AlbumId>>(
+    async fn current_user_saved_albums_contains<'a>(
         &self,
-        album_ids: Albums,
+        album_ids: impl IntoIterator<Item = &'a AlbumId> + 'a,
     ) -> ClientResult<Vec<bool>> {
         let url = format!("me/albums/contains/?ids={}", join_ids(album_ids));
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -713,9 +747,9 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-follow-artists-users)
-    async fn user_follow_artists<'a, Artists: IntoIterator<Item = &'a ArtistId>>(
+    async fn user_follow_artists<'a>(
         &self,
-        artist_ids: Artists,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
         self.endpoint_put(&url, &json!({})).await?;
@@ -729,9 +763,9 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-artists-users)
-    async fn user_unfollow_artists<'a, Artists: IntoIterator<Item = &'a ArtistId>>(
+    async fn user_unfollow_artists<'a>(
         &self,
-        artist_ids: Artists,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
         self.endpoint_delete(&url, &json!({})).await?;
@@ -746,9 +780,9 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - the ids of the users that you want to
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-current-user-follows)
-    async fn user_artist_check_follow<'a, Artists: IntoIterator<Item = &'a ArtistId>>(
+    async fn user_artist_check_follow<'a>(
         &self,
-        artist_ids: Artists,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId> + 'a,
     ) -> ClientResult<Vec<bool>> {
         let url = format!(
             "me/following/contains?type=artist&ids={}",
@@ -764,9 +798,9 @@ pub trait OAuthClient: BaseClient {
     /// - user_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-follow-artists-users)
-    async fn user_follow_users<'a, Users: IntoIterator<Item = &'a UserId>>(
+    async fn user_follow_users<'a>(
         &self,
-        user_ids: Users,
+        user_ids: impl IntoIterator<Item = &'a UserId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
         self.endpoint_put(&url, &json!({})).await?;
@@ -780,9 +814,9 @@ pub trait OAuthClient: BaseClient {
     /// - user_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-artists-users)
-    async fn user_unfollow_users<'a, Users: IntoIterator<Item = &'a UserId>>(
+    async fn user_unfollow_users<'a>(
         &self,
-        user_ids: Users,
+        user_ids: impl IntoIterator<Item = &'a UserId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
         self.endpoint_delete(&url, &json!({})).await?;
@@ -923,15 +957,15 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
-    async fn start_uris_playback<T: PlayableIdType>(
+    async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
         &self,
-        uris: &[&Id<T>],
+        uris: impl IntoIterator<Item = &'a Id<T>> + 'a,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset<T>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = build_json! {
-            "uris": uris.iter().map(|id| id.uri()).collect::<Vec<_>>(),
+            "uris": uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>(),
             optional "position_ms": position_ms,
             optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
@@ -1079,9 +1113,9 @@ pub trait OAuthClient: BaseClient {
     ///   be added to the user’s library.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-save-shows-user)
-    async fn save_shows<'a, Shows: IntoIterator<Item = &'a ShowId>>(
+    async fn save_shows<'a>(
         &self,
-        show_ids: Shows,
+        show_ids: impl IntoIterator<Item = &'a ShowId> + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/shows/?ids={}", join_ids(show_ids));
         self.endpoint_put(&url, &json!({})).await?;
@@ -1132,9 +1166,9 @@ pub trait OAuthClient: BaseClient {
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-users-saved-shows)
-    async fn check_users_saved_shows<'a, Shows: IntoIterator<Item = &'a ShowId>>(
+    async fn check_users_saved_shows<'a>(
         &self,
-        ids: Shows,
+        ids: impl IntoIterator<Item = &'a ShowId> + 'a,
     ) -> ClientResult<Vec<bool>> {
         let ids = join_ids(ids);
         let params = build_map! {
@@ -1154,7 +1188,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-shows-user)
     async fn remove_users_saved_shows<'a>(
         &self,
-        show_ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
+        show_ids: impl IntoIterator<Item = &'a ShowId> + 'a,
         country: Option<&Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));

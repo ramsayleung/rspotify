@@ -26,23 +26,6 @@ impl Spotify {
         }
     }
 
-    /// Sends a request to Spotify for an access token.
-    #[maybe_async]
-    async fn fetch_access_token(&self, payload: &Form<'_>) -> ClientResult<Token> {
-        // This request uses a specific content type, and the client ID/secret
-        // as the authentication, since the access token isn't available yet.
-        let mut head = Headers::new();
-        let (key, val) = headers::basic_auth(&self.get_creds()?.id, &self.get_creds()?.secret);
-        head.insert(key, val);
-
-        let response = self
-            .post_form(auth_urls::TOKEN, Some(&head), payload)
-            .await?;
-        let mut tok = serde_json::from_str::<Token>(&response)?;
-        tok.expires_at = Utc::now().checked_add_signed(tok.expires_in);
-        Ok(tok)
-    }
-
 
 
     /// The same as `request_user_token_without_cache`, but saves the token into

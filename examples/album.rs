@@ -1,6 +1,5 @@
-use rspotify::client::SpotifyBuilder;
+use rspotify::{ClientCredentialsSpotify, Credentials};
 use rspotify::model::Id;
-use rspotify::oauth2::CredentialsBuilder;
 
 #[tokio::main]
 async fn main() {

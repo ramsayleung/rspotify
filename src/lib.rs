@@ -209,6 +209,8 @@ pub(in crate) mod headers {
     pub const SCOPE: &str = "scope";
     pub const SHOW_DIALOG: &str = "show_dialog";
     pub const STATE: &str = "state";
+    pub const CODE_CHALLENGE: &str = "code_challenge";
+    pub const CODE_CHALLENGE_METHOD: &str = "code_challenge_method";
 }
 
 pub(in crate) mod auth_urls {
