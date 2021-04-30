@@ -1,5 +1,4 @@
-use rspotify::model::Id;
-use rspotify::{ClientCredentialsSpotify, CredentialsBuilder, prelude::*};
+use rspotify::{model::Id, prelude::*, ClientCredentialsSpotify, Credentials};
 
 #[tokio::main]
 async fn main() {
@@ -16,12 +15,13 @@ async fn main() {
     //
     // Otherwise, set client_id and client_secret explictly:
     //
-    // let creds = CredentialsBuilder::default()
-    //     .client_id("this-is-my-client-id")
-    //     .client_secret("this-is-my-client-secret")
-    //     .build()
-    //     .unwrap();
-    let creds = CredentialsBuilder::from_env().build().unwrap();
+    // ```
+    // let creds = Credentials {
+    //     client_id: "this-is-my-client-id".to_string(),
+    //     client_secret: "this-is-my-client-secret".to_string()
+    // };
+    // ```
+    let creds = Credentials::from_env().unwrap();
 
     let mut spotify = ClientCredentialsSpotify::new(creds);
 

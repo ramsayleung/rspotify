@@ -7,7 +7,7 @@ use crate::{
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     macros::build_map,
     model::*,
-    ClientResult, Config, Credentials, Token, TokenBuilder,
+    ClientResult, Config, Credentials, Token,
 };
 
 use std::{collections::HashMap, fmt};
@@ -33,11 +33,12 @@ use serde_json::{Map, Value};
 #[maybe_async(?Send)]
 pub trait BaseClient
 where
-    Self: Send + Sync + Default + Clone + fmt::Debug,
+    Self: Default + Clone + fmt::Debug,
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
     fn get_token(&self) -> Option<&Token>;
+    fn get_token_mut(&mut self) -> Option<&mut Token>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.
@@ -152,9 +153,7 @@ where
 
     /// Tries to read the cache file's token, which may not exist.
     async fn read_token_cache(&mut self) -> Option<Token> {
-        let tok = TokenBuilder::from_cache(&self.get_config().cache_path)
-            .build()
-            .ok()?;
+        let tok = Token::from_cache(&self.get_config().cache_path)?;
 
         if tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently

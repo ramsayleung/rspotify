@@ -25,6 +25,10 @@ impl BaseClient for ClientCredentialsSpotify {
         self.token.as_ref()
     }
 
+    fn get_token_mut(&mut self) -> Option<&mut Token> {
+        self.token.as_mut()
+    }
+
     fn get_creds(&self) -> &Credentials {
         &self.creds
     }

@@ -36,7 +36,7 @@ impl Spotify {
     /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
     #[maybe_async]
-    pub async fn prompt_for_user_token(&mut self) -> ClientResult<()> {
+    pub async fn prompt_for_token(&mut self) -> ClientResult<()> {
         // TODO: shouldn't this also refresh the obtained token?
         self.token = self.read_token_cache().await;
 

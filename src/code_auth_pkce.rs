@@ -28,6 +28,10 @@ impl BaseClient for CodeAuthPKCESpotify {
         self.tok.as_ref()
     }
 
+    fn get_token_mut(&mut self) -> Option<&mut Token> {
+        self.tok.as_mut()
+    }
+
     fn get_creds(&self) -> &Credentials {
         &self.creds
     }

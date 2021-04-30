@@ -29,6 +29,10 @@ impl BaseClient for CodeAuthSpotify {
         self.token.as_ref()
     }
 
+    fn get_token_mut(&mut self) -> Option<&mut Token> {
+        self.token.as_mut()
+    }
+
     fn get_creds(&self) -> &Credentials {
         &self.creds
     }
@@ -136,7 +140,7 @@ impl CodeAuthSpotify {
     ///
     /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
-    fn get_code_from_user(&self) -> ClientResult<String> {
+    pub fn get_code_from_user(&self) -> ClientResult<String> {
         use crate::ClientError;
 
         let url = self.get_authorize_url(false)?;

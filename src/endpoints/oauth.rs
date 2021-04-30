@@ -9,7 +9,7 @@ use crate::{
     http::Query,
     macros::{build_json, build_map},
     model::*,
-    ClientResult, OAuth, Token, TokenBuilder,
+    ClientResult, OAuth, Token,
 };
 
 use log::error;
@@ -24,9 +24,7 @@ pub trait OAuthClient: BaseClient {
 
     /// Tries to read the cache file's token, which may not exist.
     async fn read_token_cache(&mut self) -> Option<Token> {
-        let tok = TokenBuilder::from_cache(&self.get_config().cache_path)
-            .build()
-            .ok()?;
+        let tok = Token::from_cache(&self.get_config().cache_path)?;
 
         if !self.get_oauth().scope.is_subset(&tok.scope) || tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently
@@ -35,6 +33,29 @@ pub trait OAuthClient: BaseClient {
         } else {
             Some(tok)
         }
+    }
+
+    /// The same as the `prompt_for_user_token_without_cache` method, but it
+    /// will try to use the user token into the cache file, and save it in
+    /// case it didn't exist/was invalid.
+    ///
+    /// Note: this method requires the `cli` feature.
+    // TODO: handle with and without cache
+    #[cfg(feature = "cli")]
+    #[maybe_async]
+    async fn prompt_for_token(&mut self) -> ClientResult<()> {
+        // TODO: shouldn't this also refresh the obtained token?
+        let mut token = self.get_token_mut();
+        token = self.read_token_cache().await;
+
+        // Otherwise following the usual procedure to get the token.
+        if self.get_token().is_none() {
+            let code = self.get_code_from_user()?;
+            // Will write to the cache file if successful
+            self.request_user_token(&code).await?;
+        }
+
+        Ok(())
     }
 
     /// Parse the response code in the given response url. If the URL cannot be
