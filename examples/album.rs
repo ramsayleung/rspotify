@@ -1,5 +1,5 @@
-use rspotify::{ClientCredentialsSpotify, Credentials};
 use rspotify::model::Id;
+use rspotify::{ClientCredentialsSpotify, Credentials};
 
 #[tokio::main]
 async fn main() {

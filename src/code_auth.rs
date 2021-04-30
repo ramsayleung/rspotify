@@ -1,8 +1,8 @@
 use crate::{
     auth_urls,
-    endpoints::{BaseClient, OAuthClient, basic_auth},
+    endpoints::{basic_auth, BaseClient, OAuthClient},
     headers,
-    http::{Form, HttpClient, Headers},
+    http::{Form, Headers, HttpClient},
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
@@ -69,11 +69,7 @@ impl CodeAuthSpotify {
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
-        let scope = oauth
-            .scope
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
+        let scope = oauth.scope.into_iter().collect::<Vec<_>>().join(" ");
         payload.insert(headers::CLIENT_ID, &self.get_creds().id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
@@ -119,10 +115,7 @@ impl CodeAuthSpotify {
     /// The obtained token will be saved internally.
     // TODO: implement with and without cache
     #[maybe_async]
-    pub async fn refresh_token(
-        &mut self,
-        refresh_token: &str,
-    ) -> ClientResult<()> {
+    pub async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);

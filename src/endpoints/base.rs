@@ -1,7 +1,14 @@
-use crate::{ClientResult, Config, Credentials, Token, auth_urls, endpoints::{
-        bearer_auth, convert_result, join_ids, basic_auth,
+use crate::{
+    auth_urls,
+    endpoints::{
+        basic_auth, bearer_auth, convert_result, join_ids,
         pagination::{paginate, Paginator},
-    }, http::{BaseHttpClient, Form, Headers, HttpClient, Query}, macros::build_map, model::*};
+    },
+    http::{BaseHttpClient, Form, Headers, HttpClient, Query},
+    macros::build_map,
+    model::*,
+    ClientResult, Config, Credentials, Token,
+};
 
 use std::{collections::HashMap, fmt};
 
@@ -24,7 +31,10 @@ use serde_json::{Map, Value};
 ///   as possible.
 
 #[maybe_async(?Send)]
-pub trait BaseClient: where Self: Send + Sync + Default + Clone + fmt::Debug {
+pub trait BaseClient
+where
+    Self: Send + Sync + Default + Clone + fmt::Debug,
+{
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
     fn get_token(&self) -> Option<&Token>;

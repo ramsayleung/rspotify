@@ -9,7 +9,7 @@ use crate::{
     http::Query,
     macros::{build_json, build_map},
     model::*,
-    ClientResult, ClientError, OAuth,
+    ClientError, ClientResult, OAuth,
 };
 
 use log::error;

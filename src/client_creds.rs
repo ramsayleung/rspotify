@@ -1,4 +1,9 @@
-use crate::{endpoints::BaseClient, http::{HttpClient, Form}, Config, Credentials, Token, headers, ClientResult};
+use crate::{
+    endpoints::BaseClient,
+    headers,
+    http::{Form, HttpClient},
+    ClientResult, Config, Credentials, Token,
+};
 
 use maybe_async::maybe_async;
 

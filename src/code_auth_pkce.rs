@@ -1,6 +1,12 @@
 use url::Url;
 
-use crate::{ClientResult, Config, Credentials, OAuth, Token, auth_urls, endpoints::{BaseClient, OAuthClient}, headers, http::HttpClient};
+use crate::{
+    auth_urls,
+    endpoints::{BaseClient, OAuthClient},
+    headers,
+    http::HttpClient,
+    ClientResult, Config, Credentials, OAuth, Token,
+};
 
 use std::collections::HashMap;
 
@@ -60,11 +66,7 @@ impl CodeAuthPKCESpotify {
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
-        let scope = oauth
-            .scope
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
+        let scope = oauth.scope.into_iter().collect::<Vec<_>>().join(" ");
         payload.insert(headers::CLIENT_ID, &self.get_creds().id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
