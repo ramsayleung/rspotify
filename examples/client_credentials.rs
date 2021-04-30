@@ -1,6 +1,4 @@
-use rspotify::client::SpotifyBuilder;
-use rspotify::model::Id;
-use rspotify::oauth2::CredentialsBuilder;
+use rspotify::{model::Id, prelude::*, ClientCredentialsSpotify, Credentials};
 
 #[tokio::main]
 async fn main() {
@@ -17,26 +15,24 @@ async fn main() {
     //
     // Otherwise, set client_id and client_secret explictly:
     //
-    // let creds = CredentialsBuilder::default()
-    //     .client_id("this-is-my-client-id")
-    //     .client_secret("this-is-my-client-secret")
-    //     .build()
-    //     .unwrap();
-    let creds = CredentialsBuilder::from_env().build().unwrap();
+    // ```
+    // let creds = Credentials {
+    //     id: "this-is-my-client-id".to_string(),
+    //     secret: "this-is-my-client-secret".to_string()
+    // };
+    // ```
+    let creds = Credentials::from_env().unwrap();
 
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds)
-        .build()
-        .unwrap();
+    let mut spotify = ClientCredentialsSpotify::new(creds);
 
     // Obtaining the access token. Requires to be mutable because the internal
     // token will be modified. We don't need OAuth for this specific endpoint,
     // so `...` is used instead of `prompt_for_user_token`.
-    spotify.request_client_token().await.unwrap();
+    spotify.request_token().await.unwrap();
 
     // Running the requests
-    let birdy_uri = Id::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
-    let track = spotify.track(birdy_uri).await;
+    let birdy_uri = Id::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
+    let albums = spotify.album(birdy_uri).await;
 
-    println!("Response: {:#?}", track);
+    println!("Response: {:#?}", albums);
 }

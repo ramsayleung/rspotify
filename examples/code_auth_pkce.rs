@@ -1,4 +1,4 @@
-use rspotify::{prelude::*, scopes, CodeAuthSpotify, Credentials, OAuth};
+use rspotify::{prelude::*, scopes, CodeAuthPKCESpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {
@@ -17,29 +17,32 @@ async fn main() {
     //
     // ```
     // let creds = Credentials {
-    //     client_id: "this-is-my-client-id".to_string(),
-    //     client_secret: "this-is-my-client-secret".to_string()
+    //     id: "this-is-my-client-id".to_string(),
+    //     secret: "this-is-my-client-secret".to_string()
     // };
     // ```
     let creds = Credentials::from_env().unwrap();
 
     // Or set the redirect_uri explictly:
     //
-    // let oauth = OAuthBuilder::default()
-    //     .redirect_uri("http://localhost:8888/callback")
-    //     .build()
-    //     .unwrap();
+    // ```
+    // let mut oauth = OAuth {
+    //     redirect_uri: "http://localhost:8888/callback".to_string(),
+    //     scope: scopes!("user-read-recently-played"),
+    //     ..Default::default(),
+    // };
+    // ```
     let mut oauth = OAuth::from_env().unwrap();
     oauth.scope = scopes!("user-read-recently-played");
 
-    let mut spotify = CodeAuthSpotify::new(creds, oauth);
+    let mut spotify = CodeAuthPKCESpotify::new(creds, oauth);
 
     // Obtaining the access token
-    let url = spotify.get_authorize_url(false).unwrap();
+    let url = spotify.get_authorize_url().unwrap();
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests
-    let history = spotify.current_user_recently_played(Some(10)).await;
+    let history = spotify.current_playback(None, None).await;
 
     println!("Response: {:?}", history);
 }

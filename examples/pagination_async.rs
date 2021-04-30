@@ -8,51 +8,22 @@
 
 use futures::stream::TryStreamExt;
 use futures_util::pin_mut;
-use rspotify::client::SpotifyBuilder;
-use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scopes;
+use rspotify::{scopes, CodeAuthSpotify, Credentials};
 
 #[tokio::main]
 async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and
-    // RSPOTIFY_REDIRECT_URI in an .env file or export them manually:
-    //
-    // export RSPOTIFY_CLIENT_ID="your client_id"
-    // export RSPOTIFY_CLIENT_SECRET="secret"
-    //
-    // These will then be read with `from_env`.
-    //
-    // Otherwise, set client_id and client_secret explictly:
-    //
-    // let creds = CredentialsBuilder::default()
-    //     .client_id("this-is-my-client-id")
-    //     .client_secret("this-is-my-client-secret")
-    //     .build()
-    //     .unwrap();
-    let creds = CredentialsBuilder::from_env().build().unwrap();
+    let creds = Credentials::from_env().unwrap();
+    let mut oauth = OAuth::from_env().unwrap();
+    oauth.scope = scopes!("user-library-read");
 
-    // Or set the redirect_uri explictly:
-    //
-    // let oauth = OAuthBuilder::default()
-    //     .redirect_uri("http://localhost:8888/callback")
-    //     .build()
-    //     .unwrap();
-    let oauth = OAuthBuilder::from_env()
-        .scope(scopes!("user-library-read"))
-        .build()
-        .unwrap();
-
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds)
-        .oauth(oauth)
-        .build()
-        .unwrap();
+    let mut spotify = CodeAuthSpotify::new(creds, oauth);
 
     // Obtaining the access token
-    spotify.prompt_for_user_token().await.unwrap();
+    let url = spotify.get_authorize_url(false);
+    spotify.prompt_for_user_token(url).await.unwrap();
 
     // Executing the futures sequentially
     let stream = spotify.current_user_saved_tracks();

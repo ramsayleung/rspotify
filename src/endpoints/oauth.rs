@@ -905,7 +905,7 @@ pub trait OAuthClient: BaseClient {
         };
 
         let result = self
-            .get("me/player/currently-playing", None, &params)
+            .endpoint_get("me/player/currently-playing", &params)
             .await?;
         if result.is_empty() {
             Ok(None)
