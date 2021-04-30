@@ -1,8 +1,7 @@
 use crate::{
     auth_urls,
     endpoints::{
-        basic_auth, bearer_auth, convert_result, join_ids,
-        pagination::{paginate, Paginator},
+        basic_auth, bearer_auth, convert_result, join_ids, pagination::paginate, DynPaginator,
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     macros::build_map,
@@ -261,8 +260,8 @@ where
         artist_id: &'a ArtistId,
         album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
-    ) -> Box<dyn Paginator<ClientResult<SimplifiedAlbum>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<SimplifiedAlbum>> {
+        Box::pin(paginate(
             move |limit, offset| {
                 self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
             },
@@ -408,11 +407,11 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
-    fn album_track<'a, Pag: Paginator<ClientResult<SimplifiedTrack>> + 'a>(
+    fn album_track<'a>(
         &'a self,
         album_id: &'a AlbumId,
-    ) -> Box<dyn Paginator<ClientResult<SimplifiedTrack>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<SimplifiedTrack>> {
+        Box::pin(paginate(
             move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))
@@ -533,8 +532,8 @@ where
         &'a self,
         id: &'a ShowId,
         market: Option<&'a Market>,
-    ) -> Box<dyn Paginator<ClientResult<SimplifiedEpisode>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<SimplifiedEpisode>> {
+        Box::pin(paginate(
             move |limit, offset| {
                 self.get_shows_episodes_manual(id, market, Some(limit), Some(offset))
             },
@@ -672,8 +671,8 @@ where
         &'a self,
         locale: Option<&'a str>,
         country: Option<&'a Market>,
-    ) -> Box<dyn Paginator<ClientResult<Category>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<Category>> {
+        Box::pin(paginate(
             move |limit, offset| self.categories_manual(locale, country, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))
@@ -717,8 +716,8 @@ where
         &'a self,
         category_id: &'a str,
         country: Option<&'a Market>,
-    ) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<SimplifiedPlaylist>> {
+        Box::pin(paginate(
             move |limit, offset| {
                 self.category_playlists_manual(category_id, country, Some(limit), Some(offset))
             },
@@ -805,8 +804,8 @@ where
     fn new_releases<'a>(
         &'a self,
         country: Option<&'a Market>,
-    ) -> Box<dyn Paginator<ClientResult<SimplifiedAlbum>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<SimplifiedAlbum>> {
+        Box::pin(paginate(
             move |limit, offset| self.new_releases_manual(country, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))
@@ -928,8 +927,8 @@ where
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
         market: Option<&'a Market>,
-    ) -> Box<dyn Paginator<ClientResult<PlaylistItem>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<PlaylistItem>> {
+        Box::pin(paginate(
             move |limit, offset| {
                 self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
             },
@@ -974,8 +973,8 @@ where
     fn user_playlists<'a>(
         &'a self,
         user_id: &'a UserId,
-    ) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<SimplifiedPlaylist>> {
+        Box::pin(paginate(
             move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))

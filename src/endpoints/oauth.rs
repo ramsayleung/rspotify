@@ -1,16 +1,14 @@
-use std::time;
-
 use crate::{
     endpoints::{
-        append_device_id, convert_result, join_ids,
-        pagination::{paginate, Paginator},
-        BaseClient,
+        append_device_id, convert_result, join_ids, pagination::paginate, BaseClient, DynPaginator,
     },
     http::Query,
     macros::{build_json, build_map},
     model::*,
     ClientResult, OAuth, Token,
 };
+
+use std::time;
 
 use log::error;
 use maybe_async::maybe_async;
@@ -81,8 +79,8 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
-    fn current_user_playlists(&self) -> Box<dyn Paginator<ClientResult<SimplifiedPlaylist>> + '_> {
-        Box::new(paginate(
+    fn current_user_playlists(&self) -> DynPaginator<'_, ClientResult<SimplifiedPlaylist>> {
+        Box::pin(paginate(
             move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))
@@ -467,8 +465,8 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
-    fn current_user_saved_albums(&self) -> Box<dyn Paginator<ClientResult<SavedAlbum>> + '_> {
-        Box::new(paginate(
+    fn current_user_saved_albums(&self) -> DynPaginator<'_, ClientResult<SavedAlbum>> {
+        Box::pin(paginate(
             move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))
@@ -504,8 +502,8 @@ pub trait OAuthClient: BaseClient {
     /// paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
-    fn current_user_saved_tracks(&self) -> Box<dyn Paginator<ClientResult<SavedTrack>> + '_> {
-        Box::new(paginate(
+    fn current_user_saved_tracks(&self) -> DynPaginator<'_, ClientResult<SavedTrack>> {
+        Box::pin(paginate(
             move |limit, offset| self.current_user_saved_tracks_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))
@@ -614,8 +612,8 @@ pub trait OAuthClient: BaseClient {
     fn current_user_top_artists<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> Box<dyn Paginator<ClientResult<FullArtist>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<FullArtist>> {
+        Box::pin(paginate(
             move |limit, offset| {
                 self.current_user_top_artists_manual(time_range, Some(limit), Some(offset))
             },
@@ -656,8 +654,8 @@ pub trait OAuthClient: BaseClient {
     fn current_user_top_tracks<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> Box<dyn Paginator<ClientResult<FullTrack>> + 'a> {
-        Box::new(paginate(
+    ) -> DynPaginator<'a, ClientResult<FullTrack>> {
+        Box::pin(paginate(
             move |limit, offset| {
                 self.current_user_top_tracks_manual(time_range, Some(limit), Some(offset))
             },
@@ -1151,8 +1149,8 @@ pub trait OAuthClient: BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
-    fn get_saved_show(&self) -> Box<dyn Paginator<ClientResult<Show>> + '_> {
-        Box::new(paginate(
+    fn get_saved_show(&self) -> DynPaginator<'_, ClientResult<Show>> {
+        Box::pin(paginate(
             move |limit, offset| self.get_saved_show_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         ))

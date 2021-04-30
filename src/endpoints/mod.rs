@@ -6,11 +6,16 @@ pub use base::BaseClient;
 pub use oauth::OAuthClient;
 
 use crate::{
+    endpoints::pagination::Paginator,
     model::{idtypes::IdType, Id},
     ClientResult, Token,
 };
 
+use std::pin::Pin;
+
 use serde::Deserialize;
+
+pub(in crate) type DynPaginator<'a, T> = Pin<Box<dyn Paginator<T> + 'a>>;
 
 /// Converts a JSON response from Spotify into its model.
 pub(in crate) fn convert_result<'a, T: Deserialize<'a>>(input: &'a str) -> ClientResult<T> {

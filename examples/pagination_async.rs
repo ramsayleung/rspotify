@@ -16,7 +16,7 @@ async fn main() {
     env_logger::init();
 
     let creds = Credentials::from_env().unwrap();
-    let mut oauth = OAuth::from_env(scopes!("user-library-read")).unwrap();
+    let oauth = OAuth::from_env(scopes!("user-library-read")).unwrap();
 
     let mut spotify = CodeAuthSpotify::new(creds, oauth);
 

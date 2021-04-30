@@ -26,13 +26,13 @@ async fn main() {
     // Or set the redirect_uri explictly:
     //
     // ```
-    // let mut oauth = OAuth {
+    // let oauth = OAuth {
     //     redirect_uri: "http://localhost:8888/callback".to_string(),
     //     scope: scopes!("user-read-recently-played"),
     //     ..Default::default(),
     // };
     // ```
-    let mut oauth = OAuth::from_env().unwrap();
+    let oauth = OAuth::from_env().unwrap();
     oauth.scope = scopes!("user-read-recently-played");
 
     let mut spotify = CodeAuthPKCESpotify::new(creds, oauth);
