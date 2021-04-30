@@ -46,7 +46,7 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self) -> ClientResult<()> {
         // TODO: shouldn't this also refresh the obtained token?
         let mut token = self.get_token_mut();
-        token = self.read_token_cache().await;
+        token = OAuthClient::read_token_cache(&mut self).await;
 
         // Otherwise following the usual procedure to get the token.
         if self.get_token().is_none() {

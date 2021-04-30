@@ -474,7 +474,9 @@ impl OAuth {
 
 #[cfg(test)]
 mod test {
+    use super::generate_random_string;
     use super::ClientCredentialsSpotify;
+    use std::collections::HashSet;
 
     #[test]
     fn test_parse_response_code() {
@@ -503,5 +505,14 @@ mod test {
             new_path,
             "me/player/shuffle?state=true&device_id=fdafdsadfa"
         );
+    }
+
+    #[test]
+    fn test_generate_random_string() {
+        let mut containers = HashSet::new();
+        for _ in 1..101 {
+            containers.insert(generate_random_string(10));
+        }
+        assert_eq!(containers.len(), 100);
     }
 }
