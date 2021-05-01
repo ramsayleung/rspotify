@@ -6,21 +6,18 @@
 /// Example:
 ///
 /// ```
-/// use rspotify::oauth2::TokenBuilder;
-/// use rspotify::scopes;
+/// use rspotify::{Token, scopes};
 /// use std::collections::HashSet;
-/// use chrono::prelude::*;
-/// use chrono::Duration;
+/// use chrono::{Duration, prelude::*};
 ///
 /// let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
-/// let tok = TokenBuilder::default()
-///     .access_token("test-access_token")
-///     .expires_in(Duration::seconds(1))
-///     .expires_at(Utc::now())
-///     .scope(scope)
-///     .refresh_token("...")
-///     .build()
-///     .unwrap();
+/// let tok = Token {
+///     scope,
+///     access_token: "test-access_token".to_owned(),
+///     expires_in: Duration::seconds(1),
+///     expires_at: Some(Utc::now().to_owned()),
+///     refresh_token: Some("...".to_owned()),
+/// };
 /// ```
 #[macro_export]
 macro_rules! scopes {

@@ -173,7 +173,7 @@ pub use rspotify_model as model;
 // Top-level re-exports
 pub use client_creds::ClientCredentialsSpotify;
 pub use code_auth::CodeAuthSpotify;
-pub use code_auth_pkce::CodeAuthPKCESpotify;
+pub use code_auth_pkce::CodeAuthPkceSpotify;
 pub use macros::scopes;
 
 use std::{

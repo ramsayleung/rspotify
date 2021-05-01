@@ -11,7 +11,7 @@ use crate::{
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Default)]
-pub struct CodeAuthPKCESpotify {
+pub struct CodeAuthPkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
@@ -19,7 +19,7 @@ pub struct CodeAuthPKCESpotify {
     pub(in crate) http: HttpClient,
 }
 
-impl BaseClient for CodeAuthPKCESpotify {
+impl BaseClient for CodeAuthPkceSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
@@ -41,15 +41,15 @@ impl BaseClient for CodeAuthPKCESpotify {
     }
 }
 
-impl OAuthClient for CodeAuthPKCESpotify {
+impl OAuthClient for CodeAuthPkceSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
     }
 }
 
-impl CodeAuthPKCESpotify {
+impl CodeAuthPkceSpotify {
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        CodeAuthPKCESpotify {
+        CodeAuthPkceSpotify {
             creds,
             oauth,
             ..Default::default()
@@ -57,7 +57,7 @@ impl CodeAuthPKCESpotify {
     }
 
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        CodeAuthPKCESpotify {
+        CodeAuthPkceSpotify {
             creds,
             oauth,
             config,
