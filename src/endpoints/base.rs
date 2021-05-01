@@ -121,7 +121,7 @@ where
     #[inline]
     async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let headers = self.auth_headers()?;
-        Ok(self.get(url, Some(&headers), payload).await?)
+        self.get(url, Some(&headers), payload).await
     }
 
     #[inline]

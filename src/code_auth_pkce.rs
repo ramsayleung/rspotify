@@ -81,8 +81,9 @@ impl CodeAuthPKCESpotify {
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
         payload.insert(headers::SCOPE, &scope);
         payload.insert(headers::STATE, &oauth.state);
-        payload.insert(headers::CODE_CHALLENGE, todo!());
-        payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");
+        // TODO
+        // payload.insert(headers::CODE_CHALLENGE, todo!());
+        // payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
         Ok(parsed.into_string())

@@ -48,8 +48,8 @@ impl ClientCredentialsSpotify {
 
     pub fn with_config(creds: Credentials, config: Config) -> Self {
         ClientCredentialsSpotify {
-            creds,
             config,
+            creds,
             ..Default::default()
         }
     }
