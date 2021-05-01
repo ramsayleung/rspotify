@@ -221,10 +221,6 @@ pub(in crate) mod auth_urls {
 /// Possible errors returned from the `rspotify` client.
 #[derive(Debug, Error)]
 pub enum ClientError {
-    /// Raised when the authentication isn't configured properly.
-    #[error("invalid client authentication: {0}")]
-    InvalidAuth(String),
-
     #[error("json parse error: {0}")]
     ParseJson(#[from] serde_json::Error),
 
