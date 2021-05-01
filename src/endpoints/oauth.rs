@@ -1,6 +1,8 @@
 use crate::{
     endpoints::{
-        append_device_id, convert_result, join_ids, pagination::paginate, BaseClient, DynPaginator,
+        append_device_id, convert_result, join_ids,
+        pagination::{paginate, Paginator},
+        BaseClient,
     },
     http::Query,
     macros::{build_json, build_map},
@@ -79,11 +81,11 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
-    fn current_user_playlists(&self) -> DynPaginator<'_, ClientResult<SimplifiedPlaylist>> {
-        Box::pin(paginate(
+    fn current_user_playlists(&self) -> Paginator<'_, ClientResult<SimplifiedPlaylist>> {
+        paginate(
             move |limit, offset| self.current_user_playlists_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        ))
+        )
     }
 
     /// The manually paginated version of [`Spotify::current_user_playlists`].
@@ -465,11 +467,11 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
-    fn current_user_saved_albums(&self) -> DynPaginator<'_, ClientResult<SavedAlbum>> {
-        Box::pin(paginate(
+    fn current_user_saved_albums(&self) -> Paginator<'_, ClientResult<SavedAlbum>> {
+        paginate(
             move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        ))
+        )
     }
 
     /// The manually paginated version of
@@ -502,11 +504,11 @@ pub trait OAuthClient: BaseClient {
     /// paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
-    fn current_user_saved_tracks(&self) -> DynPaginator<'_, ClientResult<SavedTrack>> {
-        Box::pin(paginate(
+    fn current_user_saved_tracks(&self) -> Paginator<'_, ClientResult<SavedTrack>> {
+        paginate(
             move |limit, offset| self.current_user_saved_tracks_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        ))
+        )
     }
 
     /// The manually paginated version of
@@ -612,13 +614,13 @@ pub trait OAuthClient: BaseClient {
     fn current_user_top_artists<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> DynPaginator<'_, ClientResult<FullArtist>> {
-        Box::pin(paginate(
+    ) -> Paginator<'_, ClientResult<FullArtist>> {
+        paginate(
             move |limit, offset| {
                 self.current_user_top_artists_manual(time_range, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        ))
+        )
     }
 
     /// The manually paginated version of [`Spotify::current_user_top_artists`].
@@ -654,13 +656,13 @@ pub trait OAuthClient: BaseClient {
     fn current_user_top_tracks<'a>(
         &'a self,
         time_range: Option<&'a TimeRange>,
-    ) -> DynPaginator<'_, ClientResult<FullTrack>> {
-        Box::pin(paginate(
+    ) -> Paginator<'_, ClientResult<FullTrack>> {
+        paginate(
             move |limit, offset| {
                 self.current_user_top_tracks_manual(time_range, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
-        ))
+        )
     }
 
     /// The manually paginated version of [`Spotify::current_user_top_tracks`].
@@ -1149,11 +1151,11 @@ pub trait OAuthClient: BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
-    fn get_saved_show(&self) -> DynPaginator<'_, ClientResult<Show>> {
-        Box::pin(paginate(
+    fn get_saved_show(&self) -> Paginator<'_, ClientResult<Show>> {
+        paginate(
             move |limit, offset| self.get_saved_show_manual(Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
-        ))
+        )
     }
 
     /// The manually paginated version of [`Spotify::get_saved_show`].
