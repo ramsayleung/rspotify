@@ -415,6 +415,13 @@ pub struct Credentials {
 }
 
 impl Credentials {
+    pub fn new(id: &str, secret: &str) -> Self {
+        Credentials {
+            id: id.to_owned(),
+            secret: secret.to_owned(),
+        }
+    }
+
     /// Parses the credentials from the environment variables
     /// `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`. You can optionally
     /// activate the `env-file` feature in order to read these variables from
@@ -475,38 +482,8 @@ impl OAuth {
 
 #[cfg(test)]
 mod test {
-    use super::generate_random_string;
-    use super::ClientCredentialsSpotify;
+    use super::{generate_random_string, ClientCredentialsSpotify};
     use std::collections::HashSet;
-
-    #[test]
-    fn test_parse_response_code() {
-        let url = "http://localhost:8888/callback?code=AQD0yXvFEOvw&state=sN#_=_";
-        let spotify = ClientCredentialsSpotify::default();
-        let code = spotify.parse_response_code(url).unwrap();
-        assert_eq!(code, "AQD0yXvFEOvw");
-    }
-
-    #[test]
-    fn test_append_device_id_without_question_mark() {
-        let path = "me/player/play";
-        let device_id = Some("fdafdsadfa");
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let new_path = spotify.append_device_id(path, device_id);
-        assert_eq!(new_path, "me/player/play?device_id=fdafdsadfa");
-    }
-
-    #[test]
-    fn test_append_device_id_with_question_mark() {
-        let path = "me/player/shuffle?state=true";
-        let device_id = Some("fdafdsadfa");
-        let spotify = SpotifyBuilder::default().build().unwrap();
-        let new_path = spotify.append_device_id(path, device_id);
-        assert_eq!(
-            new_path,
-            "me/player/shuffle?state=true&device_id=fdafdsadfa"
-        );
-    }
 
     #[test]
     fn test_generate_random_string() {

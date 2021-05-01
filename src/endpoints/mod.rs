@@ -59,3 +59,27 @@ pub fn basic_auth(user: &str, password: &str) -> (String, String) {
 
     (auth, value)
 }
+
+#[cfg(test)]
+mod test {
+    use super::append_device_id;
+
+    #[test]
+    fn test_append_device_id_without_question_mark() {
+        let path = "me/player/play";
+        let device_id = Some("fdafdsadfa");
+        let new_path = append_device_id(path, device_id);
+        assert_eq!(new_path, "me/player/play?device_id=fdafdsadfa");
+    }
+
+    #[test]
+    fn test_append_device_id_with_question_mark() {
+        let path = "me/player/shuffle?state=true";
+        let device_id = Some("fdafdsadfa");
+        let new_path = append_device_id(path, device_id);
+        assert_eq!(
+            new_path,
+            "me/player/shuffle?state=true&device_id=fdafdsadfa"
+        );
+    }
+}

@@ -767,7 +767,7 @@ where
         &self,
         locale: Option<&str>,
         country: Option<&Market>,
-        timestamp: Option<chrono::DateTime<chrono::Utc>>,
+        timestamp: Option<&chrono::DateTime<chrono::Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<FeaturedPlaylists> {
