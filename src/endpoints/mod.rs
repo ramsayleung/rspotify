@@ -6,12 +6,9 @@ pub use base::BaseClient;
 pub use oauth::OAuthClient;
 
 use crate::{
-    endpoints::pagination::Paginator,
     model::{idtypes::IdType, Id},
     ClientResult, Token,
 };
-
-use std::pin::Pin;
 
 use serde::Deserialize;
 

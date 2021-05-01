@@ -482,7 +482,7 @@ impl OAuth {
 
 #[cfg(test)]
 mod test {
-    use super::{generate_random_string, ClientCredentialsSpotify};
+    use super::generate_random_string;
     use std::collections::HashSet;
 
     #[test]
