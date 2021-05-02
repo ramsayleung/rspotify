@@ -960,7 +960,7 @@ impl Spotify {
         &self,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
-            .get("me/player/currently-playing", None, &Query::new())
+            .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
         if result.is_empty() {
             Ok(None)
