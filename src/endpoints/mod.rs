@@ -126,7 +126,7 @@ mod test {
             refresh_token: Some("...".to_string()),
         };
 
-        let spotify = ClientCredentialsSpotify::default();
+        let spotify = ClientCredentialsSpotify::from_token(tok);
         let headers = spotify.auth_headers().unwrap();
         assert_eq!(
             headers.get("authorization"),
