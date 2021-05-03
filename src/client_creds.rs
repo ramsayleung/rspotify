@@ -7,6 +7,12 @@ use crate::{
 
 use maybe_async::maybe_async;
 
+/// The [Client Credentials
+/// Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow)
+/// client for the Spotify API.
+///
+/// Note: This flow does not include authorization and therefore cannot be used
+/// to access or to manage endpoints related to user private data.
 #[derive(Clone, Debug, Default)]
 pub struct ClientCredentialsSpotify {
     pub config: Config,
@@ -15,7 +21,6 @@ pub struct ClientCredentialsSpotify {
     pub(in crate) http: HttpClient,
 }
 
-// This could even use a macro
 impl BaseClient for ClientCredentialsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http

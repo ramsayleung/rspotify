@@ -61,10 +61,10 @@ pub type UserIdBuf = IdBuf<User>;
 pub type ShowIdBuf = IdBuf<Show>;
 pub type EpisodeIdBuf = IdBuf<Episode>;
 
-/// A Spotify object id of given [type](crate::model::enums::types::Type)
+/// A Spotify object id of given [type](crate::enums::types::Type).
 ///
-/// This is a not-owning type, it stores a `&str` only.
-/// See [IdBuf](crate::model::idtypes::IdBuf) for owned version of the type.
+/// This is a not-owning type, it stores a `&str` only. See
+/// [IdBuf](crate::idtypes::IdBuf) for owned version of the type.
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Id<T> {
     #[serde(default)]
@@ -73,10 +73,10 @@ pub struct Id<T> {
     id: str,
 }
 
-/// A Spotify object id of given [type](crate::model::enums::types::Type)
+/// A Spotify object id of given [type](crate::enums::types::Type)
 ///
-/// This is an owning type, it stores a `String`.
-/// See [Id](crate::model::idtypes::Id) for light-weight non-owning type.
+/// This is an owning type, it stores a `String`. See [Id](crate::idtypes::Id)
+/// for light-weight non-owning type.
 ///
 /// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or
 /// `Id::from_id_or_uri(val).to_owned()` to construct an instance of this type.
@@ -111,7 +111,7 @@ impl<T> Deref for IdBuf<T> {
 }
 
 impl<T: IdType> IdBuf<T> {
-    /// Get a [`Type`](crate::model::enums::types::Type) of the id
+    /// Get a [`Type`](crate::enums::types::Type) of the id
     pub fn _type(&self) -> Type {
         T::TYPE
     }
@@ -134,7 +134,7 @@ impl<T: IdType> IdBuf<T> {
 
 /// Spotify id or URI parsing error
 ///
-/// See also [`Id`](crate::model::idtypes::Id) for details.
+/// See also [`Id`](crate::idtypes::Id) for details.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Display, Error)]
 pub enum IdError {
     /// Spotify URI prefix is not `spotify:` or `spotify/`
@@ -176,7 +176,7 @@ impl<T: IdType> std::str::FromStr for IdBuf<T> {
 }
 
 impl<T: IdType> Id<T> {
-    /// Owned version of the id [`IdBuf`](crate::model::idtypes::IdBuf)
+    /// Owned version of the id [`IdBuf`](crate::idtypes::IdBuf).
     pub fn to_owned(&self) -> IdBuf<T> {
         IdBuf {
             _type: PhantomData,

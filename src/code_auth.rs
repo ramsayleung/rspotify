@@ -11,6 +11,13 @@ use std::collections::HashMap;
 use maybe_async::maybe_async;
 use url::Url;
 
+/// The [Authorization Code
+/// Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
+/// client for the Spotify API.
+///
+/// This includes user authorization, and thus has access to endpoints related
+/// to user private data, unlike the [Client Credentials
+/// Flow](crate::ClientCredentialsSpotify) client.
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthSpotify {
     pub creds: Credentials,

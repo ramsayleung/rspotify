@@ -1,9 +1,7 @@
-//! Rspotify is a wrapper for the [Spotify Web API
-//! ](https://developer.spotify.com/web-api/), inspired by [spotipy
-//! ](https://github.com/plamere/spotipy). It includes support for all the
-//! [authorization flows](https://developer.spotify.com/documentation/general/guides/authorization-guide/),
-//! and helper methods for [all available endpoints
-//! ](https://developer.spotify.com/documentation/web-api/reference/).
+//! Rspotify is a wrapper for the [Spotify Web API](spotify-main), inspired by
+//! [spotipy](spotipy). It includes support for all the [authorization
+//! flows](spotify-auth-flows), and helper methods for [all available endpoints
+//! ](spotify-reference).
 //!
 //! ## Configuration
 //!
@@ -13,13 +11,13 @@
 //! default TLS, but you can customize both the HTTP client and the TLS with the
 //! following features:
 //!
-//! - [`reqwest`](https://github.com/seanmonstar/reqwest): enabling
+//! - [`reqwest`](reqwest): enabling
 //!   `client-reqwest`, TLS available:
 //!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
-//! - [`ureq`](https://github.com/algesten/ureq): enabling `client-ureq`, TLS
+//! - [`ureq`](ureq): enabling `client-ureq`, TLS
 //!   available:
 //!     + `ureq-rustls-tls` (ureq's default)
 //!
@@ -59,8 +57,7 @@
 //!
 //! Rspotify supports the [`dotenv`] crate, which allows you to save credentials
 //! in a `.env` file. These will then be automatically available as
-//! environmental values when using methods like
-//! [`CredentialsBuilder::from_env`](crate::oauth2::CredentialsBuilder::from_env):
+//! environmental values when using methods like [`Credentials::from_env`].
 //!
 //! ```toml
 //! [dependencies]
@@ -77,20 +74,29 @@
 //!
 //! ### Authorization
 //!
-//! All endpoints require authorization. You will need to generate a token
-//! that indicates that the client has been granted permission to perform
-//! requests. You will need to [register your app to get the necessary client
-//! credentials](https://developer.spotify.com/dashboard/applications). Read
-//! the [official guide for a detailed explanation of the different
-//! authorization flows available
-//! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/).
+//! All endpoints require authorization. You will need to generate a token that
+//! indicates that the client has been granted permission to perform requests.
+//! You will need to [register your app to get the necessary client
+//! credentials](spotify-register-app). Read the [official guide for a detailed
+//! explanation of the different authorization flows
+//! available](spotify-auth-flows).
+//!
+//! Rspotify has a different client for each of the available authentication
+//! flows. Please refer to their documentation for more info:
+//!
+//! * [Client Credentials Flow](spotify-client-creds): see
+//!   [`ClientCredentialsSpotify`].
+//! * [Authorization Code Flow](spotify-auth-code): see [`CodeAuthSpotify`].
+//! * [Authorization Code Flow with Proof Key for Code Exchange
+//!   (PKCE)](spotify-auth-code-pkce): see [`CodeAuthPkceSpotify`].
+//! * [Implicit Grant Flow](spotify-implicit-grant): unimplemented, as Rspotify
+//!   has not been tested on a browser yet. If you'd like support for it, let us
+//!   know in an issue!
 //!
 //! The most basic authentication flow, named the [Client Credentials flow
-//! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow),
-//! consists on requesting a token to Spotify given some client credentials.
-//! This can be done with [`Spotify::request_client_token`
-//! ](crate::client::Spotify::request_client_token), as seen in
-//! [this example
+//! ](client-creds), consists on requesting a token to Spotify given some client
+//! credentials. This can be done with [`Spotify::request_client_token`
+//! ](crate::client::Spotify::request_client_token), as seen in [this example
 //! ](https://github.com/ramsayleung/rspotify/blob/master/examples/album.rs).
 //!
 //! Some of the available endpoints also require access to the user's personal
@@ -153,13 +159,22 @@
 //!
 //! ### Examples
 //!
-//! There are some [available examples
-//! ](https://github.com/ramsayleung/rspotify/tree/master/examples)
-//! which can serve as a learning tool.
-
-// Disable all modules when both client features are enabled or when none are.
-// This way only the compile error below gets shown instead of a whole list of
-// confusing errors..
+//! There are some [available examples](examples) which can serve as a learning
+//! tool.
+//!
+//! [spotipy]: https://github.com/plamere/spotipy
+//! [reqwest]: https://github.com/seanmonstar/reqwest
+//! [ureq]: https://github.com/algesten/ureq
+//! [examples]: https://github.com/ramsayleung/rspotify/tree/master/examples
+//! [spotify-main]: https://developer.spotify.com/web-api/
+//! [spotify-auth-flows]: https://developer.spotify.com/documentation/general/guides/authorization-guide
+//! [spotify-reference]: https://developer.spotify.com/documentation/web-api/reference/
+//! [spotify-register-app]: https://developer.spotify.com/dashboard/applications
+//! [spotify]: https://developer.spotify.com/documentation/general/guides/authorization-guide/
+//! [spotify-client-creds]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
+//! [spotify-auth-code]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+//! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
+//! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow
 
 pub mod client_creds;
 pub mod code_auth;
