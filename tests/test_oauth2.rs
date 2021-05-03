@@ -56,9 +56,8 @@ async fn test_read_token_cache() {
         cache_path: PathBuf::from(".test_read_token_cache.json"),
         ..Default::default()
     };
-    let mut predefined_spotify = ClientCredentialsSpotify::default();
+    let mut predefined_spotify = ClientCredentialsSpotify::from_token(tok.clone());
     predefined_spotify.config = config.clone();
-    predefined_spotify.token = Some(tok.clone());
 
     // write token data to cache_path
     predefined_spotify.write_token_cache().unwrap();
@@ -95,8 +94,7 @@ fn test_write_token() {
         cache_path: PathBuf::from(".test_write_token_cache.json"),
         ..Default::default()
     };
-    let mut spotify = ClientCredentialsSpotify::default();
-    spotify.token = Some(tok.clone());
+    let mut spotify = ClientCredentialsSpotify::from_token(tok.clone());
     spotify.config = config;
 
     let tok_str = serde_json::to_string(&tok).unwrap();

@@ -15,7 +15,7 @@ pub struct CodeAuthPkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
-    pub tok: Option<Token>,
+    pub token: Option<Token>,
     pub(in crate) http: HttpClient,
 }
 
@@ -25,11 +25,11 @@ impl BaseClient for CodeAuthPkceSpotify {
     }
 
     fn get_token(&self) -> Option<&Token> {
-        self.tok.as_ref()
+        self.token.as_ref()
     }
 
     fn get_token_mut(&mut self) -> Option<&mut Token> {
-        self.tok.as_mut()
+        self.token.as_mut()
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -65,8 +65,19 @@ impl CodeAuthPkceSpotify {
         }
     }
 
+    /// Build a new `CodeAuthPkceSpotify` from an already generated token. Note
+    /// that once the token expires this will fail to make requests, as the
+    /// client credentials aren't known.
+    pub fn from_token(token: Token) -> Self {
+        CodeAuthPkceSpotify {
+            token: Some(token),
+            ..Default::default()
+        }
+    }
+
     /// Gets the required URL to authorize the current client to begin the
     /// authorization flow.
+    // TODO
     pub fn get_authorize_url(&self) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
@@ -81,7 +92,6 @@ impl CodeAuthPkceSpotify {
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
         payload.insert(headers::SCOPE, &scope);
         payload.insert(headers::STATE, &oauth.state);
-        // TODO
         // payload.insert(headers::CODE_CHALLENGE, todo!());
         // payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");
 

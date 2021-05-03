@@ -74,6 +74,16 @@ impl CodeAuthSpotify {
         }
     }
 
+    /// Build a new `CodeAuthSpotify` from an already generated token. Note that
+    /// once the token expires this will fail to make requests, as the client
+    /// credentials aren't known.
+    pub fn from_token(token: Token) -> Self {
+        CodeAuthSpotify {
+            token: Some(token),
+            ..Default::default()
+        }
+    }
+
     /// Gets the required URL to authorize the current client to begin the
     /// authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {

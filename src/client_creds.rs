@@ -59,6 +59,16 @@ impl ClientCredentialsSpotify {
         }
     }
 
+    /// Build a new `ClientCredentialsSpotify` from an already generated token.
+    /// Note that once the token expires this will fail to make requests, as the
+    /// client credentials aren't known.
+    pub fn from_token(token: Token) -> Self {
+        ClientCredentialsSpotify {
+            token: Some(token),
+            ..Default::default()
+        }
+    }
+
     /// Obtains the client access token for the app without saving it into the
     /// cache file. The resulting token is saved internally.
     // TODO: handle with and without cache

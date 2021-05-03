@@ -57,7 +57,9 @@ pub fn basic_auth(user: &str, password: &str) -> (String, String) {
 
 #[cfg(test)]
 mod test {
-    use super::append_device_id;
+    use super::*;
+    use crate::{scopes, ClientCredentialsSpotify, Token};
+    use chrono::{prelude::*, Duration};
 
     #[test]
     fn test_append_device_id_without_question_mark() {
@@ -75,6 +77,60 @@ mod test {
         assert_eq!(
             new_path,
             "me/player/shuffle?state=true&device_id=fdafdsadfa"
+        );
+    }
+
+    #[test]
+    fn test_bearer_auth() {
+        let tok = Token {
+            access_token: "access_token".to_string(),
+            ..Default::default()
+        };
+
+        let (auth, value) = bearer_auth(&tok);
+        assert_eq!(auth, "authorization");
+        assert_eq!(value, "Bearer access_token");
+    }
+
+    #[test]
+    fn test_basic_auth() {
+        let (auth, value) = basic_auth("ramsay", "123456");
+        assert_eq!(auth, "authorization");
+        assert_eq!(value, "Basic cmFtc2F5OjEyMzQ1Ng==");
+    }
+
+    #[test]
+    fn test_endpoint_url() {
+        let spotify = ClientCredentialsSpotify::default();
+        assert_eq!(
+            spotify.endpoint_url("me/player/play"),
+            "https://api.spotify.com/v1/me/player/play"
+        );
+        assert_eq!(
+            spotify.endpoint_url("http://api.spotify.com/v1/me/player/play"),
+            "http://api.spotify.com/v1/me/player/play"
+        );
+        assert_eq!(
+            spotify.endpoint_url("https://api.spotify.com/v1/me/player/play"),
+            "https://api.spotify.com/v1/me/player/play"
+        );
+    }
+
+    #[test]
+    fn test_auth_headers() {
+        let tok = Token {
+            access_token: "test-access_token".to_string(),
+            expires_in: Duration::seconds(1),
+            expires_at: Some(Utc::now()),
+            scope: scopes!("playlist-read-private"),
+            refresh_token: Some("...".to_string()),
+        };
+
+        let spotify = ClientCredentialsSpotify::default();
+        let headers = spotify.auth_headers().unwrap();
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Bearer test-access_token".to_owned())
         );
     }
 }
