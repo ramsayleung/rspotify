@@ -11,13 +11,55 @@ use std::collections::HashMap;
 use maybe_async::maybe_async;
 use url::Url;
 
-/// The [Authorization Code
-/// Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
-/// client for the Spotify API.
+/// The [Authorization Code Flow](reference) client for the Spotify API.
 ///
 /// This includes user authorization, and thus has access to endpoints related
 /// to user private data, unlike the [Client Credentials
-/// Flow](crate::ClientCredentialsSpotify) client.
+/// Flow](crate::ClientCredentialsSpotify) client. See [`BaseClient`] and
+/// [`OAuthClient`] for the available endpoints.
+///
+/// If you're developing a CLI application, you might be interested in the `cli`
+/// feature. This brings the [`Self::prompt_for_token`] utility to automatically
+/// follow the flow steps via user interaction.
+///
+/// Otherwise, these are the steps to be followed to authenticate your app:
+///
+/// 0. Generate a request URL with [`Self::get_authorize_url`].
+/// 1. The user logs in with the request URL. They will be redirected to the
+///    given redirect URI, including a code in the URL parameters. This happens
+///    on your side.
+/// 2. The code obtained in the previous step is parsed with
+///    [`Self::parse_response_code`].
+/// 3. The code is sent to Spotify in order to obtain an access token with
+///    [`Self::request_token`].
+/// 4. Finally, this access token can be used internally for the requests.
+///    It may expire relatively soon, so it can be refreshed with the refresh
+///    token (obtained in the previous step as well) using
+///    [`Self::refresh_token`]. Otherwise, a new access token may be generated
+///    from scratch by repeating these steps, but the advantage of refreshing it
+///    is that this doesn't require the user to log in, and that it's a simpler
+///    procedure.
+///
+///    See [this related example](example-refresh-token) to learn more about
+///    refreshing tokens.
+///
+/// There's a [webapp example](example-webapp) for more details on how you can
+/// implement it for something like a web server, or [this one](example-main)
+/// for a CLI use case.
+///
+/// An example of the CLI authentication:
+///
+/// ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
+///
+/// Note: even if your script does not have an accessible URL, you will have to
+/// specify a redirect URI. It doesn't need to work, you can use
+/// `http://localhost:8888/callback` for example, which will also have the code
+/// appended like so: `http://localhost/?code=...`.
+///
+/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+/// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/code_auth.rs
+/// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
+/// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthSpotify {
     pub creds: Credentials,

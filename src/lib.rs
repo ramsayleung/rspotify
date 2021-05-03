@@ -1,5 +1,5 @@
 //! Rspotify is a wrapper for the [Spotify Web API](spotify-main), inspired by
-//! [spotipy](spotipy). It includes support for all the [authorization
+//! [spotipy](spotipy-github). It includes support for all the [authorization
 //! flows](spotify-auth-flows), and helper methods for [all available endpoints
 //! ](spotify-reference).
 //!
@@ -7,17 +7,17 @@
 //!
 //! ### HTTP Client
 //!
-//! By default, Rspotify uses the [`reqwest`] asynchronous HTTP client with its
-//! default TLS, but you can customize both the HTTP client and the TLS with the
-//! following features:
+//! By default, Rspotify uses the [reqwest](reqwest-docs) asynchronous HTTP
+//! client with its default TLS, but you can customize both the HTTP client and
+//! the TLS with the following features:
 //!
-//! - [`reqwest`](reqwest): enabling
+//! - [reqwest](reqwest-docs): enabling
 //!   `client-reqwest`, TLS available:
 //!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
-//! - [`ureq`](ureq): enabling `client-ureq`, TLS
+//! - [ureq](ureq-docs): enabling `client-ureq`, TLS
 //!   available:
 //!     + `ureq-rustls-tls` (ureq's default)
 //!
@@ -49,9 +49,9 @@
 //!
 //! ### Proxies
 //!
-//! [`reqwest`](reqwest#proxies) supports system proxies by default. It reads
-//! the environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental
-//! variables to set HTTP and HTTPS proxies, respectively.
+//! [reqwest supports system proxies by default](reqwest-proxies). It reads the
+//! environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental variables
+//! to set HTTP and HTTPS proxies, respectively.
 //!
 //! ### Environmental variables
 //!
@@ -64,25 +64,28 @@
 //! rspotify = { version = "...", features = ["env-file"] }
 //! ```
 //!
-//! ### Cli utilities
+//! ### CLI utilities
 //!
 //! Rspotify includes basic support for Cli apps to obtain access tokens by
-//! prompting the user, after enabling the `cli` feature. See the [Authorization
-//! ](#authorization) section for more information.
+//! prompting the user, after enabling the `cli` feature. See the
+//! [Authorization](#authorization) section for more information.
 //!
 //! ## Getting Started
 //!
 //! ### Authorization
 //!
-//! All endpoints require authorization. You will need to generate a token that
-//! indicates that the client has been granted permission to perform requests.
-//! You will need to [register your app to get the necessary client
+//! All endpoints require app authorization; you will need to generate a token
+//! that indicates that the client has been granted permission to perform
+//! requests. You can start by [registering your app to get the necessary client
 //! credentials](spotify-register-app). Read the [official guide for a detailed
 //! explanation of the different authorization flows
 //! available](spotify-auth-flows).
 //!
 //! Rspotify has a different client for each of the available authentication
-//! flows. Please refer to their documentation for more info:
+//! flows. They may implement the endpoints in
+//! [`BaseClient`](crate::endpoints::BaseClient) or
+//! [`OAuthClient`](crate::endpoints::OAuthClient) according to what kind of
+//! flow it is. Please refer to their documentation for more details:
 //!
 //! * [Client Credentials Flow](spotify-client-creds): see
 //!   [`ClientCredentialsSpotify`].
@@ -93,79 +96,22 @@
 //!   has not been tested on a browser yet. If you'd like support for it, let us
 //!   know in an issue!
 //!
-//! The most basic authentication flow, named the [Client Credentials flow
-//! ](client-creds), consists on requesting a token to Spotify given some client
-//! credentials. This can be done with [`Spotify::request_client_token`
-//! ](crate::client::Spotify::request_client_token), as seen in [this example
-//! ](https://github.com/ramsayleung/rspotify/blob/master/examples/album.rs).
-//!
-//! Some of the available endpoints also require access to the user's personal
-//! information, meaning that you have to follow the [Authorization Flow
-//! ](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
-//! instead. In a nutshell, these are the steps you need to make for this:
-//!
-//! 0. Generate a request URL with [`Spotify::get_authorize_url`
-//!    ](crate::client::Spotify::get_authorize_url).
-//! 1. The user logs in with the request URL, which redirects to the redirect
-//!    URI and provides a code in the parameters. This happens on your side.
-//! 2. The code obtained in the previous step is parsed with
-//!    [`Spotify::parse_response_code`
-//!    ](crate::client::Spotify::parse_response_code).
-//! 3. The code is sent to Spotify in order to obtain an access token with
-//!    [`Spotify::request_user_token`
-//!    ](crate::client::Spotify::request_user_token) or
-//!    [`Spotify::request_user_token_without_cache`
-//!    ](crate::client::Spotify::prompt_for_user_token_without_cache).
-//! 4. Finally, this access token can be used internally for the requests.
-//!    This access token may expire relatively soon, so it can be refreshed
-//!    with the refresh token (obtained in the third step as well) using
-//!    [`Spotify::refresh_user_token`
-//!    ](crate::client::Spotify::refresh_user_token) or
-//!    [`Spotify::refresh_user_token_without_cache`
-//!    ](crate::client::Spotify::refresh_user_token_without_cache).
-//!    Otherwise, a new access token may be generated from scratch by repeating
-//!    these steps, but the advantage of refreshing it is that this doesn't
-//!    require the user to log in, and that it's a simpler procedure.
-//!
-//! See the [`webapp`
-//! ](https://github.com/ramsayleung/rspotify/tree/master/examples/webapp)
-//! example for more details on how you can implement it for something like a
-//! web server.
-//!
-//! If you're developing a Cli application, you might be interested in the
-//! `cli` feature, which brings the [`Spotify::prompt_for_user_token`
-//! ](crate::client::Spotify::prompt_for_user_token) and
-//! [`Spotify::prompt_for_user_token_without_cache`
-//! ](crate::client::Spotify::prompt_for_user_token_without_cache)
-//! methods. These will run all the authentication steps. The user wil log in
-//! by opening the request URL in its default browser, and the requests will be
-//! performed automatically.
-//!
-//! An example of the Cli authentication:
-//!
-//! ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
-//!
-//! Note: even if your script does not have an accessible URL, you will have to
-//! specify a redirect URI. It doesn't need to work or be accessible, you can
-//! use `http://localhost:8888/callback` for example, which will also have the
-//! code appended like so: `http://localhost/?code=...`.
-//!
 //! In order to help other developers to get used to `rspotify`, there are
 //! public credentials available for a dummy account. You can test `rspotify`
-//! with this account's `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`
-//! inside the [`.env` file
-//! ](https://github.com/ramsayleung/rspotify/blob/master/.env) for more
-//! details.
+//! with this account's `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET` inside
+//! the [`.env` file](https://github.com/ramsayleung/rspotify/blob/master/.env)
+//! for more details.
 //!
 //! ### Examples
 //!
-//! There are some [available examples](examples) which can serve as a learning
-//! tool.
+//! There are some [available examples on the GitHub
+//! repository](examples-github) which can serve as a learning tool.
 //!
-//! [spotipy]: https://github.com/plamere/spotipy
-//! [reqwest]: https://github.com/seanmonstar/reqwest
-//! [ureq]: https://github.com/algesten/ureq
-//! [examples]: https://github.com/ramsayleung/rspotify/tree/master/examples
+//! [spotipy-github]: https://github.com/plamere/spotipy
+//! [reqwest-docs]: https://docs.rs/reqwest/
+//! [reqwest-proxies]: https://docs.rs/reqwest/#proxies
+//! [ureq-docs]: https://docs.rs/ureq/
+//! [examples-github]: https://github.com/ramsayleung/rspotify/tree/master/examples
 //! [spotify-main]: https://developer.spotify.com/web-api/
 //! [spotify-auth-flows]: https://developer.spotify.com/documentation/general/guides/authorization-guide
 //! [spotify-reference]: https://developer.spotify.com/documentation/web-api/reference/
@@ -273,9 +219,9 @@ pub struct Config {
     pub cache_path: PathBuf,
 
     /// The pagination chunk size used when performing automatically paginated
-    /// requests, like [`Spotify::artist_albums`]. This means that a request
-    /// will be performed every `pagination_chunks` items. By default this is
-    /// [`DEFAULT_PAGINATION_CHUNKS`].
+    /// requests, like [`artist_albums`](crate::endpoints::BaseClient). This
+    /// means that a request will be performed every `pagination_chunks` items.
+    /// By default this is [`DEFAULT_PAGINATION_CHUNKS`].
     ///
     /// Note that most endpoints set a maximum to the number of items per
     /// request, which most times is 50.

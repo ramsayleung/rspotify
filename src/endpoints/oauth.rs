@@ -77,7 +77,7 @@ pub trait OAuthClient: BaseClient {
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
-    /// See [`Spotify::current_user_playlists_manual`] for a manually paginated
+    /// See [`Self::current_user_playlists_manual`] for a manually paginated
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-list-of-current-users-playlists)
@@ -88,7 +88,7 @@ pub trait OAuthClient: BaseClient {
         )
     }
 
-    /// The manually paginated version of [`Spotify::current_user_playlists`].
+    /// The manually paginated version of [`Self::current_user_playlists`].
     async fn current_user_playlists_manual(
         &self,
         limit: Option<u32>,
@@ -463,8 +463,8 @@ pub trait OAuthClient: BaseClient {
     /// - offset - the index of the first album to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
-    /// See [`Spotify::current_user_saved_albums`] for a manually paginated
-    /// version of this.
+    /// See [`Self::current_user_saved_albums`] for a manually paginated version
+    /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
     fn current_user_saved_albums(&self) -> Paginator<'_, ClientResult<SavedAlbum>> {
@@ -474,8 +474,7 @@ pub trait OAuthClient: BaseClient {
         )
     }
 
-    /// The manually paginated version of
-    /// [`Spotify::current_user_saved_albums`].
+    /// The manually paginated version of [`Self::current_user_saved_albums`].
     async fn current_user_saved_albums_manual(
         &self,
         limit: Option<u32>,
@@ -500,8 +499,8 @@ pub trait OAuthClient: BaseClient {
     /// - offset - the index of the first track to return
     /// - market - Provide this parameter if you want to apply Track Relinking.
     ///
-    /// See [`Spotify::current_user_saved_tracks_manual`] for a manually
-    /// paginated version of this.
+    /// See [`Self::current_user_saved_tracks_manual`] for a manually paginated
+    /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
     fn current_user_saved_tracks(&self) -> Paginator<'_, ClientResult<SavedTrack>> {
@@ -511,8 +510,7 @@ pub trait OAuthClient: BaseClient {
         )
     }
 
-    /// The manually paginated version of
-    /// [`Spotify::current_user_saved_tracks`].
+    /// The manually paginated version of [`Self::current_user_saved_tracks`].
     async fn current_user_saved_tracks_manual(
         &self,
         limit: Option<u32>,
@@ -607,8 +605,8 @@ pub trait OAuthClient: BaseClient {
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
     ///
-    /// See [`Spotify::current_user_top_artists_manual`] for a manually
-    /// paginated version of this.
+    /// See [`Self::current_user_top_artists_manual`] for a manually paginated
+    /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
     fn current_user_top_artists<'a>(
@@ -623,7 +621,7 @@ pub trait OAuthClient: BaseClient {
         )
     }
 
-    /// The manually paginated version of [`Spotify::current_user_top_artists`].
+    /// The manually paginated version of [`Self::current_user_top_artists`].
     async fn current_user_top_artists_manual(
         &self,
         time_range: Option<&TimeRange>,
@@ -649,7 +647,7 @@ pub trait OAuthClient: BaseClient {
     /// - offset - the index of the first entity to return
     /// - time_range - Over what time frame are the affinities computed
     ///
-    /// See [`Spotify::current_user_top_tracks_manual`] for a manually paginated
+    /// See [`Self::current_user_top_tracks_manual`] for a manually paginated
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-top-artists-and-tracks)
@@ -665,7 +663,7 @@ pub trait OAuthClient: BaseClient {
         )
     }
 
-    /// The manually paginated version of [`Spotify::current_user_top_tracks`].
+    /// The manually paginated version of [`Self::current_user_top_tracks`].
     async fn current_user_top_tracks_manual(
         &self,
         time_range: Option<&TimeRange>,
@@ -1147,8 +1145,8 @@ pub trait OAuthClient: BaseClient {
     /// - offset(Optional). The index of the first show to return. Default: 0
     ///   (the first object). Use with limit to get the next set of shows.
     ///
-    /// See [`Spotify::get_saved_show_manual`] for a manually paginated version
-    /// of this.
+    /// See [`Self::get_saved_show_manual`] for a manually paginated version of
+    /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-shows)
     fn get_saved_show(&self) -> Paginator<'_, ClientResult<Show>> {
@@ -1158,7 +1156,7 @@ pub trait OAuthClient: BaseClient {
         )
     }
 
-    /// The manually paginated version of [`Spotify::get_saved_show`].
+    /// The manually paginated version of [`Self::get_saved_show`].
     async fn get_saved_show_manual(
         &self,
         limit: Option<u32>,

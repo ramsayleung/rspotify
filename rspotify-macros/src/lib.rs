@@ -1,6 +1,5 @@
-/// Create a [`HashSet`](std::collections::HashSet) from a list of `&str` (which
-/// will be converted to String internally), to easily create scopes for
-/// [`Token`](rspotify::Token) or [`OAuth`](rspotify::OAuth).
+/// Create a [`HashSet`](std::collections::HashSet) from a list of `&str` to
+/// easily create scopes for `Token` or `OAuth`.
 ///
 /// Example:
 ///

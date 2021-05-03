@@ -252,8 +252,8 @@ where
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
     ///
-    /// See [`Spotify::artist_albums_manual`] for a manually paginated version
-    /// of this.
+    /// See [`Self::artist_albums_manual`] for a manually paginated version of
+    /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
     fn artist_albums<'a>(
@@ -270,7 +270,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::artist_albums`].
+    /// The manually paginated version of [`Self::artist_albums`].
     async fn artist_albums_manual(
         &self,
         artist_id: &ArtistId,
@@ -404,7 +404,7 @@ where
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
-    /// See [`Spotify::album_track_manual`] for a manually paginated version of
+    /// See [`Self::album_track_manual`] for a manually paginated version of
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
@@ -418,7 +418,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::album_track`].
+    /// The manually paginated version of [`Self::album_track`].
     async fn album_track_manual(
         &self,
         album_id: &AlbumId,
@@ -525,8 +525,8 @@ where
     /// - offset: Optional. The index of the first episode to return. Default: 0 (the first object). Use with limit to get the next set of episodes.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// See [`Spotify::get_shows_episodes_manual`] for a manually paginated
-    /// version of this.
+    /// See [`Self::get_shows_episodes_manual`] for a manually paginated version
+    /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-shows-episodes)
     fn get_shows_episodes<'a>(
@@ -542,7 +542,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::get_shows_episodes`].
+    /// The manually paginated version of [`Self::get_shows_episodes`].
     async fn get_shows_episodes_manual(
         &self,
         id: &ShowId,
@@ -664,7 +664,7 @@ where
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
-    /// See [`Spotify::categories_manual`] for a manually paginated version of
+    /// See [`Self::categories_manual`] for a manually paginated version of
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
@@ -679,7 +679,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::categories`].
+    /// The manually paginated version of [`Self::categories`].
     async fn categories_manual(
         &self,
         locale: Option<&str>,
@@ -709,8 +709,8 @@ where
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
-    /// See [`Spotify::category_playlists_manual`] for a manually paginated
-    /// version of this.
+    /// See [`Self::category_playlists_manual`] for a manually paginated version
+    /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
     fn category_playlists<'a>(
@@ -726,7 +726,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::category_playlists`].
+    /// The manually paginated version of [`Self::category_playlists`].
     async fn category_playlists_manual(
         &self,
         category_id: &str,
@@ -798,7 +798,7 @@ where
     /// - offset - The index of the first item to return. Default: 0 (the first
     ///   object). Use with limit to get the next set of items.
     ///
-    /// See [`Spotify::new_releases_manual`] for a manually paginated version of
+    /// See [`Self::new_releases_manual`] for a manually paginated version of
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
@@ -812,7 +812,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::new_releases`].
+    /// The manually paginated version of [`Self::new_releases`].
     async fn new_releases_manual(
         &self,
         country: Option<&Market>,
@@ -919,8 +919,7 @@ where
     /// - offset - the index of the first track to return
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// See [`Spotify::playlist_tracks`] for a manually paginated version of
-    /// this.
+    /// See [`Self::playlist_tracks`] for a manually paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
     fn playlist_tracks<'a>(
@@ -937,7 +936,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::playlist_tracks`].
+    /// The manually paginated version of [`Self::playlist_tracks`].
     async fn playlist_tracks_manual(
         &self,
         playlist_id: &PlaylistId,
@@ -967,8 +966,8 @@ where
     /// - limit  - the number of items to return
     /// - offset - the index of the first item to return
     ///
-    /// See [`Spotify::user_playlists_manual`] for a manually paginated version
-    /// of this.
+    /// See [`Self::user_playlists_manual`] for a manually paginated version of
+    /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
     fn user_playlists<'a>(
@@ -981,7 +980,7 @@ where
         )
     }
 
-    /// The manually paginated version of [`Spotify::user_playlists`].
+    /// The manually paginated version of [`Self::user_playlists`].
     async fn user_playlists_manual(
         &self,
         user_id: &UserId,
