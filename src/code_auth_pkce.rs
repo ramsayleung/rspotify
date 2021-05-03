@@ -18,7 +18,11 @@ use std::collections::HashMap;
 /// it. The main difference in this case is that you can avoid storing your
 /// client secret by generating a *code verifier* and a *code challenge*.
 ///
+/// There's an [example](example-main) available to learn how to use this
+/// client.
+///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
+/// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/code_auth.rs
 #[derive(Clone, Debug, Default)]
 pub struct CodeAuthPkceSpotify {
     pub creds: Credentials,
