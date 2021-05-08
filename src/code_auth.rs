@@ -69,6 +69,7 @@ pub struct CodeAuthSpotify {
     pub(in crate) http: HttpClient,
 }
 
+/// This client has access to the base methods.
 impl BaseClient for CodeAuthSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
@@ -91,14 +92,18 @@ impl BaseClient for CodeAuthSpotify {
     }
 }
 
-// This could also be a macro (less important)
+/// This client includes user authorization, so it has access to the user
+/// private endpoints in [`OAuthClient`].
 impl OAuthClient for CodeAuthSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
     }
 }
 
+/// Some client-specific implementations specific to the authorization flow.
 impl CodeAuthSpotify {
+    /// Builds a new [`CodeAuthSpotify`] given a pair of client credentials and
+    /// OAuth information.
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
         CodeAuthSpotify {
             creds,
@@ -107,6 +112,18 @@ impl CodeAuthSpotify {
         }
     }
 
+    /// Build a new [`CodeAuthSpotify`] from an already generated token. Note
+    /// that once the token expires this will fail to make requests, as the
+    /// client credentials aren't known.
+    pub fn from_token(token: Token) -> Self {
+        CodeAuthSpotify {
+            token: Some(token),
+            ..Default::default()
+        }
+    }
+
+    /// Same as [`Self::new`] but with an extra parameter to configure the
+    /// client.
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
         CodeAuthSpotify {
             creds,
@@ -116,18 +133,8 @@ impl CodeAuthSpotify {
         }
     }
 
-    /// Build a new `CodeAuthSpotify` from an already generated token. Note that
-    /// once the token expires this will fail to make requests, as the client
-    /// credentials aren't known.
-    pub fn from_token(token: Token) -> Self {
-        CodeAuthSpotify {
-            token: Some(token),
-            ..Default::default()
-        }
-    }
-
-    /// Gets the required URL to authorize the current client to begin the
-    /// authorization flow.
+    /// Returns the URL needed to authorize the current client as the first step
+    /// in the authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
@@ -151,10 +158,8 @@ impl CodeAuthSpotify {
         Ok(parsed.into_string())
     }
 
-    /// Obtains the user access token for the app with the given code without
-    /// saving it into the cache file, as part of the OAuth authentication.
-    /// The access token will be saved inside the Spotify instance.
-    // TODO: implement with and without cache.
+    /// Obtains a user access token given a code, as part of the OAuth
+    /// authentication. The access token will be saved internally.
     #[maybe_async]
     pub async fn request_token(&mut self, code: &str) -> ClientResult<()> {
         let mut data = Form::new();
@@ -171,36 +176,34 @@ impl CodeAuthSpotify {
         data.insert(headers::SCOPE, scopes.as_ref());
         data.insert(headers::STATE, oauth.state.as_ref());
 
-        self.token = Some(self.fetch_access_token(&data).await?);
+        let token = self.fetch_access_token(&data).await?;
+        self.token = Some(token);
 
-        if self.config.token_cached {
-            self.write_token_cache()?;
-        }
-
-        Ok(())
+        self.write_token_cache()
     }
 
-    /// Refreshes the access token with the refresh token provided by the
-    /// without saving it into the cache file.
+    /// Refreshes the current access token given a refresh token.
     ///
     /// The obtained token will be saved internally.
-    // TODO: implement with and without cache
     #[maybe_async]
     pub async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
-        let mut tok = self.fetch_access_token(&data).await?;
-        tok.refresh_token = Some(refresh_token.to_string());
-        self.token = Some(tok);
+        let mut token = self.fetch_access_token(&data).await?;
+        token.refresh_token = Some(refresh_token.to_string());
+        self.token = Some(token);
 
-        Ok(())
+        self.write_token_cache()
     }
 
-    /// The same as the `prompt_for_user_token_without_cache` method, but it
-    /// will try to use the user token into the cache file, and save it in
-    /// case it didn't exist/was invalid.
+    /// Opens up the authorization URL in the user's browser so that it can
+    /// authenticate. It also reads from the standard input the redirect URI
+    /// in order to obtain the access token information. The resulting access
+    /// token will be saved internally once the operation is successful.
+    ///
+    /// The authorizaton URL can be obtained with [`Self::get_authorize_url`].
     ///
     /// Note: this method requires the `cli` feature.
     #[cfg(feature = "cli")]
@@ -208,9 +211,7 @@ impl CodeAuthSpotify {
     pub async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             // TODO: shouldn't this also refresh the obtained token?
-            Some(new_token) => {
-                self.token.replace(new_token);
-            }
+            Some(new_token) => self.token.replace(new_token),
             // Otherwise following the usual procedure to get the token.
             None => {
                 let code = self.get_code_from_user(url)?;
