@@ -194,6 +194,6 @@ impl CodeAuthSpotify {
         }
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
-        Ok(parsed.into_string())
+        Ok(parsed.into())
     }
 }

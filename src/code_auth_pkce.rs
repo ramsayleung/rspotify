@@ -153,6 +153,6 @@ impl CodeAuthPkceSpotify {
         // payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
-        Ok(parsed.into_string())
+        Ok(parsed.into())
     }
 }
