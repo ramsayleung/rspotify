@@ -16,6 +16,9 @@ use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::{Map, Value};
 
+/// This trait implements the basic endpoints from the Spotify API that may be
+/// accessed without user authorization, including parts of the authentication
+/// flow that are shared, and the endpoints.
 #[maybe_async(?Send)]
 pub trait BaseClient
 where
@@ -483,6 +486,61 @@ where
 
         let url = format!("playlists/{}", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
+        convert_result(&result)
+    }
+
+    /// Gets playlist of a user.
+    ///
+    /// Parameters:
+    /// - user_id - the id of the user
+    /// - playlist_id - the id of the playlist
+    /// - fields - which fields to return
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
+    async fn user_playlist(
+        &self,
+        user_id: &UserId,
+        playlist_id: Option<&PlaylistId>,
+        fields: Option<&str>,
+    ) -> ClientResult<FullPlaylist> {
+        let params = build_map! {
+            optional "fields": fields,
+        };
+
+        let url = match playlist_id {
+            Some(playlist_id) => format!("users/{}/playlists/{}", user_id.id(), playlist_id.id()),
+            None => format!("users/{}/starred", user_id.id()),
+        };
+        let result = self.endpoint_get(&url, &params).await?;
+        convert_result(&result)
+    }
+
+    /// Check to see if the given users are following the given playlist.
+    ///
+    /// Parameters:
+    /// - playlist_id - the id of the playlist
+    /// - user_ids - the ids of the users that you want to
+    /// check to see if they follow the playlist. Maximum: 5 ids.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-if-user-follows-playlist)
+    async fn playlist_check_follow(
+        &self,
+        playlist_id: &PlaylistId,
+        user_ids: &[&UserId],
+    ) -> ClientResult<Vec<bool>> {
+        if user_ids.len() > 5 {
+            error!("The maximum length of user ids is limited to 5 :-)");
+        }
+        let url = format!(
+            "playlists/{}/followers/contains?ids={}",
+            playlist_id.id(),
+            user_ids
+                .iter()
+                .map(|id| id.id())
+                .collect::<Vec<_>>()
+                .join(","),
+        );
+        let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 

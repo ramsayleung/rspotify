@@ -18,6 +18,15 @@ use rspotify_model::idtypes::PlayContextIdType;
 use serde_json::{json, Map};
 use url::Url;
 
+/// This trait implements the methods available strictly to clients with user
+/// authorization, including some parts of the authentication flow that are
+/// shared, and the endpoints.
+///
+/// Note that the base trait [`BaseClient`](crate::endpoints::BaseClient) may
+/// have endpoints that conditionally require authorization like
+/// [`user_playlist`](crate::endpoints::BaseClient::user_playlist). This trait
+/// only separates endpoints that *always* need authorization from the base
+/// ones.
 #[maybe_async(?Send)]
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
@@ -26,9 +35,8 @@ pub trait OAuthClient: BaseClient {
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()>;
 
-    /// Refreshes the current access token given a refresh token.
-    ///
-    /// The obtained token will be saved internally.
+    /// Refreshes the current access token given a refresh token. The obtained
+    /// token will be saved internally.
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token, which may not exist.
@@ -42,6 +50,15 @@ pub trait OAuthClient: BaseClient {
         } else {
             Some(tok)
         }
+    }
+
+    /// Parse the response code in the given response url. If the URL cannot be
+    /// parsed or the `code` parameter is not present, this will return `None`.
+    fn parse_response_code(&self, url: &str) -> Option<String> {
+        let url = Url::parse(url).ok()?;
+        let mut params = url.query_pairs();
+        let (_, url) = params.find(|(key, _)| key == "code")?;
+        Some(url.to_string())
     }
 
     /// Tries to open the authorization URL in the user's browser, and returns
@@ -69,15 +86,6 @@ pub trait OAuthClient: BaseClient {
             .ok_or_else(|| ClientError::Cli("unable to parse the response code".to_string()))?;
 
         Ok(code)
-    }
-
-    /// Parse the response code in the given response url. If the URL cannot be
-    /// parsed or the `code` parameter is not present, this will return `None`.
-    fn parse_response_code(&self, url: &str) -> Option<String> {
-        let url = Url::parse(url).ok()?;
-        let mut params = url.query_pairs();
-        let (_, url) = params.find(|(key, _)| key == "code")?;
-        Some(url.to_string())
     }
 
     /// Opens up the authorization URL in the user's browser so that it can
@@ -135,32 +143,6 @@ pub trait OAuthClient: BaseClient {
         };
 
         let result = self.endpoint_get("me/playlists", &params).await?;
-        convert_result(&result)
-    }
-
-    /// Gets playlist of a user.
-    ///
-    /// Parameters:
-    /// - user_id - the id of the user
-    /// - playlist_id - the id of the playlist
-    /// - fields - which fields to return
-    ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
-    async fn user_playlist(
-        &self,
-        user_id: &UserId,
-        playlist_id: Option<&PlaylistId>,
-        fields: Option<&str>,
-    ) -> ClientResult<FullPlaylist> {
-        let params = build_map! {
-            optional "fields": fields,
-        };
-
-        let url = match playlist_id {
-            Some(playlist_id) => format!("users/{}/playlists/{}", user_id.id(), playlist_id.id()),
-            None => format!("users/{}/starred", user_id.id()),
-        };
-        let result = self.endpoint_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -426,35 +408,6 @@ pub trait OAuthClient: BaseClient {
         self.endpoint_put(&url, &params).await?;
 
         Ok(())
-    }
-
-    /// Check to see if the given users are following the given playlist.
-    ///
-    /// Parameters:
-    /// - playlist_id - the id of the playlist
-    /// - user_ids - the ids of the users that you want to
-    /// check to see if they follow the playlist. Maximum: 5 ids.
-    ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-if-user-follows-playlist)
-    async fn playlist_check_follow(
-        &self,
-        playlist_id: &PlaylistId,
-        user_ids: &[&UserId],
-    ) -> ClientResult<Vec<bool>> {
-        if user_ids.len() > 5 {
-            error!("The maximum length of user ids is limited to 5 :-)");
-        }
-        let url = format!(
-            "playlists/{}/followers/contains?ids={}",
-            playlist_id.id(),
-            user_ids
-                .iter()
-                .map(|id| id.id())
-                .collect::<Vec<_>>()
-                .join(","),
-        );
-        let result = self.endpoint_get(&url, &Query::new()).await?;
-        convert_result(&result)
     }
 
     /// Get detailed profile information about the current user.
