@@ -162,6 +162,7 @@ where
         Ok(())
     }
 
+    // TODO: remove, this is confusing with `read_oauth_token_cache`.
     /// Tries to read the cache file's token, which may not exist.
     ///
     /// Similarly to [`Self::write_token_cache`], this will already check if the
@@ -529,7 +530,7 @@ where
         user_ids: &[&UserId],
     ) -> ClientResult<Vec<bool>> {
         if user_ids.len() > 5 {
-            error!("The maximum length of user ids is limited to 5 :-)");
+            log::error!("The maximum length of user ids is limited to 5 :-)");
         }
         let url = format!(
             "playlists/{}/followers/contains?ids={}",
