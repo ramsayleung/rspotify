@@ -50,7 +50,6 @@ impl BaseClient for ClientCredentialsSpotify {
     }
 }
 
-/// Some client-specific implementations specific to the authorization flow.
 impl ClientCredentialsSpotify {
     /// Builds a new [`ClientCredentialsSpotify`] given a pair of client
     /// credentials and OAuth information.

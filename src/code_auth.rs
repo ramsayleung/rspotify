@@ -70,6 +70,7 @@ pub struct CodeAuthSpotify {
 }
 
 /// This client has access to the base methods.
+#[maybe_async(?Send)]
 impl BaseClient for CodeAuthSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
@@ -94,13 +95,51 @@ impl BaseClient for CodeAuthSpotify {
 
 /// This client includes user authorization, so it has access to the user
 /// private endpoints in [`OAuthClient`].
+#[maybe_async(?Send)]
 impl OAuthClient for CodeAuthSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
     }
+
+    /// Obtains a user access token given a code, as part of the OAuth
+    /// authentication. The access token will be saved internally.
+    async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+        let mut data = Form::new();
+        let oauth = self.get_oauth();
+        let scopes = oauth
+            .scope
+            .clone()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .join(" ");
+        data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
+        data.insert(headers::REDIRECT_URI, oauth.redirect_uri.as_ref());
+        data.insert(headers::CODE, code);
+        data.insert(headers::SCOPE, scopes.as_ref());
+        data.insert(headers::STATE, oauth.state.as_ref());
+
+        let token = self.fetch_access_token(&data).await?;
+        self.token = Some(token);
+
+        self.write_token_cache()
+    }
+
+    /// Refreshes the current access token given a refresh token.
+    ///
+    /// The obtained token will be saved internally.
+    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
+        let mut data = Form::new();
+        data.insert(headers::REFRESH_TOKEN, refresh_token);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
+
+        let mut token = self.fetch_access_token(&data).await?;
+        token.refresh_token = Some(refresh_token.to_string());
+        self.token = Some(token);
+
+        self.write_token_cache()
+    }
 }
 
-/// Some client-specific implementations specific to the authorization flow.
 impl CodeAuthSpotify {
     /// Builds a new [`CodeAuthSpotify`] given a pair of client credentials and
     /// OAuth information.
@@ -156,70 +195,5 @@ impl CodeAuthSpotify {
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
         Ok(parsed.into_string())
-    }
-
-    /// Obtains a user access token given a code, as part of the OAuth
-    /// authentication. The access token will be saved internally.
-    #[maybe_async]
-    pub async fn request_token(&mut self, code: &str) -> ClientResult<()> {
-        let mut data = Form::new();
-        let oauth = self.get_oauth();
-        let scopes = oauth
-            .scope
-            .clone()
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
-        data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
-        data.insert(headers::REDIRECT_URI, oauth.redirect_uri.as_ref());
-        data.insert(headers::CODE, code);
-        data.insert(headers::SCOPE, scopes.as_ref());
-        data.insert(headers::STATE, oauth.state.as_ref());
-
-        let token = self.fetch_access_token(&data).await?;
-        self.token = Some(token);
-
-        self.write_token_cache()
-    }
-
-    /// Refreshes the current access token given a refresh token.
-    ///
-    /// The obtained token will be saved internally.
-    #[maybe_async]
-    pub async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        let mut data = Form::new();
-        data.insert(headers::REFRESH_TOKEN, refresh_token);
-        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
-
-        let mut token = self.fetch_access_token(&data).await?;
-        token.refresh_token = Some(refresh_token.to_string());
-        self.token = Some(token);
-
-        self.write_token_cache()
-    }
-
-    /// Opens up the authorization URL in the user's browser so that it can
-    /// authenticate. It also reads from the standard input the redirect URI
-    /// in order to obtain the access token information. The resulting access
-    /// token will be saved internally once the operation is successful.
-    ///
-    /// The authorizaton URL can be obtained with [`Self::get_authorize_url`].
-    ///
-    /// Note: this method requires the `cli` feature.
-    #[cfg(feature = "cli")]
-    #[maybe_async]
-    pub async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_token_cache().await {
-            // TODO: shouldn't this also refresh the obtained token?
-            Some(new_token) => self.token.replace(new_token),
-            // Otherwise following the usual procedure to get the token.
-            None => {
-                let code = self.get_code_from_user(url)?;
-                // Will write to the cache file if successful
-                self.request_token(&code).await?;
-            }
-        }
-
-        self.write_token_cache()
     }
 }

@@ -22,6 +22,15 @@ use url::Url;
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
 
+    /// Obtains a user access token given a code, as part of the OAuth
+    /// authentication. The access token will be saved internally.
+    async fn request_token(&mut self, code: &str) -> ClientResult<()>;
+
+    /// Refreshes the current access token given a refresh token.
+    ///
+    /// The obtained token will be saved internally.
+    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
+
     /// Tries to read the cache file's token, which may not exist.
     async fn read_oauth_token_cache(&mut self) -> Option<Token> {
         let tok = Token::from_cache(&self.get_config().cache_path)?;
@@ -69,6 +78,30 @@ pub trait OAuthClient: BaseClient {
         let mut params = url.query_pairs();
         let (_, url) = params.find(|(key, _)| key == "code")?;
         Some(url.to_string())
+    }
+
+    /// Opens up the authorization URL in the user's browser so that it can
+    /// authenticate. It also reads from the standard input the redirect URI
+    /// in order to obtain the access token information. The resulting access
+    /// token will be saved internally once the operation is successful.
+    ///
+    /// Note: this method requires the `cli` feature.
+    #[cfg(feature = "cli")]
+    #[maybe_async]
+    async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
+        // TODO: this should go in OAuthClient
+        match self.read_token_cache().await {
+            // TODO: shouldn't this also refresh the obtained token?
+            Some(new_token) => self.token.replace(new_token),
+            // Otherwise following the usual procedure to get the token.
+            None => {
+                let code = self.get_code_from_user(url)?;
+                // Will write to the cache file if successful
+                self.request_token(&code).await?;
+            }
+        }
+
+        self.write_token_cache()
     }
 
     /// Get current user playlists without required getting his profile.
