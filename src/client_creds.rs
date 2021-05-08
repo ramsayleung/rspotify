@@ -27,6 +27,7 @@ pub struct ClientCredentialsSpotify {
     pub(in crate) http: HttpClient,
 }
 
+/// This client has access to the base methods.
 impl BaseClient for ClientCredentialsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
@@ -49,7 +50,10 @@ impl BaseClient for ClientCredentialsSpotify {
     }
 }
 
+/// Some client-specific implementations specific to the authorization flow.
 impl ClientCredentialsSpotify {
+    /// Builds a new [`ClientCredentialsSpotify`] given a pair of client
+    /// credentials and OAuth information.
     pub fn new(creds: Credentials) -> Self {
         ClientCredentialsSpotify {
             creds,
@@ -57,6 +61,18 @@ impl ClientCredentialsSpotify {
         }
     }
 
+    /// Build a new [`ClientCredentialsSpotify`] from an already generated
+    /// token. Note that once the token expires this will fail to make requests,
+    /// as the client credentials aren't known.
+    pub fn from_token(token: Token) -> Self {
+        ClientCredentialsSpotify {
+            token: Some(token),
+            ..Default::default()
+        }
+    }
+
+    /// Same as [`Self::new`] but with an extra parameter to configure the
+    /// client.
     pub fn with_config(creds: Credentials, config: Config) -> Self {
         ClientCredentialsSpotify {
             config,
@@ -65,17 +81,7 @@ impl ClientCredentialsSpotify {
         }
     }
 
-    /// Build a new `ClientCredentialsSpotify` from an already generated token.
-    /// Note that once the token expires this will fail to make requests, as the
-    /// client credentials aren't known.
-    pub fn from_token(token: Token) -> Self {
-        ClientCredentialsSpotify {
-            token: Some(token),
-            ..Default::default()
-        }
-    }
-
-    /// Obtains the client access token for the app. The resulting token is
+    /// Obtains the client access token for the app. The resulting token will be
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&mut self) -> ClientResult<()> {
