@@ -43,8 +43,8 @@ jobs:
           - arm-unknown-linux-gnueabihf
           - armv7-unknown-linux-gnueabihf
         client:
-          - client-ureq,ureq-rustls-tls
-          - client-reqwest,reqwest-rustls-tls
+          - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-rustls-tls,rspotify-http/client-ureq,rspotify-http/ureq-rustls-tls
+          - rspotify/cli,rspotify/env-file,rspotify/client-reqwest,rspotify/reqwest-rustls-tls,rspotify-http/client-reqwest,rspotify-http/reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -64,7 +64,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --workspace --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.client }} --target ${{ matrix.target }} 
 
   test-client:
     name: Test and Lint for each Client
@@ -72,8 +72,8 @@ jobs:
     strategy:
       matrix:
         client:
-          - client-ureq,ureq-rustls-tls
-          - client-reqwest,reqwest-rustls-tls
+          - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-rustls-tls,rspotify-http/client-ureq,rspotify-http/ureq-rustls-tls
+          - rspotify/cli,rspotify/env-file,rspotify/client-reqwest,rspotify/reqwest-rustls-tls,rspotify-http/client-reqwest,rspotify-http/reqwest-rustls-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -90,32 +90,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --workspace --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.client }} -- -D warnings
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features --features=env-file,${{ matrix.client }}
-
-  # The rest of the crates don't need to be tested with multiple feature
-  # combinations.
-  test-crates:
-    name: Simple Tests for Crates
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p rspotify-macros -p rspotify-model -p rspotify-http
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.client }}
