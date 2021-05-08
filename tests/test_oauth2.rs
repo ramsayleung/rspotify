@@ -53,6 +53,7 @@ async fn test_read_token_cache() {
     };
 
     let config = Config {
+        token_cached: true,
         cache_path: PathBuf::from(".test_read_token_cache.json"),
         ..Default::default()
     };
@@ -91,6 +92,7 @@ fn test_write_token() {
     };
 
     let config = Config {
+        token_cached: true,
         cache_path: PathBuf::from(".test_write_token_cache.json"),
         ..Default::default()
     };
