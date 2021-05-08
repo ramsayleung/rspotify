@@ -132,6 +132,8 @@ impl CodeAuthPkceSpotify {
         }
     }
 
+    /// Returns the URL needed to authorize the current client as the first step
+    /// in the authorization flow.
     pub fn get_authorize_url(&self) -> ClientResult<String> {
         // TODO
         let mut payload: HashMap<&str, &str> = HashMap::new();
