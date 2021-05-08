@@ -143,7 +143,15 @@ where
     }
 
     /// Updates the cache file at the internal cache path.
+    ///
+    /// This should be used whenever it's possible to, even if the cached token
+    /// isn't configured, because this will already check `Config::token_cached`
+    /// and do nothing in that case already.
     fn write_token_cache(&self) -> ClientResult<()> {
+        if !self.get_config().token_cached {
+            return Ok(());
+        }
+
         if let Some(tok) = self.get_token().as_ref() {
             tok.write_cache(&self.get_config().cache_path)?;
         }
@@ -152,15 +160,21 @@ where
     }
 
     /// Tries to read the cache file's token, which may not exist.
-    async fn read_token_cache(&mut self) -> Option<Token> {
-        let tok = Token::from_cache(&self.get_config().cache_path)?;
+    ///
+    /// Similarly to [`Self::write_token_cache`], this will already check if the
+    /// cached token is enabled and return `None` in case it isn't.
+    async fn read_token_cache(&self) -> Option<Token> {
+        if !self.get_config().token_cached {
+            return None;
+        }
 
-        if tok.is_expired() {
+        let token = Token::from_cache(&self.get_config().cache_path)?;
+        if token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             None
         } else {
-            Some(tok)
+            Some(token)
         }
     }
 

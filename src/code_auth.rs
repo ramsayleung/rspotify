@@ -173,6 +173,10 @@ impl CodeAuthSpotify {
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
+        if self.config.token_cached {
+            self.write_token_cache()?;
+        }
+
         Ok(())
     }
 
@@ -199,15 +203,13 @@ impl CodeAuthSpotify {
     /// case it didn't exist/was invalid.
     ///
     /// Note: this method requires the `cli` feature.
-    // TODO: handle with and without cache
     #[cfg(feature = "cli")]
     #[maybe_async]
     pub async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_oauth_token_cache().await {
+        match self.read_token_cache().await {
             // TODO: shouldn't this also refresh the obtained token?
-            Some(mut new_token) => {
-                let mut cur_token = self.get_token_mut();
-                cur_token.replace(&mut new_token);
+            Some(new_token) => {
+                self.token.replace(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             None => {
@@ -217,6 +219,6 @@ impl CodeAuthSpotify {
             }
         }
 
-        Ok(())
+        self.write_token_cache()
     }
 }

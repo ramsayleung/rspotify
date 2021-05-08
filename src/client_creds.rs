@@ -75,9 +75,8 @@ impl ClientCredentialsSpotify {
         }
     }
 
-    /// Obtains the client access token for the app without saving it into the
-    /// cache file. The resulting token is saved internally.
-    // TODO: handle with and without cache
+    /// Obtains the client access token for the app. The resulting token is
+    /// saved internally.
     #[maybe_async]
     pub async fn request_token(&mut self) -> ClientResult<()> {
         let mut data = Form::new();
@@ -85,6 +84,6 @@ impl ClientCredentialsSpotify {
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
-        Ok(())
+        self.write_token_cache()
     }
 }
