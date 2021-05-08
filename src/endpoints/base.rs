@@ -162,26 +162,6 @@ where
         Ok(())
     }
 
-    // TODO: remove, this is confusing with `read_oauth_token_cache`.
-    /// Tries to read the cache file's token, which may not exist.
-    ///
-    /// Similarly to [`Self::write_token_cache`], this will already check if the
-    /// cached token is enabled and return `None` in case it isn't.
-    async fn read_token_cache(&self) -> Option<Token> {
-        if !self.get_config().token_cached {
-            return None;
-        }
-
-        let token = Token::from_cache(&self.get_config().cache_path)?;
-        if token.is_expired() {
-            // Invalid token, since it doesn't have at least the currently
-            // required scopes or it's expired.
-            None
-        } else {
-            Some(token)
-        }
-    }
-
     /// Sends a request to Spotify for an access token.
     async fn fetch_access_token(&self, payload: &Form<'_>) -> ClientResult<Token> {
         // This request uses a specific content type, and the client ID/secret

@@ -168,7 +168,7 @@ fn playlist(cookies: Cookies) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let token = spotify.read_oauth_token_cache().unwrap();
+    let token = spotify.read_token_cache().unwrap();
     spotify.token = Some(token);
     let playlists = spotify.current_user_playlists()
         .take(50)
@@ -189,7 +189,7 @@ fn me(cookies: Cookies) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    spotify.token = Some(spotify.read_oauth_token_cache().unwrap());
+    spotify.token = Some(spotify.read_token_cache().unwrap());
     match spotify.me() {
         Ok(user_info) => AppResponse::Json(json!(user_info)),
         Err(_) => AppResponse::Redirect(Redirect::to("/")),

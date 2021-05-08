@@ -40,7 +40,7 @@ pub trait OAuthClient: BaseClient {
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token, which may not exist.
-    async fn read_oauth_token_cache(&mut self) -> Option<Token> {
+    async fn read_token_cache(&mut self) -> Option<Token> {
         let tok = Token::from_cache(&self.get_config().cache_path)?;
 
         if !self.get_oauth().scope.is_subset(&tok.scope) || tok.is_expired() {
