@@ -32,8 +32,7 @@ async fn main() {
     //     ..Default::default(),
     // };
     // ```
-    let oauth = OAuth::from_env().unwrap();
-    oauth.scope = scopes!("user-read-recently-played");
+    let oauth = OAuth::from_env(scopes!("user-read-recently-played")).unwrap();
 
     let mut spotify = CodeAuthPkceSpotify::new(creds, oauth);
 
@@ -42,7 +41,7 @@ async fn main() {
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests
-    let history = spotify.current_playback(None, None).await;
+    let history = spotify.current_playback(None, None::<Vec<_>>).await;
 
     println!("Response: {:?}", history);
 }
