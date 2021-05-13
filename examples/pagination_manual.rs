@@ -1,7 +1,7 @@
 //! This example shows how manual pagination works. It's what the raw API
 //! returns, but harder to use than an iterator or stream.
 
-use rspotify::{prelude::*, scopes, CodeAuthSpotify, Credentials, OAuth};
+use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {
@@ -11,7 +11,7 @@ async fn main() {
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-library-read")).unwrap();
 
-    let mut spotify = CodeAuthSpotify::new(creds, oauth);
+    let mut spotify = AuthCodeSpotify::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();

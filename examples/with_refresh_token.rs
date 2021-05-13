@@ -15,11 +15,11 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify::{model::Id, prelude::*, scopes, CodeAuthSpotify, Credentials, OAuth};
+use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
-async fn do_things(spotify: CodeAuthSpotify) {
+async fn do_things(spotify: AuthCodeSpotify) {
     let artists = vec![
         Id::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
         Id::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
@@ -56,7 +56,7 @@ async fn main() {
     // The default credentials from the `.env` file will be used by default.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
-    let mut spotify = CodeAuthSpotify::new(creds.clone(), oauth.clone());
+    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
 
     // In the first session of the application we authenticate and obtain the
     // refresh token. We can also do some requests here.
@@ -79,7 +79,7 @@ async fn main() {
     // At a different time, the refresh token can be used to refresh an access
     // token directly and run requests:
     println!(">>> Session two, running some requests:");
-    let mut spotify = CodeAuthSpotify::new(creds.clone(), oauth.clone());
+    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     // No `prompt_for_user_token_without_cache` needed.
     spotify
         .refresh_token(&refresh_token)
@@ -90,7 +90,7 @@ async fn main() {
     // This process can now be repeated multiple times by using only the
     // refresh token that was obtained at the beginning.
     println!(">>> Session three, running some requests:");
-    let mut spotify = CodeAuthSpotify::new(creds, oauth);
+    let mut spotify = AuthCodeSpotify::new(creds, oauth);
     spotify
         .refresh_token(&refresh_token)
         .await

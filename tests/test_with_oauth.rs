@@ -23,7 +23,7 @@ use rspotify::{
         TrackId, TrackPositions,
     },
     prelude::*,
-    scopes, CodeAuthSpotify, Credentials, OAuth, Token,
+    scopes, AuthCodeSpotify, Credentials, OAuth, Token,
 };
 
 use chrono::prelude::*;
@@ -33,14 +33,14 @@ use std::env;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
-pub async fn oauth_client() -> CodeAuthSpotify {
+pub async fn oauth_client() -> AuthCodeSpotify {
     if let Ok(access_token) = env::var("RSPOTIFY_ACCESS_TOKEN") {
         let tok = Token {
             access_token,
             ..Default::default()
         };
 
-        CodeAuthSpotify::from_token(tok)
+        AuthCodeSpotify::from_token(tok)
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
@@ -75,7 +75,7 @@ pub async fn oauth_client() -> CodeAuthSpotify {
         // Using every possible scope
         let oauth = OAuth::from_env(scope).unwrap();
 
-        let mut spotify = CodeAuthSpotify::new(creds, oauth);
+        let mut spotify = AuthCodeSpotify::new(creds, oauth);
         spotify.refresh_token(&refresh_token).await.unwrap();
         spotify
     } else {

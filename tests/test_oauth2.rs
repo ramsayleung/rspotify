@@ -4,7 +4,7 @@ use chrono::prelude::*;
 use chrono::Duration;
 use maybe_async::maybe_async;
 use rspotify::{
-    prelude::*, scopes, ClientCredentialsSpotify, CodeAuthSpotify, Config, Credentials, OAuth,
+    prelude::*, scopes, ClientCredentialsSpotify, AuthCodeSpotify, Config, Credentials, OAuth,
     Token,
 };
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
@@ -22,7 +22,7 @@ fn test_get_authorize_url() {
     };
     let creds = Credentials::new("this-is-my-client-id", "this-is-my-client-secret");
 
-    let spotify = CodeAuthSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds, oauth);
 
     let authorize_url = spotify.get_authorize_url(false).unwrap();
     let hash_query: HashMap<_, _> = Url::parse(&authorize_url)
@@ -134,7 +134,7 @@ fn test_token_is_expired() {
 
 #[test]
 fn test_parse_response_code() {
-    let spotify = CodeAuthSpotify::default();
+    let spotify = AuthCodeSpotify::default();
 
     let url = "http://localhost:8888/callback";
     let code = spotify.parse_response_code(url);

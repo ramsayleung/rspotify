@@ -15,7 +15,7 @@ use url::Url;
 /// (PKCE)](reference) client for the Spotify API.
 ///
 /// This flow is very similar to the regular Authorization Code Flow, so please
-/// read [`CodeAuthSpotify`](crate::CodeAuthSpotify) for more information about
+/// read [`AuthCodeSpotify`](crate::AuthCodeSpotify) for more information about
 /// it. The main difference in this case is that you can avoid storing your
 /// client secret by generating a *code verifier* and a *code challenge*.
 ///

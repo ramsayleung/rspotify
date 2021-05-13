@@ -14,7 +14,7 @@ use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
-use rspotify::{scopes, CodeAuthSpotify, OAuth, Credentials, Config, prelude::*, Token};
+use rspotify::{scopes, AuthCodeSpotify, OAuth, Credentials, Config, prelude::*, Token};
 
 use std::fs;
 use std::{
@@ -77,7 +77,7 @@ fn check_cache_path_exists(cookies: &Cookies) -> bool {
     cache_path.exists()
 }
 
-fn init_spotify(cookies: &Cookies) -> CodeAuthSpotify {
+fn init_spotify(cookies: &Cookies) -> AuthCodeSpotify {
     let config = Config {
         token_cached: true,
         cache_path: create_cache_path_if_absent(cookies),
@@ -98,7 +98,7 @@ fn init_spotify(cookies: &Cookies) -> CodeAuthSpotify {
         "0e4e03b9be8d465d87fc32857a4b5aa3"
     );
 
-    CodeAuthSpotify::with_config(creds, oauth, config)
+    AuthCodeSpotify::with_config(creds, oauth, config)
 }
 
 #[get("/callback?<code>")]
@@ -137,7 +137,7 @@ fn index(mut cookies: Cookies) -> AppResponse {
 
     let cache_path = get_cache_path(&cookies);
     let token = Token::from_cache(cache_path).unwrap();
-    let spotify = CodeAuthSpotify::from_token(token);
+    let spotify = AuthCodeSpotify::from_token(token);
     match spotify.me() {
         Ok(user_info) => {
             context.insert(

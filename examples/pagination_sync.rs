@@ -9,7 +9,7 @@
 //! }
 //! ```
 
-use rspotify::{prelude::*, scopes, CodeAuthSpotify, Credentials, OAuth};
+use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 fn main() {
     // You can use any logger for debugging.
@@ -18,7 +18,7 @@ fn main() {
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-library-read")).unwrap();
 
-    let mut spotify = CodeAuthSpotify::new(creds, oauth);
+    let mut spotify = AuthCodeSpotify::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();

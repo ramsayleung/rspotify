@@ -61,7 +61,7 @@ use url::Url;
 /// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
 /// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs
 #[derive(Clone, Debug, Default)]
-pub struct CodeAuthSpotify {
+pub struct AuthCodeSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
@@ -71,7 +71,7 @@ pub struct CodeAuthSpotify {
 
 /// This client has access to the base methods.
 #[maybe_async(?Send)]
-impl BaseClient for CodeAuthSpotify {
+impl BaseClient for AuthCodeSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
@@ -96,7 +96,7 @@ impl BaseClient for CodeAuthSpotify {
 /// This client includes user authorization, so it has access to the user
 /// private endpoints in [`OAuthClient`].
 #[maybe_async(?Send)]
-impl OAuthClient for CodeAuthSpotify {
+impl OAuthClient for AuthCodeSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
     }
@@ -140,22 +140,22 @@ impl OAuthClient for CodeAuthSpotify {
     }
 }
 
-impl CodeAuthSpotify {
-    /// Builds a new [`CodeAuthSpotify`] given a pair of client credentials and
+impl AuthCodeSpotify {
+    /// Builds a new [`AuthCodeSpotify`] given a pair of client credentials and
     /// OAuth information.
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        CodeAuthSpotify {
+        AuthCodeSpotify {
             creds,
             oauth,
             ..Default::default()
         }
     }
 
-    /// Build a new [`CodeAuthSpotify`] from an already generated token. Note
+    /// Build a new [`AuthCodeSpotify`] from an already generated token. Note
     /// that once the token expires this will fail to make requests, as the
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
-        CodeAuthSpotify {
+        AuthCodeSpotify {
             token: Some(token),
             ..Default::default()
         }
@@ -164,7 +164,7 @@ impl CodeAuthSpotify {
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        CodeAuthSpotify {
+        AuthCodeSpotify {
             creds,
             oauth,
             config,

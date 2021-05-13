@@ -89,7 +89,7 @@
 //!
 //! * [Client Credentials Flow](spotify-client-creds): see
 //!   [`ClientCredentialsSpotify`].
-//! * [Authorization Code Flow](spotify-auth-code): see [`CodeAuthSpotify`].
+//! * [Authorization Code Flow](spotify-auth-code): see [`AuthCodeSpotify`].
 //! * [Authorization Code Flow with Proof Key for Code Exchange
 //!   (PKCE)](spotify-auth-code-pkce): see [`CodeAuthPkceSpotify`].
 //! * [Implicit Grant Flow](spotify-implicit-grant): unimplemented, as Rspotify
@@ -133,7 +133,7 @@ pub use rspotify_macros as macros;
 pub use rspotify_model as model;
 // Top-level re-exports
 pub use client_creds::ClientCredentialsSpotify;
-pub use auth_code::CodeAuthSpotify;
+pub use auth_code::AuthCodeSpotify;
 pub use auth_code_pkce::CodeAuthPkceSpotify;
 pub use macros::scopes;
 
