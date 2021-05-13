@@ -88,7 +88,7 @@
 //! flow it is. Please refer to their documentation for more details:
 //!
 //! * [Client Credentials Flow](spotify-client-creds): see
-//!   [`ClientCredentialsSpotify`].
+//!   [`ClientCredsSpotify`].
 //! * [Authorization Code Flow](spotify-auth-code): see [`AuthCodeSpotify`].
 //! * [Authorization Code Flow with Proof Key for Code Exchange
 //!   (PKCE)](spotify-auth-code-pkce): see [`AuthCodePkceSpotify`].
@@ -132,7 +132,7 @@ pub use rspotify_http as http;
 pub use rspotify_macros as macros;
 pub use rspotify_model as model;
 // Top-level re-exports
-pub use client_creds::ClientCredentialsSpotify;
+pub use client_creds::ClientCredsSpotify;
 pub use auth_code::AuthCodeSpotify;
 pub use auth_code_pkce::AuthCodePkceSpotify;
 pub use macros::scopes;

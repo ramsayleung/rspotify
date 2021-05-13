@@ -20,7 +20,7 @@ use maybe_async::maybe_async;
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs
 #[derive(Clone, Debug, Default)]
-pub struct ClientCredentialsSpotify {
+pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,
     pub token: Option<Token>,
@@ -28,7 +28,7 @@ pub struct ClientCredentialsSpotify {
 }
 
 /// This client has access to the base methods.
-impl BaseClient for ClientCredentialsSpotify {
+impl BaseClient for ClientCredsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
@@ -50,21 +50,21 @@ impl BaseClient for ClientCredentialsSpotify {
     }
 }
 
-impl ClientCredentialsSpotify {
-    /// Builds a new [`ClientCredentialsSpotify`] given a pair of client
-    /// credentials and OAuth information.
+impl ClientCredsSpotify {
+    /// Builds a new [`ClientCredsSpotify`] given a pair of client credentials
+    /// and OAuth information.
     pub fn new(creds: Credentials) -> Self {
-        ClientCredentialsSpotify {
+        ClientCredsSpotify {
             creds,
             ..Default::default()
         }
     }
 
-    /// Build a new [`ClientCredentialsSpotify`] from an already generated
-    /// token. Note that once the token expires this will fail to make requests,
+    /// Build a new [`ClientCredsSpotify`] from an already generated token. Note
+    /// that once the token expires this will fail to make requests,
     /// as the client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
-        ClientCredentialsSpotify {
+        ClientCredsSpotify {
             token: Some(token),
             ..Default::default()
         }
@@ -73,7 +73,7 @@ impl ClientCredentialsSpotify {
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
     pub fn with_config(creds: Credentials, config: Config) -> Self {
-        ClientCredentialsSpotify {
+        ClientCredsSpotify {
             config,
             creds,
             ..Default::default()

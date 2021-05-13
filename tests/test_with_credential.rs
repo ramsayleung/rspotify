@@ -4,14 +4,14 @@ use common::maybe_async_test;
 use rspotify::{
     model::{AlbumType, Country, Id, Market},
     prelude::*,
-    ClientCredentialsSpotify, Credentials,
+    ClientCredsSpotify, Credentials,
 };
 
 use maybe_async::maybe_async;
 
 /// Generating a new basic client for the requests.
 #[maybe_async]
-pub async fn creds_client() -> ClientCredentialsSpotify {
+pub async fn creds_client() -> ClientCredsSpotify {
     // The credentials must be available in the environment.
     let creds = Credentials::from_env().unwrap_or_else(|| {
         panic!(
@@ -21,7 +21,7 @@ pub async fn creds_client() -> ClientCredentialsSpotify {
         )
     });
 
-    let mut spotify = ClientCredentialsSpotify::new(creds);
+    let mut spotify = ClientCredsSpotify::new(creds);
     spotify.request_token().await.unwrap();
     spotify
 }

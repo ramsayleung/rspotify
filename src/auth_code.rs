@@ -15,7 +15,7 @@ use url::Url;
 ///
 /// This includes user authorization, and thus has access to endpoints related
 /// to user private data, unlike the [Client Credentials
-/// Flow](crate::ClientCredentialsSpotify) client. See [`BaseClient`] and
+/// Flow](crate::ClientCredsSpotify) client. See [`BaseClient`] and
 /// [`OAuthClient`] for the available endpoints.
 ///
 /// If you're developing a CLI application, you might be interested in the `cli`
