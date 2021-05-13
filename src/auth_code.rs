@@ -11,21 +11,57 @@ use std::collections::HashMap;
 use maybe_async::maybe_async;
 use url::Url;
 
-/// The [Authorization Code Flow with Proof Key for Code Exchange
-/// (PKCE)](reference) client for the Spotify API.
+/// The [Authorization Code Flow](reference) client for the Spotify API.
 ///
-/// This flow is very similar to the regular Authorization Code Flow, so please
-/// read [`CodeAuthSpotify`](crate::CodeAuthSpotify) for more information about
-/// it. The main difference in this case is that you can avoid storing your
-/// client secret by generating a *code verifier* and a *code challenge*.
+/// This includes user authorization, and thus has access to endpoints related
+/// to user private data, unlike the [Client Credentials
+/// Flow](crate::ClientCredentialsSpotify) client. See [`BaseClient`] and
+/// [`OAuthClient`] for the available endpoints.
 ///
-/// There's an [example](example-main) available to learn how to use this
-/// client.
+/// If you're developing a CLI application, you might be interested in the `cli`
+/// feature. This brings the [`Self::prompt_for_token`] utility to automatically
+/// follow the flow steps via user interaction.
 ///
-/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
-/// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/code_auth.rs
+/// Otherwise, these are the steps to be followed to authenticate your app:
+///
+/// 0. Generate a request URL with [`Self::get_authorize_url`].
+/// 1. The user logs in with the request URL. They will be redirected to the
+///    given redirect URI, including a code in the URL parameters. This happens
+///    on your side.
+/// 2. The code obtained in the previous step is parsed with
+///    [`Self::parse_response_code`].
+/// 3. The code is sent to Spotify in order to obtain an access token with
+///    [`Self::request_token`].
+/// 4. Finally, this access token can be used internally for the requests.
+///    It may expire relatively soon, so it can be refreshed with the refresh
+///    token (obtained in the previous step as well) using
+///    [`Self::refresh_token`]. Otherwise, a new access token may be generated
+///    from scratch by repeating these steps, but the advantage of refreshing it
+///    is that this doesn't require the user to log in, and that it's a simpler
+///    procedure.
+///
+///    See [this related example](example-refresh-token) to learn more about
+///    refreshing tokens.
+///
+/// There's a [webapp example](example-webapp) for more details on how you can
+/// implement it for something like a web server, or [this one](example-main)
+/// for a CLI use case.
+///
+/// An example of the CLI authentication:
+///
+/// ![demo](https://raw.githubusercontent.com/ramsayleung/rspotify/master/doc/images/rspotify.gif)
+///
+/// Note: even if your script does not have an accessible URL, you will have to
+/// specify a redirect URI. It doesn't need to work, you can use
+/// `http://localhost:8888/callback` for example, which will also have the code
+/// appended like so: `http://localhost/?code=...`.
+///
+/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+/// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code.rs
+/// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
+/// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs
 #[derive(Clone, Debug, Default)]
-pub struct CodeAuthPkceSpotify {
+pub struct CodeAuthSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
@@ -34,7 +70,8 @@ pub struct CodeAuthPkceSpotify {
 }
 
 /// This client has access to the base methods.
-impl BaseClient for CodeAuthPkceSpotify {
+#[maybe_async(?Send)]
+impl BaseClient for CodeAuthSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
@@ -59,13 +96,14 @@ impl BaseClient for CodeAuthPkceSpotify {
 /// This client includes user authorization, so it has access to the user
 /// private endpoints in [`OAuthClient`].
 #[maybe_async(?Send)]
-impl OAuthClient for CodeAuthPkceSpotify {
+impl OAuthClient for CodeAuthSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
     }
 
+    /// Obtains a user access token given a code, as part of the OAuth
+    /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
-        // TODO
         let mut data = Form::new();
         let oauth = self.get_oauth();
         let scopes = oauth
@@ -86,8 +124,10 @@ impl OAuthClient for CodeAuthPkceSpotify {
         self.write_token_cache()
     }
 
+    /// Refreshes the current access token given a refresh token.
+    ///
+    /// The obtained token will be saved internally.
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        // TODO
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
@@ -100,22 +140,22 @@ impl OAuthClient for CodeAuthPkceSpotify {
     }
 }
 
-impl CodeAuthPkceSpotify {
-    /// Builds a new [`CodeAuthPkceSpotify`] given a pair of client credentials
-    /// and OAuth information.
+impl CodeAuthSpotify {
+    /// Builds a new [`CodeAuthSpotify`] given a pair of client credentials and
+    /// OAuth information.
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        CodeAuthPkceSpotify {
+        CodeAuthSpotify {
             creds,
             oauth,
             ..Default::default()
         }
     }
 
-    /// Build a new [`CodeAuthPkceSpotify`] from an already generated token.
-    /// Note that once the token expires this will fail to make requests, as the
+    /// Build a new [`CodeAuthSpotify`] from an already generated token. Note
+    /// that once the token expires this will fail to make requests, as the
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
-        CodeAuthPkceSpotify {
+        CodeAuthSpotify {
             token: Some(token),
             ..Default::default()
         }
@@ -124,7 +164,7 @@ impl CodeAuthPkceSpotify {
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        CodeAuthPkceSpotify {
+        CodeAuthSpotify {
             creds,
             oauth,
             config,
@@ -134,8 +174,7 @@ impl CodeAuthPkceSpotify {
 
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
-    pub fn get_authorize_url(&self) -> ClientResult<String> {
-        // TODO
+    pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
         let scope = oauth
@@ -149,8 +188,10 @@ impl CodeAuthPkceSpotify {
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
         payload.insert(headers::SCOPE, &scope);
         payload.insert(headers::STATE, &oauth.state);
-        // payload.insert(headers::CODE_CHALLENGE, todo!());
-        // payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");
+
+        if show_dialog {
+            payload.insert(headers::SHOW_DIALOG, "true");
+        }
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
         Ok(parsed.into())

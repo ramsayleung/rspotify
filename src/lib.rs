@@ -123,8 +123,8 @@
 //! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow
 
 pub mod client_creds;
-pub mod code_auth;
-pub mod code_auth_pkce;
+pub mod auth_code;
+pub mod auth_code_pkce;
 pub mod endpoints;
 
 // Subcrate re-exports
@@ -133,8 +133,8 @@ pub use rspotify_macros as macros;
 pub use rspotify_model as model;
 // Top-level re-exports
 pub use client_creds::ClientCredentialsSpotify;
-pub use code_auth::CodeAuthSpotify;
-pub use code_auth_pkce::CodeAuthPkceSpotify;
+pub use auth_code::CodeAuthSpotify;
+pub use auth_code_pkce::CodeAuthPkceSpotify;
 pub use macros::scopes;
 
 use std::{

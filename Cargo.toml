@@ -94,14 +94,14 @@ required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/client_credentials.rs"
 
 [[example]]
-name = "code_auth"
+name = "auth_code"
 required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/code_auth.rs"
+path = "examples/auth_code.rs"
 
 [[example]]
-name = "code_auth_pkce"
+name = "auth_code_pkce"
 required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/code_auth_pkce.rs"
+path = "examples/auth_code_pkce.rs"
 
 [[example]]
 name = "oauth_tokens"
