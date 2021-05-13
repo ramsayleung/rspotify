@@ -1,7 +1,10 @@
 [package]
 name = "rspotify-model"
 version = "0.10.0"
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
 license = "MIT"
 readme = "README.md"
 description = "Model for Rspotify"

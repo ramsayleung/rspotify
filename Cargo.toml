@@ -1,5 +1,8 @@
 [package]
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
 name = "rspotify"
 version = "0.10.0"
 license = "MIT"

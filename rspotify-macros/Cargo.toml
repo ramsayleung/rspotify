@@ -1,6 +1,9 @@
 [package]
 name = "rspotify-macros"
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
