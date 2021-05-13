@@ -91,7 +91,7 @@
 //!   [`ClientCredentialsSpotify`].
 //! * [Authorization Code Flow](spotify-auth-code): see [`AuthCodeSpotify`].
 //! * [Authorization Code Flow with Proof Key for Code Exchange
-//!   (PKCE)](spotify-auth-code-pkce): see [`CodeAuthPkceSpotify`].
+//!   (PKCE)](spotify-auth-code-pkce): see [`AuthCodePkceSpotify`].
 //! * [Implicit Grant Flow](spotify-implicit-grant): unimplemented, as Rspotify
 //!   has not been tested on a browser yet. If you'd like support for it, let us
 //!   know in an issue!
@@ -134,7 +134,7 @@ pub use rspotify_model as model;
 // Top-level re-exports
 pub use client_creds::ClientCredentialsSpotify;
 pub use auth_code::AuthCodeSpotify;
-pub use auth_code_pkce::CodeAuthPkceSpotify;
+pub use auth_code_pkce::AuthCodePkceSpotify;
 pub use macros::scopes;
 
 use std::{

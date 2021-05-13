@@ -1,4 +1,4 @@
-use rspotify::{prelude::*, scopes, CodeAuthPkceSpotify, Credentials, OAuth};
+use rspotify::{prelude::*, scopes, AuthCodePkceSpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {
@@ -34,7 +34,7 @@ async fn main() {
     // ```
     let oauth = OAuth::from_env(scopes!("user-read-recently-played")).unwrap();
 
-    let mut spotify = CodeAuthPkceSpotify::new(creds, oauth);
+    let mut spotify = AuthCodePkceSpotify::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url().unwrap();

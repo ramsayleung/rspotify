@@ -25,7 +25,7 @@ use url::Url;
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code_pkce.rs
 #[derive(Clone, Debug, Default)]
-pub struct CodeAuthPkceSpotify {
+pub struct AuthCodePkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
@@ -34,7 +34,7 @@ pub struct CodeAuthPkceSpotify {
 }
 
 /// This client has access to the base methods.
-impl BaseClient for CodeAuthPkceSpotify {
+impl BaseClient for AuthCodePkceSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
@@ -59,7 +59,7 @@ impl BaseClient for CodeAuthPkceSpotify {
 /// This client includes user authorization, so it has access to the user
 /// private endpoints in [`OAuthClient`].
 #[maybe_async(?Send)]
-impl OAuthClient for CodeAuthPkceSpotify {
+impl OAuthClient for AuthCodePkceSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
     }
@@ -100,22 +100,22 @@ impl OAuthClient for CodeAuthPkceSpotify {
     }
 }
 
-impl CodeAuthPkceSpotify {
-    /// Builds a new [`CodeAuthPkceSpotify`] given a pair of client credentials
+impl AuthCodePkceSpotify {
+    /// Builds a new [`AuthCodePkceSpotify`] given a pair of client credentials
     /// and OAuth information.
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        CodeAuthPkceSpotify {
+        AuthCodePkceSpotify {
             creds,
             oauth,
             ..Default::default()
         }
     }
 
-    /// Build a new [`CodeAuthPkceSpotify`] from an already generated token.
+    /// Build a new [`AuthCodePkceSpotify`] from an already generated token.
     /// Note that once the token expires this will fail to make requests, as the
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
-        CodeAuthPkceSpotify {
+        AuthCodePkceSpotify {
             token: Some(token),
             ..Default::default()
         }
@@ -124,7 +124,7 @@ impl CodeAuthPkceSpotify {
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        CodeAuthPkceSpotify {
+        AuthCodePkceSpotify {
             creds,
             oauth,
             config,
