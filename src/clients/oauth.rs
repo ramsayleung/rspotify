@@ -1,5 +1,5 @@
 use crate::{
-    endpoints::{
+    clients::{
         append_device_id, convert_result, join_ids,
         pagination::{paginate, Paginator},
         BaseClient,
@@ -22,9 +22,9 @@ use url::Url;
 /// authorization, including some parts of the authentication flow that are
 /// shared, and the endpoints.
 ///
-/// Note that the base trait [`BaseClient`](crate::endpoints::BaseClient) may
+/// Note that the base trait [`BaseClient`](crate::clients::BaseClient) may
 /// have endpoints that conditionally require authorization like
-/// [`user_playlist`](crate::endpoints::BaseClient::user_playlist). This trait
+/// [`user_playlist`](crate::clients::BaseClient::user_playlist). This trait
 /// only separates endpoints that *always* need authorization from the base
 /// ones.
 #[maybe_async(?Send)]

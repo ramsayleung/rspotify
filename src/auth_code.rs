@@ -1,6 +1,6 @@
 use crate::{
     auth_urls,
-    endpoints::{BaseClient, OAuthClient},
+    clients::{BaseClient, OAuthClient},
     headers,
     http::{Form, HttpClient},
     ClientResult, Config, Credentials, OAuth, Token,

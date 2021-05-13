@@ -1,6 +1,6 @@
 use crate::{
     auth_urls,
-    endpoints::{
+    clients::{
         basic_auth, bearer_auth, convert_result, join_ids,
         pagination::{paginate, Paginator},
     },

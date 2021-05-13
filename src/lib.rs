@@ -83,8 +83,8 @@
 //!
 //! Rspotify has a different client for each of the available authentication
 //! flows. They may implement the endpoints in
-//! [`BaseClient`](crate::endpoints::BaseClient) or
-//! [`OAuthClient`](crate::endpoints::OAuthClient) according to what kind of
+//! [`BaseClient`](crate::clients::BaseClient) or
+//! [`OAuthClient`](crate::clients::OAuthClient) according to what kind of
 //! flow it is. Please refer to their documentation for more details:
 //!
 //! * [Client Credentials Flow](spotify-client-creds): see
@@ -125,7 +125,7 @@
 pub mod client_creds;
 pub mod auth_code;
 pub mod auth_code_pkce;
-pub mod endpoints;
+pub mod clients;
 
 // Subcrate re-exports
 pub use rspotify_http as http;
@@ -151,7 +151,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod prelude {
-    pub use crate::endpoints::{BaseClient, OAuthClient};
+    pub use crate::clients::{BaseClient, OAuthClient};
 }
 
 pub(in crate) mod headers {
@@ -219,7 +219,7 @@ pub struct Config {
     pub cache_path: PathBuf,
 
     /// The pagination chunk size used when performing automatically paginated
-    /// requests, like [`artist_albums`](crate::endpoints::BaseClient). This
+    /// requests, like [`artist_albums`](crate::clients::BaseClient). This
     /// means that a request will be performed every `pagination_chunks` items.
     /// By default this is [`DEFAULT_PAGINATION_CHUNKS`].
     ///

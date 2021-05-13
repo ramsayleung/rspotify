@@ -1,5 +1,5 @@
 use crate::{
-    endpoints::BaseClient,
+    clients::BaseClient,
     headers,
     http::{Form, HttpClient},
     ClientResult, Config, Credentials, Token,
@@ -15,7 +15,7 @@ use maybe_async::maybe_async;
 ///
 /// Note: This flow does not include authorization and therefore cannot be used
 /// to access or to manage the endpoints related to user private data in
-/// [`OAuthClient`](crate::endpoints::OAuthClient).
+/// [`OAuthClient`](crate::clients::OAuthClient).
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs
