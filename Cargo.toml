@@ -89,9 +89,9 @@ __sync = ["maybe-async/is_sync"]
 features = ["cli"]
 
 [[example]]
-name = "client_credentials"
+name = "client_creds"
 required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/client_credentials.rs"
+path = "examples/client_creds.rs"
 
 [[example]]
 name = "auth_code"
