@@ -82,7 +82,7 @@ ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
 
 # Internal features for checking async or sync compilation
 __async = ["futures", "async-stream", "async-trait"]
-__sync = []
+__sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
 # Also documenting the CLI methods
