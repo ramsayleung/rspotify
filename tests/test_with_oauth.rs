@@ -14,9 +14,6 @@
 //! (these tokens must have been generated for all available scopes, see
 //! the `oauth_tokens` example).
 
-mod common;
-
-use common::maybe_async_test;
 use rspotify::{
     model::{
         Country, EpisodeId, Id, Market, Offset, RepeatState, SearchType, ShowId, TimeRange,
@@ -87,8 +84,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
     }
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_categories() {
     oauth_client()
@@ -103,8 +99,7 @@ async fn test_categories() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_category_playlists() {
     oauth_client()
@@ -119,8 +114,7 @@ async fn test_category_playlists() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_playback() {
     oauth_client()
@@ -130,8 +124,7 @@ async fn test_current_playback() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_playing() {
     oauth_client()
@@ -141,8 +134,7 @@ async fn test_current_playing() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_followed_artists() {
     oauth_client()
@@ -152,8 +144,7 @@ async fn test_current_user_followed_artists() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_playing_track() {
     oauth_client()
@@ -163,8 +154,7 @@ async fn test_current_user_playing_track() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_playlists() {
     oauth_client()
@@ -174,8 +164,7 @@ async fn test_current_user_playlists() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_recently_played() {
     oauth_client()
@@ -185,8 +174,7 @@ async fn test_current_user_recently_played() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_albums_add() {
     let mut album_ids = vec![];
@@ -201,8 +189,7 @@ async fn test_current_user_saved_albums_add() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_albums_delete() {
     let mut album_ids = vec![];
@@ -217,8 +204,7 @@ async fn test_current_user_saved_albums_delete() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_albums() {
     oauth_client()
@@ -228,8 +214,7 @@ async fn test_current_user_saved_albums() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_tracks_add() {
     let mut tracks_ids = vec![];
@@ -244,8 +229,7 @@ async fn test_current_user_saved_tracks_add() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_tracks_contains() {
     let mut tracks_ids = vec![];
@@ -260,8 +244,7 @@ async fn test_current_user_saved_tracks_contains() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_tracks_delete() {
     let mut tracks_ids = vec![];
@@ -276,8 +259,7 @@ async fn test_current_user_saved_tracks_delete() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_tracks() {
     oauth_client()
@@ -287,8 +269,7 @@ async fn test_current_user_saved_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_top_artists() {
     oauth_client()
@@ -298,8 +279,7 @@ async fn test_current_user_top_artists() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_top_tracks() {
     oauth_client()
@@ -309,15 +289,13 @@ async fn test_current_user_top_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_device() {
     oauth_client().await.device().await.unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_featured_playlists() {
     let now: DateTime<Utc> = Utc::now();
@@ -328,15 +306,13 @@ async fn test_featured_playlists() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_me() {
     oauth_client().await.me().await.unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_new_releases() {
     oauth_client()
@@ -346,8 +322,7 @@ async fn test_new_releases() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_new_releases_with_from_token() {
     oauth_client()
@@ -357,8 +332,7 @@ async fn test_new_releases_with_from_token() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_next_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
@@ -369,8 +343,7 @@ async fn test_next_playback() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_pause_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
@@ -381,8 +354,7 @@ async fn test_pause_playback() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_previous_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
@@ -393,8 +365,7 @@ async fn test_previous_playback() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_recommendations() {
     let mut payload = Map::new();
@@ -416,8 +387,7 @@ async fn test_recommendations() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_repeat() {
     oauth_client()
@@ -427,8 +397,7 @@ async fn test_repeat() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_search_album() {
     let query = "album:arrival artist:abba";
@@ -439,8 +408,7 @@ async fn test_search_album() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_search_artist() {
     let query = "tania bowra";
@@ -458,8 +426,7 @@ async fn test_search_artist() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_search_playlist() {
     let query = "\"doom metal\"";
@@ -477,8 +444,7 @@ async fn test_search_playlist() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_search_track() {
     let query = "abba";
@@ -496,22 +462,19 @@ async fn test_search_track() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_seek_track() {
     oauth_client().await.seek_track(25000, None).await.unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_shuffle() {
     oauth_client().await.shuffle(true, None).await.unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_start_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
@@ -523,8 +486,7 @@ async fn test_start_playback() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_transfer_playback() {
     let device_id = "74ASZWbe4lXaubB36ztrGX";
@@ -535,8 +497,7 @@ async fn test_transfer_playback() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_follow_artist() {
     let mut artists = vec![];
@@ -551,8 +512,7 @@ async fn test_user_follow_artist() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_unfollow_artist() {
     let mut artists = vec![];
@@ -567,8 +527,7 @@ async fn test_user_unfollow_artist() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_follow_users() {
     let mut users = vec![];
@@ -577,8 +536,7 @@ async fn test_user_follow_users() {
     oauth_client().await.user_follow_users(users).await.unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_unfollow_users() {
     let mut users = vec![];
@@ -591,8 +549,7 @@ async fn test_user_unfollow_users() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_add_tracks() {
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
@@ -608,8 +565,7 @@ async fn test_playlist_add_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_change_detail() {
     let playlist_id = "5jAOgWXCBKuinsGiZxjDQ5";
@@ -621,8 +577,7 @@ async fn test_playlist_change_detail() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_check_follow() {
     let playlist_id = Id::from_id("2v3iNvBX8Ay1Gt2uXtUKUT").unwrap();
@@ -638,8 +593,7 @@ async fn test_playlist_check_follow() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_playlist_create() {
     let user_id = Id::from_id("2257tjys2e2u2ygfke42niy2q").unwrap();
@@ -651,8 +605,7 @@ async fn test_user_playlist_create() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_follow_playlist() {
     let playlist_id = Id::from_id("2v3iNvBX8Ay1Gt2uXtUKUT").unwrap();
@@ -663,8 +616,7 @@ async fn test_playlist_follow_playlist() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_recorder_tracks() {
     let uris = Some(vec![EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()]);
@@ -686,8 +638,7 @@ async fn test_playlist_recorder_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_remove_all_occurrences_of_tracks() {
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
@@ -703,8 +654,7 @@ async fn test_playlist_remove_all_occurrences_of_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_remove_specific_occurrences_of_tracks() {
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
@@ -724,8 +674,7 @@ async fn test_playlist_remove_specific_occurrences_of_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_replace_tracks() {
     let playlist_id = Id::from_id("5jAOgWXCBKuinsGiZxjDQ5").unwrap();
@@ -741,8 +690,7 @@ async fn test_playlist_replace_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_playlist() {
     let user_id = Id::from_id("spotify").unwrap();
@@ -754,8 +702,7 @@ async fn test_user_playlist() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_user_playlists() {
     let user_id = Id::from_id("2257tjys2e2u2ygfke42niy2q").unwrap();
@@ -766,8 +713,7 @@ async fn test_user_playlists() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_tracks() {
     let playlist_id = Id::from_uri("spotify:playlist:59ZbFPES4DQwEjBpWHzrtC").unwrap();
@@ -778,8 +724,7 @@ async fn test_playlist_tracks() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_playlist_unfollow() {
     let playlist_id = "65V6djkcVRyOStLd8nza8E";
@@ -790,15 +735,13 @@ async fn test_playlist_unfollow() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_volume() {
     oauth_client().await.volume(78, None).await.unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_add_queue() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
@@ -809,8 +752,7 @@ async fn test_add_queue() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_get_several_shows() {
     oauth_client()
@@ -826,8 +768,7 @@ async fn test_get_several_shows() {
         .unwrap();
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_get_several_episodes() {
     oauth_client()

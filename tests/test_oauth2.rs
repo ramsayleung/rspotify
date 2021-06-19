@@ -1,15 +1,10 @@
-mod common;
-
 use chrono::prelude::*;
 use chrono::Duration;
-use maybe_async::maybe_async;
 use rspotify::{
     prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token,
 };
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
 use url::Url;
-
-use common::maybe_async_test;
 
 #[test]
 fn test_get_authorize_url() {
@@ -37,8 +32,7 @@ fn test_get_authorize_url() {
     assert_eq!(hash_query.get("state").unwrap(), "fdsafdsfa");
 }
 
-#[maybe_async]
-#[maybe_async_test]
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_read_token_cache() {
     let now = Utc::now();
     let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
