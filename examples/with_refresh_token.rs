@@ -15,14 +15,11 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify::client::{Spotify, SpotifyBuilder};
-use rspotify::model::Id;
-use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scopes;
+use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
-async fn do_things(spotify: Spotify) {
+async fn do_things(spotify: AuthCodeSpotify) {
     let artists = vec![
         Id::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
         Id::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
@@ -57,20 +54,16 @@ async fn main() {
     env_logger::init();
 
     // The default credentials from the `.env` file will be used by default.
-    let creds = CredentialsBuilder::from_env().build().unwrap();
-    let scope = scopes!("user-follow-read user-follow-modify");
-    let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds.clone())
-        .oauth(oauth.clone())
-        .build()
-        .unwrap();
+    let creds = Credentials::from_env().unwrap();
+    let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
+    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
 
     // In the first session of the application we authenticate and obtain the
     // refresh token. We can also do some requests here.
     println!(">>> Session one, obtaining refresh token and running some requests:");
+    let url = spotify.get_authorize_url(false).unwrap();
     spotify
-        .prompt_for_user_token_without_cache()
+        .prompt_for_token(&url)
         .await
         .expect("couldn't authenticate successfully");
     let refresh_token = spotify
@@ -86,14 +79,10 @@ async fn main() {
     // At a different time, the refresh token can be used to refresh an access
     // token directly and run requests:
     println!(">>> Session two, running some requests:");
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds.clone())
-        .oauth(oauth.clone())
-        .build()
-        .unwrap();
+    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     // No `prompt_for_user_token_without_cache` needed.
     spotify
-        .refresh_user_token(&refresh_token)
+        .refresh_token(&refresh_token)
         .await
         .expect("couldn't refresh user token");
     do_things(spotify).await;
@@ -101,13 +90,9 @@ async fn main() {
     // This process can now be repeated multiple times by using only the
     // refresh token that was obtained at the beginning.
     println!(">>> Session three, running some requests:");
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds.clone())
-        .oauth(oauth.clone())
-        .build()
-        .unwrap();
+    let mut spotify = AuthCodeSpotify::new(creds, oauth);
     spotify
-        .refresh_user_token(&refresh_token)
+        .refresh_token(&refresh_token)
         .await
         .expect("couldn't refresh user token");
     do_things(spotify).await;
