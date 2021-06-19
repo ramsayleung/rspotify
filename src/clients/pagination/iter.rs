@@ -1,14 +1,15 @@
 //! Synchronous implementation of automatic pagination requests.
 
-use crate::client::{ClientError, ClientResult};
-use crate::model::Page;
+use crate::{model::Page, ClientError, ClientResult};
 
 /// Alias for `Iterator<Item = T>`, since sync mode is enabled.
-pub trait Paginator<T>: Iterator<Item = T> {}
-impl<T, I: Iterator<Item = T>> Paginator<T> for I {}
+pub type Paginator<'a, T> = Box<dyn Iterator<Item = T> + 'a>;
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<T, Request>(req: Request, page_size: u32) -> impl Iterator<Item = ClientResult<T>>
+pub fn paginate<'a, T: 'a, Request: 'a>(
+    req: Request,
+    page_size: u32,
+) -> Paginator<'a, ClientResult<T>>
 where
     Request: Fn(u32, u32) -> ClientResult<Page<T>>,
 {
@@ -19,7 +20,7 @@ where
         page_size,
     };
 
-    pages.flat_map(|result| ResultIter::new(result.map(|page| page.items.into_iter())))
+    Box::new(pages.flat_map(|result| ResultIter::new(result.map(|page| page.items.into_iter()))))
 }
 
 /// Iterator that repeatedly calls a function that returns a page until an empty
