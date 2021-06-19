@@ -1,7 +1,93 @@
 ## 0.11 (unreleased)
-This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and no more versions like this should happen again. Lots of internal code was rewritten to make Rspotify more flexible, performant and easier to use. Sorry for the inconvenience!
+
+This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and this shouldn't happen again. From now on we'll work on getting closer to the first stable release. Lots of internal code was rewritten to make Rspotify more flexible, performant and easier to use. Sorry for the inconvenience!
 
 If we missed any change or there's something you'd like to discuss about this version, please open a new issue and let us know.
+
+### Upgrade guide
+
+This guide should make it easier to upgrade your code, rather than checking out the changelog line by line. The most important changes are:
+
+* Support for **multiple HTTP clients**. Instead of using `rspotify::blocking` for synchronous access, you just need to configure the `ureq-client` feature and its TLS (learn more in the docs).
+* No need for the builder pattern anymore: `Spotify` has been split up into **multiple clients depending on the authentication process** you want to follow. This means that you'll be required to `use rspotify::prelude::*` in order to access the traits with the endpoints.
+    * [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow): see `ClientCredsSpotify`.
+    * [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow): see `AuthCodeSpotify`.
+    * [Authorization Code Flow with Proof Key for Code Exchange (PKCE)](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce): see `AuthCodePkceSpotify`. This is new! You might be interested in using PKCE for your app.
+    * [Implicit Grant Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow): unimplemented, as Rspotify has not been tested on a browser yet. If you'd like support for it, let us know in an issue!
+* There's now support for (both sync and async) **automatic pagination** as well! Make sure you upgrade to these after checking out the [`pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_async.rs) and [`pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_sync.rs) examples. You can use the `_manual`-suffixed endpoints for the previous pagination style.
+* We've **renamed** a few structs and endpoints. The new names are quite similar, so the Rust compiler should suggest you what to change after an error. The only one you might not notice is the **environmental variables**: they're now `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid collisions with other libraries.
+* We always use **`Option<T>`** for optional parameters now. This means that you might have to add `Some(...)` to some of your parameters. We were using both `Into<Option<T>>` and `Option<T>` but decided that either of these would be best as long as it's *consistent*. `Option<T>` has less magic, so we went for that one.
+* The core library has been split up with **features**. If you need `dotenv` just activate `env-file`, and if you need CLI functionality (`prompt_for_token` and similars), activate `cli`.
+* We use **custom errors** now instead of the `failure` crate.
+
+Now to a quick example: here's how you *used to* query the current user saved tracks:
+
+```rust
+extern crate rspotify;
+
+use rspotify::blocking::client::Spotify;
+use rspotify::blocking::oauth2::{SpotifyClientCredentials, SpotifyOAuth};
+use rspotify::blocking::util::get_token;
+
+fn main() {
+    let mut oauth = SpotifyOAuth::default().scope("user-library-read").build(); // Turns out this reads from the environment variables!
+    let token_info = get_token(&mut oauth).unwrap(); // How does it get the token? Why is it not in the client if it makes a request?
+
+    let client_credential = SpotifyClientCredentials::default() // This also accesses the environment variables with no warning.
+        .token_info(token_info)
+        .build(); // So verbose...
+
+    let spotify = Spotify::default() // So verbose and easy to mess up... What auth flow is this again?
+        .client_credentials_manager(client_credential)
+        .build();
+    let tracks = spotify.current_user_saved_tracks(10, 0); // Iterating is hard
+    println!("{:?}", tracks);
+}
+```
+
+And here's how you do it now:
+
+```rust
+use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+
+fn main() {
+    let oauth = OAuth::from_env(scopes!("user-library-read")).unwrap(); // Concise & explicit with `from_env`
+    let creds = Credentials::from_env().unwrap(); // Same, concise & explicit
+
+    let mut spotify = AuthCodeSpotify::new(creds, oauth); // Simpler initialization
+
+    let url = spotify.get_authorize_url(false).unwrap(); // More flexible, lets us implement PKCE
+    spotify.prompt_for_token(&url).unwrap(); // Explicit: the token is obtained by interacting with the user
+
+    let stream = spotify.current_user_saved_tracks();
+    println!("Items:");
+    for item in stream { // Easy iteration instead of manual pagination
+        println!("* {}", item.unwrap().track.name);
+    }
+}
+```
+
+Hopefully this will convince you that the new breaking changes are good; you'll find the new interface easier to read, more intuitive and less error prone.
+
+Here are a few examples of upgrades:
+
+| Name                                         | Old                                                                                                                                  | New                                                                                           |
+|----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [Sync] device                                | [`examples/blocking/device.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/blocking/device.rs)                    | [`examples/ureq/device.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/ureq/device.rs)       |
+| [Sync] me                                    | [`examples/blocking/me.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/blocking/me.rs)                        | [`examples/ureq/me.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/ureq/me.rs)           |
+| [Sync] search                                | [`examples/blocking/search_track.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/blocking/search_track.rs)              | [`examples/ureq/search.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/ureq/search.rs)       |
+| [Sync] seek_track                            | [`examples/blocking/seek_track.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/blocking/seek_track.rs)                | [`examples/ureq/seek_track.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/ureq/seek_track.rs)   |
+| [Sync] current_user_saved_tracks             | [`examples/blocking/current_user_saved_tracks.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/blocking/current_user_saved_tracks.rs) | [`examples/pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/pagination_sync.rs)   |
+| [Async] current_user_saved_tracks            | [`examples/current_user_saved_tracks.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/current_user_saved_tracks.rs)          | [`examples/pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/pagination_async.rs)  |
+| [Async] current_user_saved_tracks (manually) | [`examples/current_user_saved_tracks.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/current_user_saved_tracks.rs)          | [`examples/pagination_manual.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/pagination_manual.rs) |
+| [Async] current_playing                      | [`examples/current_playing.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/current_playing.rs)                    | [`examples/auth_code.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code.rs)         |
+| [Async] current_playback                     | [`examples/current_playback.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/current_playback.rs)                   | [`examples/auth_code_pkce.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code_pkce.rs)    |
+| [Async] album                                | [`examples/album.rs`](https://github.com/ramsayleung/rspotify/blob/22a995a061dffbce9f5069fd603e266d7ed3a252/examples/album.rs)                              | [`examples/client_creds.rs`](https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs)      |
+| [Async] webapp with Rocket                   | [`examples/webapp`](https://github.com/ramsayleung/rspotify/tree/4c1c3366630a8b2b37668a17878b746108c93fd0/examples/webapp)                                | [`examples/webapp`](https://github.com/ramsayleung/rspotify/tree/master/examples/webapp)               |
+
+More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/master/examples)!
+
+### Full changelog
 
 - Rewritten documentation in hopes that it's easier to get started with Rspotify.
 - Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
@@ -84,6 +170,7 @@ If we missed any change or there's something you'd like to discuss about this ve
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
 - Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 
 **Breaking changes:**
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Rspotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.
@@ -93,23 +180,10 @@ If we missed any change or there's something you'd like to discuss about this ve
 - `TokenBuilder` and `OAuthBuilder` will only read from environment variables when `from_env` is used, instead of `default`.
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
-- All fallible calls in the client return a `ClientResult` rather than using `failure`, which is equivalent to a `Result<T, ClientError>`.
-- A real builder pattern is used now. For example, `Token` is constructed now with `TokenBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
-- The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)). These are the main changes:
-    + `TokenInfo::get_cached_token` is now `TokenBuilder::from_cache` and `Spotify::read_token_cache` (using the internal cache path). Instead of panicking, the resulting `TokenBuilder` may be empty (and `build` will fail).
-    + `Spotify::save_token_info` is now `Token::write_cache` and `Spotify::write_token_cache`. The latter uses the client's set cache path for the write. These functions also now return `ClientResult` instead of panicking.
-    + `Spotify::is_token_expired` is now `Token::is_expired`.
-    + `SpotifyOAuth2::get_authorize_url` is now `Spotify::get_authorize_url`, and it returns `ClientResult<String>` instead of panicking.
-    + `SpotifyOAuth2::refresh_access_token[_without_cache]` are now `Spotify::refresh_user_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-    + `SpotifyOAuth2::request_client_token[_without_cache]` are now `Spotify::request_client_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-    + `SpotifyOAuth2::get_access_token[_without_cache]` are now `Spotify::request_user_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-    + `get_token[_without_cache]` is now `Spotify::prompt_for_user_token[_without_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-- CLI-exclusive functions and  are now optional under the `cli` feature:
-    + `Spotify::prompt_for_user_token[_without_cache]`
-    + The `ClientError::Cli` variant, for whenever user interaction goes wrong
+- The `Spotify` client has been split up by authorization flows (`ClientCredsSpotify`, `AuthCodeSpotify`, `AuthCodePkceSpotify`), which allows us to remove the builder pattern. The authentication process has been rewritten. ([#216](https://github.com/ramsayleung/rspotify/pull/216)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
-- ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
+- ([#123](https://github.com/ramsayleung/rspotify/pull/123)) All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
 	- `albums`
@@ -145,12 +219,11 @@ If we missed any change or there's something you'd like to discuss about this ve
   + `audio_analysis` -> `track_analysis`
   + `audio_features` -> `track_features`
   + `audios_features` -> `tracks_features`
-- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Split single `senum.rs` file into a separate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, and move `enums` module into `model` module, which should be part of the `model` module, check [enums mod.rs file](src/model/enums/mod.rs) for details.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
-   + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
+   + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `as_ref()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
-- ([#145](https://github.com/ramsayleung/rspotify/pull/145))Refactor models to make it easier to use:
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Refactor models to make it easier to use:
   + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
   + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
   + Change `copyrights` from `Vec<HashMap<String, String>>` to `Vec<Copyright>`
@@ -170,7 +243,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
   + Id and URI parameters are type-safe now everywhere, `Id<Type>` and `IdBuf<Type>` types for ids/URIs added (non-owning and owning structs).
-- ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
+- ([#157](https://github.com/ramsayleung/rspotify/pull/157)) Keep polishing models to make it easier to use:
   + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
   + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
   + Constrain visibility of `AudioFeaturesPayload` struct with `pub (in crate)`, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
@@ -202,7 +275,7 @@ If we missed any change or there's something you'd like to discuss about this ve
   + Change `OAuth.scope` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 - ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
-- ([#197](https://github.com/ramsayleung/rspotify/pull/197)) Makeing acronym lowercase
+- ([#197](https://github.com/ramsayleung/rspotify/pull/197)) Making acronyms lowercase:
   + Rename `ClientError::ParseJSON` to `ClientError::ParseJson`
   + Rename `ClientError::ParseURL` to `ClientError::ParseUrl`
   + Rename `ClientError::IO` to `ClientError::Io`

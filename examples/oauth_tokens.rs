@@ -5,9 +5,7 @@
 //! an .env file or export them manually as environmental variables for this to
 //! work.
 
-use rspotify::client::SpotifyBuilder;
-use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder};
-use rspotify::scopes;
+use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {
@@ -16,10 +14,10 @@ async fn main() {
 
     // The credentials must be available in the environment. Enable
     // `env-file` in order to read them from an `.env` file.
-    let creds = CredentialsBuilder::from_env().build().unwrap();
+    let creds = Credentials::from_env().unwrap();
 
     // Using every possible scope
-    let scope = scopes!(
+    let scopes = scopes!(
         "user-read-email",
         "user-read-private",
         "user-top-read",
@@ -38,15 +36,12 @@ async fn main() {
         "playlist-modify-private",
         "ugc-image-upload"
     );
-    let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
+    let oauth = OAuth::from_env(scopes).unwrap();
 
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds)
-        .oauth(oauth)
-        .build()
-        .unwrap();
+    let mut spotify = AuthCodeSpotify::new(creds, oauth);
 
-    spotify.prompt_for_user_token().await.unwrap();
+    let url = spotify.get_authorize_url(false).unwrap();
+    spotify.prompt_for_token(&url).await.unwrap();
 
     let token = spotify.token.as_ref().unwrap();
     println!("Access token: {}", &token.access_token);
