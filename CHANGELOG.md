@@ -170,6 +170,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
 - Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
+- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 
 **Breaking changes:**
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Rspotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.
@@ -179,20 +180,8 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - `TokenBuilder` and `OAuthBuilder` will only read from environment variables when `from_env` is used, instead of `default`.
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
-- A real builder pattern is used now. For example, `Token` is constructed now with `TokenBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
-- The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)). These are the main changes:
-    + `TokenInfo::get_cached_token` is now `TokenBuilder::from_cache` and `Spotify::read_token_cache` (using the internal cache path). Instead of panicking, the resulting `TokenBuilder` may be empty (and `build` will fail).
-    + `Spotify::save_token_info` is now `Token::write_cache` and `Spotify::write_token_cache`. The latter uses the client's set cache path for the write. These functions also now return `ClientResult` instead of panicking.
-    + `Spotify::is_token_expired` is now `Token::is_expired`.
-    + `SpotifyOAuth2::get_authorize_url` is now `Spotify::get_authorize_url`, and it returns `ClientResult<String>` instead of panicking.
-    + `SpotifyOAuth2::refresh_access_token[_without_cache]` are now `Spotify::refresh_user_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-    + `SpotifyOAuth2::request_client_token[_without_cache]` are now `Spotify::request_client_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-    + `SpotifyOAuth2::get_access_token[_without_cache]` are now `Spotify::request_user_token[_with_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-    + `get_token[_without_cache]` is now `Spotify::prompt_for_user_token[_without_cache]`. It returns `ClientResult<()>`, and the resulting token will be saved internally instead of returned.
-- CLI-exclusive functions and  are now optional under the `cli` feature:
-    + `Spotify::prompt_for_user_token[_without_cache]`
-    + The `ClientError::Cli` variant, for whenever user interaction goes wrong
+- The `Spotify` client has been split up by authorization flows (`ClientCredsSpotify`, `AuthCodeSpotify`, `AuthCodePkceSpotify`), which allows us to remove the builder pattern. The authentication process has been rewritten. ([#216](https://github.com/ramsayleung/rspotify/pull/216)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123)) All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
@@ -230,10 +219,9 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + `audio_analysis` -> `track_analysis`
   + `audio_features` -> `track_features`
   + `audios_features` -> `tracks_features`
-- ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Split single `senum.rs` file into a separate module named `enums` (which is more appropriate compared with `senum`) with three files `country.rs`, `types.rs`, `misc.rs`, and move `enums` module into `model` module, which should be part of the `model` module, check [enums mod.rs file](src/model/enums/mod.rs) for details.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
-   + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
+   + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `as_ref()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Refactor models to make it easier to use:
   + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
