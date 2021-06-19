@@ -17,15 +17,13 @@
 mod common;
 
 use common::maybe_async_test;
-use rspotify::model::offset::Offset;
-use rspotify::oauth2::{CredentialsBuilder, OAuthBuilder, TokenBuilder};
 use rspotify::{
-    client::{Spotify, SpotifyBuilder},
     model::{
-        Country, EpisodeId, Id, Market, RepeatState, SearchType, ShowId, TimeRange, TrackId,
-        TrackPositions,
+        Country, EpisodeId, Id, Market, Offset, RepeatState, SearchType, ShowId, TimeRange,
+        TrackId, TrackPositions,
     },
-    scopes,
+    prelude::*,
+    scopes, AuthCodeSpotify, Credentials, OAuth, Token,
 };
 
 use chrono::prelude::*;
@@ -35,18 +33,18 @@ use std::env;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
-pub async fn oauth_client() -> Spotify {
+pub async fn oauth_client() -> AuthCodeSpotify {
     if let Ok(access_token) = env::var("RSPOTIFY_ACCESS_TOKEN") {
-        let tok = TokenBuilder::default()
-            .access_token(access_token)
-            .build()
-            .unwrap();
+        let tok = Token {
+            access_token,
+            ..Default::default()
+        };
 
-        SpotifyBuilder::default().token(tok).build().unwrap()
+        AuthCodeSpotify::from_token(tok)
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
-        let creds = CredentialsBuilder::from_env().build().unwrap_or_else(|_| {
+        let creds = Credentials::from_env().unwrap_or_else(|| {
             panic!(
                 "No credentials configured. Make sure that either the \
                 `env-file` feature is enabled, or that the required \
@@ -75,16 +73,10 @@ pub async fn oauth_client() -> Spotify {
             "ugc-image-upload"
         );
         // Using every possible scope
-        let oauth = OAuthBuilder::from_env().scope(scope).build().unwrap();
+        let oauth = OAuth::from_env(scope).unwrap();
 
-        let mut spotify = SpotifyBuilder::default()
-            .credentials(creds)
-            .oauth(oauth)
-            .build()
-            .unwrap();
-
-        spotify.refresh_user_token(&refresh_token).await.unwrap();
-
+        let mut spotify = AuthCodeSpotify::new(creds, oauth);
+        spotify.refresh_token(&refresh_token).await.unwrap();
         spotify
     } else {
         panic!(
@@ -133,7 +125,7 @@ async fn test_category_playlists() {
 async fn test_current_playback() {
     oauth_client()
         .await
-        .current_playback::<&[_]>(None, None)
+        .current_playback(None, None::<&[_]>)
         .await
         .unwrap();
 }

@@ -1,19 +1,19 @@
 mod common;
 
 use common::maybe_async_test;
-use rspotify::oauth2::CredentialsBuilder;
 use rspotify::{
-    client::{Spotify, SpotifyBuilder},
     model::{AlbumType, Country, Id, Market},
+    prelude::*,
+    ClientCredsSpotify, Credentials,
 };
 
 use maybe_async::maybe_async;
 
 /// Generating a new basic client for the requests.
 #[maybe_async]
-pub async fn creds_client() -> Spotify {
+pub async fn creds_client() -> ClientCredsSpotify {
     // The credentials must be available in the environment.
-    let creds = CredentialsBuilder::from_env().build().unwrap_or_else(|_| {
+    let creds = Credentials::from_env().unwrap_or_else(|| {
         panic!(
             "No credentials configured. Make sure that either the `env-file` \
             feature is enabled, or that the required environment variables are \
@@ -21,13 +21,8 @@ pub async fn creds_client() -> Spotify {
         )
     });
 
-    let mut spotify = SpotifyBuilder::default()
-        .credentials(creds)
-        .build()
-        .unwrap();
-
-    spotify.request_client_token().await.unwrap();
-
+    let mut spotify = ClientCredsSpotify::new(creds);
+    spotify.request_token().await.unwrap();
     spotify
 }
 
@@ -208,7 +203,7 @@ mod test_pagination {
     #[test]
     fn test_pagination_sync() {
         let mut client = creds_client();
-        client.pagination_chunks = 2;
+        client.config.pagination_chunks = 2;
         let album = Id::from_uri(ALBUM).unwrap();
 
         let names = client
@@ -226,7 +221,7 @@ mod test_pagination {
         use futures_util::StreamExt;
 
         let mut client = creds_client().await;
-        client.pagination_chunks = 2;
+        client.config.pagination_chunks = 2;
         let album = Id::from_uri(ALBUM).unwrap();
 
         let names = client
