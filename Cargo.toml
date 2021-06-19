@@ -1,76 +1,41 @@
 [package]
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
-name = "rspotify"
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
+name = "rspotify-http"
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
-description = "Spotify API wrapper"
+description = "HTTP compatibility layer for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
 edition = "2018"
 
-[workspace]
-members = [
-    "rspotify-macros",
-    "rspotify-model"
-]
-exclude = [
-    "examples/webapp"
-]
-# For advanced features usage in the CLI, see:
-# https://doc.rust-lang.org/nightly/cargo/reference/features.html#resolver-version-2-command-line-flags
-resolver = "2"
-
 [dependencies]
-rspotify-macros = { path = "rspotify-macros", version = "0.10.0" }
-rspotify-model = { path = "rspotify-model", version = "0.10.0" }
+rspotify-model = { path = "../rspotify-model", version = "0.10.0" }
 
-### Client ###
-async-stream = { version = "0.3.0", optional = true }
-chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-derive_builder = "0.10.0"
-dotenv = { version = "0.15.0", optional = true }
-futures = { version = "0.3.8", optional = true }
-getrandom = "0.2.0"
-log = "0.4.11"
-maybe-async = "0.2.1"
-serde = { version = "1.0.115", features = ["derive"] }
-serde_json = "1.0.57"
-thiserror = "1.0.20"
-webbrowser = { version = "0.5.5", optional = true }
-
-### Auth ###
-# chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-# log = "0.4.11"
-# maybe-async = "0.2.1"
-# thiserror = "1.0.20"
-
-### HTTP ###
 # Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
 # `maybe_async`.
 async-trait = { version = "0.1.48", optional = true }
 base64 = "0.13.0"
-# log = "0.4.11"
-# maybe-async = "0.2.1"
+futures = { version = "0.3.8", optional = true }
+log = "0.4.11"
+maybe-async = "0.2.4"
 reqwest = { version = "0.11.0", default-features = false, features = ["json", "socks"], optional = true }
-# thiserror = "1.0.20"
+serde_json = "1.0.57"
+thiserror = "1.0.20"
 ureq = { version = "2.0", default-features = false, features = ["json", "cookies"], optional = true }
-url = "2.1.1"
+url = "2.2.2"
 
 [dev-dependencies]
 env_logger = "0.8.1"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
-futures-util = "0.3.8"
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]
 
-### Client ###
-cli = ["webbrowser"]
-env-file = ["dotenv"]
-
-### HTTP ###
 # Available clients. By default they don't include a TLS so that it can be
 # configured.
 client-ureq = ["ureq", "__sync"]
@@ -85,74 +50,5 @@ reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 ureq-rustls-tls = ["ureq/tls"]
 
 # Internal features for checking async or sync compilation
-__async = ["async-trait", "async-stream", "futures"]
+__async = ["async-trait", "futures"]
 __sync = ["maybe-async/is_sync"]
-
-[package.metadata.docs.rs]
-# Also documenting the CLI methods
-features = ["cli"]
-
-[[example]]
-name = "album"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/album.rs"
-
-[[example]]
-name = "current_user_recently_played"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/current_user_recently_played.rs"
-
-[[example]]
-name = "oauth_tokens"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/oauth_tokens.rs"
-
-[[example]]
-name = "track"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/track.rs"
-
-[[example]]
-name = "tracks"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/tracks.rs"
-
-[[example]]
-name = "with_refresh_token"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/with_refresh_token.rs"
-
-[[example]]
-name = "device"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/device.rs"
-
-[[example]]
-name = "me"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/me.rs"
-
-[[example]]
-name = "search"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/search.rs"
-            
-[[example]]
-name = "seek_track"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/seek_track.rs"
-
-[[example]]
-name = "pagination_manual"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/pagination_manual.rs"
-
-[[example]]
-name = "pagination_sync"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/pagination_sync.rs"
-
-[[example]]
-name = "pagination_async"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/pagination_async.rs"
