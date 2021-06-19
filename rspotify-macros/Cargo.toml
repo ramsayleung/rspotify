@@ -1,10 +1,13 @@
 [package]
 name = "rspotify-macros"
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
-description = "Spotify API wrapper"
+description = "Macros for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api", "rspotify"]
@@ -13,4 +16,3 @@ edition = "2018"
 [dev-dependencies]
 serde_json = "1.0.57"
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-rspotify = { path = "..", version = "0.10.0" }

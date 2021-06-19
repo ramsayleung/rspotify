@@ -1,26 +1,17 @@
-/// Create a [`HashSet`](std::collections::HashSet) from a list of `&str` (which
-/// will be converted to String internally), to easily create scopes for
-/// [`Token`](rspotify::oauth2::Token) or
-/// [`OAuthBuilder`](rspotify::oauth2::OAuthBuilder).
+/// Create a [`HashSet`](std::collections::HashSet) from a list of `&str` to
+/// easily create scopes for `Token` or `OAuth`.
 ///
 /// Example:
 ///
 /// ```
-/// use rspotify::oauth2::TokenBuilder;
-/// use rspotify::scopes;
+/// use rspotify_macros::scopes;
 /// use std::collections::HashSet;
-/// use chrono::prelude::*;
-/// use chrono::Duration;
 ///
-/// let scope = scopes!("playlist-read-private", "playlist-read-collaborative");
-/// let tok = TokenBuilder::default()
-///     .access_token("test-access_token")
-///     .expires_in(Duration::seconds(1))
-///     .expires_at(Utc::now())
-///     .scope(scope)
-///     .refresh_token("...")
-///     .build()
-///     .unwrap();
+/// let with_macro = scopes!("playlist-read-private", "playlist-read-collaborative");
+/// let mut manually = HashSet::new();
+/// manually.insert("playlist-read-private".to_owned());
+/// manually.insert("playlist-read-collaborative".to_owned());
+/// assert_eq!(with_macro, manually);
 /// ```
 #[macro_export]
 macro_rules! scopes {
@@ -139,7 +130,6 @@ macro_rules! build_json {
 #[cfg(test)]
 mod test {
     use crate::{build_json, build_map, scopes};
-    use rspotify::model::Market;
     use serde_json::{json, Map, Value};
     use std::collections::HashMap;
 
@@ -158,23 +148,25 @@ mod test {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
-        let market: Option<&Market> = None;
+        let market: Option<i32> = None;
 
+        let market_str = market.clone().map(|x| x.to_string());
         let with_macro = build_map! {
             // Mandatory (not an `Option<T>`)
             "id": id,
             // Can be used directly
             optional "artist": artist,
             // `Modality` needs to be converted to &str
-            optional "market": market.map(|x| x.as_ref()),
+            optional "market": market_str.as_deref(),
         };
 
         let mut manually = HashMap::<&str, &str>::with_capacity(3);
         manually.insert("id", id);
+        let market_str = market.map(|x| x.to_string());
         if let Some(val) = artist {
             manually.insert("artist", val);
         }
-        if let Some(val) = market.map(|x| x.as_ref()) {
+        if let Some(val) = market_str.as_deref() {
             manually.insert("market", val);
         }
 
@@ -186,12 +178,12 @@ mod test {
         // Passed as parameters, for example.
         let id = "Pink Lemonade";
         let artist = Some("The Wombats");
-        let market: Option<&Market> = None;
+        let market: Option<i32> = None;
 
         let with_macro = build_json! {
             "id": id,
             optional "artist": artist,
-            optional "market": market.map(|x| x.as_ref()),
+            optional "market": market.map(|x| x.to_string()),
         };
 
         let mut manually = Map::with_capacity(3);
@@ -199,7 +191,7 @@ mod test {
         if let Some(val) = artist.map(|x| json!(x)) {
             manually.insert("artist".to_string(), val);
         }
-        if let Some(val) = market.map(|x| x.as_ref()).map(|x| json!(x)) {
+        if let Some(val) = market.map(|x| x.to_string()).map(|x| json!(x)) {
             manually.insert("market".to_string(), val);
         }
 
