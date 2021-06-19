@@ -39,9 +39,6 @@ pub enum ClientError {
     #[error("status code {0}: {1}")]
     StatusCode(u16, String),
 
-    #[error("spotify error: {0}")]
-    Api(#[from] ApiError),
-
     #[error("json parse error: {0}")]
     ParseJson(#[from] serde_json::Error),
 
@@ -60,25 +57,6 @@ pub enum ClientError {
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
-
-/// Matches errors that are returned from the Spotfiy
-/// API as part of the JSON response object.
-#[derive(Debug, Error, Deserialize)]
-pub enum ApiError {
-    /// See [Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-errorobject)
-    #[error("{status}: {message}")]
-    #[serde(alias = "error")]
-    Regular { status: u16, message: String },
-
-    /// See [Play Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-playererrorobject)
-    #[error("{status} ({reason}): {message}")]
-    #[serde(alias = "error")]
-    Player {
-        status: u16,
-        message: String,
-        reason: String,
-    },
-}
 
 pub const DEFAULT_API_PREFIX: &str = "https://api.spotify.com/v1/";
 pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
