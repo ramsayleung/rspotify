@@ -14,8 +14,11 @@ This guide should make it easier to upgrade your code, rather than checking out 
     * [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow): see `AuthCodeSpotify`.
     * [Authorization Code Flow with Proof Key for Code Exchange (PKCE)](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce): see `AuthCodePkceSpotify`. This is new! You might be interested in using PKCE for your app.
     * [Implicit Grant Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow): unimplemented, as Rspotify has not been tested on a browser yet. If you'd like support for it, let us know in an issue!
-* There's now support for (both sync and async) **automatic pagination** as well! Make sure you upgrade to these after checking out the [`pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_async.rs) and [`pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_sync.rs) examples.
+* There's now support for (both sync and async) **automatic pagination** as well! Make sure you upgrade to these after checking out the [`pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_async.rs) and [`pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_sync.rs) examples. You can use the `_manual`-suffixed endpoints for the previous pagination style.
 * We've **renamed** a few structs and endpoints. The new names are quite similar, so the Rust compiler should suggest you what to change after an error. The only one you might not notice is the **environmental variables**: they're now `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid collisions with other libraries.
+* We always use **`Option<T>`** for optional parameters now. This means that you might have to add `Some(...)` to some of your parameters. We were using both `Into<Option<T>>` and `Option<T>` but decided that either of these would be best as long as it's *consistent*. `Option<T>` has less magic, so we went for that one.
+* The core library has been split up with **features**. If you need `dotenv` just activate `env-file`, and if you need CLI functionality (`prompt_for_token` and similars), activate `cli`.
+* We use **custom errors** now instead of the `failure` crate.
 
 Now to a quick example: here's how you *used to* query the current user saved tracks:
 
@@ -176,7 +179,6 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - `TokenBuilder` and `OAuthBuilder` will only read from environment variables when `from_env` is used, instead of `default`.
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
-- All fallible calls in the client return a `ClientResult` rather than using `failure`, which is equivalent to a `Result<T, ClientError>`.
 - A real builder pattern is used now. For example, `Token` is constructed now with `TokenBuilder::default().access_token("...").build().unwrap()`. This has been applied to `Spotify`, `OAuth`, `Token` and `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The authentication process has been completely rewritten in order to make it more performant and robust. Please read the docs to learn more about how that works now ([#129](https://github.com/ramsayleung/rspotify/pull/129)). These are the main changes:
@@ -192,7 +194,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `Spotify::prompt_for_user_token[_without_cache]`
     + The `ClientError::Cli` variant, for whenever user interaction goes wrong
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
-- ([#123](https://github.com/ramsayleung/rspotify/pull/123))All fallible calls in the client return a `ClientError` rather than using `failure`.
+- ([#123](https://github.com/ramsayleung/rspotify/pull/123)) All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
 	- `albums`
@@ -233,7 +235,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
    + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `to_string()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
-- ([#145](https://github.com/ramsayleung/rspotify/pull/145))Refactor models to make it easier to use:
+- ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Refactor models to make it easier to use:
   + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
   + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
   + Change `copyrights` from `Vec<HashMap<String, String>>` to `Vec<Copyright>`
@@ -253,7 +255,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
   + Id and URI parameters are type-safe now everywhere, `Id<Type>` and `IdBuf<Type>` types for ids/URIs added (non-owning and owning structs).
-- ([#157](https://github.com/ramsayleung/rspotify/pull/157))Keep polishing models to make it easier to use:
+- ([#157](https://github.com/ramsayleung/rspotify/pull/157)) Keep polishing models to make it easier to use:
   + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
   + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.
   + Constrain visibility of `AudioFeaturesPayload` struct with `pub (in crate)`, make `tracks_features` endpoints return a `Vec<AudioFeatures>` instead.
@@ -285,7 +287,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + Change `OAuth.scope` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 - ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
-- ([#197](https://github.com/ramsayleung/rspotify/pull/197)) Makeing acronym lowercase
+- ([#197](https://github.com/ramsayleung/rspotify/pull/197)) Making acronyms lowercase:
   + Rename `ClientError::ParseJSON` to `ClientError::ParseJson`
   + Rename `ClientError::ParseURL` to `ClientError::ParseUrl`
   + Rename `ClientError::IO` to `ClientError::Io`
