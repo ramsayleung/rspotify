@@ -227,7 +227,6 @@ pub struct Config {
     /// request, which most times is 50.
     pub pagination_chunks: u32,
 
-    /// TODO
     pub token_cached: bool,
 
     /// TODO
