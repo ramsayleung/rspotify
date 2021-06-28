@@ -281,7 +281,7 @@ mod duration_second {
     }
 }
 
-mod space_separated_scope {
+mod space_separated_scopes {
     use serde::{de, Deserialize, Serializer};
     use std::collections::HashSet;
 
@@ -289,16 +289,16 @@ mod space_separated_scope {
     where
         D: de::Deserializer<'de>,
     {
-        let scope: &str = Deserialize::deserialize(d)?;
-        Ok(scope.split_whitespace().map(|x| x.to_owned()).collect())
+        let scopes: &str = Deserialize::deserialize(d)?;
+        Ok(scopes.split_whitespace().map(|x| x.to_owned()).collect())
     }
 
-    pub(crate) fn serialize<S>(scope: &HashSet<String>, s: S) -> Result<S::Ok, S::Error>
+    pub(crate) fn serialize<S>(scopes: &HashSet<String>, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let scope = scope.clone().into_iter().collect::<Vec<_>>().join(" ");
-        s.serialize_str(&scope)
+        let scopes = scopes.clone().into_iter().collect::<Vec<_>>().join(" ");
+        s.serialize_str(&scopes)
     }
 }
 
@@ -320,8 +320,8 @@ pub struct Token {
     /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
     /// which have been granted for this `access_token`
     /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
-    #[serde(default, with = "space_separated_scope")]
-    pub scope: HashSet<String>,
+    #[serde(default, with = "space_separated_scopes")]
+    pub scopes: HashSet<String>,
 }
 
 impl Default for Token {
@@ -331,7 +331,7 @@ impl Default for Token {
             expires_in: Duration::seconds(0),
             expires_at: Some(Utc::now()),
             refresh_token: None,
-            scope: HashSet::new(),
+            scopes: HashSet::new(),
         }
     }
 }
@@ -405,7 +405,7 @@ pub struct OAuth {
     /// [Cross-Site Request Forgery](https://tools.ietf.org/html/rfc6749#section-10.12)
     pub state: String,
     /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
-    pub scope: HashSet<String>,
+    pub scopes: HashSet<String>,
     pub proxies: Option<String>,
 }
 
@@ -414,7 +414,7 @@ impl Default for OAuth {
         OAuth {
             redirect_uri: String::new(),
             state: generate_random_string(16),
-            scope: HashSet::new(),
+            scopes: HashSet::new(),
             proxies: None,
         }
     }
@@ -424,15 +424,15 @@ impl OAuth {
     /// Parses the credentials from the environment variable
     /// `RSPOTIFY_REDIRECT_URI`. You can optionally activate the `env-file`
     /// feature in order to read these variables from a `.env` file.
-    pub fn from_env(scope: HashSet<String>) -> Option<Self> {
+    pub fn from_env(scopes: HashSet<String>) -> Option<Self> {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
         }
 
         Some(OAuth {
+            scopes,
             redirect_uri: env::var("RSPOTIFY_REDIRECT_URI").ok()?,
-            scope,
             ..Default::default()
         })
     }

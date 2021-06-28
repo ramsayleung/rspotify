@@ -43,7 +43,7 @@ pub trait OAuthClient: BaseClient {
     async fn read_token_cache(&mut self) -> Option<Token> {
         let tok = Token::from_cache(&self.get_config().cache_path)?;
 
-        if !self.get_oauth().scope.is_subset(&tok.scope) || tok.is_expired() {
+        if !self.get_oauth().scopes.is_subset(&tok.scopes) || tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             None

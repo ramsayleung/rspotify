@@ -32,7 +32,7 @@ async fn main() {
     // ```
     // let oauth = OAuth {
     //     redirect_uri: "http://localhost:8888/callback".to_string(),
-    //     scope: scopes!("user-read-recently-played"),
+    //     scopes: scopes!("user-read-recently-played"),
     //     ..Default::default(),
     // };
     // ```

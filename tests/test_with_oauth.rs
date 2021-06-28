@@ -50,7 +50,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
             )
         });
 
-        let scope = scopes!(
+        let scopes = scopes!(
             "user-read-email",
             "user-read-private",
             "user-top-read",
@@ -70,7 +70,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
             "ugc-image-upload"
         );
         // Using every possible scope
-        let oauth = OAuth::from_env(scope).unwrap();
+        let oauth = OAuth::from_env(scopes).unwrap();
 
         let mut spotify = AuthCodeSpotify::new(creds, oauth);
         spotify.refresh_token(&refresh_token).await.unwrap();

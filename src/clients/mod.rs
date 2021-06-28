@@ -122,7 +122,7 @@ mod test {
             access_token: "test-access_token".to_string(),
             expires_in: Duration::seconds(1),
             expires_at: Some(Utc::now()),
-            scope: scopes!("playlist-read-private"),
+            scopes: scopes!("playlist-read-private"),
             refresh_token: Some("...".to_string()),
         };
 

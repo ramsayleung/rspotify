@@ -69,7 +69,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         let mut data = Form::new();
         let oauth = self.get_oauth();
         let scopes = oauth
-            .scope
+            .scopes
             .clone()
             .into_iter()
             .collect::<Vec<_>>()
@@ -138,8 +138,8 @@ impl AuthCodePkceSpotify {
         // TODO
         let mut payload: HashMap<&str, &str> = HashMap::new();
         let oauth = self.get_oauth();
-        let scope = oauth
-            .scope
+        let scopes = oauth
+            .scopes
             .clone()
             .into_iter()
             .collect::<Vec<_>>()
@@ -147,7 +147,7 @@ impl AuthCodePkceSpotify {
         payload.insert(headers::CLIENT_ID, &self.get_creds().id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
         payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
-        payload.insert(headers::SCOPE, &scope);
+        payload.insert(headers::SCOPE, &scopes);
         payload.insert(headers::STATE, &oauth.state);
         // payload.insert(headers::CODE_CHALLENGE, todo!());
         // payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");

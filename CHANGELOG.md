@@ -168,7 +168,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + `TrackRestriction`
   + Fix broken model links refering to Spotify documentation
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
-- ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scope for `Token` from string literal
+- ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scopes for `Token` from string literal
 - Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 
@@ -271,8 +271,8 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#185](https://github.com/ramsayleung/rspotify/pull/185)) Polish the `Token.expires_at`, `Token.expires_in` fields
   + Change `Token.expires_in` from u32 to `chrono::Duration`
   + Change `Token.expires_at` from i64 to `chrono::DateTime<Utc>`
-  + Change `Token.scope` from `String` to `HashSet`.
-  + Change `OAuth.scope` from `String` to `HashSet`.
+  + Change `Token.scopes` from `String` to `HashSet`.
+  + Change `OAuth.scopes` from `String` to `HashSet`.
   + Change `SimplifiedPlaylist::tracks` from `HashMap` to `PlaylistTracksRef`
 - ([#194](https://github.com/ramsayleung/rspotify/pull/194)) Rename `PlayingItem` to `PlayableItem`, `PlaylistItem::track` type changed to `Option<PlayableItem>`, so playlists can contain episodes as well
 - ([#197](https://github.com/ramsayleung/rspotify/pull/197)) Making acronyms lowercase:
