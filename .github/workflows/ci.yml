@@ -27,14 +27,14 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  check-doc:
-    name: Check Dead Links in the Docs
+  docs:
+    name: Check Docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Installs cargo-deadlinks
+      - name: Install cargo-deadlinks
         run: cargo install cargo-deadlinks
 
       - name: Build and check doc
@@ -44,7 +44,7 @@ jobs:
         run: |
           for crate in target/doc/rspotify*; do
             echo "Checking in $crate"
-            cargo deadlinks --dir "$crate"
+            cargo deadlinks --check-http --dir "$crate"
           done
 
   test:
