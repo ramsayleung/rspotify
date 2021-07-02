@@ -44,13 +44,14 @@ jobs:
       - name: Install cargo-deadlinks
         run: cargo install cargo-deadlinks
 
-      - name: Build and check doc
+      - name: Build and Check
         run: RUSTDOCFLAGS='-D warnings' cargo doc --features=cli,env-file
 
-      - name: Checks dead links
+      - name: Look for Dead Links
         run: |
-          for crate in target/doc/rspotify*; do
-            echo "Checking in $crate"
+          cd target
+          for crate in doc/rspotify*; do
+            echo ">> Checking in $crate"
             cargo deadlinks --check-http --dir "$crate"
           done
 
