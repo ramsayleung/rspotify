@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        client:
+        features:
           - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-rustls-tls,rspotify-http/client-ureq,rspotify-http/ureq-rustls-tls
           - rspotify/cli,rspotify/env-file,rspotify/client-reqwest,rspotify/reqwest-rustls-tls,rspotify-http/client-reqwest,rspotify-http/reqwest-rustls-tls
     steps:
@@ -71,10 +71,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.client }} -- -D warnings
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }} -- -D warnings
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.client }}
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }}
