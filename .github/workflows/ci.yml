@@ -27,6 +27,26 @@ jobs:
           command: fmt
           args: --all -- --check
 
+  check-doc:
+    name: Check Dead Links in the Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Installs cargo-deadlinks
+        run: cargo install cargo-deadlinks
+
+      - name: Build and check doc
+        run: RUSTDOCFLAGS='-D warnings' cargo doc --features=cli,env-file
+
+      - name: Checks dead links
+        run: |
+          for crate in target/doc/rspotify*; do
+            echo "Checking in $crate"
+            cargo deadlinks --dir "$crate"
+          done
+
   test:
     name: Test and Lint for each Client
     runs-on: ubuntu-latest
