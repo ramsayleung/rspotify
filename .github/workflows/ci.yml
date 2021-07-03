@@ -54,6 +54,7 @@ jobs:
             echo ">> Checking in $crate"
             cargo deadlinks --check-http --dir "$crate"
           done
+        continue-on-error: true
 
   test:
     name: Test and Lint for each Client
