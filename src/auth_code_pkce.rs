@@ -12,14 +12,14 @@ use maybe_async::maybe_async;
 use url::Url;
 
 /// The [Authorization Code Flow with Proof Key for Code Exchange
-/// (PKCE)](reference) client for the Spotify API.
+/// (PKCE)][reference] client for the Spotify API.
 ///
 /// This flow is very similar to the regular Authorization Code Flow, so please
 /// read [`AuthCodeSpotify`](crate::AuthCodeSpotify) for more information about
 /// it. The main difference in this case is that you can avoid storing your
 /// client secret by generating a *code verifier* and a *code challenge*.
 ///
-/// There's an [example](example-main) available to learn how to use this
+/// There's an [example][example-main] available to learn how to use this
 /// client.
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce

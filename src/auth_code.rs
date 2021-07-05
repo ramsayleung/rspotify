@@ -40,11 +40,11 @@ use url::Url;
 ///    is that this doesn't require the user to log in, and that it's a simpler
 ///    procedure.
 ///
-///    See [this related example](example-refresh-token) to learn more about
+///    See [this related example][example-refresh-token] to learn more about
 ///    refreshing tokens.
 ///
-/// There's a [webapp example](example-webapp) for more details on how you can
-/// implement it for something like a web server, or [this one](example-main)
+/// There's a [webapp example][example-webapp] for more details on how you can
+/// implement it for something like a web server, or [this one][example-main]
 /// for a CLI use case.
 ///
 /// An example of the CLI authentication:

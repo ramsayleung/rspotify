@@ -1,23 +1,23 @@
-//! Rspotify is a wrapper for the [Spotify Web API](spotify-main), inspired by
-//! [spotipy](spotipy-github). It includes support for all the [authorization
-//! flows](spotify-auth-flows), and helper methods for [all available endpoints
-//! ](spotify-reference).
+//! Rspotify is a wrapper for the [Spotify Web API][spotify-main], inspired by
+//! [spotipy][spotipy-github]. It includes support for all the [authorization
+//! flows][spotify-auth-flows], and helper methods for [all available
+//! endpoints][spotify-reference].
 //!
 //! ## Configuration
 //!
 //! ### HTTP Client
 //!
-//! By default, Rspotify uses the [reqwest](reqwest-docs) asynchronous HTTP
+//! By default, Rspotify uses the [reqwest][reqwest-docs] asynchronous HTTP
 //! client with its default TLS, but you can customize both the HTTP client and
 //! the TLS with the following features:
 //!
-//! - [reqwest](reqwest-docs): enabling
+//! - [reqwest][reqwest-docs]: enabling
 //!   `client-reqwest`, TLS available:
 //!     + `reqwest-default-tls` (reqwest's default)
 //!     + `reqwest-rustls-tls`
 //!     + `reqwest-native-tls`
 //!     + `reqwest-native-tls-vendored`
-//! - [ureq](ureq-docs): enabling `client-ureq`, TLS
+//! - [ureq][ureq-docs]: enabling `client-ureq`, TLS
 //!   available:
 //!     + `ureq-rustls-tls` (ureq's default)
 //!
@@ -49,7 +49,7 @@
 //!
 //! ### Proxies
 //!
-//! [reqwest supports system proxies by default](reqwest-proxies). It reads the
+//! [reqwest supports system proxies by default][reqwest-proxies]. It reads the
 //! environment variables `HTTP_PROXY` and `HTTPS_PROXY` environmental variables
 //! to set HTTP and HTTPS proxies, respectively.
 //!
@@ -77,9 +77,9 @@
 //! All endpoints require app authorization; you will need to generate a token
 //! that indicates that the client has been granted permission to perform
 //! requests. You can start by [registering your app to get the necessary client
-//! credentials](spotify-register-app). Read the [official guide for a detailed
+//! credentials][spotify-register-app]. Read the [official guide for a detailed
 //! explanation of the different authorization flows
-//! available](spotify-auth-flows).
+//! available][spotify-auth-flows].
 //!
 //! Rspotify has a different client for each of the available authentication
 //! flows. They may implement the endpoints in
@@ -87,12 +87,12 @@
 //! [`OAuthClient`](crate::clients::OAuthClient) according to what kind of
 //! flow it is. Please refer to their documentation for more details:
 //!
-//! * [Client Credentials Flow](spotify-client-creds): see
+//! * [Client Credentials Flow][spotify-client-creds]: see
 //!   [`ClientCredsSpotify`].
-//! * [Authorization Code Flow](spotify-auth-code): see [`AuthCodeSpotify`].
+//! * [Authorization Code Flow][spotify-auth-code]: see [`AuthCodeSpotify`].
 //! * [Authorization Code Flow with Proof Key for Code Exchange
-//!   (PKCE)](spotify-auth-code-pkce): see [`AuthCodePkceSpotify`].
-//! * [Implicit Grant Flow](spotify-implicit-grant): unimplemented, as Rspotify
+//!   (PKCE)][spotify-auth-code-pkce]: see [`AuthCodePkceSpotify`].
+//! * [Implicit Grant Flow][spotify-implicit-grant]: unimplemented, as Rspotify
 //!   has not been tested on a browser yet. If you'd like support for it, let us
 //!   know in an issue!
 //!
@@ -105,7 +105,7 @@
 //! ### Examples
 //!
 //! There are some [available examples on the GitHub
-//! repository](examples-github) which can serve as a learning tool.
+//! repository][examples-github] which can serve as a learning tool.
 //!
 //! [spotipy-github]: https://github.com/plamere/spotipy
 //! [reqwest-docs]: https://docs.rs/reqwest/
@@ -116,7 +116,6 @@
 //! [spotify-auth-flows]: https://developer.spotify.com/documentation/general/guides/authorization-guide
 //! [spotify-reference]: https://developer.spotify.com/documentation/web-api/reference/
 //! [spotify-register-app]: https://developer.spotify.com/dashboard/applications
-//! [spotify]: https://developer.spotify.com/documentation/general/guides/authorization-guide/
 //! [spotify-client-creds]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
 //! [spotify-auth-code]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
 //! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce

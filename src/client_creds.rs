@@ -7,11 +7,11 @@ use crate::{
 
 use maybe_async::maybe_async;
 
-/// The [Client Credentials Flow](reference) client for the Spotify API.
+/// The [Client Credentials Flow][reference] client for the Spotify API.
 ///
 /// This is the most basic flow. It requests a token to Spotify given some
 /// client credentials, without user authorization. The only step to take is to
-/// call [`Self::request_token`]. See [this example](example-main).
+/// call [`Self::request_token`]. See [this example][example-main].
 ///
 /// Note: This flow does not include authorization and therefore cannot be used
 /// to access or to manage the endpoints related to user private data in
