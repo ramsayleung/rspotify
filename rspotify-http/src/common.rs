@@ -45,9 +45,19 @@ pub type HttpResult<T> = Result<T, HttpError>;
 #[maybe_async]
 pub trait BaseHttpClient: Send + Default + Clone + fmt::Debug {
     // This internal function should always be given an object value in JSON.
-    async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> HttpResult<String>;
+    async fn get(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Query,
+    ) -> HttpResult<String>;
 
-    async fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> HttpResult<String>;
+    async fn post(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String>;
 
     async fn post_form<'a>(
         &self,
@@ -56,8 +66,17 @@ pub trait BaseHttpClient: Send + Default + Clone + fmt::Debug {
         payload: &Form<'a>,
     ) -> HttpResult<String>;
 
-    async fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> HttpResult<String>;
+    async fn put(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String>;
 
-    async fn delete(&self, url: &str, headers: Option<&Headers>, payload: &Value)
-        -> HttpResult<String>;
+    async fn delete(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String>;
 }

@@ -1,6 +1,6 @@
 //! The client implementation for the ureq HTTP client, which is blocking.
 
-use super::{BaseHttpClient, HttpError, Form, Headers, Query, HttpResult};
+use super::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 
 use maybe_async::sync_impl;
 use serde_json::Value;
