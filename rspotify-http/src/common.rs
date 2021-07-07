@@ -30,7 +30,7 @@ pub enum HttpError {
     Io(#[from] std::io::Error),
 }
 
-pub type HttpResult<T> = std::result::Result<T, HttpError>;
+pub type HttpResult<T> = Result<T, HttpError>;
 
 /// This trait represents the interface to be implemented for an HTTP client,
 /// which is kept separate from the Spotify client for cleaner code. Thus, it
