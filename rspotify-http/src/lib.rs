@@ -15,9 +15,9 @@ mod ureq;
 mod common;
 
 #[cfg(feature = "client-reqwest")]
-pub use self::reqwest::ReqwestClient as HttpClient;
+pub use self::reqwest::ReqwestClient;
 
 #[cfg(feature = "client-ureq")]
-pub use self::ureq::UreqClient as HttpClient;
+pub use self::ureq::UreqClient;
 
 pub use common::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
