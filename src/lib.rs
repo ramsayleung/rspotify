@@ -136,6 +136,8 @@ pub use auth_code_pkce::AuthCodePkceSpotify;
 pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 
+use crate::http::HttpError;
+
 use std::{
     collections::HashSet,
     env, fs,
@@ -188,7 +190,7 @@ pub enum ClientError {
     ParseUrl(#[from] url::ParseError),
 
     #[error("http error: {0}")]
-    Http(#[from] http::Error),
+    Http(#[from] HttpError),
 
     #[error("input/output error: {0}")]
     Io(#[from] std::io::Error),
