@@ -16,7 +16,7 @@ edition = "2018"
 [dependencies]
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
 serde = { version = "1.0.115", features = ["derive"] }
-strum = { version = "0.20", features = ["derive"] }
+strum = { version = "0.21", features = ["derive"] }
 thiserror = "1.0.20"
 
 [dev-dependencies]
