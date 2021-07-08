@@ -4,7 +4,7 @@ use strum::{AsRefStr, Display, EnumString};
 /// Copyright type: `C` = the copyright, `P` = the sound recording (performance)
 /// copyright.
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#copyright-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-copyrightobject)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 pub enum CopyrightType {
     #[strum(serialize = "P")]
@@ -17,7 +17,7 @@ pub enum CopyrightType {
 
 /// Album type: `album`, `single`, `appears_on`, `compilation`
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#album-object-full)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#objects-index)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -89,7 +89,7 @@ pub enum SearchType {
 ///
 /// (The subscription level "open" can be considered the same as "free".)
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/users-profile/get-current-users-profile/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-current-users-profile)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -101,7 +101,7 @@ pub enum SubscriptionLevel {
 
 /// Device Type: `computer`, `smartphone`, `speaker`, `TV`
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/get-a-users-available-devices/#device-types)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-deviceobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, AsRefStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum DeviceType {
@@ -122,7 +122,7 @@ pub enum DeviceType {
 
 /// Recommendations seed type
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#recommendations-seed-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationseedobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 pub enum RecommendationsSeedType {
