@@ -8,7 +8,7 @@
 
 use futures::stream::TryStreamExt;
 use futures_util::pin_mut;
-use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth, http::ReqwestClient};
+use rspotify::{http::ReqwestClient, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {

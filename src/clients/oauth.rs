@@ -4,7 +4,7 @@ use crate::{
         pagination::{paginate, Paginator},
         BaseClient,
     },
-    http::{Query, BaseHttpClient},
+    http::{BaseHttpClient, Query},
     macros::{build_json, build_map},
     model::*,
     ClientResult, OAuth, Token,
@@ -29,7 +29,8 @@ use url::Url;
 /// ones.
 #[maybe_async(?Send)]
 pub trait OAuthClient<Http>: BaseClient<Http>
-    where Http: BaseHttpClient
+where
+    Http: BaseHttpClient,
 {
     fn get_oauth(&self) -> &OAuth;
 

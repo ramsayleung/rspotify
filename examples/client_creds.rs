@@ -1,4 +1,4 @@
-use rspotify::{model::Id, prelude::*, ClientCredsSpotify, Credentials, http::ReqwestClient};
+use rspotify::{http::ReqwestClient, model::Id, prelude::*, ClientCredsSpotify, Credentials};
 
 #[tokio::main]
 async fn main() {

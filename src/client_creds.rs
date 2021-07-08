@@ -1,7 +1,7 @@
 use crate::{
     clients::BaseClient,
     headers,
-    http::{Form, BaseHttpClient},
+    http::{BaseHttpClient, Form},
     ClientResult, Config, Credentials, Token,
 };
 

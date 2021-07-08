@@ -2,7 +2,7 @@ use crate::{
     auth_urls,
     clients::{BaseClient, OAuthClient},
     headers,
-    http::{Form, BaseHttpClient},
+    http::{BaseHttpClient, Form},
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
