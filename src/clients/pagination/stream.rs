@@ -1,19 +1,19 @@
 //! Asynchronous implementation of automatic pagination requests.
 
-use crate::client::ClientResult;
-use crate::model::Page;
-use futures::future::Future;
-use futures::stream::Stream;
+use crate::{model::Page, ClientResult};
+
+use std::pin::Pin;
+
+use futures::{future::Future, stream::Stream};
 
 /// Alias for `futures::stream::Stream<Item = T>`, since async mode is enabled.
-pub trait Paginator<T>: Stream<Item = T> {}
-impl<T, I: Stream<Item = T>> Paginator<T> for I {}
+pub type Paginator<'a, T> = Pin<Box<dyn Stream<Item = T> + 'a>>;
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<T, Fut, Request>(
+pub fn paginate<'a, T: 'a, Fut, Request: 'a>(
     req: Request,
     page_size: u32,
-) -> impl Stream<Item = ClientResult<T>>
+) -> Paginator<'a, ClientResult<T>>
 where
     T: Unpin,
     Fut: Future<Output = ClientResult<Page<T>>>,
@@ -21,7 +21,7 @@ where
 {
     use async_stream::stream;
     let mut offset = 0;
-    stream! {
+    Box::pin(stream! {
         loop {
             let page = req(page_size, offset).await?;
             offset += page.items.len() as u32;
@@ -32,5 +32,5 @@ where
                 break;
             }
         }
-    }
+    })
 }

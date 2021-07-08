@@ -7,7 +7,7 @@ use super::Country;
 /// `skipping_next`, `skipping_prev`, `toggling_repeat_context`,
 /// `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`.
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#disallows-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-disallowsobject)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -50,7 +50,7 @@ pub enum RepeatState {
 
 /// Type for include_external: `audio`.
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-search)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -72,7 +72,7 @@ pub enum DatePrecision {
 
 /// The reason for the restriction: `market`, `product`, `explicit`
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/object-model/#track-restriction-object)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -82,11 +82,12 @@ pub enum RestrictionReason {
     Explict,
 }
 
-/// Indicates the modality (major or minor) of a track
-/// This field will contain a 0 for `minor`, a 1 for `major` or
-/// a -1 for `no result`
+/// Indicates the modality (major or minor) of a track.
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-analysis/#section-object)
+/// This field will contain a 0 for `minor`, a 1 for `major` or a -1 for `no
+/// result`
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#objects-index)
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr)]
 pub enum Modality {
     Minor = 0,

@@ -85,8 +85,8 @@ __async = ["futures", "async-stream", "async-trait"]
 __sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
-# Also documenting the CLI methods
-features = ["cli"]
+# Documenting the CLI methods, and working links for `dotenv`
+features = ["cli", "env-file"]
 
 [[example]]
 name = "client_creds"

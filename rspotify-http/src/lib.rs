@@ -27,7 +27,7 @@ pub use self::ureq::UreqClient as HttpClient;
 
 #[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub use common::{BaseHttpClient, Error, Form, Headers, Query, Result};
+pub use common::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(

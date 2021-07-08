@@ -10,7 +10,7 @@ pub type Query<'a> = HashMap<&'a str, &'a str>;
 pub type Form<'a> = HashMap<&'a str, &'a str>;
 
 #[derive(thiserror::Error, Debug)]
-pub enum Error {
+pub enum HttpError {
     #[error("request unauthorized")]
     Unauthorized,
 
@@ -30,7 +30,7 @@ pub enum Error {
     Io(#[from] std::io::Error),
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type HttpResult<T> = Result<T, HttpError>;
 
 /// This trait represents the interface to be implemented for an HTTP client,
 /// which is kept separate from the Spotify client for cleaner code. Thus, it
@@ -45,19 +45,38 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[maybe_async]
 pub trait BaseHttpClient: Send + Default + Clone + fmt::Debug {
     // This internal function should always be given an object value in JSON.
-    async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String>;
+    async fn get(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Query,
+    ) -> HttpResult<String>;
 
-    async fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String>;
+    async fn post(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String>;
 
     async fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> Result<String>;
+    ) -> HttpResult<String>;
 
-    async fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String>;
+    async fn put(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String>;
 
-    async fn delete(&self, url: &str, headers: Option<&Headers>, payload: &Value)
-        -> Result<String>;
+    async fn delete(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String>;
 }

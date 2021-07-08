@@ -135,12 +135,12 @@ mod test {
 
     #[test]
     fn test_hashset() {
-        let scope = scopes!("hello", "world", "foo", "bar");
-        assert_eq!(scope.len(), 4);
-        assert!(scope.contains("hello"));
-        assert!(scope.contains("world"));
-        assert!(scope.contains("foo"));
-        assert!(scope.contains("bar"));
+        let scopes = scopes!("hello", "world", "foo", "bar");
+        assert_eq!(scopes.len(), 4);
+        assert!(scopes.contains("hello"));
+        assert!(scopes.contains("world"));
+        assert!(scopes.contains("foo"));
+        assert!(scopes.contains("bar"));
     }
 
     #[test]
