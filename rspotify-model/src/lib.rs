@@ -9,6 +9,7 @@ pub mod category;
 pub mod context;
 pub mod device;
 pub mod enums;
+pub mod error;
 pub mod idtypes;
 pub mod image;
 pub mod offset;
@@ -238,9 +239,9 @@ pub use idtypes::{
     UserIdBuf,
 };
 pub use {
-    album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, image::*,
-    offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*, track::*,
-    user::*,
+    album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, error::*,
+    image::*, offset::*, page::*, playing::*, playlist::*, recommend::*, search::*, show::*,
+    track::*, user::*,
 };
 
 #[cfg(test)]

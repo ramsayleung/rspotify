@@ -54,9 +54,9 @@ pub struct SearchEpisodes {
     pub episodes: Page<SimplifiedEpisode>,
 }
 
-/// Search result
+/// Search result of any kind
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/search/search/)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SearchResult {
     #[serde(rename = "playlists")]
