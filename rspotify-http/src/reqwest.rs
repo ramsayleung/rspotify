@@ -1,7 +1,7 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::{BaseHttpClient, Error, Form, Headers, Query, Result};
+use super::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 
 use std::convert::TryInto;
 
@@ -10,7 +10,7 @@ use reqwest::{Method, RequestBuilder, StatusCode};
 use rspotify_model::ApiError;
 use serde_json::Value;
 
-impl Error {
+impl HttpError {
     pub async fn from_response(response: reqwest::Response) -> Self {
         match response.status() {
             StatusCode::UNAUTHORIZED => Self::Unauthorized,
@@ -31,13 +31,13 @@ impl Error {
     }
 }
 
-impl From<reqwest::Error> for Error {
+impl From<reqwest::Error> for HttpError {
     fn from(err: reqwest::Error) -> Self {
         Self::Request(err.to_string())
     }
 }
 
-impl From<reqwest::StatusCode> for Error {
+impl From<reqwest::StatusCode> for HttpError {
     fn from(code: reqwest::StatusCode) -> Self {
         Self::StatusCode(
             code.as_u16(),
@@ -59,7 +59,7 @@ impl ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         add_data: D,
-    ) -> Result<String>
+    ) -> HttpResult<String>
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
     {
@@ -88,7 +88,7 @@ impl ReqwestClient {
         if response.status().is_success() {
             response.text().await.map_err(Into::into)
         } else {
-            Err(Error::from_response(response).await)
+            Err(HttpError::from_response(response).await)
         }
     }
 }
@@ -96,13 +96,23 @@ impl ReqwestClient {
 #[async_impl]
 impl BaseHttpClient for ReqwestClient {
     #[inline]
-    async fn get(&self, url: &str, headers: Option<&Headers>, payload: &Query) -> Result<String> {
+    async fn get(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Query,
+    ) -> HttpResult<String> {
         self.request(Method::GET, url, headers, |req| req.query(payload))
             .await
     }
 
     #[inline]
-    async fn post(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
+    async fn post(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String> {
         self.request(Method::POST, url, headers, |req| req.json(payload))
             .await
     }
@@ -113,13 +123,18 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> Result<String> {
+    ) -> HttpResult<String> {
         self.request(Method::POST, url, headers, |req| req.form(payload))
             .await
     }
 
     #[inline]
-    async fn put(&self, url: &str, headers: Option<&Headers>, payload: &Value) -> Result<String> {
+    async fn put(
+        &self,
+        url: &str,
+        headers: Option<&Headers>,
+        payload: &Value,
+    ) -> HttpResult<String> {
         self.request(Method::PUT, url, headers, |req| req.json(payload))
             .await
     }
@@ -130,7 +145,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> Result<String> {
+    ) -> HttpResult<String> {
         self.request(Method::DELETE, url, headers, |req| req.json(payload))
             .await
     }
