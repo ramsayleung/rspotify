@@ -45,7 +45,7 @@ jobs:
         run: cargo install cargo-deadlinks
 
       - name: Build and Check
-        run: RUSTDOCFLAGS='-D warnings' cargo doc --features=cli,env-file
+        run: RUSTDOCFLAGS='-D warnings' cargo doc --all-features
 
       - name: Look for Dead Links
         run: |
