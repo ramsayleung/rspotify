@@ -6,8 +6,8 @@ on:
 name: Continuous Integration
 
 jobs:
-  check:
-    name: Check
+  formatting:
+    name: Formatting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -19,95 +19,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --all-targets --features=cli,env-file
-
-  cross-compile:
-    name: Cross Compile
-    runs-on: ubuntu-latest
-    env:
-      CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
-      CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-    strategy:
-      matrix:
-        target:
-          - aarch64-unknown-linux-gnu
-          - arm-unknown-linux-gnueabihf
-          - armv7-unknown-linux-gnueabihf
-        client:
-          - client-ureq,ureq-rustls-tls
-          - client-reqwest,reqwest-rustls-tls
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install gcc for armhf
-        run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
-
-      - name: Run cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --target ${{ matrix.target }} --no-default-features --features=cli,env-file,${{ matrix.client }}
-
-
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        client:
-          - client-ureq,ureq-rustls-tls
-          - client-reqwest,reqwest-rustls-tls
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-default-features --features=env-file,${{ matrix.client }}
-
-  lints:
-    name: Lints
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        client:
-          - client-ureq,ureq-rustls-tls
-          - client-reqwest,reqwest-rustls-tls
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
+          components: rustfmt
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -115,8 +27,63 @@ jobs:
           command: fmt
           args: --all -- --check
 
+  docs:
+    name: Check Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install cargo-deadlinks
+        run: cargo install cargo-deadlinks
+
+      - name: Build and Check
+        run: RUSTDOCFLAGS='-D warnings' cargo doc --features=cli,env-file
+
+      - name: Look for Dead Links
+        run: |
+          cd target
+          for crate in doc/rspotify*; do
+            echo ">> Checking in $crate"
+            cargo deadlinks --check-http --dir "$crate"
+          done
+        continue-on-error: true
+
+  test:
+    name: Test and Lint for each Client
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features:
+          - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-rustls-tls,rspotify-http/client-ureq,rspotify-http/ureq-rustls-tls
+          - rspotify/cli,rspotify/env-file,rspotify/client-reqwest,rspotify/reqwest-rustls-tls,rspotify-http/client-reqwest,rspotify-http/reqwest-rustls-tls
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: clippy
+
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --no-default-features --features=cli,env-file,${{ matrix.client }} -- -D warnings
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }} -- -D warnings
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }}
