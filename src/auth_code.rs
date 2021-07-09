@@ -77,6 +77,21 @@ impl BaseClient for AuthCodeSpotify {
     }
 
     async fn get_token(&self) -> Ref<Option<Token>> {
+        if self.config.token_refreshing
+            && self
+                .token
+                .borrow()
+                .as_ref()
+                .map_or(false, |tok| tok.refresh_token.is_some())
+        {
+            self.token.borrow().as_ref().map(|tok| {
+                tok.refresh_token.as_ref().map(|re_tok| async move {
+                    self.refresh_token(&re_tok)
+                        .await
+                        .map_or(RefCell::new(None).borrow(), |()| self.token.borrow());
+                })
+            });
+        }
         self.token.borrow()
     }
 
