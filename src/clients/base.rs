@@ -10,11 +10,11 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::{collections::HashMap, fmt};
-
 use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::{Map, Value};
+use std::cell::{Ref, RefMut};
+use std::{collections::HashMap, fmt};
 
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
@@ -26,8 +26,8 @@ where
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
-    async fn get_token(&self) -> Option<&Token>;
-    async fn get_token_mut(&mut self) -> Option<&mut Token>;
+    async fn get_token(&self) -> Ref<Option<Token>>;
+    async fn get_token_mut(&mut self) -> RefMut<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.
@@ -44,7 +44,12 @@ where
     /// The headers required for authenticated requests to the API
     async fn auth_headers(&self) -> ClientResult<Headers> {
         let mut auth = Headers::new();
-        let (key, val) = bearer_auth(self.get_token().await.expect("Rspotify not authenticated"));
+        let (key, val) = bearer_auth(
+            self.get_token()
+                .await
+                .as_ref()
+                .expect("Rspotify not authenticated"),
+        );
         auth.insert(key, val);
 
         Ok(auth)

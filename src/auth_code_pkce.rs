@@ -6,6 +6,7 @@ use crate::{
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
 
 use maybe_async::maybe_async;
@@ -29,7 +30,7 @@ pub struct AuthCodePkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
-    pub token: Option<Token>,
+    pub token: RefCell<Option<Token>>,
     pub(in crate) http: HttpClient,
 }
 
@@ -40,12 +41,12 @@ impl BaseClient for AuthCodePkceSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> Option<&Token> {
-        self.token.as_ref()
+    async fn get_token(&self) -> Ref<Option<Token>> {
+        self.token.borrow()
     }
 
-    async fn get_token_mut(&mut self) -> Option<&mut Token> {
-        self.token.as_mut()
+    async fn get_token_mut(&mut self) -> RefMut<Option<Token>> {
+        self.token.borrow_mut()
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -82,7 +83,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(headers::STATE, oauth.state.as_ref());
 
         let token = self.fetch_access_token(&data).await?;
-        self.token = Some(token);
+        *self.token.borrow_mut() = Some(token);
 
         self.write_token_cache().await
     }
@@ -95,7 +96,8 @@ impl OAuthClient for AuthCodePkceSpotify {
 
         let mut token = self.fetch_access_token(&data).await?;
         token.refresh_token = Some(refresh_token.to_string());
-        self.token = Some(token);
+
+        *self.token.borrow_mut() = Some(token);
 
         self.write_token_cache().await
     }
@@ -117,7 +119,7 @@ impl AuthCodePkceSpotify {
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         AuthCodePkceSpotify {
-            token: Some(token),
+            token: RefCell::new(Some(token)),
             ..Default::default()
         }
     }
