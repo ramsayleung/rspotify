@@ -103,7 +103,7 @@ impl OAuthClient for AuthCodeSpotify {
 
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
-    async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+    async fn request_token(&self, code: &str) -> ClientResult<()> {
         let mut data = Form::new();
         let oauth = self.get_oauth();
         let scopes = oauth
@@ -127,7 +127,7 @@ impl OAuthClient for AuthCodeSpotify {
     /// Refreshes the current access token given a refresh token.
     ///
     /// The obtained token will be saved internally.
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
+    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);

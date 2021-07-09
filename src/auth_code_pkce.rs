@@ -66,7 +66,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         &self.oauth
     }
 
-    async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+    async fn request_token(&self, code: &str) -> ClientResult<()> {
         // TODO
         let mut data = Form::new();
         let oauth = self.get_oauth();
@@ -88,7 +88,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         self.write_token_cache().await
     }
 
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
+    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
         // TODO
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);

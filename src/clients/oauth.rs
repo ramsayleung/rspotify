@@ -33,11 +33,11 @@ pub trait OAuthClient: BaseClient {
 
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
-    async fn request_token(&mut self, code: &str) -> ClientResult<()>;
+    async fn request_token(&self, code: &str) -> ClientResult<()>;
 
     /// Refreshes the current access token given a refresh token. The obtained
     /// token will be saved internally.
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
+    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token, which may not exist.
     async fn read_token_cache(&mut self) -> Option<Token> {
