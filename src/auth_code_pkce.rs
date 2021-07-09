@@ -34,16 +34,17 @@ pub struct AuthCodePkceSpotify {
 }
 
 /// This client has access to the base methods.
+#[maybe_async(?Send)]
 impl BaseClient for AuthCodePkceSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
-    fn get_token(&self) -> Option<&Token> {
+    async fn get_token(&self) -> Option<&Token> {
         self.token.as_ref()
     }
 
-    fn get_token_mut(&mut self) -> Option<&mut Token> {
+    async fn get_token_mut(&mut self) -> Option<&mut Token> {
         self.token.as_mut()
     }
 
@@ -83,7 +84,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         let token = self.fetch_access_token(&data).await?;
         self.token = Some(token);
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
@@ -96,7 +97,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         token.refresh_token = Some(refresh_token.to_string());
         self.token = Some(token);
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 }
 

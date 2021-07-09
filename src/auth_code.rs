@@ -76,11 +76,11 @@ impl BaseClient for AuthCodeSpotify {
         &self.http
     }
 
-    fn get_token(&self) -> Option<&Token> {
+    async fn get_token(&self) -> Option<&Token> {
         self.token.as_ref()
     }
 
-    fn get_token_mut(&mut self) -> Option<&mut Token> {
+    async fn get_token_mut(&mut self) -> Option<&mut Token> {
         self.token.as_mut()
     }
 
@@ -121,7 +121,7 @@ impl OAuthClient for AuthCodeSpotify {
         let token = self.fetch_access_token(&data).await?;
         self.token = Some(token);
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 
     /// Refreshes the current access token given a refresh token.
@@ -136,7 +136,7 @@ impl OAuthClient for AuthCodeSpotify {
         token.refresh_token = Some(refresh_token.to_string());
         self.token = Some(token);
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 }
 

@@ -28,16 +28,17 @@ pub struct ClientCredsSpotify {
 }
 
 /// This client has access to the base methods.
+#[maybe_async(?Send)]
 impl BaseClient for ClientCredsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
-    fn get_token(&self) -> Option<&Token> {
+    async fn get_token(&self) -> Option<&Token> {
         self.token.as_ref()
     }
 
-    fn get_token_mut(&mut self) -> Option<&mut Token> {
+    async fn get_token_mut(&mut self) -> Option<&mut Token> {
         self.token.as_mut()
     }
 
@@ -109,6 +110,6 @@ impl ClientCredsSpotify {
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 }
