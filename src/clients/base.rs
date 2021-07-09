@@ -27,7 +27,7 @@ where
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
     async fn get_token(&self) -> Ref<Option<Token>>;
-    async fn get_token_mut(&mut self) -> RefMut<Option<Token>>;
+    async fn get_token_mut(&self) -> RefMut<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.

@@ -80,7 +80,7 @@ impl BaseClient for AuthCodeSpotify {
         self.token.borrow()
     }
 
-    async fn get_token_mut(&mut self) -> RefMut<Option<Token>> {
+    async fn get_token_mut(&self) -> RefMut<Option<Token>> {
         self.token.borrow_mut()
     }
 
