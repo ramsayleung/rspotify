@@ -1,5 +1,5 @@
 use crate::{
-   clients::BaseClient,
+    clients::BaseClient,
     headers,
     http::{Form, HttpClient},
     ClientResult, Config, Credentials, Token,
