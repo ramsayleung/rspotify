@@ -31,6 +31,9 @@ use url::Url;
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
 
+    /// Re-authenticate automatically if it's configured to do so, which uses the refresh token to obtain a new access token.
+    async fn auto_reauth(&self) -> ClientResult<()>;
+
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
     async fn request_token(&self, code: &str) -> ClientResult<()>;

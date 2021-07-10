@@ -85,29 +85,16 @@ impl BaseClient for AuthCodeSpotify {
     }
 
     async fn get_token(&self) -> Ref<Option<Token>> {
-        if self.config.token_refreshing
-            && self
-                .token
-                .borrow()
-                .as_ref()
-                .map_or(false, |tok| tok.is_expired())
-        {
-            if let Some(re_tok) = self
-                .token
-                .borrow()
-                .as_ref()
-                .map(|tok| tok.refresh_token.as_ref())
-                .flatten()
-            {
-                self.refresh_token(&re_tok)
-                    .await
-                    .expect("Failed to refresh token, please re-authenticate")
-            }
-        }
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
         self.token.borrow()
     }
 
     async fn get_token_mut(&self) -> RefMut<Option<Token>> {
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
         self.token.borrow_mut()
     }
 }
@@ -118,6 +105,27 @@ impl BaseClient for AuthCodeSpotify {
 impl OAuthClient for AuthCodeSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
+    }
+
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if self.config.token_refreshing
+            && self
+                .token
+                .borrow()
+                .as_ref()
+                .map_or(false, |tok| tok.is_capable_to_reauth())
+        {
+            if let Some(re_tok) = self
+                .token
+                .borrow()
+                .as_ref()
+                .map(|tok| tok.refresh_token.as_ref())
+                .flatten()
+            {
+                self.refresh_token(&re_tok).await?
+            }
+        }
+        Ok(())
     }
 
     /// Obtains a user access token given a code, as part of the OAuth

@@ -363,6 +363,11 @@ impl Token {
         self.expires_at
             .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
     }
+
+    /// Check if the token is ready to re-authenticate automatically
+    pub fn is_capable_to_reauth(&self) -> bool {
+        self.is_expired() && self.refresh_token.is_some()
+    }
 }
 
 /// Simple client credentials object for Spotify.

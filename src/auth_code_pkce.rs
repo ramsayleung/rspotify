@@ -42,10 +42,16 @@ impl BaseClient for AuthCodePkceSpotify {
     }
 
     async fn get_token(&self) -> Ref<Option<Token>> {
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
         self.token.borrow()
     }
 
     async fn get_token_mut(&self) -> RefMut<Option<Token>> {
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
         self.token.borrow_mut()
     }
 
@@ -64,6 +70,27 @@ impl BaseClient for AuthCodePkceSpotify {
 impl OAuthClient for AuthCodePkceSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
+    }
+
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if self.config.token_refreshing
+            && self
+                .token
+                .borrow()
+                .as_ref()
+                .map_or(false, |tok| tok.is_capable_to_reauth())
+        {
+            if let Some(re_tok) = self
+                .token
+                .borrow()
+                .as_ref()
+                .map(|tok| tok.refresh_token.as_ref())
+                .flatten()
+            {
+                self.refresh_token(&re_tok).await?
+            }
+        }
+        Ok(())
     }
 
     async fn request_token(&self, code: &str) -> ClientResult<()> {
