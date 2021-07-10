@@ -89,18 +89,14 @@ impl BaseClient for AuthCodeSpotify {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        {
-            self.token.borrow()
-        }
+        self.token.borrow()
     }
 
     async fn get_token_mut(&self) -> RefMut<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        {
-            self.token.borrow_mut()
-        }
+        self.token.borrow_mut()
     }
 }
 
