@@ -71,8 +71,8 @@ async fn test_read_token_cache() {
     fs::remove_file(&spotify.config.cache_path).unwrap();
 }
 
-#[test]
-fn test_write_token() {
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+async fn test_write_token() {
     let now = Utc::now();
     let scopes = scopes!("playlist-read-private", "playlist-read-collaborative");
 
