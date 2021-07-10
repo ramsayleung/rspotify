@@ -15,7 +15,9 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use chrono::offset::Utc;
+use chrono::Duration;
+use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
@@ -68,6 +70,7 @@ async fn main() {
         .expect("couldn't authenticate successfully");
     let refresh_token = spotify
         .token
+        .borrow()
         .as_ref()
         .unwrap()
         .refresh_token
@@ -79,7 +82,7 @@ async fn main() {
     // At a different time, the refresh token can be used to refresh an access
     // token directly and run requests:
     println!(">>> Session two, running some requests:");
-    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
+    let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     // No `prompt_for_user_token_without_cache` needed.
     spotify
         .refresh_token(&refresh_token)
@@ -90,10 +93,25 @@ async fn main() {
     // This process can now be repeated multiple times by using only the
     // refresh token that was obtained at the beginning.
     println!(">>> Session three, running some requests:");
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     spotify
         .refresh_token(&refresh_token)
         .await
         .expect("couldn't refresh user token");
+    do_things(spotify).await;
+
+    // Expiring the token, then it should automatical re-authenticate with refresh_token
+    let mut config = Config::default();
+    config.token_refreshing = true;
+    let spotify = AuthCodeSpotify::with_config(creds, oauth, config);
+    spotify
+        .refresh_token(&refresh_token)
+        .await
+        .expect("couldn't refresh user token");
+
+    let now = Utc::now();
+    now.checked_sub_signed(Duration::seconds(1));
+    spotify.get_token_mut().await.as_mut().unwrap().expires_at = Some(now);
+    println!(">>> The token should expire, then re-auth automatically");
     do_things(spotify).await;
 }
