@@ -76,35 +76,39 @@ impl BaseClient for AuthCodeSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> Ref<Option<Token>> {
-        if self.config.token_refreshing
-            && self
-                .token
-                .borrow()
-                .as_ref()
-                .map_or(false, |tok| tok.refresh_token.is_some())
-        {
-            self.token.borrow().as_ref().map(|tok| {
-                tok.refresh_token.as_ref().map(|re_tok| async move {
-                    self.refresh_token(&re_tok)
-                        .await
-                        .map_or(RefCell::new(None).borrow(), |()| self.token.borrow());
-                })
-            });
-        }
-        self.token.borrow()
-    }
-
-    async fn get_token_mut(&self) -> RefMut<Option<Token>> {
-        self.token.borrow_mut()
-    }
-
     fn get_creds(&self) -> &Credentials {
         &self.creds
     }
 
     fn get_config(&self) -> &Config {
         &self.config
+    }
+
+    async fn get_token(&self) -> Ref<Option<Token>> {
+        if self.config.token_refreshing
+            && self
+                .token
+                .borrow()
+                .as_ref()
+                .map_or(false, |tok| tok.is_expired())
+        {
+            if let Some(re_tok) = self
+                .token
+                .borrow()
+                .as_ref()
+                .map(|tok| tok.refresh_token.as_ref())
+                .flatten()
+            {
+                self.refresh_token(&re_tok)
+                    .await
+                    .expect("Failed to refresh token, please re-authenticate")
+            }
+        }
+        self.token.borrow()
+    }
+
+    async fn get_token_mut(&self) -> RefMut<Option<Token>> {
+        self.token.borrow_mut()
     }
 }
 
