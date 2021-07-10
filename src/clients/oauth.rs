@@ -102,8 +102,8 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             // TODO: shouldn't this also refresh the obtained token?
-            Some(ref mut new_token) => {
-                self.get_token_mut().replace(new_token);
+            Some(new_token) => {
+                self.get_token_mut().await.replace(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             None => {
@@ -113,7 +113,7 @@ pub trait OAuthClient: BaseClient {
             }
         }
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 
     /// Get current user playlists without required getting his profile.
