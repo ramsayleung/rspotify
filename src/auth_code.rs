@@ -9,6 +9,7 @@ use crate::{
 use maybe_async::maybe_async;
 use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
+use std::rc::Rc;
 use url::Url;
 
 /// The [Authorization Code Flow](reference) client for the Spotify API.
@@ -65,7 +66,7 @@ pub struct AuthCodeSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
-    pub token: RefCell<Option<Token>>,
+    pub token: Rc<RefCell<Option<Token>>>,
     pub(in crate) http: HttpClient,
 }
 
@@ -88,14 +89,18 @@ impl BaseClient for AuthCodeSpotify {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token.borrow()
+        {
+            self.token.borrow()
+        }
     }
 
     async fn get_token_mut(&self) -> RefMut<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token.borrow_mut()
+        {
+            self.token.borrow_mut()
+        }
     }
 }
 
@@ -108,22 +113,23 @@ impl OAuthClient for AuthCodeSpotify {
     }
 
     async fn auto_reauth(&self) -> ClientResult<()> {
+        // Rust only allow us to have one mutable reference or multiple
+        // immutable reference once, so extract it early.
+        let mut token = self.token.borrow_mut();
         if self.config.token_refreshing
-            && self
-                .token
-                .borrow()
+            && token
                 .as_ref()
                 .map_or(false, |tok| tok.is_capable_to_reauth())
         {
-            if let Some(re_tok) = self
-                .token
-                .borrow()
+            if let Some(re_tok) = token
                 .as_ref()
                 .map(|tok| tok.refresh_token.as_ref())
                 .flatten()
             {
-                self.refresh_token(&re_tok).await?
-            }
+                let fetched_token = self.refetch_token(re_tok).await?;
+                *token = Some(fetched_token);
+                self.write_token_cache().await?
+            };
         }
         Ok(())
     }
@@ -151,16 +157,22 @@ impl OAuthClient for AuthCodeSpotify {
         self.write_token_cache().await
     }
 
-    /// Refreshes the current access token given a refresh token.
-    ///
-    /// The obtained token will be saved internally.
-    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
+    /// Refetch the current access token given a refresh token
+    async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
         let mut token = self.fetch_access_token(&data).await?;
         token.refresh_token = Some(refresh_token.to_string());
+        Ok(token)
+    }
+
+    /// Refreshes the current access token given a refresh token.
+    ///
+    /// The obtained token will be saved internally.
+    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
+        let token = self.refetch_token(refresh_token).await?;
         *self.token.borrow_mut() = Some(token);
 
         self.write_token_cache().await
@@ -183,7 +195,7 @@ impl AuthCodeSpotify {
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         AuthCodeSpotify {
-            token: RefCell::new(Some(token)),
+            token: Rc::new(RefCell::new(Some(token))),
             ..Default::default()
         }
     }

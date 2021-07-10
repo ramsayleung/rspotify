@@ -38,6 +38,9 @@ pub trait OAuthClient: BaseClient {
     /// authentication. The access token will be saved internally.
     async fn request_token(&self, code: &str) -> ClientResult<()>;
 
+    /// Refetch the current access token given a refresh token
+    async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token>;
+
     /// Refreshes the current access token given a refresh token. The obtained
     /// token will be saved internally.
     async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()>;

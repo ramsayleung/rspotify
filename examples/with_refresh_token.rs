@@ -110,7 +110,7 @@ async fn main() {
         .expect("couldn't refresh user token");
 
     let now = Utc::now();
-    now.checked_sub_signed(Duration::seconds(1));
+    now.checked_sub_signed(Duration::seconds(10));
     spotify.get_token_mut().await.as_mut().unwrap().expires_at = Some(now);
     println!(">>> The token should expire, then re-auth automatically");
     do_things(spotify).await;

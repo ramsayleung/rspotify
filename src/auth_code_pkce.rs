@@ -73,22 +73,23 @@ impl OAuthClient for AuthCodePkceSpotify {
     }
 
     async fn auto_reauth(&self) -> ClientResult<()> {
+        // Rust only allow us to have one mutable reference or multiple
+        // immutable reference once, so extract it early.
+        let mut token = self.token.borrow_mut();
         if self.config.token_refreshing
-            && self
-                .token
-                .borrow()
+            && token
                 .as_ref()
                 .map_or(false, |tok| tok.is_capable_to_reauth())
         {
-            if let Some(re_tok) = self
-                .token
-                .borrow()
+            if let Some(re_tok) = token
                 .as_ref()
                 .map(|tok| tok.refresh_token.as_ref())
                 .flatten()
             {
-                self.refresh_token(&re_tok).await?
-            }
+                let fetched_token = self.refetch_token(re_tok).await?;
+                *token = Some(fetched_token);
+                self.write_token_cache().await?
+            };
         }
         Ok(())
     }
@@ -115,14 +116,19 @@ impl OAuthClient for AuthCodePkceSpotify {
         self.write_token_cache().await
     }
 
-    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
-        // TODO
+    async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
         let mut token = self.fetch_access_token(&data).await?;
         token.refresh_token = Some(refresh_token.to_string());
+        Ok(token)
+    }
+
+    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
+        // TODO
+        let token = self.refetch_token(refresh_token).await?;
 
         *self.token.borrow_mut() = Some(token);
 
