@@ -228,10 +228,16 @@ pub struct Config {
     /// request, which most times is 50.
     pub pagination_chunks: u32,
 
+    /// Whether or not to save the authentication token into a JSON file,
+    /// then reread token from JSON file when launch the program without
+    /// following the full auth process again
     pub token_cached: bool,
 
-    /// TODO
+    /// Whether or not to check if the token has expired when sending a
+    /// request with credentials, and in that case, it uses the refresh 
+    /// token to obtain a new access token.
     pub token_refreshing: bool,
+
 }
 
 impl Default for Config {
