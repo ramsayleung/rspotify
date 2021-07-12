@@ -234,10 +234,9 @@ pub struct Config {
     pub token_cached: bool,
 
     /// Whether or not to check if the token has expired when sending a
-    /// request with credentials, and in that case, it uses the refresh 
+    /// request with credentials, and in that case, it uses the refresh
     /// token to obtain a new access token.
     pub token_refreshing: bool,
-
 }
 
 impl Default for Config {
