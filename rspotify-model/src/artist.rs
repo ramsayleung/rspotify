@@ -10,7 +10,7 @@ use std::collections::HashMap;
 /// Simplified Artist Object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedartistobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,

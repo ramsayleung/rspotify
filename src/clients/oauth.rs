@@ -433,7 +433,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
-            .get("me/player/currently-playing", None, &Query::new())
+            .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
         if result.is_empty() {
             Ok(None)

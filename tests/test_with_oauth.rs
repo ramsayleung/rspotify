@@ -1,32 +1,36 @@
 //! Most of tests currently require a Spotify Premium account where the tests
 //! can be ran, which will be ignored in the CI for now. The tests are written
-//! so that no user data is modified.
+//! so that no user data is modified (or, in case it fails, minimal changes are
+//! done to the acount).
 //!
 //! You can run all of them with:
 //!
-//! ```
-//! $ cargo test --features=cli,env-file -- --ignored
-//! ```
+//!   cargo test --features=cli,env-file -- --ignored
 //!
 //! The access token must be obtained previously, and this test file will try
 //! to authenticate with the access token from the `RSPOTIFY_ACCESS_TOKEN`
-//! environment variable or the refresh token from `RSPOTIFY_REFRESH_TOKEN`
-//! (these tokens must have been generated for all available scopes, see
-//! the `oauth_tokens` example).
+//! environment variable or the refresh token from `RSPOTIFY_REFRESH_TOKEN`.
+//! These tokens must have been generated for all available scopes, for example
+//! with the `oauth_tokens` example:
+//!
+//!   cargo run --example oauth_tokens --features=env-file,cli
 
 use rspotify::{
     model::{
-        Country, EpisodeId, Id, Market, Offset, RepeatState, SearchType, ShowId, TimeRange,
+        Country, EpisodeId, AlbumId, Id, Market, Offset, RepeatState, SearchType, ShowId, TimeRange,
         TrackId, TrackPositions,
     },
     prelude::*,
     scopes, AuthCodeSpotify, Credentials, OAuth, Token,
 };
 
+use std::env;
+use std::collections::HashSet;
+
 use chrono::prelude::*;
 use maybe_async::maybe_async;
 use serde_json::map::Map;
-use std::env;
+use futures::stream::TryStreamExt;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
@@ -51,23 +55,23 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         });
 
         let scopes = scopes!(
-            "user-read-email",
-            "user-read-private",
-            "user-top-read",
-            "user-read-recently-played",
-            "user-follow-read",
-            "user-library-read",
-            "user-read-currently-playing",
-            "user-read-playback-state",
-            "user-read-playback-position",
+            "playlist-modify-private",
+            "playlist-modify-public",
             "playlist-read-collaborative",
             "playlist-read-private",
+            "ugc-image-upload",
             "user-follow-modify",
+            "user-follow-read",
             "user-library-modify",
+            "user-library-read",
             "user-modify-playback-state",
-            "playlist-modify-public",
-            "playlist-modify-private",
-            "ugc-image-upload"
+            "user-read-currently-playing",
+            "user-read-email",
+            "user-read-playback-position",
+            "user-read-playback-state",
+            "user-read-private",
+            "user-read-recently-played",
+            "user-top-read"
         );
         // Using every possible scope
         let oauth = OAuth::from_env(scopes).unwrap();
@@ -93,7 +97,7 @@ async fn test_categories() {
             None,
             Some(&Market::Country(Country::UnitedStates)),
             Some(10),
-            Some(0),
+            None,
         )
         .await
         .unwrap();
@@ -108,7 +112,7 @@ async fn test_category_playlists() {
             "pop",
             Some(&Market::Country(Country::UnitedStates)),
             Some(10),
-            Some(0),
+            None,
         )
         .await
         .unwrap();
@@ -176,40 +180,41 @@ async fn test_current_user_recently_played() {
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
-async fn test_current_user_saved_albums_add() {
-    let mut album_ids = vec![];
-    let album_id1 = "6akEvsycLGftJxYudPjmqK";
-    let album_id2 = "628oezqK2qfmCjC6eXNors";
-    album_ids.push(Id::from_id(album_id2).unwrap());
-    album_ids.push(Id::from_id(album_id1).unwrap());
-    oauth_client()
-        .await
-        .current_user_saved_albums_add(album_ids)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_current_user_saved_albums_delete() {
-    let mut album_ids = vec![];
-    let album_id1 = "6akEvsycLGftJxYudPjmqK";
-    let album_id2 = "628oezqK2qfmCjC6eXNors";
-    album_ids.push(Id::from_id(album_id2).unwrap());
-    album_ids.push(Id::from_id(album_id1).unwrap());
-    oauth_client()
-        .await
-        .current_user_saved_albums_delete(album_ids)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
 async fn test_current_user_saved_albums() {
-    oauth_client()
+    let mut album_ids = HashSet::new();
+    album_ids.insert(AlbumId::from_id("6akEvsycLGftJxYudPjmqK").unwrap());
+    album_ids.insert(AlbumId::from_id("628oezqK2qfmCjC6eXNors").unwrap());
+
+    let client = oauth_client().await;
+
+    // First adding the albums
+    client
+        .current_user_saved_albums_add(album_ids.clone())
         .await
-        .current_user_saved_albums_manual(Some(10), Some(0))
+        .unwrap();
+
+    let all_albums =  {
+        // Making sure the new albums appear
+        #[cfg(feature = "__async")]
+        {
+            client.current_user_saved_albums().try_collect::<HashSet<_>>().await.unwrap()
+        }
+
+        #[cfg(feature = "__sync")]
+        {
+            client.current_user_saved_albums().collect::<HashSet<_>>()
+        }
+    };
+
+    let all_uris = all_albums
+        .into_iter()
+        .map(|a| AlbumId::from_uri(&a.album.uri).unwrap())
+        .collect::<HashSet<_>>();
+    assert!(album_ids.is_subset(&all_uris), "couldn't find the new saved albums");
+
+    // And then removing them
+    client
+        .current_user_saved_albums_delete(album_ids)
         .await
         .unwrap();
 }
