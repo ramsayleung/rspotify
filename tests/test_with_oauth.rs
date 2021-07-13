@@ -25,12 +25,10 @@ use rspotify::{
 };
 
 use std::env;
-use std::collections::HashSet;
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
 use serde_json::map::Map;
-use futures::stream::TryStreamExt;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
@@ -181,9 +179,10 @@ async fn test_current_user_recently_played() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_albums() {
-    let mut album_ids = HashSet::new();
-    album_ids.insert(AlbumId::from_id("6akEvsycLGftJxYudPjmqK").unwrap());
-    album_ids.insert(AlbumId::from_id("628oezqK2qfmCjC6eXNors").unwrap());
+    let album_ids = vec![
+        AlbumId::from_id("6akEvsycLGftJxYudPjmqK").unwrap(),
+        AlbumId::from_id("628oezqK2qfmCjC6eXNors").unwrap(),
+    ];
 
     let client = oauth_client().await;
 
@@ -193,24 +192,24 @@ async fn test_current_user_saved_albums() {
         .await
         .unwrap();
 
+    // Making sure the new albums appear
     let all_albums =  {
-        // Making sure the new albums appear
         #[cfg(feature = "__async")]
         {
-            client.current_user_saved_albums().try_collect::<HashSet<_>>().await.unwrap()
+            use futures::stream::TryStreamExt;
+            client.current_user_saved_albums().try_collect::<Vec<_>>().await.unwrap()
         }
 
         #[cfg(feature = "__sync")]
         {
-            client.current_user_saved_albums().collect::<HashSet<_>>()
+            client.current_user_saved_albums().filter_map(|a| a.ok()).collect::<Vec<_>>()
         }
     };
-
     let all_uris = all_albums
         .into_iter()
-        .map(|a| AlbumId::from_uri(&a.album.uri).unwrap())
-        .collect::<HashSet<_>>();
-    assert!(album_ids.is_subset(&all_uris), "couldn't find the new saved albums");
+        .map(|a| AlbumId::from_uri(&a.album.uri).unwrap().to_owned())
+        .collect::<Vec<_>>();
+    assert!(album_ids.iter().all(|item| all_uris.contains(&(*item).to_owned())), "couldn't find the new saved albums");
 
     // And then removing them
     client
