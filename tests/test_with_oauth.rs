@@ -1,7 +1,7 @@
 //! Most of tests currently require a Spotify Premium account where the tests
 //! can be ran, which will be ignored in the CI for now. The tests are written
-//! so that no user data is modified (or, in case it fails, minimal changes are
-//! done to the acount).
+//! so that no user data is modified (or at least minimizing the changes done to
+//! the account).
 //!
 //! You can run all of them with:
 //!
