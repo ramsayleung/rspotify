@@ -642,7 +642,6 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     client
         .playlist_reorder_tracks(
             playlist_id,
-            None::<Vec<&EpisodeId>>,
             Some(0),
             Some(3),
             Some(2),

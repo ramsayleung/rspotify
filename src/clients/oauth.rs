@@ -278,18 +278,15 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
-    async fn playlist_reorder_tracks<'a, T: PlayableIdType + 'a>(
+    async fn playlist_reorder_tracks(
         &self,
         playlist_id: &PlaylistId,
-        uris: Option<impl IntoIterator<Item = &'a Id<T>> + 'a>,
         range_start: Option<i32>,
         insert_before: Option<i32>,
         range_length: Option<u32>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
-        let uris = uris.map(|u| u.into_iter().map(|id| id.uri()).collect::<Vec<_>>());
         let params = build_json! {
-            optional "uris": uris,
             optional "range_start": range_start,
             optional "insert_before": insert_before,
             optional "range_length": range_length,
