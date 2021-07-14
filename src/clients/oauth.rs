@@ -834,9 +834,9 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Parameters:
     /// - market: Optional. an ISO 3166-1 alpha-2 country code or the string from_token.
-    /// - additional_types: Optional. A comma-separated list of item types that
-    ///   your client supports besides the default track type. Valid types are:
-    ///   `track` and `episode`.
+    /// - additional_types: Optional. A list of item types that your client
+    ///   supports besides the default track type. Valid types are: `track` and
+    ///   `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
     async fn current_playback<'a>(
@@ -956,6 +956,15 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
+    /// Start a user's playback
+    ///
+    /// Parameters:
+    /// - uris
+    /// - device_id
+    /// - offset
+    /// - position_ms
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
     async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
         &self,
         uris: impl IntoIterator<Item = &'a Id<T>> + 'a,
@@ -987,6 +996,27 @@ pub trait OAuthClient: BaseClient {
     async fn pause_playback(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id("me/player/pause", device_id);
         self.endpoint_put(&url, &json!({})).await?;
+
+        Ok(())
+    }
+
+    /// Resume a User’s Playback.
+    ///
+    /// Parameters:
+    /// - device_id - device target for playback
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
+    async fn resume_playback(
+        &self,
+        device_id: Option<&str>,
+        position_ms: Option<u32>,
+    ) -> ClientResult<()> {
+        let params = build_json! {
+            optional "position_ms": position_ms,
+        };
+
+        let url = append_device_id("me/player/play", device_id);
+        self.endpoint_put(&url, &params).await?;
 
         Ok(())
     }

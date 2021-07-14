@@ -355,14 +355,26 @@ async fn test_playback() {
             .await
             .unwrap();
 
-        for _ in &uris {
+        for i in 0..uris.len() - 1 {
             client.next_track(Some(&device_id)).await.unwrap();
 
-            client.pause_playback(Some(&device_id)).await.unwrap();
-        }
+            // Also trying to go to the previous track
+            if i != 0 {
+                client.previous_track(Some(&device_id)).await.unwrap();
+                client.next_track(Some(&device_id)).await.unwrap();
+            }
 
-        for _ in &uris {
-            client.previous_track(Some(&device_id)).await.unwrap();
+            // Making sure pause/resume also works
+            let playback = client.current_playback(None, None::<&[_]>).await.unwrap();
+            if let Some(playback) = playback {
+                if playback.is_playing {
+                    client.pause_playback(Some(&device_id)).await.unwrap();
+                    client.resume_playback(None, None).await.unwrap();
+                } else {
+                    client.resume_playback(None, None).await.unwrap();
+                    client.pause_playback(Some(&device_id)).await.unwrap();
+                }
+            }
         }
 
         client
