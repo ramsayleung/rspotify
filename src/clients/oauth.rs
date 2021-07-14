@@ -189,7 +189,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-change-playlist-details)
     async fn playlist_change_detail(
         &self,
-        playlist_id: &str,
+        playlist_id: &PlaylistId,
         name: Option<&str>,
         public: Option<bool>,
         description: Option<&str>,
@@ -202,7 +202,7 @@ pub trait OAuthClient: BaseClient {
             optional "description": description,
         };
 
-        let url = format!("playlists/{}", playlist_id);
+        let url = format!("playlists/{}", playlist_id.id());
         self.endpoint_put(&url, &params).await
     }
 
@@ -212,8 +212,8 @@ pub trait OAuthClient: BaseClient {
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-playlist)
-    async fn playlist_unfollow(&self, playlist_id: &str) -> ClientResult<String> {
-        let url = format!("playlists/{}/followers", playlist_id);
+    async fn playlist_unfollow(&self, playlist_id: &PlaylistId) -> ClientResult<String> {
+        let url = format!("playlists/{}/followers", playlist_id.id());
         self.endpoint_delete(&url, &json!({})).await
     }
 

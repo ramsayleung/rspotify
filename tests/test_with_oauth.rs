@@ -570,8 +570,7 @@ async fn test_user_follow_playlist() {
         .await
         .unwrap();
 
-    // TODO: https://github.com/ramsayleung/rspotify/issues/227
-    client.playlist_unfollow(&playlist_id.uri()).await.unwrap();
+    client.playlist_unfollow(playlist_id).await.unwrap();
 }
 
 #[maybe_async]
@@ -600,10 +599,9 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     // Modifying the playlist details
     let name = "A New Playlist-update";
     let description = "A random description";
-    // TODO: https://github.com/ramsayleung/rspotify/issues/227
     client
         .playlist_change_detail(
-            &playlist.id,
+            &playlist_id,
             Some(name),
             Some(true),
             Some(description),
@@ -720,7 +718,7 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
     assert_eq!(following, vec![false, false]);
 
     // Finally unfollowing the playlist in order to clean it up
-    client.playlist_unfollow(&playlist.id).await.unwrap();
+    client.playlist_unfollow(playlist_id).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
