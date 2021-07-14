@@ -214,7 +214,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-unfollow-playlist)
     async fn playlist_unfollow(&self, playlist_id: &PlaylistId) -> ClientResult<()> {
         let url = format!("playlists/{}/followers", playlist_id.id());
-        self.endpoint_delete(&url, &json!({})).await;
+        self.endpoint_delete(&url, &json!({})).await?;
 
         Ok(())
     }
