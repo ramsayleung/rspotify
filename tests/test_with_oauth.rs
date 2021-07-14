@@ -640,13 +640,7 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // Reordering some tracks
     client
-        .playlist_reorder_tracks(
-            playlist_id,
-            Some(0),
-            Some(3),
-            Some(2),
-            None,
-        )
+        .playlist_reorder_tracks(playlist_id, Some(0), Some(3), Some(2), None)
         .await
         .unwrap();
     // Making sure the number of tracks is the same
