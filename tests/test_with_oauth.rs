@@ -16,13 +16,14 @@
 //!   cargo run --example oauth_tokens --features=env-file,cli
 
 use rspotify::{
+    clients::pagination::Paginator,
     model::{
-        AlbumId, Country, CurrentPlaybackContext, EpisodeId, Id, Market, Offset, PlayableItem,
-        RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions, FullPlaylist, PlaylistId
+        AlbumId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist, Id, Market,
+        Offset, PlayableItem, PlaylistId, RepeatState, SearchType, ShowId, TimeRange, TrackId,
+        TrackPositions,
     },
     prelude::*,
-    scopes, AuthCodeSpotify, Credentials, OAuth, Token, ClientResult,
-    clients::pagination::Paginator
+    scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
 };
 
 use std::env;
@@ -88,8 +89,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
 }
 
 #[maybe_async]
-async fn fetch_all<'a, T>(paginator: Paginator<'a, ClientResult<T>>) -> Vec<T>
-{
+async fn fetch_all<'a, T>(paginator: Paginator<'a, ClientResult<T>>) -> Vec<T> {
     #[cfg(feature = "__async")]
     {
         use futures::stream::TryStreamExt;
@@ -552,7 +552,7 @@ async fn test_user_follow_users() {
     let client = oauth_client().await;
     let users = [
         Id::from_id("exampleuser01").unwrap(),
-        Id::from_id("john").unwrap()
+        Id::from_id("john").unwrap(),
     ];
 
     client.user_follow_users(users).await.unwrap();
@@ -571,10 +571,7 @@ async fn test_user_follow_playlist() {
         .unwrap();
 
     // TODO: https://github.com/ramsayleung/rspotify/issues/227
-    client
-        .playlist_unfollow(&playlist_id.uri())
-        .await
-        .unwrap();
+    client.playlist_unfollow(&playlist_id.uri()).await.unwrap();
 }
 
 #[maybe_async]
@@ -605,13 +602,18 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     let description = "A random description";
     // TODO: https://github.com/ramsayleung/rspotify/issues/227
     client
-        .playlist_change_detail(&playlist.id, Some(name), Some(true), Some(description), Some(false))
+        .playlist_change_detail(
+            &playlist.id,
+            Some(name),
+            Some(true),
+            Some(description),
+            Some(false),
+        )
         .await
         .unwrap();
 
     playlist
 }
-
 
 #[maybe_async]
 async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: &PlaylistId, num: i32) {
@@ -665,23 +667,23 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
     ];
     client
-        .playlist_replace_tracks(
-            playlist_id,
-            replaced_tracks,
-        )
+        .playlist_replace_tracks(playlist_id, replaced_tracks)
         .await
         .unwrap();
     // Making sure the number of tracks is updated
     check_num_tracks(client, playlist_id, replaced_tracks.len() as i32).await;
 
     // Removes a few specific tracks
-    let tracks = [TrackPositions::new(
-        Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-        vec![0],
-    ), TrackPositions::new(
-        Id::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
-        vec![4, 6],
-    )];
+    let tracks = [
+        TrackPositions::new(
+            Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+            vec![0],
+        ),
+        TrackPositions::new(
+            Id::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
+            vec![4, 6],
+        ),
+    ];
     client
         .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks.as_ref(), None)
         .await
@@ -718,10 +720,7 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
     assert_eq!(following, vec![false, false]);
 
     // Finally unfollowing the playlist in order to clean it up
-    client
-        .playlist_unfollow(&playlist.id)
-        .await
-        .unwrap();
+    client.playlist_unfollow(&playlist.id).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -737,12 +736,30 @@ async fn test_playlist() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_volume() {
-    oauth_client().await.volume(78, None).await.unwrap();
+    let client = oauth_client().await;
+
+    // Saving the previous state to restore it later
+    let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
+
+    client.volume(78, None).await.unwrap();
+
+    if let Some(CurrentPlaybackContext {
+        device: Device {
+            volume_percent: Some(volume),
+            ..
+        },
+        ..
+    }) = backup
+    {
+        client.volume(volume as u8, None).await.unwrap();
+    }
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_add_queue() {
+    // NOTE: unfortunately it's impossible to revert this test
+
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
     oauth_client()
         .await
@@ -754,15 +771,14 @@ async fn test_add_queue() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_get_several_shows() {
+    let shows = [
+        ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
+        ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
+    ];
+
     oauth_client()
         .await
-        .get_several_shows(
-            vec![
-                ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
-                ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
-            ],
-            None,
-        )
+        .get_several_shows(shows, None)
         .await
         .unwrap();
 }
@@ -770,15 +786,13 @@ async fn test_get_several_shows() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_get_several_episodes() {
+    let episodes = [
+        EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+        EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
+    ];
     oauth_client()
         .await
-        .get_several_episodes(
-            vec![
-                EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
-                EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
-            ],
-            None,
-        )
+        .get_several_episodes(episodes, None)
         .await
         .unwrap();
 }
