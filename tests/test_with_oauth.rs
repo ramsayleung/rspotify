@@ -18,7 +18,7 @@
 use rspotify::{
     model::{
         Country, EpisodeId, AlbumId, Id, Market, Offset, RepeatState, SearchType, ShowId, TimeRange,
-        TrackId, TrackPositions,
+        TrackId, TrackPositions, PlayableItem
     },
     prelude::*,
     scopes, AuthCodeSpotify, Credentials, OAuth, Token,
@@ -231,11 +231,7 @@ async fn test_current_user_saved_tracks_add() {
         .current_user_saved_tracks_add(tracks_ids)
         .await
         .unwrap();
-}
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_current_user_saved_tracks_contains() {
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
     let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
@@ -246,11 +242,13 @@ async fn test_current_user_saved_tracks_contains() {
         .current_user_saved_tracks_contains(tracks_ids)
         .await
         .unwrap();
-}
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_current_user_saved_tracks_delete() {
+    oauth_client()
+        .await
+        .current_user_saved_tracks_manual(Some(10), Some(0))
+        .await
+        .unwrap();
+
     let mut tracks_ids = vec![];
     let track_id1 = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
     let track_id2 = "spotify:track:1301WleyT98MSxVHPZCA6M";
@@ -259,16 +257,6 @@ async fn test_current_user_saved_tracks_delete() {
     oauth_client()
         .await
         .current_user_saved_tracks_delete(tracks_ids)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_current_user_saved_tracks() {
-    oauth_client()
-        .await
-        .current_user_saved_tracks_manual(Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -291,12 +279,6 @@ async fn test_current_user_top_tracks() {
         .current_user_top_tracks_manual(Some(&TimeRange::ShortTerm), Some(10), Some(0))
         .await
         .unwrap();
-}
-
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_device() {
-    oauth_client().await.device().await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -338,45 +320,85 @@ async fn test_new_releases_with_from_token() {
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
-async fn test_next_playback() {
-    let device_id = "74ASZWbe4lXaubB36ztrGX";
-    oauth_client()
-        .await
-        .next_track(Some(device_id))
-        .await
-        .unwrap();
-}
+async fn test_playback() {
+    let client = oauth_client().await;
+    let uris = vec![
+        TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+        TrackId::from_uri("spotify:track:2DzSjFQKetFhkFCuDWhioi").unwrap(),
+        TrackId::from_uri("spotify:track:50CvpOXJuMiIGOx81Nq3Yx").unwrap(),
+    ];
+    let devices = client.device().await.unwrap();
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_pause_playback() {
-    let device_id = "74ASZWbe4lXaubB36ztrGX";
-    oauth_client()
-        .await
-        .pause_playback(Some(device_id))
-        .await
-        .unwrap();
-}
+    // Save current playback data to be restored later
+    // TODO: the backup restore will only start playing the song. If it's an
+    // album that was playing, its context will be lost.
+    let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
-async fn test_previous_playback() {
-    let device_id = "74ASZWbe4lXaubB36ztrGX";
-    oauth_client()
-        .await
-        .previous_track(Some(device_id))
-        .await
-        .unwrap();
+    for (i, device) in devices.iter().enumerate() {
+        let device_id = device.id.as_ref().unwrap();
+        let next_device_id = devices.get(i + 1).unwrap_or(&devices[0]).id.as_ref().unwrap();
+
+        // Starting playback of some songs
+        client
+            .start_uris_playback(uris.clone(), Some(&device_id), Some(Offset::for_position(0)), None)
+            .await
+            .unwrap();
+
+        for _ in &uris {
+            client
+                .next_track(Some(&device_id))
+                .await
+                .unwrap();
+
+            client
+                .pause_playback(Some(&device_id))
+                .await
+                .unwrap();
+        }
+
+        for _ in &uris {
+            client
+                .previous_track(Some(&device_id))
+                .await
+                .unwrap();
+        }
+
+        client
+            .transfer_playback(&next_device_id, Some(true))
+            .await
+            .unwrap();
+    }
+
+    // Restore the original playback data
+    if let Some(backup) = &backup {
+        let uri = backup.item
+            .as_ref()
+            .map(|b| match b {
+                PlayableItem::Track(t) => TrackId::from_uri(&t.uri).unwrap().to_owned(),
+                // TODO: use EpisodeId after https://github.com/ramsayleung/rspotify/issues/203
+                PlayableItem::Episode(e) => TrackId::from_uri(&e.uri).unwrap().to_owned(),
+            });
+        let offset = None;
+        let device = backup.device.id.as_deref();
+        let position = backup.progress.map(|p| p.as_millis() as u32);
+        client.start_uris_playback(uri.as_deref(), device, offset, position).await.unwrap();
+    }
+    // Pause the playback by default, unless it was playing before
+    if !backup.map(|b| b.is_playing).unwrap_or(false) {
+        client.pause_playback(None).await.unwrap();
+    }
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_recommendations() {
-    let mut payload = Map::new();
     let seed_artists = vec![Id::from_id("4NHQUGzhtTLFvgF5SZesLK").unwrap()];
     let seed_tracks = vec![Id::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
+
+    let mut payload = Map::new();
     payload.insert("min_energy".to_owned(), 0.4.into());
     payload.insert("min_popularity".to_owned(), 50.into());
+
     oauth_client()
         .await
         .recommendations(
@@ -480,25 +502,7 @@ async fn test_shuffle() {
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
-async fn test_start_playback() {
-    let device_id = "74ASZWbe4lXaubB36ztrGX";
-    let uris = vec![TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()];
-    oauth_client()
-        .await
-        .start_uris_playback(uris, Some(device_id), Some(Offset::for_position(0)), None)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
-#[ignore]
 async fn test_transfer_playback() {
-    let device_id = "74ASZWbe4lXaubB36ztrGX";
-    oauth_client()
-        .await
-        .transfer_playback(device_id, Some(true))
-        .await
-        .unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
