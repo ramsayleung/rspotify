@@ -7,7 +7,10 @@
 
 use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
-use std::{io::{self, Write}, env};
+use std::{
+    env,
+    io::{self, Write},
+};
 
 #[tokio::main]
 async fn main() {
