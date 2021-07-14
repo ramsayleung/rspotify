@@ -416,11 +416,19 @@ async fn test_recommendations() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_repeat() {
-    oauth_client()
-        .await
-        .repeat(&RepeatState::Context, None)
+    let client = oauth_client().await;
+
+    // Saving the previous state to restore it later
+    let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
+
+    client
+        .repeat(&RepeatState::Off, None)
         .await
         .unwrap();
+
+    if let Some(backup) = backup {
+        client.repeat(&backup.repeat_state, None).await.unwrap()
+    }
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
