@@ -5,7 +5,7 @@
 //!
 //! You can run all of them with:
 //!
-//!   cargo test --features=cli,env-file -- --ignored
+//!   cargo test --features=cli,env-file -- --ignored --test-threads=1
 //!
 //! The access token must be obtained previously, and this test file will try
 //! to authenticate with the access token from the `RSPOTIFY_ACCESS_TOKEN`
