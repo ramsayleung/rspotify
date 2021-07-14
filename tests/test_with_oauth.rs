@@ -331,8 +331,8 @@ async fn test_playback() {
     let devices = client.device().await.unwrap();
 
     // Save current playback data to be restored later
-    // TODO: the backup restore will only start playing the song. If it's an
-    // album that was playing, its context will be lost.
+    // NOTE: unfortunately it's impossible to revert the entire queue, this will
+    // just restore the song playing at the moment.
     let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
 
     for (i, device) in devices.iter().enumerate() {
