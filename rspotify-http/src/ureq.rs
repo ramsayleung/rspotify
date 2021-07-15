@@ -36,7 +36,7 @@ impl UreqClient {
         // Setting the headers, which will be the token auth if unspecified.
         if let Some(headers) = headers {
             for (key, val) in headers.iter() {
-                request = request.set(&key, &val);
+                request = request.set(key, val);
             }
         }
 
@@ -59,7 +59,7 @@ impl BaseHttpClient for UreqClient {
         let request = ureq::get(url);
         let sender = |mut req: Request| {
             for (key, val) in payload.iter() {
-                req = req.query(&key, &val)
+                req = req.query(key, val)
             }
             req.call()
         };

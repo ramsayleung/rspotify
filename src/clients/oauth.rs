@@ -69,7 +69,7 @@ pub trait OAuthClient: BaseClient {
     fn get_code_from_user(&self, url: &str) -> ClientResult<String> {
         use crate::ClientError;
 
-        match webbrowser::open(&url) {
+        match webbrowser::open(url) {
             Ok(_) => println!("Opened {} in your browser.", url),
             Err(why) => eprintln!(
                 "Error when trying to open an URL in your browser: {:?}. \
@@ -623,7 +623,7 @@ pub trait OAuthClient: BaseClient {
             optional "offset": offset.as_deref(),
         };
 
-        let result = self.endpoint_get(&"me/top/artists", &params).await?;
+        let result = self.endpoint_get("me/top/artists", &params).await?;
         convert_result(&result)
     }
 
