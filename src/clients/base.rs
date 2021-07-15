@@ -30,7 +30,24 @@ where
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
-    // TODO: explain the rwlock
+    /// You may notice two things upon seeing the function signature of
+    /// `get_token` and `get_token_mut`:
+    ///
+    /// 1. They're getters but use `async`
+    /// 2. They return a `RwLockReadGuard`
+    ///
+    /// Firstly, the getters are async because of the self-refreshing feature.
+    /// If activated, the token may be automatically refreshed when these
+    /// getters are called, which may perform requests that can be handled
+    /// asynchronously.
+    ///
+    /// Secondly, the token is wrapped by a `RwLock` in order to allow interior
+    /// mutability. This is required so that the entire client doesn't have to
+    /// be mutable (the token is accessed to from every endpoint). Unlike a
+    /// mutex, this allows multiple reads at the same time, which will be
+    /// happening most times. It is also preferred to use a `RwLock` over a
+    /// `RefCell` because that way it is possible to use the Spotify client
+    /// concurrently.
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>>;
     async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
