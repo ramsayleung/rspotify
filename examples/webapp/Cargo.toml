@@ -5,9 +5,8 @@ authors = ["Ramsay <ramsayleung@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-
 rocket = { version = "0.5.0-rc.1", features = ["json"] }
-rocket_dyn_templates={ version = "0.1.0-rc.1", features = ["tera", "handlebars"] }
+rocket_dyn_templates = { version = "0.1.0-rc.1", features = ["tera", "handlebars"] }
 getrandom = "0.2.0"
 # Rocket is synchronous, so this uses the `ureq` client
 rspotify = { path = "../..", features = ["client-ureq", "ureq-rustls-tls"], default-features = false }
