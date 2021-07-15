@@ -10,11 +10,15 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
+use std::{
+    collections::HashMap,
+    fmt,
+    sync::{RwLockReadGuard, RwLockWriteGuard},
+};
+
 use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::{Map, Value};
-use std::cell::{Ref, RefMut};
-use std::{collections::HashMap, fmt};
 
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
@@ -22,12 +26,13 @@ use std::{collections::HashMap, fmt};
 #[maybe_async(?Send)]
 pub trait BaseClient
 where
-    Self: Default + Clone + fmt::Debug,
+    Self: Default + fmt::Debug,
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
-    async fn get_token(&self) -> Ref<Option<Token>>;
-    async fn get_token_mut(&self) -> RefMut<Option<Token>>;
+    // TODO: explain the rwlock
+    async fn get_token(&self) -> RwLockReadGuard<Option<Token>>;
+    async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.
