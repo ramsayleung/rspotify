@@ -37,11 +37,11 @@ impl BaseClient for ClientCredsSpotify {
     }
 
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
-        self.token.read().unwrap()
+        self.token.read().expect("Failed to read token; the lock has been poisoned")
     }
 
     async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
-        self.token.write().unwrap()
+        self.token.write().expect("Failed to write token; the lock has been poisoned")
     }
 
     fn get_creds(&self) -> &Credentials {

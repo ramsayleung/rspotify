@@ -91,14 +91,14 @@ impl BaseClient for AuthCodeSpotify {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token.read().unwrap()
+        self.token.read().expect("Failed to read token; the lock has been poisoned")
     }
 
     async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token.write().unwrap()
+        self.token.write().expect("Failed to write token; the lock has been poisoned")
     }
 }
 
