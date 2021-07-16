@@ -47,14 +47,18 @@ impl BaseClient for AuthCodePkceSpotify {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token.read().expect("Failed to read token; the lock has been poisoned")
+        self.token
+            .read()
+            .expect("Failed to read token; the lock has been poisoned")
     }
 
     async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token.write().expect("Failed to write token; the lock has been poisoned")
+        self.token
+            .write()
+            .expect("Failed to write token; the lock has been poisoned")
     }
 
     fn get_creds(&self) -> &Credentials {
