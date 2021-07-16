@@ -69,8 +69,8 @@ async fn main() {
         .await
         .expect("couldn't authenticate successfully");
     let refresh_token = spotify
-        .token
-        .borrow()
+        .get_token()
+        .await
         .as_ref()
         .unwrap()
         .refresh_token

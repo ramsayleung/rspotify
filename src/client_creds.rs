@@ -5,8 +5,9 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+
 use maybe_async::maybe_async;
-use std::cell::{Ref, RefCell, RefMut};
 
 /// The [Client Credentials Flow][reference] client for the Spotify API.
 ///
@@ -20,11 +21,11 @@ use std::cell::{Ref, RefCell, RefMut};
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,
-    pub token: RefCell<Option<Token>>,
+    pub token: RwLock<Option<Token>>,
     pub(in crate) http: HttpClient,
 }
 
@@ -35,15 +36,19 @@ impl BaseClient for ClientCredsSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> Ref<Option<Token>> {
+    async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please obtain the token again");
-        self.token.borrow()
+        self.token
+            .read()
+            .expect("Failed to read token; the lock has been poisoned")
     }
 
-    async fn get_token_mut(&self) -> RefMut<Option<Token>> {
-        self.token.borrow_mut()
+    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
+        self.token
+            .write()
+            .expect("Failed to write token; the lock has been poisoned")
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -70,7 +75,7 @@ impl ClientCredsSpotify {
     /// as the client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         ClientCredsSpotify {
-            token: RefCell::new(Some(token)),
+            token: RwLock::new(Some(token)),
             ..Default::default()
         }
     }
@@ -109,7 +114,7 @@ impl ClientCredsSpotify {
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&self) -> ClientResult<()> {
-        *self.token.borrow_mut() = Some(self.fetch_token().await?);
+        *self.get_token_mut() = Some(self.fetch_token().await?);
 
         self.write_token_cache().await
     }
@@ -129,7 +134,7 @@ impl ClientCredsSpotify {
     /// authenticates the usual way to obtain a new access token.
     #[maybe_async]
     async fn auto_reauth(&self) -> ClientResult<()> {
-        let mut token = self.token.borrow_mut();
+        let mut token = self.get_token_mut();
         if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.is_expired()) {
             *token = Some(self.fetch_token().await?);
             self.write_token_cache().await?

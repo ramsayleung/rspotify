@@ -67,7 +67,8 @@ async fn main() {
         .expect("couldn't authenticate successfully");
     let refresh_token = spotify
         .token
-        .borrow()
+        .read()
+        .unwrap()
         .as_ref()
         .unwrap()
         .refresh_token
@@ -87,7 +88,7 @@ async fn main() {
 
     let now = Utc::now();
     now.checked_sub_signed(Duration::seconds(10));
-    spotify.get_token_mut().await.as_mut().unwrap().expires_at = Some(now.clone());
+    spotify.get_token_mut().as_mut().unwrap().expires_at = Some(now.clone());
     println!(">>> Session two, the token should expire, then re-auth automatically");
     auth_code_do_things(spotify).await;
 
@@ -102,7 +103,7 @@ async fn main() {
     println!(">>> New Session one from ClientCredsSpotify, obtaining token and do things");
     client_creds_do_things(&spotify).await;
 
-    spotify.get_token_mut().await.as_mut().unwrap().expires_at = Some(now);
+    spotify.get_token_mut().as_mut().unwrap().expires_at = Some(now);
     println!(">>> New Session two from ClientCredsSpotify, expiring the token and then re-auth automatically");
     client_creds_do_things(&spotify).await;
 }
