@@ -82,7 +82,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         if self.config.token_refreshing
             && token
                 .as_ref()
-                .map_or(false, |tok| tok.is_capable_to_reauth())
+                .map_or(false, |tok| tok.can_reauth())
         {
             if let Some(re_tok) = token
                 .as_ref()

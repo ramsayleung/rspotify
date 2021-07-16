@@ -229,7 +229,7 @@ pub struct Config {
     pub pagination_chunks: u32,
 
     /// Whether or not to save the authentication token into a JSON file,
-    /// then reread token from JSON file when launch the program without
+    /// then reread the token from JSON file when launching the program without
     /// following the full auth process again
     pub token_cached: bool,
 
@@ -370,7 +370,7 @@ impl Token {
     }
 
     /// Check if the token is ready to re-authenticate automatically
-    pub fn is_capable_to_reauth(&self) -> bool {
+    pub fn can_reauth(&self) -> bool {
         self.is_expired() && self.refresh_token.is_some()
     }
 }
