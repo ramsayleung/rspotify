@@ -115,11 +115,7 @@ impl OAuthClient for AuthCodeSpotify {
         // Rust only allow us to have one mutable reference or multiple
         // immutable reference once, so extract it early.
         let mut token = self.get_token_mut();
-        if self.config.token_refreshing
-            && token
-                .as_ref()
-                .map_or(false, |tok| tok.can_reauth())
-        {
+        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.can_reauth()) {
             if let Some(re_tok) = token
                 .as_ref()
                 .map(|tok| tok.refresh_token.as_ref())
