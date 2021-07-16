@@ -99,19 +99,4 @@ async fn main() {
         .await
         .expect("couldn't refresh user token");
     do_things(spotify).await;
-
-    // Expiring the token, then it should automatical re-authenticate with refresh_token
-    let mut config = Config::default();
-    config.token_refreshing = true;
-    let spotify = AuthCodeSpotify::with_config(creds, oauth, config);
-    spotify
-        .refresh_token(&refresh_token)
-        .await
-        .expect("couldn't refresh user token");
-
-    let now = Utc::now();
-    now.checked_sub_signed(Duration::seconds(10));
-    spotify.get_token_mut().await.as_mut().unwrap().expires_at = Some(now);
-    println!(">>> The token should expire, then re-auth automatically");
-    do_things(spotify).await;
 }

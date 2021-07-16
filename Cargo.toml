@@ -114,6 +114,11 @@ required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/with_refresh_token.rs"
 
 [[example]]
+name = "with_auto_reauth"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/with_auto_reauth.rs"
+
+[[example]]
 name = "device"
 required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/device.rs"
