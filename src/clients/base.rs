@@ -33,13 +33,12 @@ where
     /// You may notice two things upon seeing the function signature of
     /// `get_token`:
     ///
-    /// 1. They're getters but use `async`
-    /// 2. They return a `RwLockReadGuard`
+    /// 1. It's a getter but it uses `async`
+    /// 2. It returns a `RwLockReadGuard`
     ///
-    /// Firstly, the getters are async because of the self-refreshing feature.
-    /// If activated, the token may be automatically refreshed when these
-    /// getters are called, which may perform requests that can be handled
-    /// asynchronously.
+    /// Firstly, the getter is async because of the self-refreshing feature. If
+    /// activated, the token may be automatically refreshed when the getter is
+    /// called, which may perform requests that can be handled asynchronously.
     ///
     /// Secondly, the token is wrapped by a `RwLock` in order to allow interior
     /// mutability. This is required so that the entire client doesn't have to
