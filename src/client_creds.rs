@@ -36,6 +36,9 @@ impl BaseClient for ClientCredsSpotify {
     }
 
     async fn get_token(&self) -> Ref<Option<Token>> {
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please obtain the token again");
         self.token.borrow()
     }
 
@@ -105,12 +108,32 @@ impl ClientCredsSpotify {
     /// Obtains the client access token for the app. The resulting token will be
     /// saved internally.
     #[maybe_async]
-    pub async fn request_token(&mut self) -> ClientResult<()> {
-        let mut data = Form::new();
-        data.insert(headers::GRANT_TYPE, headers::GRANT_CLIENT_CREDS);
-
-        *self.token.borrow_mut() = Some(self.fetch_access_token(&data).await?);
+    pub async fn request_token(&self) -> ClientResult<()> {
+        *self.token.borrow_mut() = Some(self.fetch_token().await?);
 
         self.write_token_cache().await
+    }
+
+    /// Fetch access token
+    #[maybe_async]
+    async fn fetch_token(&self) -> ClientResult<Token> {
+        let mut data = Form::new();
+
+        data.insert(headers::GRANT_TYPE, headers::GRANT_CLIENT_CREDS);
+
+        let token = self.fetch_access_token(&data).await?;
+        Ok(token)
+    }
+
+    /// Re-authenticate automatically if it's configured to do so, which
+    /// authenticates the usual way to obtain a new access token.
+    #[maybe_async]
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        let mut token = self.token.borrow_mut();
+        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.is_expired()) {
+            *token = Some(self.fetch_token().await?);
+            self.write_token_cache().await?
+        }
+        Ok(())
     }
 }
