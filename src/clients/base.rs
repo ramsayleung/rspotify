@@ -10,11 +10,15 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
+use std::{
+    collections::HashMap,
+    fmt,
+    sync::{RwLockReadGuard, RwLockWriteGuard},
+};
+
 use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::{Map, Value};
-use std::cell::{Ref, RefMut};
-use std::{collections::HashMap, fmt};
 
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
@@ -22,12 +26,32 @@ use std::{collections::HashMap, fmt};
 #[maybe_async(?Send)]
 pub trait BaseClient
 where
-    Self: Default + Clone + fmt::Debug,
+    Self: Default + fmt::Debug,
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
-    async fn get_token(&self) -> Ref<Option<Token>>;
-    async fn get_token_mut(&self) -> RefMut<Option<Token>>;
+    /// You may notice two things upon seeing the function signature of
+    /// `get_token`:
+    ///
+    /// 1. It's a getter but it uses `async`
+    /// 2. It returns a `RwLockReadGuard`
+    ///
+    /// Firstly, the getter is async because of the self-refreshing feature. If
+    /// activated, the token may be automatically refreshed when the getter is
+    /// called, which may perform requests that can be handled asynchronously.
+    ///
+    /// Secondly, the token is wrapped by a `RwLock` in order to allow interior
+    /// mutability. This is required so that the entire client doesn't have to
+    /// be mutable (the token is accessed to from every endpoint). Unlike a
+    /// mutex, this allows multiple reads at the same time, which will be
+    /// happening most times. It is also preferred to use a `RwLock` over a
+    /// `RefCell` because that way it is possible to use the Spotify client
+    /// concurrently.
+    ///
+    /// Note that this isn't required for `get_token_mut` because in that case
+    /// the token is going to be overwritten anyway.
+    async fn get_token(&self) -> RwLockReadGuard<Option<Token>>;
+    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.

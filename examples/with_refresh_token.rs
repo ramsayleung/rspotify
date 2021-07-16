@@ -69,8 +69,8 @@ async fn main() {
         .await
         .expect("couldn't authenticate successfully");
     let refresh_token = spotify
-        .token
-        .borrow()
+        .get_token()
+        .await
         .as_ref()
         .unwrap()
         .refresh_token
@@ -111,7 +111,7 @@ async fn main() {
 
     let now = Utc::now();
     now.checked_sub_signed(Duration::seconds(10));
-    spotify.get_token_mut().await.as_mut().unwrap().expires_at = Some(now);
+    spotify.get_token_mut().as_mut().unwrap().expires_at = Some(now);
     println!(">>> The token should expire, then re-auth automatically");
     do_things(spotify).await;
 }
