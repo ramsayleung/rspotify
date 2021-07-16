@@ -42,7 +42,7 @@ impl BaseClient for ClientCredsSpotify {
             .expect("Failed to read token; the lock has been poisoned")
     }
 
-    async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
+    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
         self.token
             .write()
             .expect("Failed to write token; the lock has been poisoned")

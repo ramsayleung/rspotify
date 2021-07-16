@@ -105,7 +105,7 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             Some(new_token) => {
-                self.get_token_mut().await.replace(new_token);
+                self.get_token_mut().replace(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             None => {

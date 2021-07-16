@@ -31,7 +31,7 @@ where
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
     /// You may notice two things upon seeing the function signature of
-    /// `get_token` and `get_token_mut`:
+    /// `get_token`:
     ///
     /// 1. They're getters but use `async`
     /// 2. They return a `RwLockReadGuard`
@@ -48,8 +48,11 @@ where
     /// happening most times. It is also preferred to use a `RwLock` over a
     /// `RefCell` because that way it is possible to use the Spotify client
     /// concurrently.
+    ///
+    /// Note that this isn't required for `get_token_mut` because in that case
+    /// the token is going to be overwritten anyway.
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>>;
-    async fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
+    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.
