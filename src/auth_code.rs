@@ -112,8 +112,9 @@ impl OAuthClient for AuthCodeSpotify {
     }
 
     async fn auto_reauth(&self) -> ClientResult<()> {
-        // Rust only allow us to have one mutable reference or multiple
-        // immutable reference once, so extract it early.
+        // You could not have read lock and write lock at the same time, which
+        // will result in deadlock, so obtain the write lock and use it in the
+        // whole process.
         let mut token = self.get_token_mut();
         if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.can_reauth()) {
             if let Some(re_tok) = token

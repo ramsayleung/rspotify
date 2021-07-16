@@ -134,6 +134,9 @@ impl ClientCredsSpotify {
     /// authenticates the usual way to obtain a new access token.
     #[maybe_async]
     async fn auto_reauth(&self) -> ClientResult<()> {
+        // You could not have read lock and write lock at the same time, which
+        // will result in deadlock, so obtain the write lock and use it in the
+        // whole process.
         let mut token = self.get_token_mut();
         if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.is_expired()) {
             *token = Some(self.fetch_token().await?);
