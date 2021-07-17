@@ -19,6 +19,7 @@ This guide should make it easier to upgrade your code, rather than checking out 
 * We always use **`Option<T>`** for optional parameters now. This means that you might have to add `Some(...)` to some of your parameters. We were using both `Into<Option<T>>` and `Option<T>` but decided that either of these would be best as long as it's *consistent*. `Option<T>` has less magic, so we went for that one.
 * The core library has been split up with **features**. If you need `dotenv` just activate `env-file`, and if you need CLI functionality (`prompt_for_token` and similars), activate `cli`.
 * We use **custom errors** now instead of the `failure` crate.
+* Support re-authenticate automatically and refresh token when it expired.
 
 Now to a quick example: here's how you *used to* query the current user saved tracks:
 
@@ -59,7 +60,7 @@ fn main() {
     let url = spotify.get_authorize_url(false).unwrap(); // More flexible, lets us implement PKCE
     spotify.prompt_for_token(&url).unwrap(); // Explicit: the token is obtained by interacting with the user
 
-    let stream = spotify.current_user_saved_tracks();
+    let stream = spotify.current_user_saved_tracks(); // It will automatically refresh token if it's expired
     println!("Items:");
     for item in stream { // Easy iteration instead of manual pagination
         println!("* {}", item.unwrap().track.name);
@@ -95,6 +96,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - Add `add_item_to_queue` endpoint.
 - Add `category_playlists` endpoint ([#153](https://github.com/ramsayleung/rspotify/pull/153)).
 - Fix race condition when using a single client from multiple threads ([#114](https://github.com/ramsayleung/rspotify/pull/114)).
+- ([#224](https://github.com/ramsayleung/rspotify/pull/224)) Automatically re-authenticate when the token is expired and `Config.refreshing_token` is set to true.
 - Rspotify should now be considerably lighter and less bloated ([discussion in #108](https://github.com/ramsayleung/rspotify/issues/108)):
   + Remove unused dependencies: `base64`, `env_logger`, `random`, `url`.
   + Remove `itertools` dependency by using the standard library.
