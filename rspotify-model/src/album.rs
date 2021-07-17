@@ -42,7 +42,7 @@ pub struct SimplifiedAlbum {
 /// Full Album Object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
     pub album_type: AlbumType,
