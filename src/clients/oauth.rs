@@ -1004,6 +1004,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Parameters:
     /// - device_id - device target for playback
+    /// - position_ms
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
     async fn resume_playback(
