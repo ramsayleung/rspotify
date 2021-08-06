@@ -83,7 +83,7 @@ pub struct PageSimpliedAlbums {
 /// Saved Album object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedalbumobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,
