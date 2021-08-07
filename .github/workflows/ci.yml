@@ -59,6 +59,8 @@ jobs:
   test:
     name: Test and Lint for each Client
     runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: 1
     strategy:
       matrix:
         features:
