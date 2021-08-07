@@ -9,7 +9,7 @@ fn main() {
     env_logger::init();
 
     let creds = Credentials::from_env().unwrap();
-    let mut spotify = ClientCredsSpotify::new(creds);
+    let spotify = ClientCredsSpotify::new(creds);
 
     // Obtaining the access token
     spotify.request_token().unwrap();

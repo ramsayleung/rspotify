@@ -10,7 +10,7 @@ use std::{
 fn main() {
     let creds = Credentials::from_env().unwrap();
 
-    let mut spotify = ClientCredsSpotify::new(creds);
+    let spotify = ClientCredsSpotify::new(creds);
     let ids = [
         Id::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap(),
         Id::from_uri("spotify:album:5EBb7SSkPgxO9Lmt8NjAPT").unwrap(),
