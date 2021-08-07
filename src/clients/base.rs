@@ -997,7 +997,7 @@ where
             )
             .collect::<HashMap<_, _>>();
 
-        for (ref key, ref value) in &map_to_hold_owned_value {
+        for (key, value) in &map_to_hold_owned_value {
             params.insert(key, value);
         }
 
