@@ -17,7 +17,7 @@ mod private {
     pub trait Sealed {}
 }
 
-pub trait IdType: private::Sealed {
+pub trait IdType: private::Sealed + Send + Sync {
     const TYPE: Type;
 }
 pub trait PlayableIdType: IdType {}
