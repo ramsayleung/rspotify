@@ -3,7 +3,7 @@ use crate::{
     clients::{BaseClient, OAuthClient},
     headers,
     http::{Form, HttpClient},
-    ClientResult, Config, Credentials, OAuth, Token,
+    run_blocking, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::{
@@ -88,9 +88,24 @@ impl BaseClient for AuthCodeSpotify {
     }
 
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
-        self.auto_reauth()
-            .await
-            .expect("Failed to re-authenticate automatically, please authenticate");
+        self.auto_reauth(|| {
+            let token = self.token.read().unwrap();
+            if let Some(Token {
+                refresh_token: Some(refresh_token),
+                ..
+            }) = token.as_ref()
+            {
+                // It's converted to a blocking function so that the closure
+                // can be passed to `auto_reauth` as well when the client is
+                // async.
+                let new_token = run_blocking(self.refetch_token(refresh_token))?;
+                return Ok(Some(new_token));
+            }
+
+            Ok(None)
+        })
+        .await
+        .expect("Failed to re-authenticate automatically, please authenticate");
         self.token
             .read()
             .expect("Failed to read token; the lock has been poisoned")
@@ -109,30 +124,6 @@ impl BaseClient for AuthCodeSpotify {
 impl OAuthClient for AuthCodeSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
-    }
-
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        if !self.config.token_refreshing {
-            return Ok(());
-        }
-
-        // You cannot have read lock and write lock at the same time, which
-        // would result in a deadlock, so obtain the write lock and use it in
-        // the whole process.
-        let mut token = self.get_token_mut();
-
-        if let Some(token) = token.as_mut() {
-            if !token.can_reauth() {
-                return Ok(());
-            }
-
-            if let Some(refresh_token) = &token.refresh_token {
-                *token = self.refetch_token(&refresh_token).await?;
-                self.write_token_cache().await?;
-            }
-        }
-
-        Ok(())
     }
 
     /// Obtains a user access token given a code, as part of the OAuth
@@ -158,7 +149,6 @@ impl OAuthClient for AuthCodeSpotify {
         self.write_token_cache().await
     }
 
-    /// Refetch the current access token given a refresh token
     async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
@@ -167,16 +157,6 @@ impl OAuthClient for AuthCodeSpotify {
         let mut token = self.fetch_access_token(&data).await?;
         token.refresh_token = Some(refresh_token.to_string());
         Ok(token)
-    }
-
-    /// Refreshes the current access token given a refresh token.
-    ///
-    /// The obtained token will be saved internally.
-    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
-        let token = self.refetch_token(refresh_token).await?;
-        *self.get_token_mut() = Some(token);
-
-        self.write_token_cache().await
     }
 }
 

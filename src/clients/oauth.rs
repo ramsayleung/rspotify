@@ -31,19 +31,23 @@ use url::Url;
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
 
-    /// Re-authenticate automatically if it's configured to do so, which uses the refresh token to obtain a new access token.
-    async fn auto_reauth(&self) -> ClientResult<()>;
-
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
     async fn request_token(&self, code: &str) -> ClientResult<()>;
 
-    /// Refetch the current access token given a refresh token
-    async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token>;
-
     /// Refreshes the current access token given a refresh token. The obtained
     /// token will be saved internally.
-    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()>;
+    async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token>;
+
+    /// Refreshes the current access token given a refresh token.
+    ///
+    /// The obtained token will be saved internally.
+    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
+        let token = self.refetch_token(refresh_token).await?;
+        *self.get_token_mut() = Some(token);
+
+        self.write_token_cache().await
+    }
 
     /// Tries to read the cache file's token, which may not exist.
     async fn read_token_cache(&mut self) -> Option<Token> {

@@ -3,7 +3,7 @@ use crate::{
     clients::{BaseClient, OAuthClient},
     headers,
     http::{Form, HttpClient},
-    ClientResult, Config, Credentials, OAuth, Token,
+    run_blocking, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::{
@@ -44,9 +44,24 @@ impl BaseClient for AuthCodePkceSpotify {
     }
 
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
-        self.auto_reauth()
-            .await
-            .expect("Failed to re-authenticate automatically, please authenticate");
+        self.auto_reauth(|| {
+            let token = self.token.read().unwrap();
+            if let Some(Token {
+                refresh_token: Some(refresh_token),
+                ..
+            }) = token.as_ref()
+            {
+                // It's converted to a blocking function so that the closure
+                // can be passed to `auto_reauth` as well when the client is
+                // async.
+                let new_token = run_blocking(self.refetch_token(refresh_token))?;
+                return Ok(Some(new_token));
+            }
+
+            Ok(None)
+        })
+        .await
+        .expect("Failed to re-authenticate automatically, please authenticate");
         self.token
             .read()
             .expect("Failed to read token; the lock has been poisoned")
@@ -73,25 +88,6 @@ impl BaseClient for AuthCodePkceSpotify {
 impl OAuthClient for AuthCodePkceSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
-    }
-
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        // You could not have read lock and write lock at the same time, which
-        // will result in deadlock, so obtain the write lock and use it in the
-        // whole process.
-        let mut token = self.get_token_mut();
-        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.can_reauth()) {
-            if let Some(re_tok) = token
-                .as_ref()
-                .map(|tok| tok.refresh_token.as_ref())
-                .flatten()
-            {
-                let fetched_token = self.refetch_token(re_tok).await?;
-                *token = Some(fetched_token);
-                self.write_token_cache().await?
-            };
-        }
-        Ok(())
     }
 
     async fn request_token(&self, code: &str) -> ClientResult<()> {

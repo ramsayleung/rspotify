@@ -207,6 +207,34 @@ where
         Ok(tok)
     }
 
+    /// Generic method to re-authenticate automatically if it's configured to do
+    /// so. In order to work for any authentication method, it takes a refetcher
+    /// function as its only argument, which will attempt to obtain a new token.
+    async fn auto_reauth<F>(&self, refetcher: F) -> ClientResult<()>
+    where
+        F: Fn() -> ClientResult<Option<Token>>,
+    {
+        // Stops if the token isn't configured as refreshing
+        if !self.get_config().token_refreshing {
+            return Ok(());
+        }
+
+        if let Some(token) = self.get_token_mut().as_mut() {
+            // Stops if the token doesn't need to be refreshed
+            // TODO: this check should be done with `get_token` but it would
+            // cause a loop.
+            if !token.can_reauth() {
+                return Ok(());
+            }
+
+            if let Some(new_token) = refetcher()? {
+                *token = new_token;
+            }
+        }
+
+        Ok(())
+    }
+
     /// Returns a single track given the track's ID, URI or URL.
     ///
     /// Parameters:

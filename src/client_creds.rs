@@ -2,7 +2,7 @@ use crate::{
     clients::BaseClient,
     headers,
     http::{Form, HttpClient},
-    ClientResult, Config, Credentials, Token,
+    run_blocking, ClientResult, Config, Credentials, Token,
 };
 
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -37,9 +37,17 @@ impl BaseClient for ClientCredsSpotify {
     }
 
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
-        self.auto_reauth()
-            .await
-            .expect("Failed to re-authenticate automatically, please obtain the token again");
+        self.auto_reauth(|| {
+            // The reauth process starts from scratch in the Client Credentials
+            // flow because there's no refresh token.
+            //
+            // It's converted to a blocking function so that the closure can be
+            // passed to `auto_reauth` as well when the client is async.
+            let new_token = run_blocking(self.fetch_token())?;
+            Ok(Some(new_token))
+        })
+        .await
+        .expect("Failed to re-authenticate automatically, please obtain the token again");
         self.token
             .read()
             .expect("Failed to read token; the lock has been poisoned")
@@ -128,20 +136,5 @@ impl ClientCredsSpotify {
 
         let token = self.fetch_access_token(&data).await?;
         Ok(token)
-    }
-
-    /// Re-authenticate automatically if it's configured to do so, which
-    /// authenticates the usual way to obtain a new access token.
-    #[maybe_async]
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        // You could not have read lock and write lock at the same time, which
-        // will result in deadlock, so obtain the write lock and use it in the
-        // whole process.
-        let mut token = self.get_token_mut();
-        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.is_expired()) {
-            *token = Some(self.fetch_token().await?);
-            self.write_token_cache().await?
-        }
-        Ok(())
     }
 }

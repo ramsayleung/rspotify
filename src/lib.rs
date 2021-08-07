@@ -448,6 +448,17 @@ impl OAuth {
     }
 }
 
+/// Utility to run something sequentially as an abstraction over async and sync
+/// code.
+#[cfg(feature = "__async")]
+pub fn run_blocking<T, F: futures::Future<Output = T>>(data: F) -> T {
+    futures::executor::block_on(data)
+}
+#[cfg(feature = "__sync")]
+pub fn run_blocking<T>(data: T) -> T {
+    data
+}
+
 #[cfg(test)]
 mod test {
     use super::generate_random_string;
