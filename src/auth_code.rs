@@ -112,21 +112,26 @@ impl OAuthClient for AuthCodeSpotify {
     }
 
     async fn auto_reauth(&self) -> ClientResult<()> {
-        // You could not have read lock and write lock at the same time, which
-        // will result in deadlock, so obtain the write lock and use it in the
-        // whole process.
-        let mut token = self.get_token_mut();
-        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.can_reauth()) {
-            if let Some(re_tok) = token
-                .as_ref()
-                .map(|tok| tok.refresh_token.as_ref())
-                .flatten()
-            {
-                let fetched_token = self.refetch_token(re_tok).await?;
-                *token = Some(fetched_token);
-                self.write_token_cache().await?
-            };
+        if !self.config.token_refreshing {
+            return Ok(());
         }
+
+        // You cannot have read lock and write lock at the same time, which
+        // would result in a deadlock, so obtain the write lock and use it in
+        // the whole process.
+        let mut token = self.get_token_mut();
+
+        if let Some(token) = token.as_mut() {
+            if !token.can_reauth() {
+                return Ok(());
+            }
+
+            if let Some(refresh_token) = &token.refresh_token {
+                *token = self.refetch_token(&refresh_token).await?;
+                self.write_token_cache().await?;
+            }
+        }
+
         Ok(())
     }
 
