@@ -53,6 +53,19 @@ where
     async fn get_token(&self) -> RwLockReadGuard<Option<Token>>;
     fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
+    /// Refetch the current access token given a refresh token
+    async fn refetch_token(&self) -> ClientResult<Option<Token>>;
+
+    /// Refreshes the current access token given a refresh token. The obtained
+    /// token will be saved internally.
+    async fn refresh_token(&self) -> ClientResult<()> {
+        let token = self.refetch_token().await?;
+        if let Some(token) = token {
+            *self.get_token_mut() = Some(token);
+        }
+
+        self.write_token_cache().await
+    }
 
     /// If it's a relative URL like "me", the prefix is appended to it.
     /// Otherwise, the same URL is returned.

@@ -73,7 +73,11 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         let oauth = OAuth::from_env(scopes).unwrap();
 
         let spotify = AuthCodeSpotify::new(creds, oauth);
-        spotify.refresh_token(&refresh_token).await.unwrap();
+        spotify.get_token_mut() = Token {
+            refresh_token,
+            ..Default::default()
+        };
+        spotify.refresh_token().await.unwrap();
         spotify
     } else {
         panic!(
