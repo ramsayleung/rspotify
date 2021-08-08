@@ -58,6 +58,14 @@ impl BaseClient for ClientCredsSpotify {
     fn get_config(&self) -> &Config {
         &self.config
     }
+
+    /// Note that refetching a token in the Client Credentials flow is
+    /// equivalent to requesting a token from scratch, since there's no refresh
+    /// token available.
+    async fn refetch_token(&self) -> ClientResult<Option<Token>> {
+        let token = self.fetch_token().await?;
+        Ok(Some(token))
+    }
 }
 
 impl ClientCredsSpotify {

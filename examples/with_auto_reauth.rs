@@ -65,16 +65,6 @@ async fn main() {
         .prompt_for_token(&url)
         .await
         .expect("couldn't authenticate successfully");
-    let refresh_token = spotify
-        .token
-        .read()
-        .unwrap()
-        .as_ref()
-        .unwrap()
-        .refresh_token
-        .as_ref()
-        .unwrap()
-        .clone();
     auth_code_do_things(spotify).await;
 
     // Expiring the token, then it should automatical re-authenticate with refresh_token
@@ -82,7 +72,7 @@ async fn main() {
     config.token_refreshing = true;
     let spotify = AuthCodeSpotify::with_config(creds.clone(), oauth, config.clone());
     spotify
-        .refresh_token(&refresh_token)
+        .refresh_token()
         .await
         .expect("couldn't refresh user token");
 

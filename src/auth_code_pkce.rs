@@ -65,6 +65,26 @@ impl BaseClient for AuthCodePkceSpotify {
     fn get_config(&self) -> &Config {
         &self.config
     }
+
+    async fn refetch_token(&self) -> ClientResult<Option<Token>> {
+        // NOTE: this can't use `get_token` because `get_token` itself might
+        // call this function when automatic reauthentication is enabled.
+        match self.token.read().unwrap().as_ref() {
+            Some(Token {
+                refresh_token: Some(refresh_token),
+                ..
+            }) => {
+                let mut data = Form::new();
+                data.insert(headers::REFRESH_TOKEN, refresh_token);
+                data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
+
+                let mut token = self.fetch_access_token(&data).await?;
+                token.refresh_token = Some(refresh_token.to_string());
+                Ok(Some(token))
+            }
+            _ => Ok(None),
+        }
+    }
 }
 
 /// This client includes user authorization, so it has access to the user
@@ -73,25 +93,6 @@ impl BaseClient for AuthCodePkceSpotify {
 impl OAuthClient for AuthCodePkceSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth
-    }
-
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        // You could not have read lock and write lock at the same time, which
-        // will result in deadlock, so obtain the write lock and use it in the
-        // whole process.
-        let mut token = self.get_token_mut();
-        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.can_reauth()) {
-            if let Some(re_tok) = token
-                .as_ref()
-                .map(|tok| tok.refresh_token.as_ref())
-                .flatten()
-            {
-                let fetched_token = self.refetch_token(re_tok).await?;
-                *token = Some(fetched_token);
-                self.write_token_cache().await?
-            };
-        }
-        Ok(())
     }
 
     async fn request_token(&self, code: &str) -> ClientResult<()> {
@@ -111,25 +112,6 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(headers::STATE, oauth.state.as_ref());
 
         let token = self.fetch_access_token(&data).await?;
-        *self.get_token_mut() = Some(token);
-
-        self.write_token_cache().await
-    }
-
-    async fn refetch_token(&self, refresh_token: &str) -> ClientResult<Token> {
-        let mut data = Form::new();
-        data.insert(headers::REFRESH_TOKEN, refresh_token);
-        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
-
-        let mut token = self.fetch_access_token(&data).await?;
-        token.refresh_token = Some(refresh_token.to_string());
-        Ok(token)
-    }
-
-    async fn refresh_token(&self, refresh_token: &str) -> ClientResult<()> {
-        // TODO
-        let token = self.refetch_token(refresh_token).await?;
-
         *self.get_token_mut() = Some(token);
 
         self.write_token_cache().await

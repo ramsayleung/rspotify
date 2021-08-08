@@ -18,7 +18,7 @@ pub async fn creds_client() -> ClientCredsSpotify {
         )
     });
 
-    let mut spotify = ClientCredsSpotify::new(creds);
+    let spotify = ClientCredsSpotify::new(creds);
     spotify.request_token().await.unwrap();
     spotify
 }

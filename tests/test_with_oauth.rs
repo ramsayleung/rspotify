@@ -20,7 +20,7 @@ use rspotify::{
         TrackId, TrackPositions,
     },
     prelude::*,
-    scopes, AuthCodeSpotify, Credentials, OAuth, Token,
+    scopes, AuthCodeSpotify, Token,
 };
 
 use chrono::prelude::*;
@@ -41,15 +41,6 @@ pub async fn oauth_client() -> AuthCodeSpotify {
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
-        let creds = Credentials::from_env().unwrap_or_else(|| {
-            panic!(
-                "No credentials configured. Make sure that either the \
-                `env-file` feature is enabled, or that the required \
-                environment variables are exported (`RSPOTIFY_CLIENT_ID`, \
-                `RSPOTIFY_CLIENT_SECRET`)."
-            )
-        });
-
         let scopes = scopes!(
             "user-read-email",
             "user-read-private",
@@ -69,11 +60,14 @@ pub async fn oauth_client() -> AuthCodeSpotify {
             "playlist-modify-private",
             "ugc-image-upload"
         );
-        // Using every possible scope
-        let oauth = OAuth::from_env(scopes).unwrap();
 
-        let spotify = AuthCodeSpotify::new(creds, oauth);
-        spotify.refresh_token(&refresh_token).await.unwrap();
+        let base_token = Token {
+            scopes,
+            refresh_token: Some(refresh_token),
+            ..Default::default()
+        };
+        let spotify = AuthCodeSpotify::from_token(base_token);
+        spotify.refresh_token().await.unwrap();
         spotify
     } else {
         panic!(

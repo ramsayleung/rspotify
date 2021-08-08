@@ -68,15 +68,6 @@ async fn main() {
         .prompt_for_token(&url)
         .await
         .expect("couldn't authenticate successfully");
-    let refresh_token = spotify
-        .get_token()
-        .await
-        .as_ref()
-        .unwrap()
-        .refresh_token
-        .as_ref()
-        .unwrap()
-        .clone();
     do_things(spotify).await;
 
     // At a different time, the refresh token can be used to refresh an access
@@ -85,7 +76,7 @@ async fn main() {
     let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     // No `prompt_for_user_token_without_cache` needed.
     spotify
-        .refresh_token(&refresh_token)
+        .refresh_token()
         .await
         .expect("couldn't refresh user token");
     do_things(spotify).await;
@@ -95,7 +86,7 @@ async fn main() {
     println!(">>> Session three, running some requests:");
     let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     spotify
-        .refresh_token(&refresh_token)
+        .refresh_token()
         .await
         .expect("couldn't refresh user token");
     do_things(spotify).await;
