@@ -20,7 +20,7 @@ use rspotify::{
     model::{
         AlbumId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist, Id, Market,
         Offset, PlayableItem, PlaylistId, RepeatState, SearchType, ShowId, TimeRange, TrackId,
-        TrackPositions,
+        TrackPositions, UnknownId,
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
@@ -386,9 +386,8 @@ async fn test_playback() {
     // Restore the original playback data
     if let Some(backup) = &backup {
         let uri = backup.item.as_ref().map(|b| match b {
-            PlayableItem::Track(t) => TrackId::from_uri(&t.uri).unwrap().to_owned(),
-            // TODO: use EpisodeId after https://github.com/ramsayleung/rspotify/issues/203
-            PlayableItem::Episode(e) => TrackId::from_uri(&e.uri).unwrap().to_owned(),
+            PlayableItem::Track(t) => UnknownId::from_uri(&t.uri).unwrap().to_owned(),
+            PlayableItem::Episode(e) => UnknownId::from_uri(&e.uri).unwrap().to_owned(),
         });
         let offset = None;
         let device = backup.device.id.as_deref();

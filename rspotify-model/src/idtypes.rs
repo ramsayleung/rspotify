@@ -1,3 +1,5 @@
+//! TODO proper docs
+
 use crate::Type;
 use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
@@ -36,15 +38,18 @@ macro_rules! sealed_types {
     }
 }
 
-sealed_types!(Artist, Album, Track, Playlist, User, Show, Episode);
+sealed_types!(Unknown, Artist, Album, Track, Playlist, User, Show, Episode);
 
+impl PlayContextIdType for Unknown {}
 impl PlayContextIdType for Artist {}
 impl PlayContextIdType for Album {}
-impl PlayableIdType for Track {}
 impl PlayContextIdType for Playlist {}
 impl PlayContextIdType for Show {}
+impl PlayableIdType for Unknown {}
+impl PlayableIdType for Track {}
 impl PlayableIdType for Episode {}
 
+pub type UnknownId = Id<Unknown>;
 pub type ArtistId = Id<Artist>;
 pub type AlbumId = Id<Album>;
 pub type TrackId = Id<Track>;
@@ -53,6 +58,7 @@ pub type UserId = Id<User>;
 pub type ShowId = Id<Show>;
 pub type EpisodeId = Id<Episode>;
 
+pub type UnkownIdBuf = IdBuf<Unknown>;
 pub type ArtistIdBuf = IdBuf<Artist>;
 pub type AlbumIdBuf = IdBuf<Album>;
 pub type TrackIdBuf = IdBuf<Track>;
@@ -297,8 +303,112 @@ impl<T: IdType> Id<T> {
             .ok_or(IdError::InvalidFormat)?;
 
         match tpe.parse::<Type>() {
-            Ok(tpe) if tpe == T::TYPE => Id::<T>::from_id(&id[1..]),
+            Ok(tpe) if T::TYPE == Type::Unknown || tpe == T::TYPE => Id::<T>::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    // Valid values:
+    const ID: &str = "4iV5W9uYEdYUVa79Axb7Rh";
+    const URI: &str = "spotify:track:4iV5W9uYEdYUVa79Axb7Rh";
+    const URI_SLASHES: &str = "spotify/track/4iV5W9uYEdYUVa79Axb7Rh";
+    // Invalid values:
+    const URI_EMPTY: &str = "spotify::4iV5W9uYEdYUVa79Axb7Rh";
+    // Note that the API doesn't really have an 'Unknown' type.
+    const URI_WRONGTYPE1: &str = "spotify:unknown:4iV5W9uYEdYUVa79Axb7Rh";
+    const URI_WRONGTYPE2: &str = "spotify:something:4iV5W9uYEdYUVa79Axb7Rh";
+    const URI_SHORT: &str = "track:4iV5W9uYEdYUVa79Axb7Rh";
+    const URI_MIXED1: &str = "spotify/track:4iV5W9uYEdYUVa79Axb7Rh";
+    const URI_MIXED2: &str = "spotify:track/4iV5W9uYEdYUVa79Axb7Rh";
+
+    #[test]
+    fn test_id_parse() {
+        assert!(TrackId::from_id(ID).is_ok());
+        assert_eq!(TrackId::from_id(URI), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_SLASHES), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_EMPTY), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_WRONGTYPE1), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_WRONGTYPE2), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_SHORT), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_MIXED1), Err(IdError::InvalidId));
+        assert_eq!(TrackId::from_id(URI_MIXED2), Err(IdError::InvalidId));
+    }
+
+    #[test]
+    fn test_uri_parse() {
+        assert!(TrackId::from_uri(URI).is_ok());
+        assert!(TrackId::from_uri(URI_SLASHES).is_ok());
+        assert_eq!(TrackId::from_uri(ID), Err(IdError::InvalidPrefix));
+        assert_eq!(TrackId::from_uri(URI_SHORT), Err(IdError::InvalidPrefix));
+        assert_eq!(TrackId::from_uri(URI_EMPTY), Err(IdError::InvalidType));
+        assert_eq!(TrackId::from_uri(URI_WRONGTYPE1), Err(IdError::InvalidType));
+        assert_eq!(TrackId::from_uri(URI_WRONGTYPE2), Err(IdError::InvalidType));
+        assert_eq!(TrackId::from_uri(URI_MIXED1), Err(IdError::InvalidFormat));
+        assert_eq!(TrackId::from_uri(URI_MIXED2), Err(IdError::InvalidFormat));
+    }
+
+    #[test]
+    fn test_id_or_uri_parse() {
+        assert!(TrackId::from_id_or_uri(ID).is_ok());
+        assert!(TrackId::from_id_or_uri(URI).is_ok());
+        assert!(TrackId::from_id_or_uri(URI_SLASHES).is_ok());
+        assert_eq!(TrackId::from_id_or_uri(URI_SHORT), Err(IdError::InvalidId));
+        assert_eq!(
+            TrackId::from_id_or_uri(URI_EMPTY),
+            Err(IdError::InvalidType)
+        );
+        assert_eq!(
+            TrackId::from_id_or_uri(URI_WRONGTYPE1),
+            Err(IdError::InvalidType)
+        );
+        assert_eq!(
+            TrackId::from_id_or_uri(URI_WRONGTYPE2),
+            Err(IdError::InvalidType)
+        );
+        assert_eq!(
+            TrackId::from_id_or_uri(URI_MIXED1),
+            Err(IdError::InvalidFormat)
+        );
+        assert_eq!(
+            TrackId::from_id_or_uri(URI_MIXED2),
+            Err(IdError::InvalidFormat)
+        );
+    }
+
+    #[test]
+    fn test_unknown() {
+        // Passing a Track ID to an Unknown ID type should work just fine.
+        assert!(UnknownId::from_id(ID).is_ok());
+        assert!(UnknownId::from_uri(URI).is_ok());
+        assert!(UnknownId::from_uri(URI_WRONGTYPE1).is_ok());
+        assert!(UnknownId::from_id_or_uri(ID).is_ok());
+        assert!(UnknownId::from_id_or_uri(URI).is_ok());
+
+        // The given type must still be a variant of the `Type` enum, so it will
+        // fail for invalid ones.
+        assert_eq!(UnknownId::from_uri(URI_EMPTY), Err(IdError::InvalidType));
+        assert_eq!(
+            UnknownId::from_uri(URI_WRONGTYPE2),
+            Err(IdError::InvalidType)
+        );
+
+        // But it will still catch other kinds of error
+        assert_eq!(
+            UnknownId::from_id_or_uri(URI_SHORT),
+            Err(IdError::InvalidId)
+        );
+        assert_eq!(
+            UnknownId::from_id_or_uri(URI_MIXED1),
+            Err(IdError::InvalidFormat)
+        );
+        assert_eq!(
+            UnknownId::from_id_or_uri(URI_MIXED2),
+            Err(IdError::InvalidFormat)
+        );
     }
 }
