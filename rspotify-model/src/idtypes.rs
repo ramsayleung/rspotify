@@ -23,6 +23,47 @@
 //!    still needs to be a variant from [`crate::Type`])
 //! 2. They may be used anywhere, as they implement every single trait in this
 //!    module.
+//!
+//! ## Examples
+//!
+//! You may let the type inferrer guess what kind of ID you're dealing with by
+//! using [`Id`]:
+//!
+//!
+//! ```
+//! fn pause_track(id: &TrackId) { /* ... */ }
+//!
+//! let id = Id::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
+//! pause_track(id); // this function takes a `TrackId`, so `id` must be one
+//! ```
+//!
+//! You can also specify the type explicitly by not using [`Id`] directly:
+//!
+//! ```
+//! fn pause_track(id: &TrackId) { /* ... */ }
+//!
+//! let id = TrackId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
+//! pause_track(id);
+//! ```
+//!
+//! Notice how it's type safe; this would fail at compile-time:
+//!
+//! ```compile_fail
+//! fn pause_track(id: &TrackId) { /* ... */ }
+//!
+//! let id = EpisodeId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
+//! pause_track(id);
+//! ```
+//!
+//! And this would panic because it's a `TrackId` but its URI string specifies
+//! it's an album (`spotify:album:xxxx`).
+//!
+//! ```should_panic
+//! fn pause_track(id: &TrackId) { /* ... */ }
+//!
+//! let id = TrackId::from_id("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
+//! pause_track(id);
+//! ```
 
 use crate::Type;
 use serde::{Deserialize, Serialize};
