@@ -236,7 +236,7 @@ pub enum PlayableItem {
 pub use idtypes::{
     AlbumId, AlbumIdBuf, ArtistId, ArtistIdBuf, EpisodeId, EpisodeIdBuf, Id, IdBuf, IdError,
     PlayableIdType, PlaylistId, PlaylistIdBuf, ShowId, ShowIdBuf, TrackId, TrackIdBuf, UnknownId,
-    UnkownIdBuf, UserId, UserIdBuf,
+    UnknownIdBuf, UserId, UserIdBuf,
 };
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, error::*,

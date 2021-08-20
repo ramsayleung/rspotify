@@ -25,20 +25,37 @@ pub trait IdType: private::Sealed + Send + Sync {
 pub trait PlayableIdType: IdType {}
 pub trait PlayContextIdType: IdType {}
 
-macro_rules! sealed_types {
-    ($($name:ident),+) => {
+/// This macro helps consistently define ID types by implementing the sealed
+/// trait and creating aliases.
+macro_rules! sealed_idtypes {
+    ($($name:ident => $alias:ident, $alias_buf:ident);+) => {
         $(
+            #[doc = "Please refer to [`crate::idtypes`] for more information."]
             #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
             pub enum $name {}
             impl private::Sealed for $name {}
             impl IdType for $name {
                 const TYPE: Type = Type::$name;
             }
+
+            #[doc = concat!("Alias for `Id<", stringify!($name), ">`. Please refer to [`crate::idtypes`] for more information.")]
+            pub type $alias = Id<$name>;
+            #[doc = concat!("Owned type for [`", stringify!($alias), "`]. Please refer to [`crate::idtypes`] for more information.")]
+            pub type $alias_buf = IdBuf<$name>;
         )+
     }
 }
 
-sealed_types!(Unknown, Artist, Album, Track, Playlist, User, Show, Episode);
+sealed_idtypes!(
+    Unknown => UnknownId, UnknownIdBuf;
+    Artist => ArtistId, ArtistIdBuf;
+    Album => AlbumId, AlbumIdBuf;
+    Track => TrackId, TrackIdBuf;
+    Playlist => PlaylistId, PlaylistIdBuf;
+    User => UserId, UserIdBuf;
+    Show => ShowId, ShowIdBuf;
+    Episode => EpisodeId, EpisodeIdBuf
+);
 
 impl PlayContextIdType for Unknown {}
 impl PlayContextIdType for Artist {}
@@ -48,24 +65,6 @@ impl PlayContextIdType for Show {}
 impl PlayableIdType for Unknown {}
 impl PlayableIdType for Track {}
 impl PlayableIdType for Episode {}
-
-pub type UnknownId = Id<Unknown>;
-pub type ArtistId = Id<Artist>;
-pub type AlbumId = Id<Album>;
-pub type TrackId = Id<Track>;
-pub type PlaylistId = Id<Playlist>;
-pub type UserId = Id<User>;
-pub type ShowId = Id<Show>;
-pub type EpisodeId = Id<Episode>;
-
-pub type UnkownIdBuf = IdBuf<Unknown>;
-pub type ArtistIdBuf = IdBuf<Artist>;
-pub type AlbumIdBuf = IdBuf<Album>;
-pub type TrackIdBuf = IdBuf<Track>;
-pub type PlaylistIdBuf = IdBuf<Playlist>;
-pub type UserIdBuf = IdBuf<User>;
-pub type ShowIdBuf = IdBuf<Show>;
-pub type EpisodeIdBuf = IdBuf<Episode>;
 
 /// A Spotify object id of given [type](crate::enums::types::Type).
 ///
