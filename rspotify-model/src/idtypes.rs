@@ -1,4 +1,28 @@
-//! TODO proper docs
+//! This module defines the necessary elements in order to represent Spotify IDs
+//! and URIs with type safety and no overhead.
+//!
+//! The struct [`Id`] is the central element of this module. It's generic over
+//! its type ([`Album`], [`Episode`], etc), and implements the logic to
+//! initialize and use IDs. [`Id`] is equivalent to a `&str` and [`IdBuf`] to a
+//! `String` so that there's no overhead at all; you may use whichever suits you
+//! best.
+//!
+//! This module also exports aliases to make its usage simpler; [`AlbumId`] is
+//! equivalent to `Id<Album>`, and [`AlbumIdBuf`] is the same as `IdBuf<Album>`.
+//!
+//! The types `Id` is generic over are grouped up in traits like
+//! [`PlayableIdType`] for cases when the ID may be of different values.
+//!
+//! ## Skipping the type safety
+//!
+//! Note that sometimes the ID's type is only known at runtime, so it's
+//! impossible to handle IDs with type safety. [`UnknownId`] and
+//! [`UnknownIdBuf`] can be used for that:
+//!
+//! 1. They don't check the type of URI it's dealing with when initialized (it
+//!    still needs to be a variant from [`crate::Type`])
+//! 2. They may be used anywhere, as they implement every single trait in this
+//!    module.
 
 use crate::Type;
 use serde::{Deserialize, Serialize};
@@ -66,7 +90,7 @@ impl PlayableIdType for Unknown {}
 impl PlayableIdType for Track {}
 impl PlayableIdType for Episode {}
 
-/// A Spotify object id of given [type](crate::enums::types::Type).
+/// A Spotify object ID of a given [type](crate::enums::types::Type).
 ///
 /// This is a not-owning type, it stores a `&str` only. See
 /// [IdBuf](crate::idtypes::IdBuf) for owned version of the type.
@@ -78,7 +102,7 @@ pub struct Id<T> {
     id: str,
 }
 
-/// A Spotify object id of given [type](crate::enums::types::Type)
+/// An owned Spotify object ID of a given [type](crate::enums::types::Type).
 ///
 /// This is an owning type, it stores a `String`. See [Id](crate::idtypes::Id)
 /// for light-weight non-owning type.
