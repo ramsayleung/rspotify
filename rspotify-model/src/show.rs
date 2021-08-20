@@ -1,9 +1,9 @@
-use super::image::Image;
-use super::page::Page;
-use crate::{duration_ms, CopyrightType, DatePrecision};
 use serde::{Deserialize, Serialize};
+
 use std::collections::HashMap;
 use std::time::Duration;
+
+use crate::{duration_ms, CopyrightType, DatePrecision, EpisodeIdBuf, Image, Page, ShowIdBuf};
 
 /// Copyright object
 ///
@@ -26,7 +26,7 @@ pub struct SimplifiedShow {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: ShowIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: Option<bool>,
     pub languages: Vec<String>,
@@ -35,7 +35,6 @@ pub struct SimplifiedShow {
     pub publisher: String,
     #[serde(rename = "type")]
     pub _type: String,
-    pub uri: String,
 }
 
 /// SimplifiedShows wrapped by `Vec`
@@ -67,7 +66,7 @@ pub struct FullShow {
     pub episodes: Page<SimplifiedEpisode>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: ShowIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: Option<bool>,
     pub languages: Vec<String>,
@@ -76,7 +75,6 @@ pub struct FullShow {
     pub publisher: String,
     #[serde(rename = "type")]
     pub _type: String,
-    pub uri: String,
 }
 
 /// Simplified episode object
@@ -91,7 +89,7 @@ pub struct SimplifiedEpisode {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: EpisodeIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
@@ -106,7 +104,6 @@ pub struct SimplifiedEpisode {
     pub resume_point: Option<ResumePoint>,
     #[serde(rename = "type")]
     pub _type: String,
-    pub uri: String,
 }
 
 /// Full episode object
@@ -121,7 +118,7 @@ pub struct FullEpisode {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: EpisodeIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
@@ -136,7 +133,6 @@ pub struct FullEpisode {
     pub show: SimplifiedShow,
     #[serde(rename = "type")]
     pub _type: String,
-    pub uri: String,
 }
 
 /// Episodes feature object wrapped by `Vec`

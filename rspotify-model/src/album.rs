@@ -5,12 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::artist::SimplifiedArtist;
-use super::image::Image;
-use super::page::Page;
-use super::track::SimplifiedTrack;
-use super::Restriction;
-use crate::{AlbumType, Copyright, DatePrecision, Type};
+use crate::{
+    AlbumIdBuf, AlbumType, Copyright, DatePrecision, Image, Page, Restriction, SimplifiedArtist,
+    SimplifiedTrack, Type,
+};
 
 /// Simplified Album Object
 ///
@@ -25,7 +23,7 @@ pub struct SimplifiedAlbum {
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<String>,
+    pub id: Option<AlbumIdBuf>,
     pub images: Vec<Image>,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,7 +34,6 @@ pub struct SimplifiedAlbum {
     pub restrictions: Option<Restriction>,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: Option<String>,
 }
 
 /// Full Album Object
@@ -52,7 +49,7 @@ pub struct FullAlbum {
     pub external_urls: HashMap<String, String>,
     pub genres: Vec<String>,
     pub href: String,
-    pub id: String,
+    pub id: AlbumIdBuf,
     pub images: Vec<Image>,
     pub name: String,
     pub popularity: u32,
@@ -61,7 +58,6 @@ pub struct FullAlbum {
     pub tracks: Page<SimplifiedTrack>,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String,
 }
 
 /// Full Albums wrapped by Vec object

@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, time::Duration};
 
-use super::album::SimplifiedAlbum;
-use super::artist::SimplifiedArtist;
-use super::Restriction;
-use crate::{duration_ms, TrackId, Type};
+use crate::{duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackIdBuf, Type};
 
 /// Full track object
 ///
@@ -26,7 +23,7 @@ pub struct FullTrack {
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<String>,
+    pub id: Option<TrackIdBuf>,
     pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,
@@ -40,7 +37,6 @@ pub struct FullTrack {
     pub track_number: u32,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String,
 }
 
 /// Track link object
@@ -50,10 +46,9 @@ pub struct FullTrack {
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: TrackIdBuf,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String,
 }
 
 /// Full track wrapped by `Vec`
@@ -81,7 +76,7 @@ pub struct SimplifiedTrack {
     pub external_urls: HashMap<String, String>,
     #[serde(default)]
     pub href: Option<String>,
-    pub id: Option<String>,
+    pub id: Option<TrackIdBuf>,
     pub is_local: bool,
     pub is_playable: Option<bool>,
     pub linked_from: Option<TrackLink>,
@@ -91,7 +86,6 @@ pub struct SimplifiedTrack {
     pub track_number: u32,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String,
 }
 
 /// Saved track object
@@ -104,14 +98,7 @@ pub struct SavedTrack {
 }
 
 /// Track id with specific positions track in a playlist
-pub struct TrackPositions<'id> {
-    pub id: &'id TrackId,
+pub struct TrackPositions {
+    pub id: TrackIdBuf,
     pub positions: Vec<u32>,
-}
-
-impl<'id> TrackPositions<'id> {
-    /// Track in a playlist by an id
-    pub fn new(id: &'id TrackId, positions: Vec<u32>) -> Self {
-        Self { id, positions }
-    }
 }

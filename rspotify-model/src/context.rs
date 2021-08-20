@@ -1,21 +1,22 @@
 //! All objects related to context
 
-use super::device::Device;
-use super::PlayableItem;
-use crate::{
-    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, DisallowKey, RepeatState, Type,
-};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
+
 use std::collections::HashMap;
 use std::time::Duration;
+
+use crate::{
+    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, Device, DisallowKey, IdBuf,
+    PlayableIdType, PlayableItem, RepeatState, Type,
+};
 
 /// Context object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Context {
-    pub uri: String,
+pub struct Context<T> {
+    pub id: IdBuf<T>,
     pub href: String,
     pub external_urls: HashMap<String, String>,
     #[serde(rename = "type")]
@@ -26,8 +27,8 @@ pub struct Context {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CurrentlyPlayingContext {
-    pub context: Option<Context>,
+pub struct CurrentlyPlayingContext<T: PlayableIdType> {
+    pub context: Option<Context<T>>,
     #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
@@ -40,11 +41,11 @@ pub struct CurrentlyPlayingContext {
 }
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CurrentPlaybackContext {
+pub struct CurrentPlaybackContext<T: PlayableIdType> {
     pub device: Device,
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
-    pub context: Option<Context>,
+    pub context: Option<Context<T>>,
     #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]

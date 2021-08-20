@@ -1,8 +1,8 @@
 //! All objects related to recommendation
 
-use super::track::SimplifiedTrack;
-use crate::RecommendationsSeedType;
 use serde::{Deserialize, Serialize};
+
+use crate::{RecommendationsSeedType, SimplifiedTrack, UnknownIdBuf};
 
 /// Recommendations object
 ///
@@ -23,7 +23,7 @@ pub struct RecommendationsSeed {
     #[serde(rename = "afterRelinkingSize")]
     pub after_relinking_size: u32,
     pub href: Option<String>,
-    pub id: String,
+    pub id: UnknownIdBuf,
     #[serde(rename = "initialPoolSize")]
     pub initial_pool_size: u32,
     #[serde(rename = "type")]

@@ -2,10 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::image::Image;
-use super::page::CursorBasedPage;
-use crate::{Followers, Type};
 use std::collections::HashMap;
+
+use crate::{ArtistIdBuf, CursorBasedPage, Followers, Image, Type};
 
 /// Simplified Artist Object
 ///
@@ -14,11 +13,10 @@ use std::collections::HashMap;
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<String>,
+    pub id: Option<ArtistIdBuf>,
     pub name: String,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: Option<String>,
 }
 
 /// Full Artist Object
@@ -30,13 +28,12 @@ pub struct FullArtist {
     pub followers: Followers,
     pub genres: Vec<String>,
     pub href: String,
-    pub id: String,
+    pub id: ArtistIdBuf,
     pub images: Vec<Image>,
     pub name: String,
     pub popularity: u32,
     #[serde(rename = "type")]
     pub _type: Type,
-    pub uri: String,
 }
 
 /// Full artist object wrapped by `Vec`

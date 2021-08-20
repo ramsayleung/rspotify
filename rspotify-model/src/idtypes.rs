@@ -65,13 +65,17 @@
 //! pause_track(id);
 //! ```
 
-use crate::Type;
 use serde::{Deserialize, Serialize};
-use std::borrow::Borrow;
-use std::marker::PhantomData;
-use std::ops::Deref;
 use strum::Display;
 use thiserror::Error;
+
+use std::borrow::Borrow;
+use std::fmt::Debug;
+use std::hash::Hash;
+use std::marker::PhantomData;
+use std::ops::Deref;
+
+use crate::Type;
 
 // This is a sealed trait pattern implementation, it stops external code from
 // implementing the `IdType` trait. The `Sealed` trait must be in a private mod,
@@ -84,7 +88,9 @@ mod private {
     pub trait Sealed {}
 }
 
-pub trait IdType: private::Sealed + Send + Sync {
+pub trait IdType:
+    private::Sealed + Clone + Copy + Debug + PartialEq + Eq + Hash + Serialize + Send + Sync
+{
     const TYPE: Type;
 }
 pub trait PlayableIdType: IdType {}
@@ -96,7 +102,7 @@ macro_rules! sealed_idtypes {
     ($($name:ident => $alias:ident, $alias_buf:ident);+) => {
         $(
             #[doc = "Please refer to [`crate::idtypes`] for more information."]
-            #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+            #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
             pub enum $name {}
             impl private::Sealed for $name {}
             impl IdType for $name {

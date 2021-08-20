@@ -15,6 +15,7 @@ use std::time;
 use log::error;
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextIdType;
+use serde::Deserialize;
 use serde_json::{json, Map};
 use url::Url;
 
@@ -365,7 +366,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>> + Send + 'a,
+        tracks: impl IntoIterator<Item = &TrackPositions> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -430,7 +431,14 @@ pub trait OAuthClient: BaseClient {
     /// Get information about the current users currently playing track.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-    async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
+    ///
+    /// TODO: rename, this might return an episode as well, for example
+    async fn current_user_playing_track<'a, T>(
+        &self,
+    ) -> ClientResult<Option<CurrentlyPlayingContext<T>>>
+    where
+        T: PlayableIdType + Deserialize<'a>,
+    {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
@@ -839,11 +847,14 @@ pub trait OAuthClient: BaseClient {
     ///   `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
-    async fn current_playback<'a>(
+    async fn current_playback<'a, T>(
         &self,
         country: Option<&Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
-    ) -> ClientResult<Option<CurrentPlaybackContext>> {
+    ) -> ClientResult<Option<CurrentPlaybackContext<T>>>
+    where
+        T: PlayableIdType + Deserialize<'a>,
+    {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
                 .map(|x| x.as_ref())
@@ -872,11 +883,14 @@ pub trait OAuthClient: BaseClient {
     ///   `track` and `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-    async fn current_playing<'a>(
+    async fn current_playing<'a, 'b: 'a, T>(
         &self,
         market: Option<&'a Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
-    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
+    ) -> ClientResult<Option<CurrentlyPlayingContext<T>>>
+    where
+        T: PlayableIdType + Deserialize<'b>,
+    {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
                 .map(|x| x.as_ref())
