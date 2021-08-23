@@ -10,11 +10,7 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::{
-    collections::HashMap,
-    fmt,
-    sync::{RwLockReadGuard, RwLockWriteGuard},
-};
+use std::{collections::HashMap, fmt, sync::MutexGuard};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
@@ -50,8 +46,8 @@ where
     ///
     /// Note that this isn't required for `get_token_mut` because in that case
     /// the token is going to be overwritten anyway.
-    async fn get_token(&self) -> RwLockReadGuard<Option<Token>>;
-    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>>;
+    async fn get_token(&self) -> MutexGuard<Option<Token>>;
+    fn get_token_mut(&self) -> MutexGuard<Option<Token>>;
     fn get_creds(&self) -> &Credentials;
     /// Refetch the current access token given a refresh token
     async fn refetch_token(&self) -> ClientResult<Option<Token>>;

@@ -8,7 +8,7 @@ use crate::{
 
 use std::{
     collections::HashMap,
-    sync::{RwLock, RwLockReadGuard, RwLockWriteGuard},
+    sync::{Arc, Mutex, MutexGuard},
 };
 
 use maybe_async::maybe_async;
@@ -32,7 +32,7 @@ pub struct AuthCodePkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
-    pub token: RwLock<Option<Token>>,
+    pub token: Arc<Mutex<Option<Token>>>,
     pub(in crate) http: HttpClient,
 }
 
@@ -43,18 +43,18 @@ impl BaseClient for AuthCodePkceSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
+    async fn get_token(&self) -> MutexGuard<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
         self.token
-            .read()
+            .lock()
             .expect("Failed to read token; the lock has been poisoned")
     }
 
-    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
+    fn get_token_mut(&self) -> MutexGuard<Option<Token>> {
         self.token
-            .write()
+            .lock()
             .expect("Failed to write token; the lock has been poisoned")
     }
 
@@ -69,7 +69,7 @@ impl BaseClient for AuthCodePkceSpotify {
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
-        match self.token.read().unwrap().as_ref() {
+        match self.token.lock().unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
@@ -134,7 +134,7 @@ impl AuthCodePkceSpotify {
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         AuthCodePkceSpotify {
-            token: RwLock::new(Some(token)),
+            token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
     }

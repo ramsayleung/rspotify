@@ -15,9 +15,7 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use chrono::offset::Utc;
-use chrono::Duration;
-use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth};
+use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.

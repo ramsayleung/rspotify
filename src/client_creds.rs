@@ -5,7 +5,7 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use maybe_async::maybe_async;
 
@@ -25,7 +25,7 @@ use maybe_async::maybe_async;
 pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,
-    pub token: RwLock<Option<Token>>,
+    pub token: Arc<Mutex<Option<Token>>>,
     pub(in crate) http: HttpClient,
 }
 
@@ -36,18 +36,18 @@ impl BaseClient for ClientCredsSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> RwLockReadGuard<Option<Token>> {
+    async fn get_token(&self) -> MutexGuard<Option<Token>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please obtain the token again");
         self.token
-            .read()
+            .lock()
             .expect("Failed to read token; the lock has been poisoned")
     }
 
-    fn get_token_mut(&self) -> RwLockWriteGuard<Option<Token>> {
+    fn get_token_mut(&self) -> MutexGuard<Option<Token>> {
         self.token
-            .write()
+            .lock()
             .expect("Failed to write token; the lock has been poisoned")
     }
 
@@ -83,7 +83,7 @@ impl ClientCredsSpotify {
     /// as the client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         ClientCredsSpotify {
-            token: RwLock::new(Some(token)),
+            token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
     }
