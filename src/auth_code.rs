@@ -73,7 +73,7 @@ pub struct AuthCodeSpotify {
 }
 
 /// This client has access to the base methods.
-#[maybe_async(?Send)]
+#[maybe_async]
 impl BaseClient for AuthCodeSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
@@ -127,7 +127,7 @@ impl BaseClient for AuthCodeSpotify {
 
 /// This client includes user authorization, so it has access to the user
 /// private endpoints in [`OAuthClient`].
-#[maybe_async(?Send)]
+#[maybe_async]
 impl OAuthClient for AuthCodeSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth

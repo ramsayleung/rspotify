@@ -89,7 +89,7 @@ impl BaseClient for AuthCodePkceSpotify {
 
 /// This client includes user authorization, so it has access to the user
 /// private endpoints in [`OAuthClient`].
-#[maybe_async(?Send)]
+#[maybe_async]
 impl OAuthClient for AuthCodePkceSpotify {
     fn get_oauth(&self) -> &OAuth {
         &self.oauth

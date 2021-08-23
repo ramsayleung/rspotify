@@ -95,6 +95,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - Rspotify now uses macros internally to make the endpoints as concise as possible and nice to read.
 - Add `add_item_to_queue` endpoint.
 - Add `category_playlists` endpoint ([#153](https://github.com/ramsayleung/rspotify/pull/153)).
+- Add `resume_playback` endpoint.
 - Fix race condition when using a single client from multiple threads ([#114](https://github.com/ramsayleung/rspotify/pull/114)).
 - ([#224](https://github.com/ramsayleung/rspotify/pull/224)) Automatically re-authenticate when the token is expired and `Config.refreshing_token` is set to true.
 - Rspotify should now be considerably lighter and less bloated ([discussion in #108](https://github.com/ramsayleung/rspotify/issues/108)):

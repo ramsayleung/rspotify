@@ -19,10 +19,10 @@ use serde_json::{Map, Value};
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
 /// flow that are shared, and the endpoints.
-#[maybe_async(?Send)]
+#[maybe_async]
 pub trait BaseClient
 where
-    Self: Default + fmt::Debug,
+    Self: Send + Sync + Default + Clone + fmt::Debug,
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
@@ -237,7 +237,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
     async fn tracks<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
@@ -268,9 +268,9 @@ where
     /// - artist_ids - a list of artist IDs, URIs or URLs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
-    async fn artists<'a, Artists: IntoIterator<Item = &'a ArtistId>>(
+    async fn artists<'a>(
         &self,
-        artist_ids: Artists,
+        artist_ids: impl IntoIterator<Item = &'a ArtistId> + Send + 'a,
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
         let url = format!("artists/?ids={}", ids);
@@ -384,9 +384,9 @@ where
     /// - albums_ids - a list of album IDs, URIs or URLs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
-    async fn albums<'a, Albums: IntoIterator<Item = &'a AlbumId>>(
+    async fn albums<'a>(
         &self,
-        album_ids: Albums,
+        album_ids: impl IntoIterator<Item = &'a AlbumId> + Send + 'a,
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
         let url = format!("albums/?ids={}", ids);
@@ -592,7 +592,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
     async fn get_several_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a ShowId> + 'a,
+        ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
         market: Option<&Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
@@ -686,7 +686,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
     async fn get_several_episodes<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a EpisodeId> + 'a,
+        ids: impl IntoIterator<Item = &'a EpisodeId> + Send + 'a,
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
@@ -719,7 +719,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
     async fn tracks_features<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + 'a,
+        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
     ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let url = format!("audio-features/?ids={}", join_ids(track_ids));
 
@@ -940,9 +940,9 @@ where
     async fn recommendations<'a>(
         &self,
         payload: &Map<String, Value>,
-        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + 'a>,
-        seed_genres: Option<impl IntoIterator<Item = &'a str> + 'a>,
-        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + 'a>,
+        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + Send + 'a>,
+        seed_genres: Option<impl IntoIterator<Item = &'a str> + Send + 'a>,
+        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + Send + 'a>,
         market: Option<&Market>,
         limit: Option<u32>,
     ) -> ClientResult<Recommendations> {
@@ -951,11 +951,11 @@ where
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
         let mut params = build_map! {
-            optional "seed_artists": seed_artists.as_ref(),
-            optional "seed_genres": seed_genres.as_ref(),
-            optional "seed_tracks": seed_tracks.as_ref(),
+            optional "seed_artists": seed_artists.as_deref(),
+            optional "seed_genres": seed_genres.as_deref(),
+            optional "seed_tracks": seed_tracks.as_deref(),
             optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_ref(),
+            optional "limit": limit.as_deref(),
         };
 
         let attributes = [
