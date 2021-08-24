@@ -1,6 +1,6 @@
 //! Offset object
 
-use crate::{Id, IdBuf, PlayableId};
+use crate::{IdBuf, PlayableIdBuf};
 
 /// Offset object
 ///
@@ -11,7 +11,7 @@ pub enum Offset<T: IdBuf> {
     Uri(T),
 }
 
-impl<T: PlayableId> Offset<T> {
+impl<T: PlayableIdBuf> Offset<T> {
     pub fn for_position(position: u32) -> Offset<T> {
         Offset::Position(position)
     }
