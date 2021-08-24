@@ -21,7 +21,7 @@ use maybe_async::maybe_async;
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,

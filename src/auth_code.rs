@@ -63,7 +63,7 @@ use url::Url;
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code.rs
 /// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
 /// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AuthCodeSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,

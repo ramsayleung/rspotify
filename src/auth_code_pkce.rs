@@ -27,7 +27,7 @@ use url::Url;
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code_pkce.rs
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct AuthCodePkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
