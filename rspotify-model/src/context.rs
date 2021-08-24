@@ -27,8 +27,8 @@ pub struct Context<T: IdBuf> {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CurrentlyPlayingContext<T: PlayableIdBuf> {
-    pub context: Option<Context<T>>,
+pub struct CurrentlyPlayingContext {
+    pub context: Option<Context<PlayableIdBuf>>,
     #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
@@ -41,11 +41,11 @@ pub struct CurrentlyPlayingContext<T: PlayableIdBuf> {
 }
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CurrentPlaybackContext<T: PlayableIdBuf> {
+pub struct CurrentPlaybackContext {
     pub device: Device,
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
-    pub context: Option<Context<T>>,
+    pub context: Option<Context<PlayableIdBuf>>,
     #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]

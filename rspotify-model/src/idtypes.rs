@@ -94,18 +94,18 @@ pub enum IdError {
 }
 
 pub trait Id {
+    // TODO: add const for owned type and same in IdBuf?
+    const TYPE: Type;
+
     /// Spotify object id (guaranteed to be a string of alphanumeric characters)
     fn id(&self) -> &str;
-
-    /// Spotify object type
-    fn _type(&self) -> Type;
 
     /// Spotify object URI in a well-known format: spotify:type:id
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
     fn uri(&self) -> String {
-        format!("spotify:{}:{}", self._type(), self.id())
+        format!("spotify:{}:{}", Self::TYPE, self.id())
     }
 
     /// Full Spotify object URL, can be opened in a browser
@@ -113,7 +113,7 @@ pub trait Id {
     /// Examples: `https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an`,
     /// `https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI`.
     fn url(&self) -> String {
-        format!("https://open.spotify.com/{}/{}", self._type(), self.id())
+        format!("https://open.spotify.com/{}/{}", Self::TYPE, self.id())
     }
 
     /// Parse Spotify id or URI from string slice
@@ -167,23 +167,6 @@ pub trait Id {
         }
     }
 
-    fn from_uri_unchecked<'a>(uri: &'a str) -> Result<&'a Self, IdError> where Self: Sized {
-        let mut chars = uri
-            .strip_prefix("spotify")
-            .ok_or(IdError::InvalidPrefix)?
-            .chars();
-        let sep = match chars.next() {
-            Some(ch) if ch == '/' || ch == ':' => ch,
-            _ => return Err(IdError::InvalidPrefix),
-        };
-        let rest = chars.as_str();
-
-        rest.rfind(sep)
-            .map(|mid| rest.split_at(mid))
-            .ok_or(IdError::InvalidFormat)?;
-
-    }
-
     /// Parse Spotify URI from string slice
     ///
     /// Spotify URI must be in one of the following formats:
@@ -203,20 +186,39 @@ pub trait Id {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    fn from_uri<'a>(uri: &'a str) -> Result<&'a Self, IdError> where Self: Sized;
+    fn from_uri<'a>(uri: &'a str) -> Result<&'a Self, IdError> where Self: Sized {
+        let mut chars = uri
+            .strip_prefix("spotify")
+            .ok_or(IdError::InvalidPrefix)?
+            .chars();
+        let sep = match chars.next() {
+            Some(ch) if ch == '/' || ch == ':' => ch,
+            _ => return Err(IdError::InvalidPrefix),
+        };
+        let rest = chars.as_str();
+
+        let (tpe, id) = rest.rfind(sep)
+            .map(|mid| rest.split_at(mid))
+            .ok_or(IdError::InvalidFormat)?;
+
+        match tpe.parse::<Type>() {
+            Ok(tpe) if tpe == Self::Type => {
+                Self::from_id(&id[1..])
+            }
+            _ => Err(IdError::InvalidType),
+        }
+    }
 }
 
 pub trait IdBuf: Id {}
 
-pub trait PlayableId: Id {}
-pub trait PlayableIdBuf: IdBuf {}
-impl<T: PlayableId + IdBuf> PlayableIdBuf for T {}
-
-pub trait PlayContextId: Id {}
-pub trait PlayContextIdBuf: IdBuf {}
-impl<T: PlayContextId + IdBuf> PlayContextIdBuf for T {}
-
-/// This macro helps consistently define ID types.
+/// This macro helps consistently define ID types. It contains a lot of code but
+/// mostly it's just repetitive work that's not of much interest.
+///
+/// * The `$name` parameter indicates what type the ID is made out of (say,
+///   `Artist`, `Album`...), which will then be used for its value in
+///   `Id::_type`, which returns a `Type::$name`.
+/// * 
 macro_rules! define_idtypes {
     ($($name:ident => $name_borrowed:ident, $name_owned:ident);+) => {
         $(
@@ -231,29 +233,24 @@ macro_rules! define_idtypes {
             }
 
             impl Id for $name_borrowed {
+                const TYPE: Type = Type::$name;
+
                 fn id(&self) -> &str {
                     &self.0
-                }
-
-                fn _type(&self) -> Type {
-                    Type::$name
-                }
-
-
-                fn from_uri<'a>(uri: &'a str) -> Result<&'a Self, IdError> {
-                    let (tpe, id) = Self::from_uri_unchecked(uri);
-                    match tpe.parse::<Type>() {
-                        Ok(tpe) if tpe == Type::$name => {
-                            Self::from_id(&id[1..])
-                        }
-                        _ => Err(IdError::InvalidType),
-                    }
                 }
             }
 
             #[doc = "Please refer to [`crate::idtypes`] for more information."]
             #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
             pub struct $name_owned(String);
+
+            impl Id for $name_owned {
+                const TYPE: Type = Type::$name;
+
+                fn id(&self) -> &str {
+                    &self.0
+                }
+            }
 
             impl IdBuf for $name_owned {}
 
@@ -282,52 +279,79 @@ macro_rules! define_idtypes {
     }
 }
 
+macro_rules! define_one_way_conversions {
+    ($($from:ident => $into:ident),+) => {
+        $(
+            impl From<$from> for $into {
+                fn from(id: $from) -> Self {
+                    // The `unwrap` for `$into` can't fail because we already know
+                    // the ID of `$from` is valid (otherwise it couldn't have been
+                    // constructed).
+                    $into::from_id($from.id()).unwrap()
+                }
+            }
+        )+
+    }
+}
+
 define_idtypes!(
+    // Basic types
     Artist => ArtistId, ArtistIdBuf;
     Album => AlbumId, AlbumIdBuf;
     Track => TrackId, TrackIdBuf;
     Playlist => PlaylistId, PlaylistIdBuf;
     User => UserId, UserIdBuf;
     Show => ShowId, ShowIdBuf;
-    Episode => EpisodeId, EpisodeIdBuf
+    Episode => EpisodeId, EpisodeIdBuf;
+    // Special Types: these cover a range of IDs instead of a single one,
+    // covered in the `define_conversions!` block later on.
+    Unknown => AnyId, AnyIdBuf;
+    Unknown => PlayContextId, PlayContextIdBuf;
+    Unknown => PlayableId, PlayableIdBuf
 );
 
-impl PlayContextId for ArtistId {}
-impl PlayContextId for AlbumId {}
-impl PlayContextId for PlaylistId {}
-impl PlayContextId for ShowId {}
-impl PlayableId for TrackId {}
-impl PlayableId for EpisodeId {}
+define_one_way_conversions!(
+    ArtistId => PlayContextId,
+    AlbumId => PlayContextId,
+    PlaylistId => PlayContextId,
+    ShowId => PlayContextId,
+    TrackId => PlayableId,
+    EpisodeId => PlayableId
+);
 
-fn thing() {
-    let y: Box<&dyn Id> = Box::new(AlbumId::from_id("asdf").unwrap());
+/// Blanket implementation for the wildcard ID
+impl<T: Id> AsRef<AnyId> for &T {
+    fn as_ref(&self) -> &AnyId {
+        // TODO: copy paste unsafe explanation
+        unsafe { &*(self as *const str as *const Self) }
+    }
 }
 
-// impl<T: Id> std::fmt::Display for &T {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-//         write!(f, "spotify:{}:{}", self._type(), self.id())
-//     }
-// }
+impl<T: Id> std::fmt::Display for &T {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "spotify:{}:{}", Self::TYPE, self.id())
+    }
+}
 
-// impl<T: Id> AsRef<str> for &T {
-//     fn as_ref(&self) -> &str {
-//         &self.id
-//     }
-// }
+impl<T: Id> AsRef<str> for &T {
+    fn as_ref(&self) -> &str {
+        self.id()
+    }
+}
 
-// impl<T: Id> Borrow<str> for &T {
-//     fn borrow(&self) -> &str {
-//         &self.id
-//     }
-// }
+impl<T: Id> Borrow<str> for &T {
+    fn borrow(&self) -> &str {
+        self.id()
+    }
+}
 
-// impl<T: Id> std::str::FromStr for T {
-//     type Err = IdError;
+impl<T: Id> std::str::FromStr for T {
+    type Err = IdError;
 
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         Id::from_id_or_uri(s).map(|id| id.to_owned())
-//     }
-// }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Id::from_id_or_uri(s).map(|id| id.to_owned())
+    }
+}
 
 #[cfg(test)]
 mod test {
