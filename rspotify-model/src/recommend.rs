@@ -2,14 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{RecommendationsSeedType, SimplifiedTrack, UnknownIdBuf};
+use crate::{IdBuf, RecommendationsSeedType, SimplifiedTrack};
 
 /// Recommendations object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Recommendations {
-    pub seeds: Vec<RecommendationsSeed>,
+    pub seeds: Vec<Box<RecommendationsSeed<dyn IdBuf>>>,
     pub tracks: Vec<SimplifiedTrack>,
 }
 
@@ -17,13 +17,13 @@ pub struct Recommendations {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationseedobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct RecommendationsSeed {
+pub struct RecommendationsSeed<T: IdBuf> {
     #[serde(rename = "afterFilteringSize")]
     pub after_filtering_size: u32,
     #[serde(rename = "afterRelinkingSize")]
     pub after_relinking_size: u32,
     pub href: Option<String>,
-    pub id: UnknownIdBuf,
+    pub id: T,
     #[serde(rename = "initialPoolSize")]
     pub initial_pool_size: u32,
     #[serde(rename = "type")]

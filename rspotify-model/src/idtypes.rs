@@ -72,141 +72,9 @@ use thiserror::Error;
 use std::borrow::Borrow;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::marker::PhantomData;
 use std::ops::Deref;
 
 use crate::Type;
-
-// This is a sealed trait pattern implementation, it stops external code from
-// implementing the `IdType` trait. The `Sealed` trait must be in a private mod,
-// so external code can not see and implement it.
-//
-// We use the `sealed_types` macro for an easier implementation here.
-//
-// See also: https://rust-lang.github.io/api-guidelines/future-proofing.html
-mod private {
-    pub trait Sealed {}
-}
-
-pub trait IdType:
-    private::Sealed + Clone + Copy + Debug + PartialEq + Eq + Hash + Serialize + Send + Sync
-{
-    const TYPE: Type;
-}
-pub trait PlayableIdType: IdType {}
-pub trait PlayContextIdType: IdType {}
-
-/// This macro helps consistently define ID types by implementing the sealed
-/// trait and creating aliases.
-macro_rules! sealed_idtypes {
-    ($($name:ident => $alias:ident, $alias_buf:ident);+) => {
-        $(
-            #[doc = "Please refer to [`crate::idtypes`] for more information."]
-            #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-            pub enum $name {}
-            impl private::Sealed for $name {}
-            impl IdType for $name {
-                const TYPE: Type = Type::$name;
-            }
-
-            #[doc = concat!("Alias for `Id<", stringify!($name), ">`. Please refer to [`crate::idtypes`] for more information.")]
-            pub type $alias = Id<$name>;
-            #[doc = concat!("Owned type for [`", stringify!($alias), "`]. Please refer to [`crate::idtypes`] for more information.")]
-            pub type $alias_buf = IdBuf<$name>;
-        )+
-    }
-}
-
-sealed_idtypes!(
-    Unknown => UnknownId, UnknownIdBuf;
-    Artist => ArtistId, ArtistIdBuf;
-    Album => AlbumId, AlbumIdBuf;
-    Track => TrackId, TrackIdBuf;
-    Playlist => PlaylistId, PlaylistIdBuf;
-    User => UserId, UserIdBuf;
-    Show => ShowId, ShowIdBuf;
-    Episode => EpisodeId, EpisodeIdBuf
-);
-
-impl PlayContextIdType for Unknown {}
-impl PlayContextIdType for Artist {}
-impl PlayContextIdType for Album {}
-impl PlayContextIdType for Playlist {}
-impl PlayContextIdType for Show {}
-impl PlayableIdType for Unknown {}
-impl PlayableIdType for Track {}
-impl PlayableIdType for Episode {}
-
-/// A Spotify object ID of a given [type](crate::enums::types::Type).
-///
-/// This is a not-owning type, it stores a `&str` only. See
-/// [IdBuf](crate::idtypes::IdBuf) for owned version of the type.
-#[derive(Debug, PartialEq, Eq, Serialize, Hash)]
-pub struct Id<T> {
-    #[serde(default)]
-    _type: PhantomData<T>,
-    #[serde(flatten)]
-    id: str,
-}
-
-/// An owned Spotify object ID of a given [type](crate::enums::types::Type).
-///
-/// This is an owning type, it stores a `String`. See [Id](crate::idtypes::Id)
-/// for light-weight non-owning type.
-///
-/// Use `Id::from_id(val).to_owned()`, `Id::from_uri(val).to_owned()` or
-/// `Id::from_id_or_uri(val).to_owned()` to construct an instance of this type.
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
-pub struct IdBuf<T> {
-    #[serde(default)]
-    _type: PhantomData<T>,
-    #[serde(flatten)]
-    id: String,
-}
-
-impl<T> AsRef<Id<T>> for IdBuf<T> {
-    fn as_ref(&self) -> &Id<T> {
-        // Safe, b/c of the same T between types, IdBuf can't be constructed
-        // from invalid id, and Id is just a wrapped str with ZST type tag
-        unsafe { &*(&*self.id as *const str as *const Id<T>) }
-    }
-}
-
-impl<T> Borrow<Id<T>> for IdBuf<T> {
-    fn borrow(&self) -> &Id<T> {
-        self.as_ref()
-    }
-}
-
-impl<T> Deref for IdBuf<T> {
-    type Target = Id<T>;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl<T: IdType> IdBuf<T> {
-    /// Get a [`Type`](crate::enums::types::Type) of the id
-    pub fn _type(&self) -> Type {
-        T::TYPE
-    }
-
-    /// Spotify object id (guaranteed to be a string of alphanumeric characters)
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    /// Spotify object URI in a well-known format: spotify:type:id
-    pub fn uri(&self) -> String {
-        self.as_ref().uri()
-    }
-
-    /// Full Spotify object URL, can be opened in a browser
-    pub fn url(&self) -> String {
-        self.as_ref().url()
-    }
-}
 
 /// Spotify id or URI parsing error
 ///
@@ -225,65 +93,32 @@ pub enum IdError {
     InvalidId,
 }
 
-impl<T: IdType> std::fmt::Display for &Id<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "spotify:{}:{}", T::TYPE, &self.id)
-    }
-}
-
-impl<T> AsRef<str> for &Id<T> {
-    fn as_ref(&self) -> &str {
-        &self.id
-    }
-}
-
-impl<T> Borrow<str> for &Id<T> {
-    fn borrow(&self) -> &str {
-        &self.id
-    }
-}
-
-impl<T: IdType> std::str::FromStr for IdBuf<T> {
-    type Err = IdError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Id::from_id_or_uri(s).map(|id| id.to_owned())
-    }
-}
-
-impl<T: IdType> Id<T> {
-    /// Owned version of the id [`IdBuf`](crate::idtypes::IdBuf).
-    pub fn to_owned(&self) -> IdBuf<T> {
-        IdBuf {
-            _type: PhantomData,
-            id: (&self.id).to_owned(),
-        }
-    }
-
-    /// Spotify object type
-    pub fn _type(&self) -> Type {
-        T::TYPE
-    }
+pub trait Id: Clone + Debug + PartialEq + Eq + Hash + Serialize + Send + Sync {
+    const TYPE: Type;
 
     /// Spotify object id (guaranteed to be a string of alphanumeric characters)
-    pub fn id(&self) -> &str {
-        &self.id
-    }
+    fn id(&self) -> &str;
+
+    /// Spotify object type
+    // fn _type(&self) -> Type;
+
+    /// Obtain the owned version of the id [`IdBuf`](crate::idtypes::IdBuf).
+    fn to_owned<T: IdBuf>(&self) -> T;
 
     /// Spotify object URI in a well-known format: spotify:type:id
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
-    pub fn uri(&self) -> String {
-        format!("spotify:{}:{}", T::TYPE, &self.id)
+    fn uri(&self) -> String {
+        format!("spotify:{}:{}", Self::TYPE, &self.id)
     }
 
     /// Full Spotify object URL, can be opened in a browser
     ///
     /// Examples: `https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an`,
     /// `https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI`.
-    pub fn url(&self) -> String {
-        format!("https://open.spotify.com/{}/{}", T::TYPE, &self.id)
+    fn url(&self) -> String {
+        format!("https://open.spotify.com/{}/{}", Self::TYPE, &self.id)
     }
 
     /// Parse Spotify id or URI from string slice
@@ -312,10 +147,10 @@ impl<T: IdType> Id<T> {
     ///    non-alphanumeric characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
     ///    split into type and id parts.
-    pub fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<&'a Id<T>, IdError> {
-        match Id::<T>::from_uri(id_or_uri) {
+    fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<&'a Self, IdError> {
+        match Self::from_uri(id_or_uri) {
             Ok(id) => Ok(id),
-            Err(IdError::InvalidPrefix) => Id::<T>::from_id(id_or_uri),
+            Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
             Err(error) => Err(error),
         }
     }
@@ -327,11 +162,11 @@ impl<T: IdType> Id<T> {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
-    pub fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Id<T>, IdError> {
+    fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Self, IdError> {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
             // Safe, b/c Id is just a str with ZST type tag, and id is proved
             // to be a valid id at this point
-            Ok(unsafe { &*(id as *const str as *const Id<T>) })
+            Ok(unsafe { &*(id as *const str as *const Self) })
         } else {
             Err(IdError::InvalidId)
         }
@@ -356,7 +191,7 @@ impl<T: IdType> Id<T> {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    pub fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<&'a Id<T>, IdError> {
+    fn from_uri<'a, 'b: 'a>(uri: &'b str) -> Result<&'a Self, IdError> {
         let mut chars = uri
             .strip_prefix("spotify")
             .ok_or(IdError::InvalidPrefix)?
@@ -373,9 +208,130 @@ impl<T: IdType> Id<T> {
             .ok_or(IdError::InvalidFormat)?;
 
         match tpe.parse::<Type>() {
-            Ok(tpe) if T::TYPE == Type::Unknown || tpe == T::TYPE => Id::<T>::from_id(&id[1..]),
+            Ok(tpe) if Self::TYPE == Type::Unknown || tpe == Self::TYPE => Self::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
         }
+    }
+}
+
+pub trait IdBuf: Id {}
+
+pub trait PlayableId: Id {}
+pub trait PlayableIdBuf: Id {}
+impl<T: PlayableId + IdBuf> PlayableIdBuf for T {}
+
+pub trait PlayContextId: Id {}
+pub trait PlayContextIdBuf: Id {}
+impl<T: PlayContextId + IdBuf> PlayContextIdBuf for T {}
+
+/// This macro helps consistently define ID types.
+macro_rules! define_idtypes {
+    ($($name:ident => $name_borrowed:ident, $name_owned:ident);+) => {
+        $(
+            #[doc = "Please refer to [`crate::idtypes`] for more information."]
+            #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+            pub struct $name_borrowed(str);
+
+            impl Id for $name_borrowed {
+                const TYPE: Type = Type::$name;
+
+                fn id(&self) -> &str {
+                    &self.0
+                }
+
+                fn to_owned<T: IdBuf>(&self) -> T {
+                    $name_owned((&self.id).to_owned())
+                }
+
+                // Object safety:
+                // fn _type(&self) -> Type {
+                //     Type::$name
+                // }
+            }
+
+            #[doc = "Please refer to [`crate::idtypes`] for more information."]
+            #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+            pub struct $name_owned(String);
+
+            impl Id for $name_owned {
+                const TYPE: Type = Type::$name;
+
+                fn id(&self) -> &str {
+                    &self.0
+                }
+
+                // Object safety:
+                // fn _type(&self) -> Type {
+                //     Type::$name
+                // }
+            }
+            impl IdBuf for $name_owned {}
+
+            impl AsRef<$name_borrowed> for $name_owned {
+                fn as_ref(&self) -> &$name_borrowed {
+                    // Safe, b/c of the same T between types, IdBuf can't be constructed
+                    // from invalid id, and Id is just a wrapped str with ZST type tag
+                    unsafe { &*(&*self.id as *const str as *const $name_borrowed) }
+                }
+            }
+
+            impl Borrow<$name_borrowed> for $name_owned {
+                fn borrow(&self) -> &$name_borrowed {
+                    self.as_ref()
+                }
+            }
+
+            impl Deref for $name_owned {
+                type Target = $name_borrowed;
+
+                fn deref(&self) -> &Self::Target {
+                    self.as_ref()
+                }
+            }
+        )+
+    }
+}
+
+define_idtypes!(
+    Artist => ArtistId, ArtistIdBuf;
+    Album => AlbumId, AlbumIdBuf;
+    Track => TrackId, TrackIdBuf;
+    Playlist => PlaylistId, PlaylistIdBuf;
+    User => UserId, UserIdBuf;
+    Show => ShowId, ShowIdBuf;
+    Episode => EpisodeId, EpisodeIdBuf
+);
+
+impl PlayContextId for ArtistId {}
+impl PlayContextId for AlbumId {}
+impl PlayContextId for PlaylistId {}
+impl PlayContextId for ShowId {}
+impl PlayableId for TrackId {}
+impl PlayableId for EpisodeId {}
+
+impl<T: Id> std::fmt::Display for &T {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "spotify:{}:{}", T::TYPE, &self.id)
+    }
+}
+
+impl<T: Id> AsRef<str> for &T {
+    fn as_ref(&self) -> &str {
+        &self.id
+    }
+}
+
+impl<T: Id> Borrow<str> for &T {
+    fn borrow(&self) -> &str {
+        &self.id
+    }
+}
+
+impl<T: Id> std::str::FromStr for T {
+    type Err = IdError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Id::from_id_or_uri(s).map(|id| id.to_owned())
     }
 }
 
