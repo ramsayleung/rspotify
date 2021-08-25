@@ -104,7 +104,7 @@ pub trait Id {
     ///
     /// The string passed to this method must be made out of alphanumeric
     /// numbers only; otherwise undefined behaviour may occur.
-    unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self;
+    unsafe fn from_id_unchecked(id: &str) -> &Self;
 
     /// Spotify object URI in a well-known format: spotify:type:id
     ///
@@ -148,7 +148,7 @@ pub trait Id {
     ///    non-alphanumeric characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
     ///    split into type and id parts.
-    fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<&'a Self, IdError> {
+    fn from_id_or_uri(id_or_uri: &str) -> Result<&Self, IdError> {
         match Self::from_uri(id_or_uri) {
             Ok(id) => Ok(id),
             Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
@@ -163,7 +163,7 @@ pub trait Id {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
-    fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Self, IdError> {
+    fn from_id(id: &str) -> Result<&Self, IdError> {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
             // Safe, we've just checked that the Id is valid.
             Ok(unsafe { Self::from_id_unchecked(id) })
@@ -191,7 +191,7 @@ pub trait Id {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    fn from_uri<'a>(uri: &'a str) -> Result<&'a Self, IdError> {
+    fn from_uri(uri: &str) -> Result<&Self, IdError> {
         let mut chars = uri
             .strip_prefix("spotify")
             .ok_or(IdError::InvalidPrefix)?
@@ -233,7 +233,7 @@ macro_rules! define_idtypes {
             impl Id for $name_borrowed {
                 const TYPE: Type = Type::$name;
 
-                unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self {
+                unsafe fn from_id_unchecked(id: &str) -> &Self {
                     // Safe, because both types (str and this Id) share the same
                     // memory layout.
                     &*(id as *const str as *const Self)
@@ -296,7 +296,7 @@ macro_rules! define_idtypes {
             impl Id for $name_owned {
                 const TYPE: Type = Type::$name;
 
-                unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self {
+                unsafe fn from_id_unchecked(id: &str) -> &Self {
                     // Safe, because both types (str and this Id) share the same
                     // memory layout.
                     &*(id as *const str as *const Self)
