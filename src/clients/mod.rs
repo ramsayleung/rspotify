@@ -5,10 +5,7 @@ pub mod pagination;
 pub use base::BaseClient;
 pub use oauth::OAuthClient;
 
-use crate::{
-    model::Id,
-    ClientResult, Token,
-};
+use crate::{model::Id, ClientResult, Token};
 
 use serde::Deserialize;
 
@@ -33,11 +30,7 @@ pub(in crate) fn append_device_id(path: &str, device_id: Option<&str>) -> String
 // TODO: move to `lib.rs`
 #[inline]
 pub(in crate) fn join_ids<'a, T: Id + 'a + ?Sized>(ids: impl IntoIterator<Item = &'a T>) -> String {
-    ids
-        .into_iter()
-        .map(Id::id)
-        .collect::<Vec<&str>>()
-        .join(",")
+    ids.into_iter().map(Id::id).collect::<Vec<&str>>().join(",")
 }
 
 // TODO: move to `lib.rs` or integrate into Token.

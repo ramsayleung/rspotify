@@ -42,7 +42,7 @@ pub enum Type {
     User,
     Show,
     Episode,
-    Unknown
+    Unknown,
 }
 
 /// Additional typs: `track`, `episode`

@@ -202,14 +202,13 @@ pub trait Id {
         };
         let rest = chars.as_str();
 
-        let (tpe, id) = rest.rfind(sep)
+        let (tpe, id) = rest
+            .rfind(sep)
             .map(|mid| rest.split_at(mid))
             .ok_or(IdError::InvalidFormat)?;
 
         match tpe.parse::<Type>() {
-            Ok(tpe) if tpe == Self::TYPE => {
-                Self::from_id(&id[1..])
-            }
+            Ok(tpe) if tpe == Self::TYPE => Self::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
         }
     }
@@ -223,7 +222,7 @@ pub trait IdBuf: Id {}
 /// * The `$name` parameter indicates what type the ID is made out of (say,
 ///   `Artist`, `Album`...), which will then be used for its value in
 ///   `Id::_type`, which returns a `Type::$name`.
-/// * 
+/// *
 macro_rules! define_idtypes {
     ($($name:ident => $name_borrowed:ident, $name_owned:ident);+) => {
         $(
@@ -387,7 +386,6 @@ define_one_way_conversions!(
     TrackId => PlayableId,
     EpisodeId => PlayableId
 );
-
 
 #[cfg(test)]
 mod test {
