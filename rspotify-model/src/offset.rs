@@ -1,8 +1,6 @@
 //! Offset object
 
-use std::borrow::{ToOwned, Borrow};
-
-use crate::{IdBuf, Id};
+use std::borrow::ToOwned;
 
 /// Offset object
 ///
@@ -18,11 +16,7 @@ impl<T> Offset<T> {
         Offset::Position(position)
     }
 
-    pub fn for_uri<Brw, Own>(uri: &Brw) -> Offset<Brw::Owned>
-      where
-        Brw: ToOwned,
-        Own: Borrow<Brw>
-    {
+    pub fn for_uri<Brw: ToOwned>(uri: &Brw) -> Offset<Brw::Owned> {
         Offset::Uri(uri.to_owned())
     }
 }
