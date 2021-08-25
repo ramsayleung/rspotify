@@ -13,25 +13,15 @@ pub enum Offset<T> {
     Uri(T),
 }
 
-// impl<B: Id + ToOwned> Offset<B::Owned> {
-//     pub fn for_position(position: u32) -> Offset<B::Owned> {
-//         Offset::Position(position)
-//     }
-
-//     pub fn for_uri(uri: &B) -> Offset<B::Owned> {
-//         Offset::Uri(uri.to_owned())
-//     }
-// }
-
-impl<O> Offset<O> {
-    pub fn for_position(position: u32) -> Offset<O> {
+impl<T> Offset<T> {
+    pub fn for_position(position: u32) -> Offset<T> {
         Offset::Position(position)
     }
 
-    pub fn for_uri<B>(uri: &B) -> Offset<O>
-        where
-        O: Borrow<B>,
-        B: ToOwned
+    pub fn for_uri<Brw, Own>(uri: &Brw) -> Offset<Brw::Owned>
+      where
+        Brw: ToOwned,
+        Own: Borrow<Brw>
     {
         Offset::Uri(uri.to_owned())
     }
