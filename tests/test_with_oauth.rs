@@ -19,8 +19,7 @@ use rspotify::{
     clients::pagination::Paginator,
     model::{
         AlbumId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist, Id, Market,
-        Offset, PlayableItem, PlaylistId, RepeatState, SearchType, ShowId, TimeRange, TrackId,
-        TrackPositions, UnknownId,
+        Offset, PlaylistId, RepeatState, SearchType, ShowId, TimeRange, TrackId, TrackPositions,
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
@@ -203,7 +202,7 @@ async fn test_current_user_saved_albums() {
     let all_albums = fetch_all(client.current_user_saved_albums()).await;
     let all_uris = all_albums
         .into_iter()
-        .map(|a| AlbumId::from_uri(&a.album.uri).unwrap().to_owned())
+        .map(|a| a.album.id)
         .collect::<Vec<_>>();
     assert!(
         album_ids
@@ -324,9 +323,9 @@ async fn test_new_releases_with_from_token() {
 async fn test_playback() {
     let client = oauth_client().await;
     let uris = vec![
-        TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-        TrackId::from_uri("spotify:track:2DzSjFQKetFhkFCuDWhioi").unwrap(),
-        TrackId::from_uri("spotify:track:50CvpOXJuMiIGOx81Nq3Yx").unwrap(),
+        PlayableId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+        PlayableId::from_uri("spotify:track:2DzSjFQKetFhkFCuDWhioi").unwrap(),
+        PlayableId::from_uri("spotify:track:50CvpOXJuMiIGOx81Nq3Yx").unwrap(),
     ];
     let devices = client.device().await.unwrap();
 
@@ -385,15 +384,12 @@ async fn test_playback() {
 
     // Restore the original playback data
     if let Some(backup) = &backup {
-        let uri = backup.item.as_ref().map(|b| match b {
-            PlayableItem::Track(t) => UnknownId::from_uri(&t.uri).unwrap().to_owned(),
-            PlayableItem::Episode(e) => UnknownId::from_uri(&e.uri).unwrap().to_owned(),
-        });
+        let uri = backup.item.as_ref().map(|item| item.id());
         let offset = None;
         let device = backup.device.id.as_deref();
         let position = backup.progress.map(|p| p.as_millis() as u32);
         client
-            .start_uris_playback(uri.as_deref(), device, offset, position)
+            .start_uris_playback(uri, device, offset, position)
             .await
             .unwrap();
     }
@@ -586,24 +582,22 @@ async fn test_user_follow_playlist() {
 
 #[maybe_async]
 async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
-    let user_id = client.me().await.unwrap().id;
-    let user_id = Id::from_id(&user_id).unwrap();
+    let user = client.me().await.unwrap();
     let name = "A New Playlist";
 
     // First creating the base playlist over which the tests will be ran
     let playlist = client
-        .user_playlist_create(user_id, name, Some(false), None, None)
+        .user_playlist_create(&user.id, name, Some(false), None, None)
         .await
         .unwrap();
-    let playlist_id = Id::from_id(&playlist.id).unwrap();
 
     // Making sure that the playlist has been added to the user's profile
     let fetched_playlist = client
-        .user_playlist(user_id, Some(playlist_id), None)
+        .user_playlist(&user.id, Some(&playlist.id), None)
         .await
         .unwrap();
     assert_eq!(playlist.id, fetched_playlist.id);
-    let user_playlists = fetch_all(client.user_playlists(user_id)).await;
+    let user_playlists = fetch_all(client.user_playlists(&user.id)).await;
     let current_user_playlists = fetch_all(client.current_user_playlists()).await;
     assert_eq!(user_playlists.len(), current_user_playlists.len());
 
@@ -612,7 +606,7 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     let description = "A random description";
     client
         .playlist_change_detail(
-            &playlist_id,
+            &playlist.id,
             Some(name),
             Some(true),
             Some(description),
@@ -632,7 +626,6 @@ async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: &PlaylistId, nu
 
 #[maybe_async]
 async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
-    let playlist_id = Id::from_id(&playlist.id).unwrap();
     // The tracks in the playlist, some of them repeated
     // TODO: include episodes after https://github.com/ramsayleung/rspotify/issues/203
     let tracks = [
@@ -644,18 +637,18 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // Firstly adding some tracks
     client
-        .playlist_add_tracks(playlist_id, tracks, None)
+        .playlist_add_tracks(&playlist.id, tracks, None)
         .await
         .unwrap();
-    check_num_tracks(client, playlist_id, tracks.len() as i32).await;
+    check_num_tracks(client, &playlist.id, tracks.len() as i32).await;
 
     // Reordering some tracks
     client
-        .playlist_reorder_tracks(playlist_id, Some(0), Some(3), Some(2), None)
+        .playlist_reorder_tracks(&playlist.id, Some(0), Some(3), Some(2), None)
         .await
         .unwrap();
     // Making sure the number of tracks is the same
-    check_num_tracks(client, playlist_id, tracks.len() as i32).await;
+    check_num_tracks(client, &playlist.id, tracks.len() as i32).await;
 
     // Replacing the tracks
     // TODO: include episodes after https://github.com/ramsayleung/rspotify/issues/203
@@ -669,29 +662,33 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
     ];
     client
-        .playlist_replace_tracks(playlist_id, replaced_tracks)
+        .playlist_replace_tracks(&playlist.id, replaced_tracks)
         .await
         .unwrap();
     // Making sure the number of tracks is updated
-    check_num_tracks(client, playlist_id, replaced_tracks.len() as i32).await;
+    check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32).await;
 
     // Removes a few specific tracks
     let tracks = [
-        TrackPositions::new(
-            Id::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-            vec![0],
-        ),
-        TrackPositions::new(
-            Id::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
-            vec![4, 6],
-        ),
+        TrackPositions {
+            id: TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh")
+                .unwrap()
+                .to_owned(),
+            positions: vec![0],
+        },
+        TrackPositions {
+            id: TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL")
+                .unwrap()
+                .to_owned(),
+            positions: vec![4, 6],
+        },
     ];
     client
-        .playlist_remove_specific_occurrences_of_tracks(playlist_id, tracks.as_ref(), None)
+        .playlist_remove_specific_occurrences_of_tracks(&playlist.id, tracks.as_ref(), None)
         .await
         .unwrap();
     // Making sure three tracks were removed
-    check_num_tracks(client, playlist_id, replaced_tracks.len() as i32 - 3).await;
+    check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32 - 3).await;
 
     // Removes all occurrences of two tracks
     let to_remove = [
@@ -699,16 +696,15 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         Id::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
     ];
     client
-        .playlist_remove_all_occurrences_of_tracks(playlist_id, to_remove, None)
+        .playlist_remove_all_occurrences_of_tracks(&playlist.id, to_remove, None)
         .await
         .unwrap();
     // Making sure two more tracks were removed
-    check_num_tracks(client, playlist_id, replaced_tracks.len() as i32 - 5).await;
+    check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32 - 5).await;
 }
 
 #[maybe_async]
 async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
-    let playlist_id = Id::from_id(&playlist.id).unwrap();
     let user_ids = [
         Id::from_id("possan").unwrap(),
         Id::from_id("elogain").unwrap(),
@@ -716,13 +712,13 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // It's a new playlist, so it shouldn't have any followers
     let following = client
-        .playlist_check_follow(playlist_id, &user_ids)
+        .playlist_check_follow(&playlist.id, &user_ids)
         .await
         .unwrap();
     assert_eq!(following, vec![false, false]);
 
     // Finally unfollowing the playlist in order to clean it up
-    client.playlist_unfollow(playlist_id).await.unwrap();
+    client.playlist_unfollow(&playlist.id).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -765,7 +761,7 @@ async fn test_add_queue() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
     oauth_client()
         .await
-        .add_item_to_queue(birdy_uri, None)
+        .add_item_to_queue(birdy_uri.as_ref(), None)
         .await
         .unwrap();
 }

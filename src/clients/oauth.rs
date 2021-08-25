@@ -432,9 +432,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     ///
     /// TODO: rename, this might return an episode as well, for example
-    async fn current_user_playing_track(
-        &self,
-    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
+    async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
@@ -971,7 +969,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
     async fn start_uris_playback<'a>(
         &self,
-        uris: impl IntoIterator<Item = &'a PlayableIdBuf> + Send + 'a,
+        uris: impl IntoIterator<Item = &'a PlayableId> + Send + 'a,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset<PlayableIdBuf>>,
         position_ms: Option<u32>,

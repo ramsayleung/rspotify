@@ -1,43 +1,23 @@
 //! This module defines the necessary elements in order to represent Spotify IDs
 //! and URIs with type safety and no overhead.
 //!
-//! The struct [`Id`] is the central element of this module. It's generic over
-//! its type ([`Album`], [`Episode`], etc), and implements the logic to
-//! initialize and use IDs. [`Id`] is equivalent to a `&str` and [`IdBuf`] to a
-//! `String` so that there's no overhead at all; you may use whichever suits you
-//! best.
+//! The trait [`Id`] is the central element of this module. It's implemented by
+//! different kinds of ID ([`AlbumId`], [`EpisodeId`], etc), and implements the
+//! logic to initialize and use IDs. [`Id`] is equivalent to a `&str` and
+//! [`IdBuf`] to a `String`; you may use whichever suits you best.
 //!
-//! This module also exports aliases to make its usage simpler; [`AlbumId`] is
-//! equivalent to `Id<Album>`, and [`AlbumIdBuf`] is the same as `IdBuf<Album>`.
+//! There are also group IDs, which may contain different kinds of IDs. For
+//! example, `PlayableId` can hold IDs of either tracks or episodes. `AnyId`
+//! can hold *any* kind of ID. These types are useful when an endpoint takes
+//! different kinds of IDs as a parameter, or when the kind of ID you're dealing
+//! with is known only at runtime.
 //!
-//! The types `Id` is generic over are grouped up in traits like
-//! [`PlayableIdType`] for cases when the ID may be of different values.
-//!
-//! ## Skipping the type safety
-//!
-//! Note that sometimes the ID's type is only known at runtime, so it's
-//! impossible to handle IDs with type safety. [`UnknownId`] and
-//! [`UnknownIdBuf`] can be used for that:
-//!
-//! 1. They don't check the type of URI it's dealing with when initialized (it
-//!    still needs to be a variant from [`crate::Type`])
-//! 2. They may be used anywhere, as they implement every single trait in this
-//!    module.
+//! You can convert specific IDs into group ones with its `as_ref`
+//! implementation, since it's a cheap type conversion.
 //!
 //! ## Examples
 //!
-//! You may let the type inferrer guess what kind of ID you're dealing with by
-//! using [`Id`]:
-//!
-//!
-//! ```
-//! fn pause_track(id: &TrackId) { /* ... */ }
-//!
-//! let id = Id::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
-//! pause_track(id); // this function takes a `TrackId`, so `id` must be one
-//! ```
-//!
-//! You can also specify the type explicitly by not using [`Id`] directly:
+//! If an endpoint requires a `TrackId`, you may pass it as:
 //!
 //! ```
 //! fn pause_track(id: &TrackId) { /* ... */ }
@@ -46,7 +26,7 @@
 //! pause_track(id);
 //! ```
 //!
-//! Notice how it's type safe; this would fail at compile-time:
+//! Notice how it's type safe; the following example would fail at compile-time:
 //!
 //! ```compile_fail
 //! fn pause_track(id: &TrackId) { /* ... */ }
@@ -61,8 +41,38 @@
 //! ```should_panic
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
-//! let id = TrackId::from_id("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
+//! let id = TrackId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
 //! pause_track(id);
+//! ```
+//!
+//! A more complex example where an endpoint takes a vector of IDs of different
+//! types:
+//!
+//! ```
+//! fn track(id: &TrackId) { /* ... */ }
+//! fn episode(id: &EpisodeId) { /* ... */ }
+//! fn add_to_queue(id: &[&PlayableId]) { /* ... */ }
+//!
+//! let tracks = &[
+//!     TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+//!     TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap(),
+//! ];
+//! let episodes = &[
+//!     EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+//!     EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
+//! ];
+//!
+//! // First we get some info about the tracks and episodes
+//! let track_info = tracks.into_iter().map(|id| track(id)).collect::<Vec<_>>()
+//! let ep_info = tracks.into_iter().map(|id| episode(id)).collect::<Vec<_>>()
+//! println!("Track info: {:?}", track_info);
+//! println!("Episode info: {:?}", ep_info);
+//!
+//! // And then we play them
+//! let mut playable = tracks;
+//! playable.extend(episodes);
+//! let playable = playable.into_iter().map(|id| id.as_ref()).collect::<Vec<_>>();
+//! add_to_queue(playable);
 //! ```
 
 use serde::{Deserialize, Serialize};
@@ -463,31 +473,25 @@ mod test {
     #[test]
     fn test_unknown() {
         // Passing a Track ID to an Unknown ID type should work just fine.
-        assert!(UnknownId::from_id(ID).is_ok());
-        assert!(UnknownId::from_uri(URI).is_ok());
-        assert!(UnknownId::from_uri(URI_WRONGTYPE1).is_ok());
-        assert!(UnknownId::from_id_or_uri(ID).is_ok());
-        assert!(UnknownId::from_id_or_uri(URI).is_ok());
+        assert!(AnyId::from_id(ID).is_ok());
+        assert!(AnyId::from_uri(URI).is_ok());
+        assert!(AnyId::from_uri(URI_WRONGTYPE1).is_ok());
+        assert!(AnyId::from_id_or_uri(ID).is_ok());
+        assert!(AnyId::from_id_or_uri(URI).is_ok());
 
         // The given type must still be a variant of the `Type` enum, so it will
         // fail for invalid ones.
-        assert_eq!(UnknownId::from_uri(URI_EMPTY), Err(IdError::InvalidType));
-        assert_eq!(
-            UnknownId::from_uri(URI_WRONGTYPE2),
-            Err(IdError::InvalidType)
-        );
+        assert_eq!(AnyId::from_uri(URI_EMPTY), Err(IdError::InvalidType));
+        assert_eq!(AnyId::from_uri(URI_WRONGTYPE2), Err(IdError::InvalidType));
 
         // But it will still catch other kinds of error
+        assert_eq!(AnyId::from_id_or_uri(URI_SHORT), Err(IdError::InvalidId));
         assert_eq!(
-            UnknownId::from_id_or_uri(URI_SHORT),
-            Err(IdError::InvalidId)
-        );
-        assert_eq!(
-            UnknownId::from_id_or_uri(URI_MIXED1),
+            AnyId::from_id_or_uri(URI_MIXED1),
             Err(IdError::InvalidFormat)
         );
         assert_eq!(
-            UnknownId::from_id_or_uri(URI_MIXED2),
+            AnyId::from_id_or_uri(URI_MIXED2),
             Err(IdError::InvalidFormat)
         );
     }

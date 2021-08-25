@@ -233,6 +233,18 @@ pub enum PlayableItem {
     Episode(show::FullEpisode),
 }
 
+impl PlayableItem {
+    /// Utility to get the ID from either variant in the enum
+    pub fn id(&self) -> &PlayableId {
+        match self {
+            // First `as_ref` to convert from owned id to borrowed, and second
+            // to convert into `PlayableId`
+            PlayableItem::Track(t) => t.id.as_ref().as_ref(),
+            PlayableItem::Episode(e) => e.id.as_ref().as_ref(),
+        }
+    }
+}
+
 pub use {
     album::*, artist::*, audio::*, category::*, context::*, device::*, enums::*, error::*,
     idtypes::*, image::*, offset::*, page::*, playing::*, playlist::*, recommend::*, search::*,

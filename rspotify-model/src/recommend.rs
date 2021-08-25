@@ -9,7 +9,7 @@ use crate::{AnyIdBuf, RecommendationsSeedType, SimplifiedTrack};
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Recommendations {
-    pub seeds: Vec<RecommendationsSeed<Box<AnyIdBuf>>>,
+    pub seeds: Vec<RecommendationsSeed>,
     pub tracks: Vec<SimplifiedTrack>,
 }
 
@@ -17,13 +17,13 @@ pub struct Recommendations {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationseedobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct RecommendationsSeed<T> {
+pub struct RecommendationsSeed {
     #[serde(rename = "afterFilteringSize")]
     pub after_filtering_size: u32,
     #[serde(rename = "afterRelinkingSize")]
     pub after_relinking_size: u32,
     pub href: Option<String>,
-    pub id: T,
+    pub id: AnyIdBuf,
     #[serde(rename = "initialPoolSize")]
     pub initial_pool_size: u32,
     #[serde(rename = "type")]

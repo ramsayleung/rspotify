@@ -23,7 +23,7 @@ pub struct FullTrack {
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<TrackIdBuf>,
+    pub id: TrackIdBuf,
     pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,
