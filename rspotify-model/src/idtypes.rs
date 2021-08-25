@@ -20,6 +20,8 @@
 //! If an endpoint requires a `TrackId`, you may pass it as:
 //!
 //! ```
+//! use rspotify_model::{Id, TrackId};
+//!
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
 //! let id = TrackId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
@@ -29,6 +31,8 @@
 //! Notice how it's type safe; the following example would fail at compile-time:
 //!
 //! ```compile_fail
+//! use rspotify_model::{Id, TrackId, EpisodeId};
+//!
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
 //! let id = EpisodeId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
@@ -39,6 +43,8 @@
 //! it's an album (`spotify:album:xxxx`).
 //!
 //! ```should_panic
+//! use rspotify_model::{Id, TrackId};
+//!
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
 //! let id = TrackId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
@@ -49,6 +55,8 @@
 //! types:
 //!
 //! ```
+//! use rspotify_model::{Id, TrackId, EpisodeId, PlayableId};
+//!
 //! fn track(id: &TrackId) { /* ... */ }
 //! fn episode(id: &EpisodeId) { /* ... */ }
 //! fn add_to_queue(id: &[&PlayableId]) { /* ... */ }
@@ -63,16 +71,20 @@
 //! ];
 //!
 //! // First we get some info about the tracks and episodes
-//! let track_info = tracks.into_iter().map(|id| track(id)).collect::<Vec<_>>()
-//! let ep_info = tracks.into_iter().map(|id| episode(id)).collect::<Vec<_>>()
+//! let track_info = tracks.iter().map(|id| track(id)).collect::<Vec<_>>();
+//! let ep_info = episodes.iter().map(|id| episode(id)).collect::<Vec<_>>();
 //! println!("Track info: {:?}", track_info);
 //! println!("Episode info: {:?}", ep_info);
 //!
 //! // And then we play them
-//! let mut playable = tracks;
-//! playable.extend(episodes);
-//! let playable = playable.into_iter().map(|id| id.as_ref()).collect::<Vec<_>>();
-//! add_to_queue(playable);
+//! let playable = tracks
+//!     .iter()
+//!     .map(|id| id.as_ref())
+//!     .chain(
+//!         episodes.iter().map(|id| id.as_ref())
+//!     )
+//!     .collect::<Vec<_>>();
+//! add_to_queue(&playable);
 //! ```
 
 use serde::{Deserialize, Serialize};
@@ -219,8 +231,10 @@ pub trait Id {
             .map(|mid| rest.split_at(mid))
             .ok_or(IdError::InvalidFormat)?;
 
+        // Note that in case the type isn't known at compile time, any type will
+        // be accepted.
         match tpe.parse::<Type>() {
-            Ok(tpe) if tpe == Self::TYPE => Self::from_id(&id[1..]),
+            Ok(tpe) if Self::TYPE == Type::Unknown || tpe == Self::TYPE => Self::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
         }
     }
@@ -471,8 +485,8 @@ mod test {
     }
 
     #[test]
-    fn test_unknown() {
-        // Passing a Track ID to an Unknown ID type should work just fine.
+    fn test_any() {
+        // Passing a Track ID to the wildcard ID type should work just fine.
         assert!(AnyId::from_id(ID).is_ok());
         assert!(AnyId::from_uri(URI).is_ok());
         assert!(AnyId::from_uri(URI_WRONGTYPE1).is_ok());
