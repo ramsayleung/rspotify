@@ -2,14 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{IdBuf, RecommendationsSeedType, SimplifiedTrack};
+use crate::{AnyIdBuf, RecommendationsSeedType, SimplifiedTrack};
 
 /// Recommendations object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Recommendations {
-    pub seeds: Vec<RecommendationsSeed<Box<dyn IdBuf>>>,
+    pub seeds: Vec<RecommendationsSeed<Box<AnyIdBuf>>>,
     pub tracks: Vec<SimplifiedTrack>,
 }
 

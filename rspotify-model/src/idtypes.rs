@@ -69,7 +69,7 @@ use serde::{Deserialize, Serialize};
 use strum::Display;
 use thiserror::Error;
 
-use std::borrow::Borrow;
+use std::borrow::{Borrow, ToOwned};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::Deref;
@@ -97,8 +97,14 @@ pub trait Id {
     // TODO: add const for owned type and same in IdBuf?
     const TYPE: Type;
 
-    /// Spotify object id (guaranteed to be a string of alphanumeric characters)
+    /// Spotify object Id (guaranteed to be a string of alphanumeric characters)
     fn id(&self) -> &str;
+
+    /// Initialize the Id without checking its validity.
+    ///
+    /// The string passed to this method must be made out of alphanumeric
+    /// numbers only; otherwise undefined behaviour may occur.
+    unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self;
 
     /// Spotify object URI in a well-known format: spotify:type:id
     ///
@@ -142,7 +148,7 @@ pub trait Id {
     ///    non-alphanumeric characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
     ///    split into type and id parts.
-    fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<&'a Self, IdError> where Self: Sized {
+    fn from_id_or_uri<'a, 'b: 'a>(id_or_uri: &'b str) -> Result<&'a Self, IdError> {
         match Self::from_uri(id_or_uri) {
             Ok(id) => Ok(id),
             Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
@@ -157,11 +163,10 @@ pub trait Id {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
-    fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Self, IdError> where Self: Sized {
+    fn from_id<'a, 'b: 'a>(id: &'b str) -> Result<&'a Self, IdError> {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
-            // Safe, b/c Id is just a str with ZST type tag, and id is proved
-            // to be a valid id at this point
-            Ok(unsafe { &*(id as *const str as *const Self) })
+            // Safe, we've just checked that the Id is valid.
+            Ok(unsafe { Self::from_id_unchecked(id) })
         } else {
             Err(IdError::InvalidId)
         }
@@ -186,7 +191,7 @@ pub trait Id {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    fn from_uri<'a>(uri: &'a str) -> Result<&'a Self, IdError> where Self: Sized {
+    fn from_uri<'a>(uri: &'a str) -> Result<&'a Self, IdError> {
         let mut chars = uri
             .strip_prefix("spotify")
             .ok_or(IdError::InvalidPrefix)?
@@ -202,7 +207,7 @@ pub trait Id {
             .ok_or(IdError::InvalidFormat)?;
 
         match tpe.parse::<Type>() {
-            Ok(tpe) if tpe == Self::Type => {
+            Ok(tpe) if tpe == Self::TYPE => {
                 Self::from_id(&id[1..])
             }
             _ => Err(IdError::InvalidType),
@@ -226,17 +231,60 @@ macro_rules! define_idtypes {
             #[derive(Debug, PartialEq, Eq, Serialize, Hash)]
             pub struct $name_borrowed(str);
 
-            impl $name_borrowed {
-                fn to_owned<T: IdBuf>(&self) -> T {
-                    $name_owned((self.id()).to_owned())
-                }
-            }
-
             impl Id for $name_borrowed {
                 const TYPE: Type = Type::$name;
 
+                unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self {
+                    // Safe, because both types (str and this Id) share the same
+                    // memory layout.
+                    unsafe { &*(id as *const str as *const Self) }
+                }
+
                 fn id(&self) -> &str {
                     &self.0
+                }
+            }
+
+            /// All types may be converted to `AnyId` without overhead
+            impl AsRef<AnyId> for $name_borrowed {
+                fn as_ref(&self) -> &AnyId {
+                    // Safe, because the already intialized Id is assumed to be
+                    // sound, so its ID is valid.
+                    unsafe { AnyId::from_id_unchecked(&self.0) }
+                }
+            }
+
+            /// Cheap conversion to `str`
+            impl AsRef<str> for $name_borrowed {
+                fn as_ref(&self) -> &str {
+                    self.id()
+                }
+            }
+
+            /// `Id`s may be borrowed as `str` the same way `Box<T>` may be
+            /// borrowed as `T` or `String` as `str`
+            impl Borrow<str> for $name_borrowed {
+                fn borrow(&self) -> &str {
+                    self.id()
+                }
+            }
+
+            impl std::fmt::Display for $name_borrowed {
+                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    // It only makes sense to show the full URI when the type is
+                    // known. Otherwise the ID is enough.
+                    match Self::TYPE {
+                        Type::Unknown => write!(f, "{}", self.id()),
+                        _ => write!(f, "{}", self.uri())
+                    }
+                }
+            }
+
+            impl ToOwned for $name_borrowed {
+                type Owned = $name_owned;
+
+                fn to_owned(&self) -> Self::Owned {
+                    $name_owned((self.id()).to_owned())
                 }
             }
 
@@ -244,35 +292,55 @@ macro_rules! define_idtypes {
             #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
             pub struct $name_owned(String);
 
+            /// A buffered ID is an ID after all, so it has to implement its
+            /// trait as well, and also the `IdBuf` for additional functionality.
             impl Id for $name_owned {
                 const TYPE: Type = Type::$name;
+
+                unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self {
+                    // Safe, because both types (str and this Id) share the same
+                    // memory layout.
+                    unsafe { &*(id as *const str as *const Self) }
+                }
 
                 fn id(&self) -> &str {
                     &self.0
                 }
             }
-
             impl IdBuf for $name_owned {}
 
+            /// Cheap conversion to its borrowed version
             impl AsRef<$name_borrowed> for $name_owned {
                 fn as_ref(&self) -> &$name_borrowed {
-                    // Safe, b/c of the same T between types, IdBuf can't be constructed
-                    // from invalid id, and Id is just a wrapped str with ZST type tag
-                    unsafe { &*(&*self.id() as *const str as *const $name_borrowed) }
+                    // Safe, because the already intialized BufId is assumed to
+                    // be sound, so its ID is valid.
+                    unsafe { $name_borrowed::from_id_unchecked(&self.0) }
                 }
             }
 
+            /// Obviously, the owned ID (`IdBuf`) can be borrowed as the
+            /// borrowed ID (`Id`)
             impl Borrow<$name_borrowed> for $name_owned {
                 fn borrow(&self) -> &$name_borrowed {
                     self.as_ref()
                 }
             }
 
+            /// `Deref` helps make owned IDs more ergonomic
             impl Deref for $name_owned {
                 type Target = $name_borrowed;
 
                 fn deref(&self) -> &Self::Target {
                     self.as_ref()
+                }
+            }
+
+            /// Owned IDs can also be used to convert from a `str`
+            impl std::str::FromStr for $name_owned {
+                type Err = IdError;
+
+                fn from_str(s: &str) -> Result<Self, Self::Err> {
+                    Self::from_id_or_uri(s).map(|id| id.to_owned())
                 }
             }
         )+
@@ -282,12 +350,12 @@ macro_rules! define_idtypes {
 macro_rules! define_one_way_conversions {
     ($($from:ident => $into:ident),+) => {
         $(
-            impl From<$from> for $into {
-                fn from(id: $from) -> Self {
-                    // The `unwrap` for `$into` can't fail because we already know
-                    // the ID of `$from` is valid (otherwise it couldn't have been
-                    // constructed).
-                    $into::from_id($from.id()).unwrap()
+            /// Cheap one way conversion from one type to a more generic one
+            impl AsRef<$into> for $from {
+                fn as_ref(&self) -> &$into {
+                    // Safe, because the already intialized Id is assumed to be
+                    // sound, so its ID is valid.
+                    unsafe { $into::from_id_unchecked(self.id()) }
                 }
             }
         )+
@@ -310,6 +378,7 @@ define_idtypes!(
     Unknown => PlayableId, PlayableIdBuf
 );
 
+// Note that conversions to `AnyId` are already handled in `define_idtypes!`
 define_one_way_conversions!(
     ArtistId => PlayContextId,
     AlbumId => PlayContextId,
@@ -319,39 +388,6 @@ define_one_way_conversions!(
     EpisodeId => PlayableId
 );
 
-/// Blanket implementation for the wildcard ID
-impl<T: Id> AsRef<AnyId> for &T {
-    fn as_ref(&self) -> &AnyId {
-        // TODO: copy paste unsafe explanation
-        unsafe { &*(self as *const str as *const Self) }
-    }
-}
-
-impl<T: Id> std::fmt::Display for &T {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "spotify:{}:{}", Self::TYPE, self.id())
-    }
-}
-
-impl<T: Id> AsRef<str> for &T {
-    fn as_ref(&self) -> &str {
-        self.id()
-    }
-}
-
-impl<T: Id> Borrow<str> for &T {
-    fn borrow(&self) -> &str {
-        self.id()
-    }
-}
-
-impl<T: Id> std::str::FromStr for T {
-    type Err = IdError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Id::from_id_or_uri(s).map(|id| id.to_owned())
-    }
-}
 
 #[cfg(test)]
 mod test {
