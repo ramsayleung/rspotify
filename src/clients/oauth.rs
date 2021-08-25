@@ -14,8 +14,7 @@ use std::time;
 
 use log::error;
 use maybe_async::maybe_async;
-use rspotify_model::idtypes::PlayContextIdType;
-use serde::Deserialize;
+use rspotify_model::idtypes::PlayContextId;
 use serde_json::{json, Map};
 use url::Url;
 
@@ -433,12 +432,9 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     ///
     /// TODO: rename, this might return an episode as well, for example
-    async fn current_user_playing_track<'a, T>(
+    async fn current_user_playing_track<'a>(
         &self,
-    ) -> ClientResult<Option<CurrentlyPlayingContext<T>>>
-    where
-        T: PlayableIdType + Deserialize<'a>,
-    {
+    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
@@ -847,14 +843,11 @@ pub trait OAuthClient: BaseClient {
     ///   `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
-    async fn current_playback<'a, T>(
+    async fn current_playback<'a>(
         &self,
         country: Option<&Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
-    ) -> ClientResult<Option<CurrentPlaybackContext<T>>>
-    where
-        T: PlayableIdType + Deserialize<'a>,
-    {
+    ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
                 .map(|x| x.as_ref())
@@ -883,14 +876,11 @@ pub trait OAuthClient: BaseClient {
     ///   `track` and `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-    async fn current_playing<'a, 'b: 'a, T>(
+    async fn current_playing<'a>(
         &self,
         market: Option<&'a Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
-    ) -> ClientResult<Option<CurrentlyPlayingContext<T>>>
-    where
-        T: PlayableIdType + Deserialize<'b>,
-    {
+    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
                 .map(|x| x.as_ref())
@@ -947,11 +937,11 @@ pub trait OAuthClient: BaseClient {
     /// - position_ms - Indicates from what position to start playback.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
-    async fn start_context_playback<U: PlayContextIdType, O: PlayableIdType>(
+    async fn start_context_playback(
         &self,
-        context_uri: &Id<U>,
+        context_uri: &PlayContextId,
         device_id: Option<&str>,
-        offset: Option<Offset<O>>,
+        offset: Option<Offset<PlayableIdBuf>>,
         position_ms: Option<time::Duration>,
     ) -> ClientResult<()> {
         let params = build_json! {
@@ -979,11 +969,11 @@ pub trait OAuthClient: BaseClient {
     /// - position_ms
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
-    async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
+    async fn start_uris_playback<'a>(
         &self,
-        uris: impl IntoIterator<Item = &'a Id<T>> + Send + 'a,
+        uris: impl IntoIterator<Item = &'a PlayableIdBuf> + Send + 'a,
         device_id: Option<&str>,
-        offset: Option<crate::model::Offset<T>>,
+        offset: Option<crate::model::Offset<PlayableIdBuf>>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = build_json! {
@@ -1139,9 +1129,9 @@ pub trait OAuthClient: BaseClient {
     ///   targeted
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue)
-    async fn add_item_to_queue<Item: PlayableIdType>(
+    async fn add_item_to_queue(
         &self,
-        item: &Id<Item>,
+        item: &PlayableId,
         device_id: Option<&str>,
     ) -> ClientResult<()> {
         let url = append_device_id(&format!("me/player/queue?uri={}", item), device_id);

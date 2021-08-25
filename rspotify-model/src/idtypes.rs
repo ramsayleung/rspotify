@@ -237,7 +237,7 @@ macro_rules! define_idtypes {
                 unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self {
                     // Safe, because both types (str and this Id) share the same
                     // memory layout.
-                    unsafe { &*(id as *const str as *const Self) }
+                    &*(id as *const str as *const Self)
                 }
 
                 fn id(&self) -> &str {
@@ -300,7 +300,7 @@ macro_rules! define_idtypes {
                 unsafe fn from_id_unchecked<'a>(id: &'a str) -> &'a Self {
                     // Safe, because both types (str and this Id) share the same
                     // memory layout.
-                    unsafe { &*(id as *const str as *const Self) }
+                    &*(id as *const str as *const Self)
                 }
 
                 fn id(&self) -> &str {
