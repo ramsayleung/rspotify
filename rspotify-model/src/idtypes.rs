@@ -1,18 +1,38 @@
 //! This module defines the necessary elements in order to represent Spotify IDs
 //! and URIs with type safety and no overhead.
 //!
+//! ## Concrete IDs
+//!
 //! The trait [`Id`] is the central element of this module. It's implemented by
 //! different kinds of ID ([`AlbumId`], [`EpisodeId`], etc), and implements the
-//! logic to initialize and use IDs. [`Id`] is equivalent to a `&str` and
-//! [`IdBuf`] to a `String`; you may use whichever suits you best.
+//! logic to initialize and use IDs.
 //!
-//! There are also group IDs, which may contain different kinds of IDs. For
-//! example, `PlayableId` can hold IDs of either tracks or episodes. `AnyId`
-//! can hold *any* kind of ID. These types are useful when an endpoint takes
-//! different kinds of IDs as a parameter, or when the kind of ID you're dealing
-//! with is known only at runtime.
+//! * [`Type::Artist`] => [`ArtistId`]
+//! * [`Type::Album`] => [`AlbumId`]
+//! * [`Type::Track`] => [`TrackId`]
+//! * [`Type::Playlist`] => [`PlaylistId`]
+//! * [`Type::User`] => [`UserId`]
+//! * [`Type::Show`] => [`ShowId`]
+//! * [`Type::Episode`] => [`EpisodeId`]
 //!
-//! You can convert specific IDs into group ones with its `as_ref`
+//! [`Id`] is the borrowed variant, equivalent to a `&str`, and [`IdBuf`] is the
+//! owned variant, like a `String`; you may use whichever suits you best.
+//!
+//! ## Group IDs
+//!
+//! There are also group IDs, which may contain different kinds of IDs and
+//! therefore have an unknown type at compile time. They will perform no checks
+//! for what kind of URI they are given. For example, you can use [`PlayableId`]
+//! to hold IDs of either tracks or episodes, or [`AnyId`] for *any* kind of ID.
+//! These types are useful when an endpoint takes different kinds of IDs as a
+//! parameter, or when the kind of ID you're dealing with is known only at
+//! runtime.
+//!
+//! * [`AnyId`] => Any ID
+//! * [`PlayContextId`] => [`ArtistId`], [`AlbumId`], [`PlaylistId`], [`ShowId`]
+//! * [`PlayableId`] => [`TrackId`], [`EpisodeId`]
+//!
+//! You can convert specific IDs into group ones with its `AsRef`
 //! implementation, since it's a cheap type conversion.
 //!
 //! ## Examples
@@ -116,7 +136,6 @@ pub enum IdError {
 }
 
 pub trait Id {
-    // TODO: add const for owned type and same in IdBuf?
     const TYPE: Type;
 
     /// Spotify object Id (guaranteed to be a string of alphanumeric characters)
@@ -130,7 +149,7 @@ pub trait Id {
     /// numbers only; otherwise undefined behaviour may occur.
     unsafe fn from_id_unchecked(id: &str) -> &Self;
 
-    /// Spotify object URI in a well-known format: spotify:type:id
+    /// Spotify object URI in a well-known format: `spotify:type:id`
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
@@ -150,11 +169,10 @@ pub trait Id {
     ///
     /// Spotify URI must be in one of the following formats:
     /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
-    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`,
-    /// `user`, `show`, or `episode`, and `{id}` is a non-empty
-    /// alphanumeric string.
-    /// The URI must be of given `T`ype, otherwise `IdError::InvalidType`
-    /// error is returned.
+    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
+    /// `show`, or `episode`, and `{id}` is a non-empty alphanumeric string.
+    /// The URI must be match with the ID's type (`Id::TYPE`), otherwise
+    /// `IdError::InvalidType` error is returned.
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
@@ -243,16 +261,21 @@ pub trait Id {
 pub trait IdBuf: Id {}
 
 /// This macro helps consistently define ID types. It contains a lot of code but
-/// mostly it's just repetitive work that's not of much interest.
+/// mostly it's just repetitive work that's not of much interest for being
+/// trivial.
 ///
 /// * The `$name` parameter indicates what type the ID is made out of (say,
-///   `Artist`, `Album`...), which will then be used for its value in
-///   `Id::_type`, which returns a `Type::$name`.
-/// *
+///   `Artist`, `Album`...) from the enum `Type`.
+/// * The `$name_borrowed` and `$name_owned` parameters are the identifiers of
+///   the borrowed and owned structs for that type, respectively.
 macro_rules! define_idtypes {
     ($($name:ident => $name_borrowed:ident, $name_owned:ident);+) => {
         $(
-            #[doc = "Please refer to [`crate::idtypes`] for more information."]
+            #[doc = concat!(
+                "Borrowed ID of type [`Type::",
+                stringify!($name),
+                "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
+            ]
             #[derive(Debug, PartialEq, Eq, Serialize, Hash)]
             pub struct $name_borrowed(str);
 
@@ -260,8 +283,9 @@ macro_rules! define_idtypes {
                 const TYPE: Type = Type::$name;
 
                 unsafe fn from_id_unchecked(id: &str) -> &Self {
-                    // Safe, because both types (str and this Id) share the same
-                    // memory layout.
+                    // Technically safe, because both types (str and this Id)
+                    // share the same memory layout. But the method is declared
+                    // as unsafe in order to ensure all IDs are valid.
                     &*(id as *const str as *const Self)
                 }
 
@@ -273,8 +297,8 @@ macro_rules! define_idtypes {
             /// All types may be converted to `AnyId` without overhead
             impl AsRef<AnyId> for $name_borrowed {
                 fn as_ref(&self) -> &AnyId {
-                    // Safe, because the already intialized Id is assumed to be
-                    // sound, so its ID is valid.
+                    // Safe, because an already intialized Id is assumed to be
+                    // sound, so its value is already checked.
                     unsafe { AnyId::from_id_unchecked(&self.0) }
                 }
             }
@@ -313,7 +337,11 @@ macro_rules! define_idtypes {
                 }
             }
 
-            #[doc = "Please refer to [`crate::idtypes`] for more information."]
+            #[doc = concat!(
+                "Owned ID of type [`Type::",
+                stringify!($name),
+                "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
+            ]
             #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
             pub struct $name_owned(String);
 
@@ -379,7 +407,7 @@ macro_rules! define_one_way_conversions {
             impl AsRef<$into> for $from {
                 fn as_ref(&self) -> &$into {
                     // Safe, because the already intialized Id is assumed to be
-                    // sound, so its ID is valid.
+                    // sound, so its value is valid.
                     unsafe { $into::from_id_unchecked(self.id()) }
                 }
             }
@@ -388,7 +416,7 @@ macro_rules! define_one_way_conversions {
 }
 
 define_idtypes!(
-    // Basic types
+    // Concrete IDs
     Artist => ArtistId, ArtistIdBuf;
     Album => AlbumId, AlbumIdBuf;
     Track => TrackId, TrackIdBuf;
@@ -396,8 +424,9 @@ define_idtypes!(
     User => UserId, UserIdBuf;
     Show => ShowId, ShowIdBuf;
     Episode => EpisodeId, EpisodeIdBuf;
-    // Special Types: these cover a range of IDs instead of a single one,
-    // covered in the `define_conversions!` block later on.
+
+    // Group IDs: these cover a range of IDs instead of a single one, covered in
+    // the `define_conversions!` block later on.
     Unknown => AnyId, AnyIdBuf;
     Unknown => PlayContextId, PlayContextIdBuf;
     Unknown => PlayableId, PlayableIdBuf
@@ -486,7 +515,7 @@ mod test {
 
     #[test]
     fn test_any() {
-        // Passing a Track ID to the wildcard ID type should work just fine.
+        // Passing a Track ID to an unknown ID type should work just fine.
         assert!(AnyId::from_id(ID).is_ok());
         assert!(AnyId::from_uri(URI).is_ok());
         assert!(AnyId::from_uri(URI_WRONGTYPE1).is_ok());
