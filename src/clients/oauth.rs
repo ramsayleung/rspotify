@@ -365,7 +365,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: impl IntoIterator<Item = &TrackPositions> + Send + 'a,
+        tracks: impl IntoIterator<Item = &'a TrackPositions> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -432,7 +432,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     ///
     /// TODO: rename, this might return an episode as well, for example
-    async fn current_user_playing_track<'a>(
+    async fn current_user_playing_track(
         &self,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
