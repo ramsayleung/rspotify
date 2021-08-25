@@ -102,6 +102,8 @@ pub trait Id {
 
     /// Initialize the Id without checking its validity.
     ///
+    /// # Safety
+    ///
     /// The string passed to this method must be made out of alphanumeric
     /// numbers only; otherwise undefined behaviour may occur.
     unsafe fn from_id_unchecked(id: &str) -> &Self;
