@@ -107,14 +107,13 @@
 //! add_to_queue(&playable);
 //! ```
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use strum::Display;
 use thiserror::Error;
 
 use std::borrow::{Borrow, ToOwned};
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::ops::Deref;
 
 use crate::Type;
 
@@ -135,11 +134,12 @@ pub enum IdError {
     InvalidId,
 }
 
+// TODO: note about object-safe
 pub trait Id {
-    const TYPE: Type;
-
     /// Spotify object Id (guaranteed to be a string of alphanumeric characters)
     fn id(&self) -> &str;
+
+    fn _type() -> Type where Self: Sized;
 
     /// Initialize the Id without checking its validity.
     ///
@@ -147,55 +147,22 @@ pub trait Id {
     ///
     /// The string passed to this method must be made out of alphanumeric
     /// numbers only; otherwise undefined behaviour may occur.
-    unsafe fn from_id_unchecked(id: &str) -> &Self;
+    unsafe fn from_id_unchecked(id: &str) -> Self where Self: Sized;
 
     /// Spotify object URI in a well-known format: `spotify:type:id`
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
-    fn uri(&self) -> String {
-        format!("spotify:{}:{}", Self::TYPE, self.id())
+    fn uri(&self) -> String where Self: Sized {
+        format!("spotify:{}:{}", Self::_type(), self.id())
     }
 
     /// Full Spotify object URL, can be opened in a browser
     ///
     /// Examples: `https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an`,
     /// `https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI`.
-    fn url(&self) -> String {
-        format!("https://open.spotify.com/{}/{}", Self::TYPE, self.id())
-    }
-
-    /// Parse Spotify id or URI from string slice
-    ///
-    /// Spotify URI must be in one of the following formats:
-    /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
-    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
-    /// `show`, or `episode`, and `{id}` is a non-empty alphanumeric string.
-    /// The URI must be match with the ID's type (`Id::TYPE`), otherwise
-    /// `IdError::InvalidType` error is returned.
-    ///
-    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
-    /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
-    ///
-    /// If input string is not a valid Spotify URI (it's not started with
-    /// `spotify:` or `spotify/`), it must be a valid Spotify object id,
-    /// i.e. a non-empty alphanumeric string.
-    ///
-    /// # Errors:
-    ///
-    /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part
-    ///    is not equal to `T`,
-    /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id
-    ///    part, or it's an invalid id (id is invalid if it contains
-    ///    non-alphanumeric characters),
-    /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
-    ///    split into type and id parts.
-    fn from_id_or_uri(id_or_uri: &str) -> Result<&Self, IdError> {
-        match Self::from_uri(id_or_uri) {
-            Ok(id) => Ok(id),
-            Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
-            Err(error) => Err(error),
-        }
+    fn url(&self) -> String where Self: Sized {
+        format!("https://open.spotify.com/{}/{}", Self::_type(), self.id())
     }
 
     /// Parse Spotify id from string slice
@@ -205,7 +172,7 @@ pub trait Id {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
-    fn from_id(id: &str) -> Result<&Self, IdError> {
+    fn from_id(id: &str) -> Result<Self, IdError> where Self: Sized {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
             // Safe, we've just checked that the Id is valid.
             Ok(unsafe { Self::from_id_unchecked(id) })
@@ -233,7 +200,7 @@ pub trait Id {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    fn from_uri(uri: &str) -> Result<&Self, IdError> {
+    fn from_uri(uri: &str) -> Result<Self, IdError> where Self: Sized {
         let mut chars = uri
             .strip_prefix("spotify")
             .ok_or(IdError::InvalidPrefix)?
@@ -252,59 +219,86 @@ pub trait Id {
         // Note that in case the type isn't known at compile time, any type will
         // be accepted.
         match tpe.parse::<Type>() {
-            Ok(tpe) if Self::TYPE == Type::Unknown || tpe == Self::TYPE => Self::from_id(&id[1..]),
+            Ok(tpe) if tpe == Self::_type() => Self::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
+        }
+    }
+
+    /// Parse Spotify id or URI from string slice
+    ///
+    /// Spotify URI must be in one of the following formats:
+    /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
+    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
+    /// `show`, or `episode`, and `{id}` is a non-empty alphanumeric string.
+    /// The URI must be match with the ID's type (`Id::TYPE`), otherwise
+    /// `IdError::InvalidType` error is returned.
+    ///
+    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
+    /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
+    ///
+    /// If input string is not a valid Spotify URI (it's not started with
+    /// `spotify:` or `spotify/`), it must be a valid Spotify object id,
+    /// i.e. a non-empty alphanumeric string.
+    ///
+    /// # Errors:
+    ///
+    /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part
+    ///    is not equal to `T`,
+    /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id
+    ///    part, or it's an invalid id (id is invalid if it contains
+    ///    non-alphanumeric characters),
+    /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
+    ///    split into type and id parts.
+    fn from_id_or_uri(id_or_uri: &str) -> Result<Self, IdError> where Self: Sized {
+        match Self::from_uri(id_or_uri) {
+            Ok(id) => Ok(id),
+            Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
+            Err(error) => Err(error),
         }
     }
 }
 
-pub trait IdBuf: Id {}
+pub trait PlayableId: Id {}
+pub trait PlayContextId: Id {}
 
 /// This macro helps consistently define ID types. It contains a lot of code but
 /// mostly it's just repetitive work that's not of much interest for being
 /// trivial.
 ///
-/// * The `$name` parameter indicates what type the ID is made out of (say,
+/// * The `$type` parameter indicates what type the ID is made out of (say,
 ///   `Artist`, `Album`...) from the enum `Type`.
 /// * The `$name_borrowed` and `$name_owned` parameters are the identifiers of
 ///   the borrowed and owned structs for that type, respectively.
 macro_rules! define_idtypes {
-    ($($name:ident => $name_borrowed:ident, $name_owned:ident);+) => {
+    ($($type:ident => $name:ident),+) => {
         $(
             #[doc = concat!(
-                "Borrowed ID of type [`Type::",
-                stringify!($name),
+                "ID of type [`Type::",
+                stringify!($type),
                 "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
             ]
             #[derive(Debug, PartialEq, Eq, Serialize, Hash)]
-            pub struct $name_borrowed(str);
+            pub struct $name(String);
 
-            impl Id for $name_borrowed {
-                const TYPE: Type = Type::$name;
+            impl Id for $name {
+                fn id(&self) -> &str {
+                    &self.0
+                }
 
-                unsafe fn from_id_unchecked(id: &str) -> &Self {
+                fn _type() -> Type {
+                    Type::$type
+                }
+
+                unsafe fn from_id_unchecked(id: &str) -> Self {
                     // Technically safe, because both types (str and this Id)
                     // share the same memory layout. But the method is declared
                     // as unsafe in order to ensure all IDs are valid.
                     &*(id as *const str as *const Self)
                 }
-
-                fn id(&self) -> &str {
-                    &self.0
-                }
-            }
-
-            /// All types may be converted to `AnyId` without overhead
-            impl AsRef<AnyId> for $name_borrowed {
-                fn as_ref(&self) -> &AnyId {
-                    // Safe, because an already intialized Id is assumed to be
-                    // sound, so its value is already checked.
-                    unsafe { AnyId::from_id_unchecked(&self.0) }
-                }
             }
 
             /// Cheap conversion to `str`
-            impl AsRef<str> for $name_borrowed {
+            impl AsRef<str> for $name {
                 fn as_ref(&self) -> &str {
                     self.id()
                 }
@@ -312,84 +306,20 @@ macro_rules! define_idtypes {
 
             /// `Id`s may be borrowed as `str` the same way `Box<T>` may be
             /// borrowed as `T` or `String` as `str`
-            impl Borrow<str> for $name_borrowed {
+            impl Borrow<str> for $name {
                 fn borrow(&self) -> &str {
                     self.id()
                 }
             }
 
-            impl std::fmt::Display for $name_borrowed {
+            impl std::fmt::Display for $name {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                    // It only makes sense to show the full URI when the type is
-                    // known. Otherwise the ID is enough.
-                    match Self::TYPE {
-                        Type::Unknown => write!(f, "{}", self.id()),
-                        _ => write!(f, "{}", self.uri())
-                    }
-                }
-            }
-
-            impl ToOwned for $name_borrowed {
-                type Owned = $name_owned;
-
-                fn to_owned(&self) -> Self::Owned {
-                    $name_owned((self.id()).to_owned())
-                }
-            }
-
-            #[doc = concat!(
-                "Owned ID of type [`Type::",
-                stringify!($name),
-                "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
-            ]
-            #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
-            pub struct $name_owned(String);
-
-            /// A buffered ID is an ID after all, so it has to implement its
-            /// trait as well, and also the `IdBuf` for additional functionality.
-            impl Id for $name_owned {
-                const TYPE: Type = Type::$name;
-
-                unsafe fn from_id_unchecked(id: &str) -> &Self {
-                    // Safe, because both types (str and this Id) share the same
-                    // memory layout.
-                    &*(id as *const str as *const Self)
-                }
-
-                fn id(&self) -> &str {
-                    &self.0
-                }
-            }
-            impl IdBuf for $name_owned {}
-
-            /// Cheap conversion to its borrowed version
-            impl AsRef<$name_borrowed> for $name_owned {
-                fn as_ref(&self) -> &$name_borrowed {
-                    // Safe, because the already intialized BufId is assumed to
-                    // be sound, so its ID is valid.
-                    unsafe { $name_borrowed::from_id_unchecked(&self.0) }
-                }
-            }
-
-            /// Obviously, the owned ID (`IdBuf`) can be borrowed as the
-            /// borrowed ID (`Id`)
-            impl Borrow<$name_borrowed> for $name_owned {
-                fn borrow(&self) -> &$name_borrowed {
-                    self.as_ref()
-                }
-            }
-
-            /// `Deref` helps make owned IDs more ergonomic
-            impl Deref for $name_owned {
-                type Target = $name_borrowed;
-
-                fn deref(&self) -> &Self::Target {
-                    self.as_ref()
+                    write!(f, "{}", self.uri())
                 }
             }
 
             /// Owned IDs can also be used to convert from a `str`
-            impl std::str::FromStr for $name_owned {
+            impl std::str::FromStr for $name {
                 type Err = IdError;
 
                 fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -400,47 +330,22 @@ macro_rules! define_idtypes {
     }
 }
 
-macro_rules! define_one_way_conversions {
-    ($($from:ident => $into:ident),+) => {
-        $(
-            /// Cheap one way conversion from one type to a more generic one
-            impl AsRef<$into> for $from {
-                fn as_ref(&self) -> &$into {
-                    // Safe, because the already intialized Id is assumed to be
-                    // sound, so its value is valid.
-                    unsafe { $into::from_id_unchecked(self.id()) }
-                }
-            }
-        )+
-    }
-}
-
 define_idtypes!(
-    // Concrete IDs
-    Artist => ArtistId, ArtistIdBuf;
-    Album => AlbumId, AlbumIdBuf;
-    Track => TrackId, TrackIdBuf;
-    Playlist => PlaylistId, PlaylistIdBuf;
-    User => UserId, UserIdBuf;
-    Show => ShowId, ShowIdBuf;
-    Episode => EpisodeId, EpisodeIdBuf;
-
-    // Group IDs: these cover a range of IDs instead of a single one, covered in
-    // the `define_conversions!` block later on.
-    Unknown => AnyId, AnyIdBuf;
-    Unknown => PlayContextId, PlayContextIdBuf;
-    Unknown => PlayableId, PlayableIdBuf
+    Artist => ArtistId,
+    Album => AlbumId,
+    Track => TrackId,
+    Playlist => PlaylistId,
+    User => UserId,
+    Show => ShowId,
+    Episode => EpisodeId
 );
 
-// Note that conversions to `AnyId` are already handled in `define_idtypes!`
-define_one_way_conversions!(
-    ArtistId => PlayContextId,
-    AlbumId => PlayContextId,
-    PlaylistId => PlayContextId,
-    ShowId => PlayContextId,
-    TrackId => PlayableId,
-    EpisodeId => PlayableId
-);
+impl PlayContextId for ArtistId {}
+impl PlayContextId for AlbumId {}
+impl PlayContextId for PlaylistId {}
+impl PlayContextId for ShowId {}
+impl PlayableId for TrackId {}
+impl PlayableId for EpisodeId {}
 
 #[cfg(test)]
 mod test {
@@ -452,7 +357,7 @@ mod test {
     const URI_SLASHES: &str = "spotify/track/4iV5W9uYEdYUVa79Axb7Rh";
     // Invalid values:
     const URI_EMPTY: &str = "spotify::4iV5W9uYEdYUVa79Axb7Rh";
-    // Note that the API doesn't really have an 'Unknown' type.
+    // TODO: remove one of these
     const URI_WRONGTYPE1: &str = "spotify:unknown:4iV5W9uYEdYUVa79Axb7Rh";
     const URI_WRONGTYPE2: &str = "spotify:something:4iV5W9uYEdYUVa79Axb7Rh";
     const URI_SHORT: &str = "track:4iV5W9uYEdYUVa79Axb7Rh";

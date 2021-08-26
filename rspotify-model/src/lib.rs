@@ -235,12 +235,12 @@ pub enum PlayableItem {
 
 impl PlayableItem {
     /// Utility to get the ID from either variant in the enum
-    pub fn id(&self) -> &PlayableId {
+    pub fn id(&self) -> &dyn PlayableId {
         match self {
             // First `as_ref` to convert from owned id to borrowed, and second
             // to convert into `PlayableId`
-            PlayableItem::Track(t) => t.id.as_ref().as_ref(),
-            PlayableItem::Episode(e) => e.id.as_ref().as_ref(),
+            PlayableItem::Track(t) => t.id,
+            PlayableItem::Episode(e) => e.id,
         }
     }
 }
