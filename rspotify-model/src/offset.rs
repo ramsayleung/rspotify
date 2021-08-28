@@ -1,6 +1,6 @@
 //! Offset object
 
-use std::borrow::ToOwned;
+use crate::Id;
 
 /// Offset object
 ///
@@ -11,12 +11,12 @@ pub enum Offset<T> {
     Uri(T),
 }
 
-impl<T> Offset<T> {
+impl<T: Id> Offset<T> {
     pub fn for_position(position: u32) -> Offset<T> {
         Offset::Position(position)
     }
 
-    pub fn for_uri<Brw: ToOwned>(uri: &Brw) -> Offset<Brw::Owned> {
-        Offset::Uri(uri.to_owned())
+    pub fn for_uri(uri: T) -> Offset<T> {
+        Offset::Uri(uri)
     }
 }

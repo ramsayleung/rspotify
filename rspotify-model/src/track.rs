@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, time::Duration};
 
-use crate::{duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackIdBuf, Type};
+use crate::{duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId, Type};
 
 /// Full track object
 ///
@@ -23,7 +23,7 @@ pub struct FullTrack {
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: TrackIdBuf,
+    pub id: TrackId,
     pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,
@@ -46,7 +46,7 @@ pub struct FullTrack {
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: TrackIdBuf,
+    pub id: TrackId,
     #[serde(rename = "type")]
     pub _type: Type,
 }
@@ -76,7 +76,7 @@ pub struct SimplifiedTrack {
     pub external_urls: HashMap<String, String>,
     #[serde(default)]
     pub href: Option<String>,
-    pub id: Option<TrackIdBuf>,
+    pub id: Option<TrackId>,
     pub is_local: bool,
     pub is_playable: Option<bool>,
     pub linked_from: Option<TrackLink>,
@@ -99,6 +99,6 @@ pub struct SavedTrack {
 
 /// Track id with specific positions track in a playlist
 pub struct TrackPositions {
-    pub id: TrackIdBuf,
+    pub id: TrackId,
     pub positions: Vec<u32>,
 }

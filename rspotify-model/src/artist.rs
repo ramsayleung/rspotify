@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{ArtistIdBuf, CursorBasedPage, Followers, Image, Type};
+use crate::{ArtistId, CursorBasedPage, Followers, Image, Type};
 
 /// Simplified Artist Object
 ///
@@ -13,7 +13,7 @@ use crate::{ArtistIdBuf, CursorBasedPage, Followers, Image, Type};
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<ArtistIdBuf>,
+    pub id: Option<ArtistId>,
     pub name: String,
     #[serde(rename = "type")]
     pub _type: Type,
@@ -28,7 +28,7 @@ pub struct FullArtist {
     pub followers: Followers,
     pub genres: Vec<String>,
     pub href: String,
-    pub id: ArtistIdBuf,
+    pub id: ArtistId,
     pub images: Vec<Image>,
     pub name: String,
     pub popularity: u32,

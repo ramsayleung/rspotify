@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::time::Duration;
 
-use crate::{duration_ms, enums::Modality, modality, TrackIdBuf};
+use crate::{duration_ms, enums::Modality, modality, TrackId};
 
 /// Audio Feature Object
 ///
@@ -17,7 +17,7 @@ pub struct AudioFeatures {
     #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub energy: f32,
-    pub id: TrackIdBuf,
+    pub id: TrackId,
     pub instrumentalness: f32,
     pub key: i32,
     pub liveness: f32,

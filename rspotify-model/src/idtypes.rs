@@ -107,7 +107,7 @@
 //! add_to_queue(&playable);
 //! ```
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum::Display;
 use thiserror::Error;
 
@@ -134,12 +134,34 @@ pub enum IdError {
     InvalidId,
 }
 
-// TODO: note about object-safe
-pub trait Id {
+/// The main interface for an ID.
+///
+/// # Implementation note
+///
+/// Note that the requried usage for IDs requires this trait to be object-safe.
+/// Thanks to that, it is possible to use `Vec<Box<dyn Id>>` to take multiple
+/// kinds of IDs, and `Box<dyn Id>` in case the type isn't known at compile
+/// time. This is why it includes both [`Self::_type`] and
+/// [`Self::_type_static`], and why all of the static methods use `where Self:
+/// Sized`.
+///
+/// Unfortunately, since `where Self: Sized` has to be enforced, IDs cannot be
+/// simply a `str` internally because these aren't sized. Thus, IDs will have the
+/// slight overhead of having to use an owned type like `String` -- though
+/// having a single type for IDs that is owned makes its usage considerably
+/// simpler.
+pub trait Id: Send + Sync {
     /// Spotify object Id (guaranteed to be a string of alphanumeric characters)
     fn id(&self) -> &str;
 
-    fn _type() -> Type where Self: Sized;
+    /// The type of the ID. The difference with [`Self::_type_static`] is that
+    /// this method can be used so that `Id` is an object-safe trait.
+    fn _type(&self) -> Type;
+
+    /// The type of the ID, which can be used without initializing it
+    fn _type_static() -> Type
+    where
+        Self: Sized;
 
     /// Initialize the Id without checking its validity.
     ///
@@ -147,22 +169,24 @@ pub trait Id {
     ///
     /// The string passed to this method must be made out of alphanumeric
     /// numbers only; otherwise undefined behaviour may occur.
-    unsafe fn from_id_unchecked(id: &str) -> Self where Self: Sized;
+    unsafe fn from_id_unchecked(id: &str) -> Self
+    where
+        Self: Sized;
 
     /// Spotify object URI in a well-known format: `spotify:type:id`
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
-    fn uri(&self) -> String where Self: Sized {
-        format!("spotify:{}:{}", Self::_type(), self.id())
+    fn uri(&self) -> String {
+        format!("spotify:{}:{}", self._type(), self.id())
     }
 
     /// Full Spotify object URL, can be opened in a browser
     ///
     /// Examples: `https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an`,
     /// `https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI`.
-    fn url(&self) -> String where Self: Sized {
-        format!("https://open.spotify.com/{}/{}", Self::_type(), self.id())
+    fn url(&self) -> String {
+        format!("https://open.spotify.com/{}/{}", self._type(), self.id())
     }
 
     /// Parse Spotify id from string slice
@@ -172,7 +196,10 @@ pub trait Id {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
-    fn from_id(id: &str) -> Result<Self, IdError> where Self: Sized {
+    fn from_id(id: &str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
             // Safe, we've just checked that the Id is valid.
             Ok(unsafe { Self::from_id_unchecked(id) })
@@ -200,7 +227,10 @@ pub trait Id {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    fn from_uri(uri: &str) -> Result<Self, IdError> where Self: Sized {
+    fn from_uri(uri: &str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
         let mut chars = uri
             .strip_prefix("spotify")
             .ok_or(IdError::InvalidPrefix)?
@@ -219,7 +249,7 @@ pub trait Id {
         // Note that in case the type isn't known at compile time, any type will
         // be accepted.
         match tpe.parse::<Type>() {
-            Ok(tpe) if tpe == Self::_type() => Self::from_id(&id[1..]),
+            Ok(tpe) if tpe == Self::_type_static() => Self::from_id(&id[1..]),
             _ => Err(IdError::InvalidType),
         }
     }
@@ -249,7 +279,10 @@ pub trait Id {
     ///    non-alphanumeric characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
     ///    split into type and id parts.
-    fn from_id_or_uri(id_or_uri: &str) -> Result<Self, IdError> where Self: Sized {
+    fn from_id_or_uri(id_or_uri: &str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
         match Self::from_uri(id_or_uri) {
             Ok(id) => Ok(id),
             Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
@@ -277,23 +310,28 @@ macro_rules! define_idtypes {
                 stringify!($type),
                 "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
             ]
-            #[derive(Debug, PartialEq, Eq, Serialize, Hash)]
+            #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, Hash)]
             pub struct $name(String);
 
             impl Id for $name {
+                #[inline]
                 fn id(&self) -> &str {
                     &self.0
                 }
 
-                fn _type() -> Type {
+                #[inline]
+                fn _type(&self) -> Type {
                     Type::$type
                 }
 
+                #[inline]
+                fn _type_static() -> Type where Self: Sized {
+                    Type::$type
+                }
+
+                #[inline]
                 unsafe fn from_id_unchecked(id: &str) -> Self {
-                    // Technically safe, because both types (str and this Id)
-                    // share the same memory layout. But the method is declared
-                    // as unsafe in order to ensure all IDs are valid.
-                    &*(id as *const str as *const Self)
+                    $name(id.to_owned())
                 }
             }
 

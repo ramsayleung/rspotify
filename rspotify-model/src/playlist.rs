@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{Followers, Image, Page, PlayableItem, PlaylistIdBuf, PublicUser, Type};
+use crate::{Followers, Image, Page, PlayableItem, PlaylistId, PublicUser, Type};
 
 /// Playlist result object
 ///
@@ -32,7 +32,7 @@ pub struct SimplifiedPlaylist {
     pub collaborative: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: PlaylistIdBuf,
+    pub id: PlaylistId,
     pub images: Vec<Image>,
     pub name: String,
     pub owner: PublicUser,
@@ -53,7 +53,7 @@ pub struct FullPlaylist {
     pub external_urls: HashMap<String, String>,
     pub followers: Followers,
     pub href: String,
-    pub id: PlaylistIdBuf,
+    pub id: PlaylistId,
     pub images: Vec<Image>,
     pub name: String,
     pub owner: PublicUser,

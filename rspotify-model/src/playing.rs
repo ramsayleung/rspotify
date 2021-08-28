@@ -3,7 +3,7 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{Context, FullTrack, TrackIdBuf};
+use crate::{Context, FullTrack, TrackId};
 
 /// Playing history object
 ///
@@ -12,5 +12,5 @@ use crate::{Context, FullTrack, TrackIdBuf};
 pub struct PlayHistory {
     pub track: FullTrack,
     pub played_at: DateTime<Utc>,
-    pub context: Option<Context<TrackIdBuf>>,
+    pub context: Option<Context<TrackId>>,
 }
