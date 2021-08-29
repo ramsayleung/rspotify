@@ -65,7 +65,7 @@ fn test_public_user() {
         }
         "#;
     let user: PublicUser = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(user.id.as_ref(), UserId::from_id("wizzler").unwrap());
+    assert_eq!(user.id, UserId::from_id("wizzler").unwrap());
 }
 
 #[test]
@@ -329,7 +329,7 @@ fn test_recommendations_seed() {
             "type": "ARTIST"
         }        
         "#;
-    let seed: RecommendationsSeed = serde_json::from_str(&json_str).unwrap();
+    let seed: RecommendationsSeed<ArtistId> = serde_json::from_str(&json_str).unwrap();
     assert_eq!(seed._type, RecommendationsSeedType::Artist);
 }
 
@@ -615,7 +615,7 @@ fn test_currently_playing_context() {
   "is_playing": true
 }
     "#;
-    let currently_playing_context: CurrentlyPlayingContext = serde_json::from_str(&json).unwrap();
+    let currently_playing_context: CurrentlyPlayingContext<AlbumId> = serde_json::from_str(&json).unwrap();
     let timestamp = 1607769168429;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;

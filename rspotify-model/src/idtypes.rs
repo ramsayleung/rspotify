@@ -457,28 +457,30 @@ mod test {
     }
 
     #[test]
-    fn test_any() {
-        // Passing a Track ID to an unknown ID type should work just fine.
-        assert!(AnyId::from_id(ID).is_ok());
-        assert!(AnyId::from_uri(URI).is_ok());
-        assert!(AnyId::from_uri(URI_WRONGTYPE1).is_ok());
-        assert!(AnyId::from_id_or_uri(ID).is_ok());
-        assert!(AnyId::from_id_or_uri(URI).is_ok());
+    fn test_multiple_types() {
+        fn endpoint(_ids: impl IntoIterator<Item = Box<dyn PlayableId>>) {}
 
-        // The given type must still be a variant of the `Type` enum, so it will
-        // fail for invalid ones.
-        assert_eq!(AnyId::from_uri(URI_EMPTY), Err(IdError::InvalidType));
-        assert_eq!(AnyId::from_uri(URI_WRONGTYPE2), Err(IdError::InvalidType));
+        let tracks: [Box<dyn PlayableId>; 4] = [
+            Box::new(TrackId::from_id(ID).unwrap()),
+            Box::new(TrackId::from_id(ID).unwrap()),
+            Box::new(EpisodeId::from_id(ID).unwrap()),
+            Box::new(EpisodeId::from_id(ID).unwrap()),
+        ];
+        endpoint(tracks);
+    }
 
-        // But it will still catch other kinds of error
-        assert_eq!(AnyId::from_id_or_uri(URI_SHORT), Err(IdError::InvalidId));
-        assert_eq!(
-            AnyId::from_id_or_uri(URI_MIXED1),
-            Err(IdError::InvalidFormat)
-        );
-        assert_eq!(
-            AnyId::from_id_or_uri(URI_MIXED2),
-            Err(IdError::InvalidFormat)
-        );
+    #[test]
+    fn test_unknown_at_compile_time() {
+        fn endpoint1(input: &str, is_episode: bool) -> Box<dyn PlayableId> {
+            if is_episode {
+                Box::new(EpisodeId::from_id(input).unwrap())
+            } else {
+                Box::new(TrackId::from_id(input).unwrap())
+            }
+        }
+        fn endpoint2(_id: &[Box<dyn PlayableId>]) {}
+
+        let id = endpoint1(ID, false);
+        endpoint2(&[id]);
     }
 }

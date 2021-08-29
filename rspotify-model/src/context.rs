@@ -8,16 +8,16 @@ use std::time::Duration;
 
 use crate::{
     millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, Device, DisallowKey, Id,
-    PlayableId, PlayableItem, RepeatState, Type,
+    PlayableItem, RepeatState, Type,
 };
 
 /// Context object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Context<T: Id> {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Context {
     #[serde(rename = "uri")]
-    pub id: T,
+    pub id: Box<dyn Id>,
     pub href: String,
     pub external_urls: HashMap<String, String>,
     #[serde(rename = "type")]
@@ -28,8 +28,8 @@ pub struct Context<T: Id> {
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CurrentlyPlayingContext<T: PlayableId> {
-    pub context: Option<Context<T>>,
+pub struct CurrentlyPlayingContext {
+    pub context: Option<Context>,
     #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
@@ -42,11 +42,11 @@ pub struct CurrentlyPlayingContext<T: PlayableId> {
 }
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct CurrentPlaybackContext<T: PlayableId> {
+pub struct CurrentPlaybackContext {
     pub device: Device,
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
-    pub context: Option<Context<T>>,
+    pub context: Option<Context>,
     #[serde(with = "millisecond_timestamp")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]

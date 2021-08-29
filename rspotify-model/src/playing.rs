@@ -12,5 +12,5 @@ use crate::{Context, FullTrack, TrackId};
 pub struct PlayHistory {
     pub track: FullTrack,
     pub played_at: DateTime<Utc>,
-    pub context: Option<Context<TrackId>>,
+    pub context: Option<Context>,
 }

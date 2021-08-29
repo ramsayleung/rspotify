@@ -433,9 +433,9 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     ///
     /// TODO: rename, this might return an episode as well, for example
-    async fn current_user_playing_track<'a, T: PlayableId + DeserializeOwned>(
+    async fn current_user_playing_track(
         &self,
-    ) -> ClientResult<Option<CurrentlyPlayingContext<T>>> {
+    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
@@ -844,11 +844,11 @@ pub trait OAuthClient: BaseClient {
     ///   `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
-    async fn current_playback<'a, T: PlayableId + DeserializeOwned>(
+    async fn current_playback<'a>(
         &self,
         country: Option<&Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
-    ) -> ClientResult<Option<CurrentPlaybackContext<T>>> {
+    ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
                 .map(|x| x.as_ref())
@@ -877,11 +877,11 @@ pub trait OAuthClient: BaseClient {
     ///   `track` and `episode`.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-    async fn current_playing<'a, T: PlayableId + DeserializeOwned>(
+    async fn current_playing<'a>(
         &self,
         market: Option<&'a Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
-    ) -> ClientResult<Option<CurrentlyPlayingContext<T>>> {
+    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
                 .map(|x| x.as_ref())
@@ -972,7 +972,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
     async fn start_uris_playback<'a, T: PlayableId>(
         &self,
-        uris: impl IntoIterator<Item = Box<&dyn PlayableId>> + Send + 'a,
+        uris: impl IntoIterator<Item = Box<&'a dyn PlayableId>> + Send + 'a,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset<T>>,
         position_ms: Option<u32>,

@@ -761,7 +761,7 @@ async fn test_add_queue() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
     oauth_client()
         .await
-        .add_item_to_queue(birdy_uri.as_ref(), None)
+        .add_item_to_queue(&birdy_uri, None)
         .await
         .unwrap();
 }
@@ -770,8 +770,8 @@ async fn test_add_queue() {
 #[ignore]
 async fn test_get_several_shows() {
     let shows = [
-        ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
-        ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
+        &ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
+        &ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
     ];
 
     oauth_client()
@@ -785,8 +785,8 @@ async fn test_get_several_shows() {
 #[ignore]
 async fn test_get_several_episodes() {
     let episodes = [
-        EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
-        EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
+        &EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+        &EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
     ];
     oauth_client()
         .await
