@@ -10,7 +10,11 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::{collections::HashMap, fmt, sync::MutexGuard};
+use std::{
+    collections::HashMap,
+    fmt,
+    sync::{Arc, Mutex},
+};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
@@ -46,8 +50,7 @@ where
     ///
     /// Note that this isn't required for `get_token_mut` because in that case
     /// the token is going to be overwritten anyway.
-    async fn get_token(&self) -> MutexGuard<Option<Token>>;
-    fn get_token_mut(&self) -> MutexGuard<Option<Token>>;
+    async fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
     fn get_creds(&self) -> &Credentials;
     /// Refetch the current access token given a refresh token
     async fn refetch_token(&self) -> ClientResult<Option<Token>>;
@@ -57,7 +60,7 @@ where
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
         if let Some(token) = token {
-            *self.get_token_mut() = Some(token);
+            self.get_token().await.lock().unwrap().replace(token);
         }
 
         self.write_token_cache().await
@@ -80,6 +83,9 @@ where
         let (key, val) = bearer_auth(
             self.get_token()
                 .await
+                .as_ref()
+                .lock()
+                .unwrap()
                 .as_ref()
                 .expect("Rspotify not authenticated"),
         );
@@ -193,7 +199,7 @@ where
             return Ok(());
         }
 
-        if let Some(tok) = self.get_token().await.as_ref() {
+        if let Some(tok) = self.get_token().await.get_mut().unwrap().as_ref() {
             tok.write_cache(&self.get_config().cache_path)?;
         }
 

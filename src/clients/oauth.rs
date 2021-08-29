@@ -44,8 +44,8 @@ pub trait OAuthClient: BaseClient {
         // You cannot have read lock and write lock at the same time, which
         // would result in a deadlock, so obtain the write lock and use it in
         // the whole process.
-        let mut token = self.get_token_mut();
-        if let Some(token) = token.as_mut() {
+        let lock_token = self.get_token().await;
+        if let Some(token) = lock_token.get_mut().unwrap() {
             if !token.can_reauth() {
                 return Ok(());
             }
@@ -116,7 +116,7 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             Some(new_token) => {
-                self.get_token_mut().replace(new_token);
+                self.get_token().await.lock().unwrap().replace(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             None => {

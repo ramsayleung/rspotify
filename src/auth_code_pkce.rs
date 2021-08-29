@@ -8,7 +8,7 @@ use crate::{
 
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex},
 };
 
 use maybe_async::maybe_async;
@@ -37,25 +37,17 @@ pub struct AuthCodePkceSpotify {
 }
 
 /// This client has access to the base methods.
-#[maybe_async(?Send)]
+#[maybe_async]
 impl BaseClient for AuthCodePkceSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
-    async fn get_token(&self) -> MutexGuard<Option<Token>> {
+    async fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token
-            .lock()
-            .expect("Failed to read token; the lock has been poisoned")
-    }
-
-    fn get_token_mut(&self) -> MutexGuard<Option<Token>> {
-        self.token
-            .lock()
-            .expect("Failed to write token; the lock has been poisoned")
+        Arc::clone(&self.token)
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -69,7 +61,7 @@ impl BaseClient for AuthCodePkceSpotify {
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
-        match self.token.lock().unwrap().as_ref() {
+        match self.token.get_mut().unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
@@ -112,7 +104,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(headers::STATE, oauth.state.as_ref());
 
         let token = self.fetch_access_token(&data).await?;
-        *self.get_token_mut() = Some(token);
+        *self.get_token().await.lock().unwrap() = Some(token);
 
         self.write_token_cache().await
     }

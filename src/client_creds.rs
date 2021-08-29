@@ -5,7 +5,7 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex};
 
 use maybe_async::maybe_async;
 
@@ -30,25 +30,17 @@ pub struct ClientCredsSpotify {
 }
 
 /// This client has access to the base methods.
-#[maybe_async(?Send)]
+#[maybe_async]
 impl BaseClient for ClientCredsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
-    async fn get_token(&self) -> MutexGuard<Option<Token>> {
+    async fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please obtain the token again");
-        self.token
-            .lock()
-            .expect("Failed to read token; the lock has been poisoned")
-    }
-
-    fn get_token_mut(&self) -> MutexGuard<Option<Token>> {
-        self.token
-            .lock()
-            .expect("Failed to write token; the lock has been poisoned")
+        Arc::clone(&self.token)
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -122,7 +114,7 @@ impl ClientCredsSpotify {
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&self) -> ClientResult<()> {
-        *self.get_token_mut() = Some(self.fetch_token().await?);
+        *self.get_token().await.lock().unwrap() = Some(self.fetch_token().await?);
 
         self.write_token_cache().await
     }
@@ -141,15 +133,30 @@ impl ClientCredsSpotify {
     /// Re-authenticate automatically if it's configured to do so, which
     /// authenticates the usual way to obtain a new access token.
     #[maybe_async]
-    async fn auto_reauth(&self) -> ClientResult<()> {
+    async fn auto_reauth(&mut self) -> ClientResult<()> {
+        if !self.config.token_refreshing {
+            return Ok(());
+        }
         // You could not have read lock and write lock at the same time, which
         // will result in deadlock, so obtain the write lock and use it in the
         // whole process.
-        let mut token = self.get_token_mut();
-        if self.config.token_refreshing && token.as_ref().map_or(false, |tok| tok.is_expired()) {
-            *token = Some(self.fetch_token().await?);
-            self.write_token_cache().await?
-        }
+        // let lock_token = self.get_token().await;
+        // if let Some(token) = lock_token.get_mut().unwrap() {
+        //     if !token.is_expired() {
+        //         return Ok(());
+        //     }
+
+        //     self.refresh_token().await?;
+        // }
         Ok(())
+    }
+
+    async fn refresh_token(&self) -> ClientResult<()> {
+        let token = self.refetch_token().await?;
+        if let Some(token) = token {
+            self.get_token().await.lock().unwrap().replace(token);
+        }
+
+        self.write_token_cache().await
     }
 }

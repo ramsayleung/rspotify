@@ -8,7 +8,7 @@ use crate::{
 
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex},
 };
 
 use maybe_async::maybe_async;
@@ -71,7 +71,6 @@ pub struct AuthCodeSpotify {
     pub token: Arc<Mutex<Option<Token>>>,
     pub(in crate) http: HttpClient,
 }
-
 /// This client has access to the base methods.
 #[maybe_async]
 impl BaseClient for AuthCodeSpotify {
@@ -87,19 +86,11 @@ impl BaseClient for AuthCodeSpotify {
         &self.config
     }
 
-    async fn get_token(&self) -> MutexGuard<Option<Token>> {
+    async fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
-        self.token
-            .lock()
-            .expect("Failed to read token; the lock has been poisoned")
-    }
-
-    fn get_token_mut(&self) -> MutexGuard<Option<Token>> {
-        self.token
-            .lock()
-            .expect("Failed to write token; the lock has been poisoned")
+        Arc::clone(&self.token)
     }
 
     /// Refetch the current access token given a refresh token. May return
@@ -107,7 +98,7 @@ impl BaseClient for AuthCodeSpotify {
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
-        match self.token.lock().unwrap().as_ref() {
+        match self.token.get_mut().unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
@@ -116,8 +107,8 @@ impl BaseClient for AuthCodeSpotify {
                 data.insert(headers::REFRESH_TOKEN, refresh_token);
                 data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
-                let mut token = self.fetch_access_token(&data).await?;
-                token.refresh_token = Some(refresh_token.to_string());
+                let token = self.fetch_access_token(&data).await?;
+                token.refresh_token.replace(refresh_token.to_string());
                 Ok(Some(token))
             }
             _ => Ok(None),
@@ -151,7 +142,7 @@ impl OAuthClient for AuthCodeSpotify {
         data.insert(headers::STATE, oauth.state.as_ref());
 
         let token = self.fetch_access_token(&data).await?;
-        *self.get_token_mut() = Some(token);
+        *self.get_token().await.lock().unwrap() = Some(token);
 
         self.write_token_cache().await
     }
