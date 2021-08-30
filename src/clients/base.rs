@@ -10,11 +10,13 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::{
-    collections::HashMap,
-    fmt,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, fmt, sync::Arc};
+
+#[cfg(feature = "__sync")]
+use std::sync::Mutex;
+
+#[cfg(feature = "__async")]
+use async_mutex::Mutex;
 
 use chrono::Utc;
 use maybe_async::maybe_async;
@@ -60,7 +62,14 @@ where
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
         if let Some(token) = token {
-            self.get_token().await.lock().unwrap().replace(token);
+            #[cfg(feature = "__async")]
+            {
+                self.get_token().await.lock().await.replace(token);
+            }
+            #[cfg(feature = "__sync")]
+            {
+                self.get_token().lock().unwrap().replace(token);
+            }
         }
 
         self.write_token_cache().await
@@ -80,15 +89,17 @@ where
     /// The headers required for authenticated requests to the API
     async fn auth_headers(&self) -> ClientResult<Headers> {
         let mut auth = Headers::new();
-        let (key, val) = bearer_auth(
-            self.get_token()
-                .await
-                .as_ref()
-                .lock()
-                .unwrap()
-                .as_ref()
-                .expect("Rspotify not authenticated"),
-        );
+        let mut locked_token = Option::None;
+        #[cfg(feature = "__async")]
+        {
+            // Just to keep the function signatures of two versions of Mutex identical
+            locked_token = Some(self.get_token().await.lock().await.unwrap());
+        }
+        #[cfg(feature = "__sync")]
+        {
+            locked_token = self.get_token().lock().unwrap();
+        }
+        let (key, val) = bearer_auth(&locked_token.expect("Rspotify not authenticated"));
         auth.insert(key, val);
 
         Ok(auth)
@@ -199,8 +210,18 @@ where
             return Ok(());
         }
 
-        if let Some(tok) = self.get_token().await.get_mut().unwrap().as_ref() {
-            tok.write_cache(&self.get_config().cache_path)?;
+        let mut tok = Option::None;
+        #[cfg(feature = "__async")]
+        {
+            tok = *self.get_token().await.lock().await;
+        }
+        #[cfg(feature = "__sync")]
+        {
+            tok = self.get_token().lock().unwrap();
+        }
+
+        if let Some(token) = tok {
+            token.write_cache(&self.get_config().cache_path)?;
         }
 
         Ok(())

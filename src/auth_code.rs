@@ -6,11 +6,13 @@ use crate::{
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
 
+#[cfg(feature = "__sync")]
+use std::sync::Mutex;
+
+#[cfg(feature = "__async")]
+use async_mutex::Mutex;
 use maybe_async::maybe_async;
 use url::Url;
 
@@ -98,16 +100,28 @@ impl BaseClient for AuthCodeSpotify {
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
-        match self.token.get_mut().unwrap().as_ref() {
+
+        // The sync and async versions of Mutex have different function signatures
+        let mut locked_token = Option::None;
+        #[cfg(feature = "__async")]
+        {
+            // Just to keep the function signatures of two versions of Mutex identical
+            locked_token = Some(self.token.lock().await.unwrap());
+        }
+        #[cfg(feature = "__sync")]
+        {
+            locked_token = self.token.lock().unwrap();
+        }
+        match locked_token {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
             }) => {
                 let mut data = Form::new();
-                data.insert(headers::REFRESH_TOKEN, refresh_token);
+                data.insert(headers::REFRESH_TOKEN, &refresh_token);
                 data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
-                let token = self.fetch_access_token(&data).await?;
+                let mut token = self.fetch_access_token(&data).await?;
                 token.refresh_token.replace(refresh_token.to_string());
                 Ok(Some(token))
             }
@@ -142,7 +156,15 @@ impl OAuthClient for AuthCodeSpotify {
         data.insert(headers::STATE, oauth.state.as_ref());
 
         let token = self.fetch_access_token(&data).await?;
-        *self.get_token().await.lock().unwrap() = Some(token);
+
+        #[cfg(feature = "__async")]
+        {
+            *self.token.lock().await = Some(token);
+        }
+        #[cfg(feature = "__sync")]
+        {
+            *self.token.lock().unwrap() = Some(token);
+        }
 
         self.write_token_cache().await
     }
