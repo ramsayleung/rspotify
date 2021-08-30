@@ -119,18 +119,16 @@ pub enum IdError {
 ///
 /// # Implementation note
 ///
-/// Note that the requried usage for IDs requires this trait to be object-safe.
-/// Thanks to that, it is possible to use `Vec<Box<dyn Id>>` to take multiple
-/// kinds of IDs, and `Box<dyn Id>` in case the type isn't known at compile
-/// time. This is why it includes both [`Self::_type`] and
+/// Note that for IDs to be useful their trait must be object-safe. Otherwise,
+/// it wouldn't be possible to use `Vec<Box<dyn Id>>` to take multiple kinds of
+/// IDs or just `Box<dyn Id>` in case the type wasn't known at compile time.
+/// This is why this trait includes both [`Self::_type`] and
 /// [`Self::_type_static`], and why all of the static methods use `where Self:
 /// Sized`.
 ///
 /// Unfortunately, since `where Self: Sized` has to be enforced, IDs cannot be
 /// simply a `str` internally because these aren't sized. Thus, IDs will have the
-/// slight overhead of having to use an owned type like `String` -- though
-/// having a single type for IDs that is owned makes its usage considerably
-/// simpler.
+/// slight overhead of having to use an owned type like `String`.
 pub trait Id: Send + Sync {
     /// Spotify object Id (guaranteed to be a string of alphanumeric characters)
     fn id(&self) -> &str;
