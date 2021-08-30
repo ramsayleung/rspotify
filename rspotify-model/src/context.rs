@@ -16,7 +16,7 @@ use crate::{
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
-    /// The URI may be of any type, so it's not parsed into an ID
+    /// The URI may be of any type, so it's not parsed into a [`crate::Id`]
     pub uri: String,
     pub href: String,
     pub external_urls: HashMap<String, String>,
