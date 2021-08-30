@@ -89,17 +89,14 @@ where
     /// The headers required for authenticated requests to the API
     async fn auth_headers(&self) -> ClientResult<Headers> {
         let mut auth = Headers::new();
-        let mut locked_token = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            // Just to keep the function signatures of two versions of Mutex identical
-            locked_token = Some(self.get_token().await.lock().await.unwrap());
-        }
+        let tok = self.get_token().await;
+        let tmp_locked_lock = tok.lock().await;
+        let mut identical_tok = tmp_locked_lock;
         #[cfg(feature = "__sync")]
         {
-            locked_token = self.get_token().lock().unwrap();
+            identical_tok = tmp_locked_lock.unwrap();
         }
-        let (key, val) = bearer_auth(&locked_token.expect("Rspotify not authenticated"));
+        let (key, val) = bearer_auth(identical_tok.as_ref().expect("Rspotify not authenticated"));
         auth.insert(key, val);
 
         Ok(auth)
@@ -210,17 +207,15 @@ where
             return Ok(());
         }
 
-        let mut tok = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tok = *self.get_token().await.lock().await;
-        }
+        let tok = self.get_token().await;
+        let tmp_locked_lock = tok.lock().await;
+        let mut identical_tok = tmp_locked_lock;
         #[cfg(feature = "__sync")]
         {
-            tok = self.get_token().lock().unwrap();
+            identical_tok = tmp_locked_lock.unwrap();
         }
 
-        if let Some(token) = tok {
+        if let Some(token) = &*identical_tok {
             token.write_cache(&self.get_config().cache_path)?;
         }
 

@@ -145,23 +145,21 @@ impl ClientCredsSpotify {
     /// Re-authenticate automatically if it's configured to do so, which
     /// authenticates the usual way to obtain a new access token.
     #[maybe_async]
-    async fn auto_reauth(&mut self) -> ClientResult<()> {
+    async fn auto_reauth(&self) -> ClientResult<()> {
         if !self.config.token_refreshing {
             return Ok(());
         }
         // You could not have read lock and write lock at the same time, which
         // will result in deadlock, so obtain the write lock and use it in the
         // whole process.
-        let mut tok = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tok = self.get_token().await.lock().await;
-        }
+        let tok = self.get_token().await;
+        let tmp_locked_lock = tok.lock().await;
+        let mut identical_tok = tmp_locked_lock;
         #[cfg(feature = "__sync")]
         {
-            tok = self.get_token().lock().unwrap();
+            identical_tok = tmp_locked_lock.unwrap();
         }
-        if let Some(token) = tok {
+        if let Some(token) = &*identical_tok {
             if !token.is_expired() {
                 return Ok(());
             }

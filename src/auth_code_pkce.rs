@@ -65,17 +65,14 @@ impl BaseClient for AuthCodePkceSpotify {
         // call this function when automatic reauthentication is enabled.
 
         // The sync and async versions of Mutex have different function signatures
-        let mut locked_token = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            // Just to keep the function signatures of two versions of Mutex identical
-            locked_token = Some(self.token.lock().await.as_ref().unwrap());
-        }
+        let tok = self.get_token().await;
+        let tmp_locked_lock = tok.lock().await;
+        let mut identical_tok = tmp_locked_lock;
         #[cfg(feature = "__sync")]
         {
-            locked_token = self.token.lock().unwrap();
+            identical_tok = tmp_locked_lock.unwrap();
         }
-        match locked_token {
+        match &*identical_tok {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
