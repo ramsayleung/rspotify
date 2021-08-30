@@ -92,7 +92,6 @@ use serde::{Deserialize, Serialize};
 use strum::Display;
 use thiserror::Error;
 
-use std::borrow::{Borrow, ToOwned};
 use std::fmt::Debug;
 use std::hash::Hash;
 
@@ -279,8 +278,7 @@ pub trait PlayContextId: Id {}
 ///
 /// * The `$type` parameter indicates what type the ID is made out of (say,
 ///   `Artist`, `Album`...) from the enum `Type`.
-/// * The `$name_borrowed` and `$name_owned` parameters are the identifiers of
-///   the borrowed and owned structs for that type, respectively.
+/// * The `$name` parameter is the identifier of the struct for that type.
 macro_rules! define_idtypes {
     ($($type:ident => $name:ident),+) => {
         $(
@@ -323,24 +321,26 @@ macro_rules! define_idtypes {
 
             /// `Id`s may be borrowed as `str` the same way `Box<T>` may be
             /// borrowed as `T` or `String` as `str`
-            impl Borrow<str> for $name {
+            impl std::borrow::Borrow<str> for $name {
                 fn borrow(&self) -> &str {
                     self.id()
                 }
             }
 
+            /// Displaying the ID shows its URI
             impl std::fmt::Display for $name {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.uri())
                 }
             }
 
-            /// Owned IDs can also be used to convert from a `str`
+            /// IDs can also be used to convert from a `str`; this works both
+            /// with IDs and URIs.
             impl std::str::FromStr for $name {
                 type Err = IdError;
 
                 fn from_str(s: &str) -> Result<Self, Self::Err> {
-                    Self::from_id_or_uri(s).map(|id| id.to_owned())
+                    Self::from_id_or_uri(s)
                 }
             }
         )+
@@ -357,6 +357,7 @@ define_idtypes!(
     Episode => EpisodeId
 );
 
+// Grouping up the IDs into more specific traits
 impl PlayContextId for ArtistId {}
 impl PlayContextId for AlbumId {}
 impl PlayContextId for PlaylistId {}
