@@ -12,7 +12,7 @@ use std::{collections::HashMap, sync::Arc};
 use std::sync::Mutex;
 
 #[cfg(feature = "__async")]
-use async_mutex::Mutex;
+use futures::lock::Mutex;
 use maybe_async::maybe_async;
 use url::Url;
 
@@ -103,13 +103,19 @@ impl BaseClient for AuthCodeSpotify {
 
         // The sync and async versions of Mutex have different function signatures
         let tok = self.get_token().await;
-        let tmp_locked_lock = tok.lock().await;
-        let mut identical_tok = tmp_locked_lock;
+        let locked_token = tok.lock().await;
+        let mut tmp_locked_lock = Option::None;
+        #[cfg(feature = "__async")]
+        {
+            tmp_locked_lock = locked_token.as_ref();
+        }
+
         #[cfg(feature = "__sync")]
         {
-            identical_tok = tmp_locked_lock.unwrap();
+            tmp_locked_lock = locked_token.unwrap().as_ref();
         }
-        match &*identical_tok {
+
+        match tmp_locked_lock {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
