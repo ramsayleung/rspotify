@@ -15,26 +15,6 @@
 //! * [`Type::Show`] => [`ShowId`]
 //! * [`Type::Episode`] => [`EpisodeId`]
 //!
-//! [`Id`] is the borrowed variant, equivalent to a `&str`, and [`IdBuf`] is the
-//! owned variant, like a `String`; you may use whichever suits you best.
-//!
-//! ## Group IDs
-//!
-//! There are also group IDs, which may contain different kinds of IDs and
-//! therefore have an unknown type at compile time. They will perform no checks
-//! for what kind of URI they are given. For example, you can use [`PlayableId`]
-//! to hold IDs of either tracks or episodes, or [`AnyId`] for *any* kind of ID.
-//! These types are useful when an endpoint takes different kinds of IDs as a
-//! parameter, or when the kind of ID you're dealing with is known only at
-//! runtime.
-//!
-//! * [`AnyId`] => Any ID
-//! * [`PlayContextId`] => [`ArtistId`], [`AlbumId`], [`PlaylistId`], [`ShowId`]
-//! * [`PlayableId`] => [`TrackId`], [`EpisodeId`]
-//!
-//! You can convert specific IDs into group ones with its `AsRef`
-//! implementation, since it's a cheap type conversion.
-//!
 //! ## Examples
 //!
 //! If an endpoint requires a `TrackId`, you may pass it as:
@@ -45,10 +25,11 @@
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
 //! let id = TrackId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
-//! pause_track(id);
+//! pause_track(&id);
 //! ```
 //!
-//! Notice how it's type safe; the following example would fail at compile-time:
+//! Notice how this way it's type safe; the following example would fail at
+//! compile-time:
 //!
 //! ```compile_fail
 //! use rspotify_model::{Id, TrackId, EpisodeId};
@@ -56,7 +37,7 @@
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
 //! let id = EpisodeId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
-//! pause_track(id);
+//! pause_track(&id);
 //! ```
 //!
 //! And this would panic because it's a `TrackId` but its URI string specifies
@@ -68,7 +49,7 @@
 //! fn pause_track(id: &TrackId) { /* ... */ }
 //!
 //! let id = TrackId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
-//! pause_track(id);
+//! pause_track(&id);
 //! ```
 //!
 //! A more complex example where an endpoint takes a vector of IDs of different
@@ -79,7 +60,7 @@
 //!
 //! fn track(id: &TrackId) { /* ... */ }
 //! fn episode(id: &EpisodeId) { /* ... */ }
-//! fn add_to_queue(id: &[&PlayableId]) { /* ... */ }
+//! fn add_to_queue(id: &[&dyn PlayableId]) { /* ... */ }
 //!
 //! let tracks = &[
 //!     TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
@@ -96,14 +77,14 @@
 //! println!("Track info: {:?}", track_info);
 //! println!("Episode info: {:?}", ep_info);
 //!
-//! // And then we play them
+//! // And then we add both the tracks and episodes to the queue
 //! let playable = tracks
 //!     .iter()
-//!     .map(|id| id.as_ref())
+//!     .map(|id| id as &dyn PlayableId)
 //!     .chain(
-//!         episodes.iter().map(|id| id.as_ref())
+//!         episodes.iter().map(|id| id as &dyn PlayableId)
 //!     )
-//!     .collect::<Vec<_>>();
+//!     .collect::<Vec<&dyn PlayableId>>();
 //! add_to_queue(&playable);
 //! ```
 

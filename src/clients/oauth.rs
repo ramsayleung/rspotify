@@ -15,7 +15,6 @@ use std::time;
 use log::error;
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextId;
-use serde::de::DeserializeOwned;
 use serde_json::{json, Map};
 use url::Url;
 
@@ -256,7 +255,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
+        track_ids: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
@@ -433,9 +432,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     ///
     /// TODO: rename, this might return an episode as well, for example
-    async fn current_user_playing_track(
-        &self,
-    ) -> ClientResult<Option<CurrentlyPlayingContext>> {
+    async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
@@ -938,18 +935,18 @@ pub trait OAuthClient: BaseClient {
     /// - position_ms - Indicates from what position to start playback.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
-    async fn start_context_playback<T1: PlayContextId, T2: PlayableId>(
+    async fn start_context_playback<T: PlayContextId>(
         &self,
-        context_uri: &T1,
+        context_uri: &T,
         device_id: Option<&str>,
-        offset: Option<Offset<T2>>,
+        offset: Option<Offset>,
         position_ms: Option<time::Duration>,
     ) -> ClientResult<()> {
         let params = build_json! {
             "context_uri": context_uri.uri(),
             optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
-                Offset::Uri(uri) => json!({ "uri": uri.uri() }),
+                Offset::Uri(uri) => json!({ "uri": uri }),
             }),
             optional "position_ms": position_ms,
 
@@ -970,11 +967,11 @@ pub trait OAuthClient: BaseClient {
     /// - position_ms
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
-    async fn start_uris_playback<'a, T: PlayableId>(
+    async fn start_uris_playback<'a>(
         &self,
-        uris: impl IntoIterator<Item = Box<&'a dyn PlayableId>> + Send + 'a,
+        uris: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
         device_id: Option<&str>,
-        offset: Option<crate::model::Offset<T>>,
+        offset: Option<crate::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = build_json! {
@@ -982,7 +979,7 @@ pub trait OAuthClient: BaseClient {
             optional "position_ms": position_ms,
             optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
-                Offset::Uri(uri) => json!({ "uri": uri.uri() }),
+                Offset::Uri(uri) => json!({ "uri": uri }),
             }),
         };
 

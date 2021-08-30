@@ -7,17 +7,17 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::{
-    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, Device, DisallowKey, Id,
+    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, Device, DisallowKey,
     PlayableItem, RepeatState, Type,
 };
 
 /// Context object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
-    #[serde(rename = "uri")]
-    pub id: Box<dyn Id>,
+    /// The URI may be of any type, so it's not parsed into an ID
+    pub uri: String,
     pub href: String,
     pub external_urls: HashMap<String, String>,
     #[serde(rename = "type")]

@@ -3,7 +3,7 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{Context, FullTrack, TrackId};
+use crate::{Context, FullTrack};
 
 /// Playing history object
 ///

@@ -14,7 +14,6 @@ use std::{collections::HashMap, fmt};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
-use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 
 /// This trait implements the basic endpoints from the Spotify API that may be
@@ -900,7 +899,7 @@ where
     ///   results.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
-    async fn recommendations<'a, T: Id + DeserializeOwned>(
+    async fn recommendations<'a>(
         &self,
         payload: &Map<String, Value>,
         seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + Send + 'a>,
@@ -908,7 +907,7 @@ where
         seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + Send + 'a>,
         market: Option<&Market>,
         limit: Option<u32>,
-    ) -> ClientResult<Recommendations<T>> {
+    ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
         let seed_genres = seed_genres.map(|x| x.into_iter().collect::<Vec<_>>().join(","));
         let seed_tracks = seed_tracks.map(join_ids);
