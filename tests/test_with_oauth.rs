@@ -238,7 +238,7 @@ async fn test_current_user_saved_tracks_add() {
         .await
         .unwrap();
     // Every track should be saved
-    assert_eq!(contains.into_iter().all(|x| x), true);
+    assert!(contains.into_iter().all(|x| x));
 
     oauth_client()
         .await
