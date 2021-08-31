@@ -1,10 +1,11 @@
 use crate::{
     auth_urls,
     clients::{
-        basic_auth, bearer_auth, convert_result, join_ids,
+        convert_result,
         pagination::{paginate, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
+    join_ids,
     macros::build_map,
     model::*,
     ClientResult, Config, Credentials, Token,
@@ -44,7 +45,10 @@ where
     /// The headers required for authenticated requests to the API
     fn auth_headers(&self) -> ClientResult<Headers> {
         let mut auth = Headers::new();
-        let (key, val) = bearer_auth(self.get_token().expect("Rspotify not authenticated"));
+        let (key, val) = self
+            .get_token()
+            .expect("Rspotify not authenticated")
+            .auth_header();
         auth.insert(key, val);
 
         Ok(auth)
@@ -167,7 +171,7 @@ where
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
-        let (key, val) = basic_auth(&self.get_creds().id, &self.get_creds().secret);
+        let (key, val) = self.get_creds().auth_header();
         head.insert(key, val);
 
         let response = self

@@ -1,10 +1,11 @@
 use crate::{
     clients::{
-        append_device_id, convert_result, join_ids,
+        append_device_id, convert_result,
         pagination::{paginate, Paginator},
         BaseClient,
     },
     http::Query,
+    join_ids,
     macros::{build_json, build_map},
     model::*,
     ClientResult, OAuth, Token,

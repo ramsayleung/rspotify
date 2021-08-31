@@ -5,10 +5,7 @@ pub mod pagination;
 pub use base::BaseClient;
 pub use oauth::OAuthClient;
 
-use crate::{
-    model::{idtypes::IdType, Id},
-    ClientResult, Token,
-};
+use crate::ClientResult;
 
 use serde::Deserialize;
 
@@ -30,35 +27,10 @@ pub(in crate) fn append_device_id(path: &str, device_id: Option<&str>) -> String
     new_path
 }
 
-// TODO: move to `lib.rs`
-#[inline]
-pub(in crate) fn join_ids<'a, T: 'a + IdType>(ids: impl IntoIterator<Item = &'a Id<T>>) -> String {
-    ids.into_iter().collect::<Vec<_>>().join(",")
-}
-
-// TODO: move to `lib.rs` or integrate into Token.
-/// Generates an HTTP token authorization header with proper formatting
-pub fn bearer_auth(tok: &Token) -> (String, String) {
-    let auth = "authorization".to_owned();
-    let value = format!("Bearer {}", tok.access_token);
-
-    (auth, value)
-}
-
-// TODO: move to `lib.rs` or integrate into Credentials.
-/// Generates an HTTP basic authorization header with proper formatting
-pub fn basic_auth(user: &str, password: &str) -> (String, String) {
-    let auth = "authorization".to_owned();
-    let value = format!("{}:{}", user, password);
-    let value = format!("Basic {}", base64::encode(value));
-
-    (auth, value)
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{scopes, ClientCredsSpotify, Token};
+    use crate::{scopes, ClientCredsSpotify, Credentials, Token};
     use chrono::{prelude::*, Duration};
 
     #[test]
@@ -87,14 +59,16 @@ mod test {
             ..Default::default()
         };
 
-        let (auth, value) = bearer_auth(&tok);
+        let (auth, value) = tok.auth_header();
         assert_eq!(auth, "authorization");
         assert_eq!(value, "Bearer access_token");
     }
 
     #[test]
     fn test_basic_auth() {
-        let (auth, value) = basic_auth("ramsay", "123456");
+        let creds = Credentials::new("ramsay", "123456");
+
+        let (auth, value) = creds.auth_header();
         assert_eq!(auth, "authorization");
         assert_eq!(value, "Basic cmFtc2F5OjEyMzQ1Ng==");
     }

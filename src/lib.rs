@@ -136,7 +136,10 @@ pub use auth_code_pkce::AuthCodePkceSpotify;
 pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 
-use crate::http::HttpError;
+use crate::{
+    http::HttpError,
+    model::{idtypes::IdType, Id},
+};
 
 use std::{
     collections::HashSet,
@@ -269,6 +272,20 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
         .collect()
 }
 
+#[inline]
+pub(in crate) fn join_ids<'a, T: 'a + IdType>(ids: impl IntoIterator<Item = &'a Id<T>>) -> String {
+    ids.into_iter().collect::<Vec<_>>().join(",")
+}
+
+#[inline]
+pub(in crate) fn join_scopes(scopes: &HashSet<String>) -> String {
+    scopes
+        .iter()
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 mod duration_second {
     use chrono::Duration;
     use serde::{de, Deserialize, Serializer};
@@ -374,6 +391,14 @@ impl Token {
         self.expires_at
             .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
     }
+
+    /// Generates an HTTP token authorization header with proper formatting
+    pub fn auth_header(&self) -> (String, String) {
+        let auth = "authorization".to_owned();
+        let value = format!("Bearer {}", self.access_token);
+
+        (auth, value)
+    }
 }
 
 /// Simple client credentials object for Spotify.
@@ -405,6 +430,15 @@ impl Credentials {
             id: env::var("RSPOTIFY_CLIENT_ID").ok()?,
             secret: env::var("RSPOTIFY_CLIENT_SECRET").ok()?,
         })
+    }
+
+    /// Generates an HTTP basic authorization header with proper formatting
+    pub fn auth_header(&self) -> (String, String) {
+        let auth = "authorization".to_owned();
+        let value = format!("{}:{}", self.id, self.secret);
+        let value = format!("Basic {}", base64::encode(value));
+
+        (auth, value)
     }
 }
 
