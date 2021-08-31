@@ -69,16 +69,22 @@ impl OAuthClient for AuthCodePkceSpotify {
         &self.oauth
     }
 
+    /// Note that the code verifier must be set at this point, either manually
+    /// or with [`Self::get_authorize_url`]. Otherwise, this function will
+    /// panic.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
-        let scopes = join_scopes(&self.oauth.scopes);
+        let verifier = self.verifier.as_ref().expect(
+            "Unknown code verifier. Try calling \
+            `AuthCodePkceSpotify::get_authorize_url` first or setting it \
+            yourself.",
+        );
 
         let mut data = Form::new();
+        data.insert(headers::CLIENT_ID, &self.creds.id);
         data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_AUTH_CODE);
-        data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
         data.insert(headers::CODE, code);
-        data.insert(headers::SCOPE, &scopes);
-        data.insert(headers::STATE, &self.oauth.state);
-        data.insert(headers::CODE_VERIFIER, todo!());
+        data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
+        data.insert(headers::CODE_VERIFIER, verifier);
 
         let token = self.fetch_access_token(&data).await?;
         self.token = Some(token);
@@ -87,10 +93,9 @@ impl OAuthClient for AuthCodePkceSpotify {
     }
 
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        // TODO
         let mut data = Form::new();
-        data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_REFRESH_TOKEN);
+        data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::CLIENT_ID, &self.creds.id);
 
         let mut token = self.fetch_access_token(&data).await?;
@@ -171,13 +176,13 @@ impl AuthCodePkceSpotify {
         payload.insert(headers::CLIENT_ID, &self.creds.id);
         payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_TYPE_CODE);
         payload.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
-        payload.insert(headers::SCOPE, &scopes);
-        payload.insert(headers::STATE, &self.oauth.state);
-        payload.insert(headers::CODE_CHALLENGE, &challenge);
         payload.insert(
             headers::CODE_CHALLENGE_METHOD,
             headers::CODE_CHALLENGE_METHOD_S256,
         );
+        payload.insert(headers::CODE_CHALLENGE, &challenge);
+        payload.insert(headers::STATE, &self.oauth.state);
+        payload.insert(headers::SCOPE, &scopes);
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
         Ok(parsed.into())
