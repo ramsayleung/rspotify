@@ -59,18 +59,28 @@ mod test {
             ..Default::default()
         };
 
-        let (auth, value) = tok.auth_headers();
-        assert_eq!(auth, "authorization");
-        assert_eq!(value, "Bearer access_token");
+        let headers = tok.auth_headers();
+        assert_eq!(headers.len(), 1);
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Bearer access_token".to_owned())
+        );
     }
 
     #[test]
     fn test_basic_auth() {
+        let creds = Credentials::new_pkce("ramsay");
+        let headers = creds.auth_headers();
+        assert_eq!(headers, None);
+
         let creds = Credentials::new("ramsay", "123456");
 
-        let (auth, value) = creds.auth_headers();
-        assert_eq!(auth, "authorization");
-        assert_eq!(value, "Basic cmFtc2F5OjEyMzQ1Ng==");
+        let headers = creds.auth_headers().unwrap();
+        assert_eq!(headers.len(), 1);
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Basic cmFtc2F5OjEyMzQ1Ng==".to_owned())
+        );
     }
 
     #[test]
@@ -101,7 +111,7 @@ mod test {
         };
 
         let spotify = ClientCredsSpotify::from_token(tok);
-        let headers = spotify.auth_headers().unwrap();
+        let headers = spotify.auth_headers();
         assert_eq!(
             headers.get("authorization"),
             Some(&"Bearer test-access_token".to_owned())
