@@ -73,7 +73,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         let scopes = join_scopes(&self.oauth.scopes);
 
         let mut data = Form::new();
-        data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_AUTH_CODE);
         data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
         data.insert(headers::CODE, code);
         data.insert(headers::SCOPE, &scopes);
@@ -90,8 +90,8 @@ impl OAuthClient for AuthCodePkceSpotify {
         // TODO
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
-        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
-        data.insert(headers::CLIENT_ID, headers::CLIENT_ID);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_REFRESH_TOKEN);
+        data.insert(headers::CLIENT_ID, &self.creds.id);
 
         let mut token = self.fetch_access_token(&data).await?;
         token.refresh_token = Some(refresh_token.to_string());
@@ -168,8 +168,8 @@ impl AuthCodePkceSpotify {
         self.verifier = Some(verifier);
 
         let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert(headers::CLIENT_ID, &self.get_creds().id);
-        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
+        payload.insert(headers::CLIENT_ID, &self.creds.id);
+        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_TYPE_CODE);
         payload.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
         payload.insert(headers::SCOPE, &scopes);
         payload.insert(headers::STATE, &self.oauth.state);

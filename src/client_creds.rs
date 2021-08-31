@@ -105,7 +105,7 @@ impl ClientCredsSpotify {
     #[maybe_async]
     pub async fn request_token(&mut self) -> ClientResult<()> {
         let mut data = Form::new();
-        data.insert(headers::GRANT_TYPE, headers::GRANT_CLIENT_CREDS);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_CLIENT_CREDS);
 
         self.token = Some(self.fetch_access_token(&data).await?);
 
