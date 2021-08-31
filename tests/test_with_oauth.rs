@@ -411,8 +411,8 @@ async fn test_recommendations() {
     let seed_tracks = vec![Id::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
 
     let mut payload = Map::new();
-    payload.insert("min_energy".to_owned(), 0.4.into());
-    payload.insert("min_popularity".to_owned(), 50.into());
+    payload.insert("min_energy", 0.4.into());
+    payload.insert("min_popularity", 50.into());
 
     oauth_client()
         .await
