@@ -11,3 +11,4 @@ Cargo.lock
 **/target/
 /.test_read_token_cache.json
 tags
+.env
