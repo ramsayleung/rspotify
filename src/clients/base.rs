@@ -171,7 +171,10 @@ where
         // This request uses a specific content type, and the client ID/secret
         // as the authentication, since the access token isn't available yet.
         let mut head = Headers::new();
-        let (key, val) = self.get_creds().auth_header();
+        let (key, val) = self.get_creds().auth_header().expect(
+            "No client secret set in the credentials, but it is required in \
+            order to generate the authentication header",
+        );
         head.insert(key, val);
 
         let response = self

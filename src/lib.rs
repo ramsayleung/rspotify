@@ -405,14 +405,24 @@ impl Token {
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Credentials {
     pub id: String,
-    pub secret: String,
+    /// PKCE doesn't require a client secret
+    pub secret: Option<String>,
 }
 
 impl Credentials {
+    /// Initialization with both the client ID and the client secret
     pub fn new(id: &str, secret: &str) -> Self {
         Credentials {
             id: id.to_owned(),
-            secret: secret.to_owned(),
+            secret: Some(secret.to_owned()),
+        }
+    }
+
+    /// Initialization with just the client ID
+    pub fn new_pkce(id: &str) -> Self {
+        Credentials {
+            id: id.to_owned(),
+            secret: None,
         }
     }
 
@@ -428,17 +438,19 @@ impl Credentials {
 
         Some(Credentials {
             id: env::var("RSPOTIFY_CLIENT_ID").ok()?,
-            secret: env::var("RSPOTIFY_CLIENT_SECRET").ok()?,
+            secret: env::var("RSPOTIFY_CLIENT_SECRET").ok(),
         })
     }
 
     /// Generates an HTTP basic authorization header with proper formatting
-    pub fn auth_header(&self) -> (String, String) {
+    ///
+    /// This will only work when the client secret is set to `Option::Some`.
+    pub fn auth_header(&self) -> Option<(String, String)> {
         let auth = "authorization".to_owned();
-        let value = format!("{}:{}", self.id, self.secret);
+        let value = format!("{}:{}", self.id, self.secret.as_ref()?);
         let value = format!("Basic {}", base64::encode(value));
 
-        (auth, value)
+        Some((auth, value))
     }
 }
 
