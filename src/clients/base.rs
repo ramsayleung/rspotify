@@ -162,6 +162,8 @@ where
     }
 
     /// Sends a request to Spotify for an access token.
+    ///
+    /// TODO: are we checking that state == self.state? I think not
     async fn fetch_access_token(
         &self,
         payload: &Form<'_>,

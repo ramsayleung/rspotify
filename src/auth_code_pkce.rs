@@ -140,16 +140,21 @@ impl AuthCodePkceSpotify {
 
     /// Generate the verifier code and the challenge code.
     fn generate_codes(&self, verifier_bytes: usize) -> (String, String) {
-        debug_assert!(43 <= verifier_bytes);
+        debug_assert!(verifier_bytes >= 43);
         debug_assert!(verifier_bytes <= 128);
         // The code verifier is just the randomly generated string.
         let verifier = generate_random_string(verifier_bytes, alphabets::PKCE_CODE_VERIFIER);
         // The code challenge is the code verifier hashed with SHA256 and then
-        // encoded with base64.
+        // encoded with base64url.
+        //
+        // NOTE: base64url != base64; it uses a different set of characters. See
+        // https://datatracker.ietf.org/doc/html/rfc4648#section-5 for more
+        // information.
         let mut hasher = Sha256::new();
         hasher.update(verifier.as_bytes());
         let challenge = hasher.finalize();
-        let challenge = base64::encode(challenge);
+
+        let challenge = base64::encode_config(challenge, base64::URL_SAFE_NO_PAD);
 
         (verifier, challenge)
     }
