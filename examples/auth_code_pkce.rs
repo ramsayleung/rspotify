@@ -37,7 +37,7 @@ async fn main() {
     let mut spotify = AuthCodePkceSpotify::new(creds, oauth);
 
     // Obtaining the access token
-    let url = spotify.get_authorize_url().unwrap();
+    let url = spotify.get_authorize_url(None).unwrap();
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests

@@ -155,8 +155,8 @@ pub mod prelude {
     pub use crate::clients::{BaseClient, OAuthClient};
 }
 
+/// Common headers as constants
 pub(in crate) mod headers {
-    // Common headers as constants
     pub const CLIENT_ID: &str = "client_id";
     pub const CODE: &str = "code";
     pub const GRANT_AUTH_CODE: &str = "authorization_code";
@@ -170,9 +170,18 @@ pub(in crate) mod headers {
     pub const SCOPE: &str = "scope";
     pub const SHOW_DIALOG: &str = "show_dialog";
     pub const STATE: &str = "state";
-    // TODO:
-    // pub const CODE_CHALLENGE: &str = "code_challenge";
-    // pub const CODE_CHALLENGE_METHOD: &str = "code_challenge_method";
+    pub const CODE_CHALLENGE: &str = "code_challenge";
+    pub const CODE_VERIFIER: &str = "code_verifier";
+    pub const CODE_CHALLENGE_METHOD: &str = "code_challenge_method";
+    pub const CODE_CHALLENGE_METHOD_S256: &str = "S256";
+}
+
+/// Common alphabets for random number generation and similars
+pub(in crate) mod alphabets {
+    pub const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    /// From https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+    pub const PKCE_CODE_VERIFIER: &[u8] =
+        b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 }
 
 pub(in crate) mod auth_urls {
@@ -246,16 +255,17 @@ impl Default for Config {
     }
 }
 
-/// Generate `length` random chars
-pub(in crate) fn generate_random_string(length: usize) -> String {
-    let alphanum: &[u8] =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+/// Generate `length` random chars from the Operating System.
+///
+/// It is assumed that system always provides high-quality cryptographically
+/// secure random data, ideally backed by hardware entropy sources.
+pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> String {
     let mut buf = vec![0u8; length];
     getrandom(&mut buf).unwrap();
-    let range = alphanum.len();
+    let range = alphabet.len();
 
     buf.iter()
-        .map(|byte| alphanum[*byte as usize % range] as char)
+        .map(|byte| alphabet[*byte as usize % range] as char)
         .collect()
 }
 
@@ -414,7 +424,7 @@ impl Default for OAuth {
     fn default() -> Self {
         OAuth {
             redirect_uri: String::new(),
-            state: generate_random_string(16),
+            state: generate_random_string(16, alphabets::ALPHANUM),
             scopes: HashSet::new(),
             proxies: None,
         }
@@ -441,14 +451,14 @@ impl OAuth {
 
 #[cfg(test)]
 mod test {
-    use super::generate_random_string;
+    use super::{alphabets, generate_random_string};
     use std::collections::HashSet;
 
     #[test]
     fn test_generate_random_string() {
         let mut containers = HashSet::new();
         for _ in 1..101 {
-            containers.insert(generate_random_string(10));
+            containers.insert(generate_random_string(10, alphabets::ALPHANUM));
         }
         assert_eq!(containers.len(), 100);
     }
