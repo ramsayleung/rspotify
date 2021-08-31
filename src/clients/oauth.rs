@@ -106,7 +106,6 @@ pub trait OAuthClient: BaseClient {
             // Otherwise following the usual procedure to get the token.
             None => {
                 let code = self.get_code_from_user(url)?;
-                // Will write to the cache file if successful
                 self.request_token(&code).await?;
             }
         }

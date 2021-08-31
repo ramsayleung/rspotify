@@ -86,7 +86,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
         data.insert(headers::CODE_VERIFIER, verifier);
 
-        let token = self.fetch_access_token(&data).await?;
+        let token = self.fetch_access_token(&data, None).await?;
         self.token = Some(token);
 
         self.write_token_cache()
@@ -98,7 +98,7 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::CLIENT_ID, &self.creds.id);
 
-        let mut token = self.fetch_access_token(&data).await?;
+        let mut token = self.fetch_access_token(&data, None).await?;
         token.refresh_token = Some(refresh_token.to_string());
         self.token = Some(token);
 

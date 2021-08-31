@@ -113,7 +113,12 @@ impl OAuthClient for AuthCodeSpotify {
         data.insert(headers::SCOPE, &scopes);
         data.insert(headers::STATE, &self.oauth.state);
 
-        let token = self.fetch_access_token(&data).await?;
+        let headers = self
+            .creds
+            .auth_headers()
+            .expect("No client secret set in the credentials.");
+
+        let token = self.fetch_access_token(&data, Some(&headers)).await?;
         self.token = Some(token);
 
         self.write_token_cache()
@@ -127,7 +132,12 @@ impl OAuthClient for AuthCodeSpotify {
         data.insert(headers::REFRESH_TOKEN, refresh_token);
         data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_REFRESH_TOKEN);
 
-        let mut token = self.fetch_access_token(&data).await?;
+        let headers = self
+            .creds
+            .auth_headers()
+            .expect("No client secret set in the credentials.");
+
+        let mut token = self.fetch_access_token(&data, Some(&headers)).await?;
         token.refresh_token = Some(refresh_token.to_string());
         self.token = Some(token);
 

@@ -27,7 +27,7 @@ async fn main() {
     //     ..Default::default(),
     // };
     // ```
-    let oauth = OAuth::from_env(scopes!("user-read-recently-played")).unwrap();
+    let oauth = OAuth::from_env(scopes!("user-read-playback-state")).unwrap();
 
     let mut spotify = AuthCodePkceSpotify::new(creds, oauth);
 

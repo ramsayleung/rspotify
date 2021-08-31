@@ -107,7 +107,12 @@ impl ClientCredsSpotify {
         let mut data = Form::new();
         data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_CLIENT_CREDS);
 
-        self.token = Some(self.fetch_access_token(&data).await?);
+        let headers = self
+            .creds
+            .auth_headers()
+            .expect("No client secret set in the credentials.");
+
+        self.token = Some(self.fetch_access_token(&data, Some(&headers)).await?);
 
         self.write_token_cache()
     }

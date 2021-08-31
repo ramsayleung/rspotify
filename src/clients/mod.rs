@@ -59,7 +59,7 @@ mod test {
             ..Default::default()
         };
 
-        let (auth, value) = tok.auth_header();
+        let (auth, value) = tok.auth_headers();
         assert_eq!(auth, "authorization");
         assert_eq!(value, "Bearer access_token");
     }
@@ -68,7 +68,7 @@ mod test {
     fn test_basic_auth() {
         let creds = Credentials::new("ramsay", "123456");
 
-        let (auth, value) = creds.auth_header();
+        let (auth, value) = creds.auth_headers();
         assert_eq!(auth, "authorization");
         assert_eq!(value, "Basic cmFtc2F5OjEyMzQ1Ng==");
     }

@@ -137,7 +137,7 @@ pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 
 use crate::{
-    http::HttpError,
+    http::{Headers, HttpError},
     model::{idtypes::IdType, Id},
 };
 
@@ -158,7 +158,8 @@ pub mod prelude {
     pub use crate::clients::{BaseClient, OAuthClient};
 }
 
-/// Common headers as constants
+/// Common headers as constants.
+/// TODO: rename; these aren't all headers. Most are keys/values for forms.
 pub(in crate) mod headers {
     pub const CLIENT_ID: &str = "client_id";
     pub const CODE: &str = "code";
@@ -393,11 +394,13 @@ impl Token {
     }
 
     /// Generates an HTTP token authorization header with proper formatting
-    pub fn auth_header(&self) -> (String, String) {
+    pub fn auth_headers(&self) -> Headers {
         let auth = "authorization".to_owned();
         let value = format!("Bearer {}", self.access_token);
 
-        (auth, value)
+        let mut headers = Headers::new();
+        headers.insert(auth, value);
+        headers
     }
 }
 
@@ -445,12 +448,14 @@ impl Credentials {
     /// Generates an HTTP basic authorization header with proper formatting
     ///
     /// This will only work when the client secret is set to `Option::Some`.
-    pub fn auth_header(&self) -> Option<(String, String)> {
+    pub fn auth_headers(&self) -> Option<Headers> {
         let auth = "authorization".to_owned();
         let value = format!("{}:{}", self.id, self.secret.as_ref()?);
         let value = format!("Basic {}", base64::encode(value));
 
-        Some((auth, value))
+        let mut headers = Headers::new();
+        headers.insert(auth, value);
+        Some(headers)
     }
 }
 
