@@ -29,7 +29,7 @@ async fn main() {
     // ```
     let oauth = OAuth::from_env(scopes!("user-read-playback-state")).unwrap();
 
-    let mut spotify = AuthCodePkceSpotify::new(creds, oauth);
+    let mut spotify = AuthCodePkceSpotify::new(creds.clone(), oauth.clone());
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(None).unwrap();
@@ -37,6 +37,22 @@ async fn main() {
 
     // Running the requests
     let history = spotify.current_playback(None, None::<Vec<_>>).await;
-
     println!("Response: {:?}", history);
+
+    // Token refreshing works as well, but only with the one generated in the
+    // previous request (they actually expire, unlike the regular code auth
+    // flow).
+    let refresh_token = spotify
+        .token
+        .as_ref()
+        .unwrap()
+        .refresh_token
+        .as_ref()
+        .unwrap();
+    let mut spotify = AuthCodePkceSpotify::new(creds, oauth);
+    spotify.refresh_token(&refresh_token).await.unwrap();
+
+    // Running the requests again
+    let history = spotify.current_playback(None, None::<Vec<_>>).await;
+    println!("Response after refreshing token: {:?}", history);
 }
