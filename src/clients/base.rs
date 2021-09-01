@@ -14,7 +14,7 @@ use std::{collections::HashMap, fmt};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
@@ -888,8 +888,10 @@ where
     ///
     /// Parameters:
     /// - attributes - restrictions on attributes for the selected tracks, such
-    ///   as `min_acousticness` or `target_duration_ms`. See the reference for a
-    ///   list of all of them.
+    ///   as `min_acousticness` or `target_duration_ms`. You can use a HashMap
+    ///   with these strings as keys and integers or floating points as values
+    ///   (which is possible thanks to `serde_json::Value`). See the reference
+    ///   for a list of all the attributes.
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
     /// - seed_genres - a list of genre names. Available genres for
@@ -904,7 +906,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     async fn recommendations<'a>(
         &self,
-        attributes: &HashMap<&str, Value>,
+        attributes: impl IntoIterator<Item = (&'a str, Value)> + Send + 'a,
         seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + Send + 'a>,
         seed_genres: Option<impl IntoIterator<Item = &'a str> + Send + 'a>,
         seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + Send + 'a>,
@@ -925,8 +927,8 @@ where
 
         // First converting the attribute values into `String`s
         let owned_attributes = attributes
-            .iter()
-            .map(|(name, value)| (*name, value.to_string()))
+            .into_iter()
+            .map(|(name, value)| (name, value.to_string()))
             .collect::<HashMap<&str, String>>();
         // Then converting the values into `&str`s
         let borrowed_attributes = owned_attributes
