@@ -19,14 +19,14 @@ use rspotify::{
     clients::pagination::Paginator,
     model::{
         AlbumId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist, Id, Market,
-        Offset, PlayableItem, PlaylistId, RepeatState, SearchType, ShowId, TimeRange, TrackId,
-        TrackPositions,
+        Offset, PlayableItem, PlaylistId, RecommendationsAttribute, RepeatState, SearchType,
+        ShowId, TimeRange, TrackId, TrackPositions,
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
 };
 
-use std::{collections::HashMap, env};
+use std::env;
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
@@ -408,15 +408,15 @@ async fn test_playback() {
 async fn test_recommendations() {
     let seed_artists = [Id::from_id("4NHQUGzhtTLFvgF5SZesLK").unwrap()];
     let seed_tracks = [Id::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
-
-    let mut payload = HashMap::new();
-    payload.insert("min_energy", 0.4.into());
-    payload.insert("min_popularity", 50.into());
+    let attributes = [
+        RecommendationsAttribute::MinEnergy(0.4),
+        RecommendationsAttribute::MinPopularity(50),
+    ];
 
     oauth_client()
         .await
         .recommendations(
-            payload,
+            attributes,
             Some(seed_artists),
             None::<Vec<&str>>,
             Some(seed_tracks),

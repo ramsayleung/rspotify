@@ -888,10 +888,7 @@ where
     ///
     /// Parameters:
     /// - attributes - restrictions on attributes for the selected tracks, such
-    ///   as `min_acousticness` or `target_duration_ms`. You can use a HashMap
-    ///   with these strings as keys and integers or floating points as values
-    ///   (which is possible thanks to `serde_json::Value`). See the reference
-    ///   for a list of all the attributes.
+    ///   as `min_acousticness` or `target_duration_ms`.
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
     /// - seed_genres - a list of genre names. Available genres for
@@ -906,7 +903,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     async fn recommendations<'a>(
         &self,
-        attributes: impl IntoIterator<Item = (&'a str, Value)> + Send + 'a,
+        attributes: impl IntoIterator<Item = RecommendationsAttribute> + Send + 'a,
         seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + Send + 'a>,
         seed_genres: Option<impl IntoIterator<Item = &'a str> + Send + 'a>,
         seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + Send + 'a>,
@@ -925,15 +922,16 @@ where
             optional "limit": limit.as_deref(),
         };
 
-        // First converting the attribute values into `String`s
+        // First converting the attributes into owned `String`s
         let owned_attributes = attributes
             .into_iter()
-            .map(|(name, value)| (name, value.to_string()))
-            .collect::<HashMap<&str, String>>();
-        // Then converting the values into `&str`s
+            .map(|attr| (attr.as_ref().to_owned(), attr.value_string()))
+            .collect::<HashMap<_, _>>();
+        // Afterwards converting the values into `&str`s; otherwise they
+        // wouldn't live long enough
         let borrowed_attributes = owned_attributes
             .iter()
-            .map(|(name, value)| (*name, value.as_str()));
+            .map(|(key, value)| (key.as_str(), value.as_str()));
         // And finally adding all of them to the payload
         params.extend(borrowed_attributes);
 
