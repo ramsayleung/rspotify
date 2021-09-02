@@ -14,7 +14,7 @@ use std::{collections::HashMap, fmt};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
@@ -887,6 +887,8 @@ where
     /// Get Recommendations Based on Seeds
     ///
     /// Parameters:
+    /// - attributes - restrictions on attributes for the selected tracks, such
+    ///   as `min_acousticness` or `target_duration_ms`.
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
     /// - seed_genres - a list of genre names. Available genres for
@@ -901,7 +903,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
     async fn recommendations<'a>(
         &self,
-        payload: &Map<String, Value>,
+        attributes: impl IntoIterator<Item = RecommendationsAttribute> + Send + 'a,
         seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + Send + 'a>,
         seed_genres: Option<impl IntoIterator<Item = &'a str> + Send + 'a>,
         seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + Send + 'a>,
@@ -920,44 +922,18 @@ where
             optional "limit": limit.as_deref(),
         };
 
-        let attributes = [
-            "acousticness",
-            "danceability",
-            "duration_ms",
-            "energy",
-            "instrumentalness",
-            "key",
-            "liveness",
-            "loudness",
-            "mode",
-            "popularity",
-            "speechiness",
-            "tempo",
-            "time_signature",
-            "valence",
-        ];
-        let prefixes = ["min", "max", "target"];
-
-        // This map is used to store the intermediate data which lives long enough
-        // to be borrowed into the `params`
-        let map_to_hold_owned_value = attributes
-            .iter()
-            // create cartesian product for attributes and prefixes
-            .flat_map(|attribute| {
-                prefixes
-                    .iter()
-                    .map(move |prefix| format!("{}_{}", prefix, attribute))
-            })
-            .filter_map(
-                // TODO: not sure if this `to_string` is what we want. It
-                // might add quotes to the strings.
-                |param| payload.get(&param).map(|value| (param, value.to_string())),
-            )
+        // First converting the attributes into owned `String`s
+        let owned_attributes = attributes
+            .into_iter()
+            .map(|attr| (attr.as_ref().to_owned(), attr.value_string()))
             .collect::<HashMap<_, _>>();
-
-        for (key, value) in &map_to_hold_owned_value {
-            params.insert(key, value);
-        }
+        // Afterwards converting the values into `&str`s; otherwise they
+        // wouldn't live long enough
+        let borrowed_attributes = owned_attributes
+            .iter()
+            .map(|(key, value)| (key.as_str(), value.as_str()));
+        // And finally adding all of them to the payload
+        params.extend(borrowed_attributes);
 
         let result = self.endpoint_get("recommendations", &params).await?;
         convert_result(&result)
