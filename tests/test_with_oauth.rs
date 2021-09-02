@@ -394,7 +394,7 @@ async fn test_playback() {
 #[ignore]
 async fn test_recommendations() {
     let seed_artists = [&ArtistId::from_id("4NHQUGzhtTLFvgF5SZesLK").unwrap()];
-    let seed_tracks = [&ArtistId::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
+    let seed_tracks = [&TrackId::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
     let attributes = [
         RecommendationsAttribute::MinEnergy(0.4),
         RecommendationsAttribute::MinPopularity(50),
