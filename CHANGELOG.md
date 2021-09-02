@@ -224,6 +224,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
    + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `as_ref()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
+- ([#249](https://github.com/ramsayleung/rspotify/pull/249)) The `recommendations` endpoint has been made simpler to use; the attributes are now serialized with `RecommendationsAttribute`.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Refactor models to make it easier to use:
   + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
   + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
