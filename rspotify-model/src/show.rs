@@ -1,6 +1,6 @@
 use super::image::Image;
 use super::page::Page;
-use crate::{duration_ms, CopyrightType, DatePrecision};
+use crate::{custom_serde::duration_ms, CopyrightType, DatePrecision};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;

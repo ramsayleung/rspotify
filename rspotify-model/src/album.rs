@@ -9,8 +9,7 @@ use super::artist::SimplifiedArtist;
 use super::image::Image;
 use super::page::Page;
 use super::track::SimplifiedTrack;
-use super::Restriction;
-use crate::{AlbumType, Copyright, DatePrecision, Type};
+use crate::{AlbumType, Copyright, DatePrecision, RestrictionReason, Type};
 
 /// Simplified Album Object
 ///
@@ -87,4 +86,12 @@ pub struct PageSimpliedAlbums {
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,
+}
+
+/// Album restriction object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Restriction {
+    pub reason: RestrictionReason,
 }

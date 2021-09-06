@@ -39,15 +39,15 @@ pub trait OAuthClient: BaseClient {
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token, which may not exist.
-    async fn read_token_cache(&mut self) -> Option<Token> {
+    async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
         let tok = Token::from_cache(&self.get_config().cache_path)?;
 
         if !self.get_oauth().scopes.is_subset(&tok.scopes) || tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
-            None
+            Ok(None)
         } else {
-            Some(tok)
+            Ok(Some(tok))
         }
     }
 

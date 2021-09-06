@@ -135,20 +135,13 @@ pub use auth_code::AuthCodeSpotify;
 pub use auth_code_pkce::AuthCodePkceSpotify;
 pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
+pub use model::Token;
 
 use crate::http::HttpError;
 
-use std::{
-    collections::HashSet,
-    env, fs,
-    io::{Read, Write},
-    path::Path,
-    path::PathBuf,
-};
+use std::{collections::HashSet, env, path::PathBuf};
 
-use chrono::{DateTime, Duration, Utc};
 use getrandom::getrandom;
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod prelude {
@@ -201,6 +194,9 @@ pub enum ClientError {
 
     #[error("cache file error: {0}")]
     CacheFile(String),
+
+    #[error("model error: {0}")]
+    Model(#[from] model::ModelError),
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
@@ -259,115 +255,8 @@ pub(in crate) fn generate_random_string(length: usize) -> String {
         .collect()
 }
 
-mod duration_second {
-    use chrono::Duration;
-    use serde::{de, Deserialize, Serializer};
-
-    /// Deserialize `chrono::Duration` from seconds (represented as u64)
-    pub(in crate) fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        let duration: i64 = Deserialize::deserialize(d)?;
-        Ok(Duration::seconds(duration))
-    }
-
-    /// Serialize `chrono::Duration` to seconds (represented as u64)
-    pub(in crate) fn serialize<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        s.serialize_i64(x.num_seconds())
-    }
-}
-
-mod space_separated_scopes {
-    use serde::{de, Deserialize, Serializer};
-    use std::collections::HashSet;
-
-    pub(crate) fn deserialize<'de, D>(d: D) -> Result<HashSet<String>, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        let scopes: &str = Deserialize::deserialize(d)?;
-        Ok(scopes.split_whitespace().map(|x| x.to_owned()).collect())
-    }
-
-    pub(crate) fn serialize<S>(scopes: &HashSet<String>, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let scopes = scopes.clone().into_iter().collect::<Vec<_>>().join(" ");
-        s.serialize_str(&scopes)
-    }
-}
-
-/// Spotify access token information
-/// [Reference](https://developer.spotify.com/documentation/general/guides/authorization-guide/)
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Token {
-    /// An access token that can be provided in subsequent calls
-    pub access_token: String,
-    /// The time period for which the access token is valid.
-    #[serde(with = "duration_second")]
-    pub expires_in: Duration,
-    /// The valid time for which the access token is available represented
-    /// in ISO 8601 combined date and time.
-    pub expires_at: Option<DateTime<Utc>>,
-    /// A token that can be sent to the Spotify Accounts service
-    /// in place of an authorization code
-    pub refresh_token: Option<String>,
-    /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
-    /// which have been granted for this `access_token`
-    /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
-    // The token response from spotify is singular, hence the rename to `scope`
-    #[serde(default, with = "space_separated_scopes", rename = "scope")]
-    pub scopes: HashSet<String>,
-}
-
-impl Default for Token {
-    fn default() -> Self {
-        Token {
-            access_token: String::new(),
-            expires_in: Duration::seconds(0),
-            expires_at: Some(Utc::now()),
-            refresh_token: None,
-            scopes: HashSet::new(),
-        }
-    }
-}
-
-impl Token {
-    /// Tries to initialize the token from a cache file.
-    // TODO: maybe ClientResult for these things instead?
-    pub fn from_cache<T: AsRef<Path>>(path: T) -> Option<Self> {
-        let mut file = fs::File::open(path).ok()?;
-        let mut tok_str = String::new();
-        file.read_to_string(&mut tok_str).ok()?;
-
-        serde_json::from_str::<Token>(&tok_str).ok()
-    }
-
-    /// Saves the token information into its cache file.
-    pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> ClientResult<()> {
-        let token_info = serde_json::to_string(&self)?;
-
-        let mut file = fs::OpenOptions::new().write(true).create(true).open(path)?;
-        file.set_len(0)?;
-        file.write_all(token_info.as_bytes())?;
-
-        Ok(())
-    }
-
-    /// Check if the token is expired
-    pub fn is_expired(&self) -> bool {
-        self.expires_at
-            .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
-    }
-}
-
 /// Simple client credentials object for Spotify.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Credentials {
     pub id: String,
     pub secret: String,
