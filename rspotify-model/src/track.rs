@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, time::Duration};
 
-use crate::{duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId, Type};
+use crate::{duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId};
 
 /// Full track object
 ///
@@ -35,8 +35,6 @@ pub struct FullTrack {
     pub popularity: u32,
     pub preview_url: Option<String>,
     pub track_number: u32,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Track link object
@@ -47,8 +45,6 @@ pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: TrackId,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Full track wrapped by `Vec`
@@ -84,8 +80,6 @@ pub struct SimplifiedTrack {
     pub name: String,
     pub preview_url: Option<String>,
     pub track_number: u32,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Saved track object

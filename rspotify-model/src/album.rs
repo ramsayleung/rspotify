@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{
     AlbumId, AlbumType, Copyright, DatePrecision, Image, Page, Restriction, SimplifiedArtist,
-    SimplifiedTrack, Type,
+    SimplifiedTrack,
 };
 
 /// Simplified Album Object
@@ -32,8 +32,6 @@ pub struct SimplifiedAlbum {
     pub release_date_precision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restriction>,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Full Album Object
@@ -56,8 +54,6 @@ pub struct FullAlbum {
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub tracks: Page<SimplifiedTrack>,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Full Albums wrapped by Vec object

@@ -28,8 +28,6 @@ pub struct AudioFeatures {
     pub tempo: f32,
     pub time_signature: i32,
     pub track_href: String,
-    #[serde(rename = "type")]
-    pub _type: String,
     pub valence: f32,
 }
 

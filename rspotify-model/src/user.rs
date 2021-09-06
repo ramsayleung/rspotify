@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{Country, Followers, Image, SubscriptionLevel, Type, UserId};
+use crate::{Country, Followers, Image, SubscriptionLevel, UserId};
 
 /// Public user object
 ///
@@ -18,8 +18,6 @@ pub struct PublicUser {
     pub id: UserId,
     #[serde(default = "Vec::new")]
     pub images: Vec<Image>,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Private user object
@@ -37,8 +35,6 @@ pub struct PrivateUser {
     pub id: UserId,
     pub images: Option<Vec<Image>>,
     pub product: Option<SubscriptionLevel>,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Explicit content setting object

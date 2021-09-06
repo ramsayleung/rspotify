@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{Followers, Image, Page, PlayableItem, PlaylistId, PublicUser, Type};
+use crate::{Followers, Image, Page, PlayableItem, PlaylistId, PublicUser};
 
 /// Playlist result object
 ///
@@ -39,8 +39,6 @@ pub struct SimplifiedPlaylist {
     pub public: Option<bool>,
     pub snapshot_id: String,
     pub tracks: PlaylistTracksRef,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Full playlist object
@@ -60,8 +58,6 @@ pub struct FullPlaylist {
     pub public: Option<bool>,
     pub snapshot_id: String,
     pub tracks: Page<PlaylistItem>,
-    #[serde(rename = "type")]
-    pub _type: Type,
 }
 
 /// Playlist track object
