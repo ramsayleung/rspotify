@@ -1,4 +1,4 @@
-//! Custom [de]serialization methods used throughout the crate
+//! Custom serialization methods used throughout the crate
 
 pub mod duration_ms {
     use serde::{de, Serializer};

@@ -33,7 +33,10 @@ pub struct Token {
     pub refresh_token: Option<String>,
     /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
     /// which have been granted for this `access_token`
-    /// You could use macro [scopes!](crate::scopes) to build it at compile time easily
+    ///
+    /// You may use the `scopes!` macro in
+    /// [`rspotify-macros`](https://docs.rs/rspotify-macros) to build it at
+    /// compile time easily.
     // The token response from spotify is singular, hence the rename to `scope`
     #[serde(default, with = "space_separated_scopes", rename = "scope")]
     pub scopes: HashSet<String>,
