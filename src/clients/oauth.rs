@@ -96,8 +96,7 @@ pub trait OAuthClient: BaseClient {
     #[cfg(feature = "cli")]
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_token_cache().await {
-            // TODO: shouldn't this also refresh the obtained token?
+        match self.read_token_cache().await? {
             Some(ref mut new_token) => {
                 self.get_token_mut().replace(new_token);
             }
