@@ -1,5 +1,8 @@
 [package]
-authors = ["Ramsay Leung <ramsayleung@gmail.com>"]
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
 name = "rspotify"
 version = "0.10.0"
 license = "MIT"
@@ -7,86 +10,103 @@ readme = "README.md"
 description = "Spotify API wrapper"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
-keywords = ["spotify","api"]
+keywords = ["spotify", "api"]
 edition = "2018"
 
+[workspace]
+members = [
+    "rspotify-macros",
+    "rspotify-model",
+    "rspotify-http"
+]
+exclude = [
+    "examples/webapp"
+]
+# For advanced features usage in the CLI, see:
+# https://doc.rust-lang.org/nightly/cargo/reference/features.html#resolver-version-2-command-line-flags
+resolver = "2"
+
 [dependencies]
-# Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
-# `maybe_async`.
-async-trait = { version = "0.1.48", optional = true }
+rspotify-macros = { path = "rspotify-macros", version = "0.10.0" }
+rspotify-model = { path = "rspotify-model", version = "0.10.0" }
+rspotify-http = { path = "rspotify-http", version = "0.10.0", default-features = false }
+
+### Client ###
 async-stream = { version = "0.3.0", optional = true }
+async-trait = { version = "0.1.48", optional = true }
 base64 = "0.13.0"
 chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
-derive_builder = "0.10.0"
 dotenv = { version = "0.15.0", optional = true }
 futures = { version = "0.3.8", optional = true }
+futures-util = "0.3.8"  # TODO
 getrandom = "0.2.0"
 log = "0.4.11"
 maybe-async = "0.2.1"
-reqwest = { version = "0.11.0", default-features = false, features = ["json", "socks"], optional = true }
 serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
 thiserror = "1.0.20"
-ureq = { version = "2.0", default-features = false, features = ["json", "cookies"], optional = true }
-url = "2.1.1"
+url = "2.2.2"
 webbrowser = { version = "0.5.5", optional = true }
-strum = { version = "0.20", features = ["derive"] }
+
+### Auth ###
+# chrono = { version = "0.4.13", features = ["serde", "rustc-serialize"] }
+# log = "0.4.11"
+# maybe-async = "0.2.1"
+# thiserror = "1.0.20"
 
 [dev-dependencies]
-env_logger = "0.8.1"
+env_logger = "0.9.0"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
 futures-util = "0.3.8"
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]
+
+### Client ###
 cli = ["webbrowser"]
 env-file = ["dotenv"]
 
+### HTTP ###
 # Available clients. By default they don't include a TLS so that it can be
 # configured.
-client-ureq = ["ureq", "__sync"]
-client-reqwest = ["reqwest", "__async"]
+client-ureq = ["rspotify-http/client-ureq", "__sync"]
+client-reqwest = ["rspotify-http/client-reqwest", "__async"]
 
 # Passing the TLS features to reqwest.
-reqwest-default-tls = ["reqwest/default-tls"]
-reqwest-rustls-tls = ["reqwest/rustls-tls"]
-reqwest-native-tls = ["reqwest/native-tls"]
-reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
+reqwest-default-tls = ["rspotify-http/reqwest-default-tls"]
+reqwest-rustls-tls = ["rspotify-http/reqwest-rustls-tls"]
+reqwest-native-tls = ["rspotify-http/reqwest-native-tls"]
+reqwest-native-tls-vendored = ["rspotify-http/reqwest-native-tls-vendored"]
 # Same for ureq.
-ureq-rustls-tls = ["ureq/tls"]
+ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
 
 # Internal features for checking async or sync compilation
-__async = ["async-trait", "async-stream", "futures"]
+__async = ["futures", "async-stream", "async-trait"]
 __sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
-# Also documenting the CLI methods
-features = ["cli"]
+# Documenting the CLI methods, and working links for `dotenv`
+features = ["cli", "env-file"]
 
 [[example]]
-name = "album"
+name = "client_creds"
 required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/album.rs"
+path = "examples/client_creds.rs"
 
 [[example]]
-name = "current_user_recently_played"
+name = "auth_code"
 required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/current_user_recently_played.rs"
+path = "examples/auth_code.rs"
+
+[[example]]
+name = "auth_code_pkce"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/auth_code_pkce.rs"
 
 [[example]]
 name = "oauth_tokens"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/oauth_tokens.rs"
-
-[[example]]
-name = "track"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/track.rs"
-
-[[example]]
-name = "tracks"
-required-features = ["env-file", "cli", "client-reqwest"]
-path = "examples/tracks.rs"
 
 [[example]]
 name = "with_refresh_token"
