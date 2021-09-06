@@ -12,7 +12,6 @@ use crate::{
 
 use std::time;
 
-use log::error;
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextIdType;
 use serde_json::{json, Map};
@@ -1090,9 +1089,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     async fn volume(&self, volume_percent: u8, device_id: Option<&str>) -> ClientResult<()> {
-        if volume_percent > 100u8 {
-            error!("volume must be between 0 and 100, inclusive");
-        }
+        debug_assert!(volume_percent > 100u8, "volume must be between 0 and 100, inclusive");
         let url = append_device_id(
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,

@@ -500,8 +500,8 @@ where
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
-    /// - user_ids - the ids of the users that you want to
-    /// check to see if they follow the playlist. Maximum: 5 ids.
+    /// - user_ids - the ids of the users that you want to check to see if they
+    ///   follow the playlist. Maximum: 5 ids.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-if-user-follows-playlist)
     async fn playlist_check_follow(
@@ -509,9 +509,7 @@ where
         playlist_id: &PlaylistId,
         user_ids: &[&UserId],
     ) -> ClientResult<Vec<bool>> {
-        if user_ids.len() > 5 {
-            log::error!("The maximum length of user ids is limited to 5 :-)");
-        }
+        debug_assert!(user_ids.len() > 5, "The maximum length of user ids is limited to 5 :-)");
         let url = format!(
             "playlists/{}/followers/contains?ids={}",
             playlist_id.id(),
