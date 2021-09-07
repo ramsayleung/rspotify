@@ -13,7 +13,6 @@ use crate::{
 
 use std::time;
 
-use log::error;
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextIdType;
 use serde_json::{json, Map};
@@ -41,15 +40,15 @@ pub trait OAuthClient: BaseClient {
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token, which may not exist.
-    async fn read_token_cache(&mut self) -> Option<Token> {
+    async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
         let tok = Token::from_cache(&self.get_config().cache_path)?;
 
         if !self.get_oauth().scopes.is_subset(&tok.scopes) || tok.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
-            None
+            Ok(None)
         } else {
-            Some(tok)
+            Ok(Some(tok))
         }
     }
 
@@ -98,8 +97,7 @@ pub trait OAuthClient: BaseClient {
     #[cfg(feature = "cli")]
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_token_cache().await {
-            // TODO: shouldn't this also refresh the obtained token?
+        match self.read_token_cache().await? {
             Some(ref mut new_token) => {
                 self.get_token_mut().replace(new_token);
             }
@@ -1090,9 +1088,10 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     async fn volume(&self, volume_percent: u8, device_id: Option<&str>) -> ClientResult<()> {
-        if volume_percent > 100u8 {
-            error!("volume must be between 0 and 100, inclusive");
-        }
+        debug_assert!(
+            volume_percent > 100u8,
+            "volume must be between 0 and 100, inclusive"
+        );
         let url = append_device_id(
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,

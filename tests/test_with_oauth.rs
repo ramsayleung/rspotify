@@ -19,8 +19,8 @@ use rspotify::{
     clients::pagination::Paginator,
     model::{
         AlbumId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist, Id, Market,
-        Offset, PlayableItem, PlaylistId, RepeatState, SearchType, ShowId, TimeRange, TrackId,
-        TrackPositions,
+        Offset, PlayableItem, PlaylistId, RecommendationsAttribute, RepeatState, SearchType,
+        ShowId, TimeRange, TrackId, TrackPositions,
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
@@ -30,7 +30,6 @@ use std::env;
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
-use serde_json::map::Map;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
@@ -407,17 +406,17 @@ async fn test_playback() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_recommendations() {
-    let seed_artists = vec![Id::from_id("4NHQUGzhtTLFvgF5SZesLK").unwrap()];
-    let seed_tracks = vec![Id::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
-
-    let mut payload = Map::new();
-    payload.insert("min_energy".to_owned(), 0.4.into());
-    payload.insert("min_popularity".to_owned(), 50.into());
+    let seed_artists = [Id::from_id("4NHQUGzhtTLFvgF5SZesLK").unwrap()];
+    let seed_tracks = [Id::from_id("0c6xIDDpzE81m2q797ordA").unwrap()];
+    let attributes = [
+        RecommendationsAttribute::MinEnergy(0.4),
+        RecommendationsAttribute::MinPopularity(50),
+    ];
 
     oauth_client()
         .await
         .recommendations(
-            &payload,
+            attributes,
             Some(seed_artists),
             None::<Vec<&str>>,
             Some(seed_tracks),
