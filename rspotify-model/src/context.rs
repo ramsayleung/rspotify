@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::{
-    millisecond_timestamp, option_duration_ms, CurrentlyPlayingType, Device, DisallowKey,
-    PlayableItem, RepeatState, Type,
+    custom_serde::{millisecond_timestamp, option_duration_ms},
+    CurrentlyPlayingType, Device, DisallowKey, PlayableItem, RepeatState, Type,
 };
 
 /// Context object

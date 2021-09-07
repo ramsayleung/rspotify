@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use std::time::Duration;
 
-use crate::{duration_ms, enums::Modality, modality, TrackId};
+use crate::{
+    custom_serde::{duration_ms, modality},
+    Modality, TrackId,
+};
 
 /// Audio Feature Object
 ///

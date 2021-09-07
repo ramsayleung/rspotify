@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, time::Duration};
 
-use crate::{duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId};
+use crate::{custom_serde::duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId};
 
 /// Full track object
 ///

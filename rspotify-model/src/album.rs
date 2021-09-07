@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-    AlbumId, AlbumType, Copyright, DatePrecision, Image, Page, Restriction, SimplifiedArtist,
+    AlbumId, AlbumType, Copyright, DatePrecision, Image, Page, RestrictionReason, SimplifiedArtist,
     SimplifiedTrack,
 };
 
@@ -79,4 +79,12 @@ pub struct PageSimpliedAlbums {
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,
+}
+
+/// Album restriction object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Restriction {
+    pub reason: RestrictionReason,
 }

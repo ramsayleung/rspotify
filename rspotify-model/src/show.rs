@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;
 
-use crate::{duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId};
+use crate::{
+    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId,
+};
 
 /// Copyright object
 ///
