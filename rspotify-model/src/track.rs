@@ -8,7 +8,7 @@ use std::{collections::HashMap, time::Duration};
 use super::album::SimplifiedAlbum;
 use super::artist::SimplifiedArtist;
 use super::Restriction;
-use crate::{duration_ms, TrackId, Type};
+use crate::{custom_serde::duration_ms, TrackId, Type};
 
 /// Full track object
 ///

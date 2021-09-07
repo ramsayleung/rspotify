@@ -62,7 +62,7 @@ async fn test_read_token_cache() {
     spotify.config = config;
 
     // read token from cache file
-    let tok_from_file = spotify.read_token_cache().await.unwrap();
+    let tok_from_file = spotify.read_token_cache().await.unwrap().unwrap();
     assert_eq!(tok_from_file.scopes, scopes);
     assert_eq!(tok_from_file.refresh_token.unwrap(), "...");
     assert_eq!(tok_from_file.expires_in, Duration::seconds(3600));

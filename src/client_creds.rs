@@ -85,18 +85,18 @@ impl ClientCredsSpotify {
     /// Similarly to [`Self::write_token_cache`], this will already check if the
     /// cached token is enabled and return `None` in case it isn't.
     #[maybe_async]
-    pub async fn read_token_cache(&self) -> Option<Token> {
+    pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
-            return None;
+            return Ok(None);
         }
 
         let token = Token::from_cache(&self.get_config().cache_path)?;
         if token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
-            None
+            Ok(None)
         } else {
-            Some(token)
+            Ok(Some(token))
         }
     }
 
