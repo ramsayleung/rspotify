@@ -185,7 +185,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - The `Spotify` client has been split up by authorization flows (`ClientCredsSpotify`, `AuthCodeSpotify`, `AuthCodePkceSpotify`), which allows us to remove the builder pattern. The authentication process has been rewritten. ([#216](https://github.com/ramsayleung/rspotify/pull/216)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123)) All fallible calls in the client return a `ClientError` rather than using `failure`.
-- ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id>`.
+- ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id>`:
 	- `albums`
 	- `artists`
