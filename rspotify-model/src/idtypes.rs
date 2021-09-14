@@ -287,7 +287,7 @@ macro_rules! define_idtypes {
                 stringify!($type),
                 "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
             ]
-            #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, Hash)]
+            #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
             pub struct $name(String);
 
             impl Id for $name {
@@ -309,6 +309,58 @@ macro_rules! define_idtypes {
                 #[inline]
                 unsafe fn from_id_unchecked(id: &str) -> Self {
                     $name(id.to_owned())
+                }
+            }
+
+            // Deserialization may take either an Id or an URI, so its
+            // implementation has to be done manually.
+            impl<'de> Deserialize<'de> for $name {
+                fn deserialize<D>(deserializer: D) -> Result<$name, D::Error>
+                where
+                    D: serde::Deserializer<'de>,
+                {
+                    struct IdVisitor;
+
+                    impl<'de> serde::de::Visitor<'de> for IdVisitor {
+                        type Value = $name;
+
+                        fn expecting(
+                            &self, formatter: &mut std::fmt::Formatter<'_>
+                        ) -> Result<(), std::fmt::Error>
+                        {
+                            let msg = concat!("ID or URI for struct ", stringify!($name));
+                            formatter.write_str(msg)
+                        }
+
+                        #[inline]
+                        fn visit_newtype_struct<A>(
+                            self,
+                            deserializer: A,
+                        ) -> Result<Self::Value, A::Error>
+                        where
+                            A: serde::Deserializer<'de>,
+                        {
+                            let field = String::deserialize(deserializer)?;
+                            $name::from_id_or_uri(&field)
+                                .map_err(serde::de::Error::custom)
+                        }
+
+                        #[inline]
+                        fn visit_seq<A>(
+                            self,
+                            mut seq: A,
+                        ) -> Result<Self::Value, A::Error>
+                        where
+                            A: serde::de::SeqAccess<'de>,
+                        {
+                            let field = seq.next_element()?
+                                .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                            $name::from_id_or_uri(field)
+                                .map_err(serde::de::Error::custom)
+                        }
+                    }
+
+                    deserializer.deserialize_newtype_struct(stringify!($name), IdVisitor)
                 }
             }
 
@@ -368,6 +420,7 @@ impl PlayableId for EpisodeId {}
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::error::Error;
 
     // Valid values:
     const ID: &str = "4iV5W9uYEdYUVa79Axb7Rh";
@@ -408,32 +461,47 @@ mod test {
         assert_eq!(TrackId::from_uri(URI_MIXED2), Err(IdError::InvalidFormat));
     }
 
+    /// Deserialization should accept both IDs and URIs as well.
     #[test]
-    fn test_id_or_uri_parse() {
-        assert!(TrackId::from_id_or_uri(ID).is_ok());
-        assert!(TrackId::from_id_or_uri(URI).is_ok());
-        assert!(TrackId::from_id_or_uri(URI_SLASHES).is_ok());
-        assert_eq!(TrackId::from_id_or_uri(URI_SHORT), Err(IdError::InvalidId));
-        assert_eq!(
-            TrackId::from_id_or_uri(URI_EMPTY),
-            Err(IdError::InvalidType)
-        );
-        assert_eq!(
-            TrackId::from_id_or_uri(URI_WRONGTYPE1),
-            Err(IdError::InvalidType)
-        );
-        assert_eq!(
-            TrackId::from_id_or_uri(URI_WRONGTYPE2),
-            Err(IdError::InvalidType)
-        );
-        assert_eq!(
-            TrackId::from_id_or_uri(URI_MIXED1),
-            Err(IdError::InvalidFormat)
-        );
-        assert_eq!(
-            TrackId::from_id_or_uri(URI_MIXED2),
-            Err(IdError::InvalidFormat)
-        );
+    fn test_id_or_uri_and_deserialize() {
+        fn test_any<F, E>(check: F)
+        where
+            F: Fn(&str) -> Result<TrackId, E>,
+            E: Error,
+        {
+            // In this case we also check that the contents are the ID and not
+            // the URI.
+            assert!(check(ID).is_ok());
+            assert_eq!(check(ID).unwrap().id(), ID);
+            assert!(check(URI).is_ok());
+            assert_eq!(check(URI).unwrap().id(), ID);
+            assert!(check(URI_SLASHES).is_ok());
+            assert_eq!(check(URI_SLASHES).unwrap().id(), ID);
+
+            // These should not work in any case
+            assert!(check(URI_SHORT).is_err());
+            assert!(check(URI_EMPTY).is_err());
+            assert!(check(URI_WRONGTYPE1).is_err());
+            assert!(check(URI_WRONGTYPE2).is_err());
+            assert!(check(URI_MIXED1).is_err());
+            assert!(check(URI_MIXED2).is_err());
+        }
+
+        // Easily testing both ways to obtain an ID
+        test_any(|s| TrackId::from_id_or_uri(s));
+        test_any(|s| {
+            let json = format!("\"{}\"", s);
+            serde_json::from_str::<'_, TrackId>(&json)
+        });
+    }
+
+    /// Serializing should return the Id within it, not the URI.
+    #[test]
+    fn test_serialize() {
+        let json_expected = format!("\"{}\"", ID);
+        let track = TrackId::from_uri(URI).unwrap();
+        let json = serde_json::to_string(&track).unwrap();
+        assert_eq!(json, json_expected);
     }
 
     #[test]
