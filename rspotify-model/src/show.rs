@@ -19,7 +19,7 @@ pub struct Copyright {
 
 /// Simplified show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedshowobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showbase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
     pub available_markets: Vec<String>,
@@ -35,8 +35,6 @@ pub struct SimplifiedShow {
     pub media_type: String,
     pub name: String,
     pub publisher: String,
-    #[serde(rename = "type")]
-    pub _type: String,
 }
 
 /// SimplifiedShows wrapped by `Vec`
