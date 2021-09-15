@@ -1,21 +1,22 @@
 //! All objects related to context
 
-use super::device::Device;
-use super::PlayableItem;
-use crate::{
-    custom_serde::{millisecond_timestamp, option_duration_ms},
-    CurrentlyPlayingType, DisallowKey, RepeatState, Type,
-};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
+
 use std::collections::HashMap;
 use std::time::Duration;
+
+use crate::{
+    custom_serde::{millisecond_timestamp, option_duration_ms},
+    CurrentlyPlayingType, Device, DisallowKey, PlayableItem, RepeatState, Type,
+};
 
 /// Context object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
+    /// The URI may be of any type, so it's not parsed into a [`crate::Id`]
     pub uri: String,
     pub href: String,
     pub external_urls: HashMap<String, String>,

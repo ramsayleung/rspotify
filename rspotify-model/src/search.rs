@@ -1,12 +1,11 @@
 //! All object related to search
 
-use super::album::SimplifiedAlbum;
-use super::artist::FullArtist;
-use super::page::Page;
-use super::playlist::SimplifiedPlaylist;
-use super::show::{SimplifiedEpisode, SimplifiedShow};
-use super::track::FullTrack;
 use serde::{Deserialize, Serialize};
+
+use crate::{
+    FullArtist, FullTrack, Page, SimplifiedAlbum, SimplifiedEpisode, SimplifiedPlaylist,
+    SimplifiedShow,
+};
 
 /// Search for playlists
 ///

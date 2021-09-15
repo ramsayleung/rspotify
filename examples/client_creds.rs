@@ -1,4 +1,4 @@
-use rspotify::{model::Id, prelude::*, ClientCredsSpotify, Credentials};
+use rspotify::{model::AlbumId, prelude::*, ClientCredsSpotify, Credentials};
 
 #[tokio::main]
 async fn main() {
@@ -32,8 +32,8 @@ async fn main() {
     spotify.request_token().await.unwrap();
 
     // Running the requests
-    let birdy_uri = Id::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
-    let albums = spotify.album(birdy_uri).await;
+    let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
+    let albums = spotify.album(&birdy_uri).await;
 
     println!("Response: {:#?}", albums);
 }

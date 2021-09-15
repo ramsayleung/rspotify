@@ -18,6 +18,12 @@ pub mod duration_ms {
         {
             Ok(Duration::from_millis(v))
         }
+        fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Duration::from_millis(v.max(0) as u64))
+        }
     }
 
     /// Deserialize `std::time::Duration` from milliseconds (represented as u64)
@@ -149,7 +155,7 @@ pub mod option_duration_ms {
 
 /// Deserialize/Serialize `Modality` to integer(0, 1, -1).
 pub mod modality {
-    use crate::enums::Modality;
+    use crate::Modality;
     use serde::{de, Deserialize, Serializer};
 
     pub fn deserialize<'de, D>(d: D) -> Result<Modality, D::Error>

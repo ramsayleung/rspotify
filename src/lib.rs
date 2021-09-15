@@ -137,10 +137,7 @@ pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 pub use model::Token;
 
-use crate::{
-    http::HttpError,
-    model::{idtypes::IdType, Id},
-};
+use crate::{http::HttpError, model::Id};
 
 use std::{
     collections::{HashMap, HashSet},
@@ -153,6 +150,7 @@ use thiserror::Error;
 
 pub mod prelude {
     pub use crate::clients::{BaseClient, OAuthClient};
+    pub use crate::model::idtypes::{Id, PlayContextId, PlayableId};
 }
 
 /// Common headers as constants.
@@ -274,8 +272,8 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
 }
 
 #[inline]
-pub(in crate) fn join_ids<'a, T: 'a + IdType>(ids: impl IntoIterator<Item = &'a Id<T>>) -> String {
-    ids.into_iter().collect::<Vec<_>>().join(",")
+pub(in crate) fn join_ids<'a, T: Id + 'a + ?Sized>(ids: impl IntoIterator<Item = &'a T>) -> String {
+    ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
 }
 
 #[inline]

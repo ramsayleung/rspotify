@@ -1,9 +1,11 @@
-use super::image::Image;
-use super::page::Page;
-use crate::{custom_serde::duration_ms, CopyrightType, DatePrecision};
 use serde::{Deserialize, Serialize};
+
 use std::collections::HashMap;
 use std::time::Duration;
+
+use crate::{
+    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId,
+};
 
 /// Copyright object
 ///
@@ -17,7 +19,7 @@ pub struct Copyright {
 
 /// Simplified show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedshowobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showbase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
     pub available_markets: Vec<String>,
@@ -26,16 +28,13 @@ pub struct SimplifiedShow {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: ShowId,
     pub images: Vec<Image>,
     pub is_externally_hosted: Option<bool>,
     pub languages: Vec<String>,
     pub media_type: String,
     pub name: String,
     pub publisher: String,
-    #[serde(rename = "type")]
-    pub _type: String,
-    pub uri: String,
 }
 
 /// SimplifiedShows wrapped by `Vec`
@@ -57,7 +56,7 @@ pub struct Show {
 
 /// Full show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showbase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
@@ -67,21 +66,18 @@ pub struct FullShow {
     pub episodes: Page<SimplifiedEpisode>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: ShowId,
     pub images: Vec<Image>,
     pub is_externally_hosted: Option<bool>,
     pub languages: Vec<String>,
     pub media_type: String,
     pub name: String,
     pub publisher: String,
-    #[serde(rename = "type")]
-    pub _type: String,
-    pub uri: String,
 }
 
 /// Simplified episode object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedepisodeobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodebase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
@@ -91,27 +87,24 @@ pub struct SimplifiedEpisode {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: EpisodeId,
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
-    #[deprecated(
-        note = "This `language` field is deprecated and might be removed in the future by Spotify. Please use the languages field instead"
-    )]
+    #[deprecated(note = "This `language` field is deprecated and might be \
+        removed in the future by Spotify. Please use the languages field \
+        instead")]
     pub language: String,
     pub languages: Vec<String>,
     pub name: String,
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub resume_point: Option<ResumePoint>,
-    #[serde(rename = "type")]
-    pub _type: String,
-    pub uri: String,
 }
 
 /// Full episode object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodeobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodebase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
@@ -121,12 +114,13 @@ pub struct FullEpisode {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: EpisodeId,
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
-    /// Note: This field is deprecated and might be removed in the future.
-    /// Please use the languages field instead.
+    #[deprecated(note = "This `language` field is deprecated and might be \
+        removed in the future by Spotify. Please use the languages field \
+        instead")]
     pub language: String,
     pub languages: Vec<String>,
     pub name: String,
@@ -134,9 +128,6 @@ pub struct FullEpisode {
     pub release_date_precision: DatePrecision,
     pub resume_point: Option<ResumePoint>,
     pub show: SimplifiedShow,
-    #[serde(rename = "type")]
-    pub _type: String,
-    pub uri: String,
 }
 
 /// Episodes feature object wrapped by `Vec`
