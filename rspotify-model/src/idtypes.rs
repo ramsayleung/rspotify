@@ -340,8 +340,8 @@ macro_rules! define_idtypes {
                         where
                             A: serde::Deserializer<'de>,
                         {
-                            let field = String::deserialize(deserializer)?;
-                            $name::from_id_or_uri(&field)
+                            let field = <&str>::deserialize(deserializer)?;
+                            $name::from_id_or_uri(field)
                                 .map_err(serde::de::Error::custom)
                         }
 
