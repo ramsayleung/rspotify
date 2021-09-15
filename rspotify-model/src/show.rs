@@ -58,7 +58,7 @@ pub struct Show {
 
 /// Full show object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showbase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
@@ -75,8 +75,6 @@ pub struct FullShow {
     pub media_type: String,
     pub name: String,
     pub publisher: String,
-    #[serde(rename = "type")]
-    pub _type: String,
 }
 
 /// Simplified episode object
