@@ -1,11 +1,13 @@
 //! All objects related to audio defined by Spotify API
 
+use serde::{Deserialize, Serialize};
+
+use std::time::Duration;
+
 use crate::{
     custom_serde::{duration_ms, modality},
-    enums::Modality,
+    Modality, TrackId,
 };
-use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 /// Audio Feature Object
 ///
@@ -18,7 +20,7 @@ pub struct AudioFeatures {
     #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub energy: f32,
-    pub id: String,
+    pub id: TrackId,
     pub instrumentalness: f32,
     pub key: i32,
     pub liveness: f32,
@@ -29,9 +31,6 @@ pub struct AudioFeatures {
     pub tempo: f32,
     pub time_signature: i32,
     pub track_href: String,
-    #[serde(rename = "type")]
-    pub _type: String,
-    pub uri: String,
     pub valence: f32,
 }
 

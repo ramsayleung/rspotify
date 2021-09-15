@@ -146,6 +146,7 @@ use thiserror::Error;
 
 pub mod prelude {
     pub use crate::clients::{BaseClient, OAuthClient};
+    pub use crate::model::idtypes::{Id, PlayContextId, PlayableId};
 }
 
 pub(in crate) mod headers {

@@ -15,18 +15,18 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify::{model::Id, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use rspotify::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: AuthCodeSpotify) {
-    let artists = vec![
-        Id::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
-        Id::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
-        Id::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
+    let artists = [
+        &ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        &ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        &ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
     spotify
-        .user_follow_artists(artists.clone())
+        .user_follow_artists(artists)
         .await
         .expect("couldn't follow artists");
     println!("Followed {} artists successfully.", artists.len());
@@ -42,7 +42,7 @@ async fn do_things(spotify: AuthCodeSpotify) {
     );
 
     spotify
-        .user_unfollow_artists(artists.clone())
+        .user_unfollow_artists(artists)
         .await
         .expect("couldn't unfollow artists");
     println!("Unfollowed {} artists successfully.", artists.len());

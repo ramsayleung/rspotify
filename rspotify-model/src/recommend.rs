@@ -1,9 +1,9 @@
 //! All objects related to recommendation
 
-use super::track::SimplifiedTrack;
-use crate::RecommendationsSeedType;
 use serde::{Deserialize, Serialize};
 use strum::AsRefStr;
+
+use crate::{RecommendationsSeedType, SimplifiedTrack};
 
 /// Recommendations object
 ///

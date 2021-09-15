@@ -1,8 +1,8 @@
 //! All object related to category
 
-use super::image::Image;
-use super::page::Page;
 use serde::{Deserialize, Serialize};
+
+use crate::{Image, Page};
 
 /// Category object
 ///
