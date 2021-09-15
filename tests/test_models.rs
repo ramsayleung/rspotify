@@ -592,6 +592,19 @@ fn test_resume_point() {
 }
 
 #[test]
+fn test_resume_point_negative() {
+    let json = r#"
+    {
+        "fully_played": true,
+        "resume_position_ms": -1000
+    }
+    "#;
+    let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
+    let duration = Duration::default();
+    assert_eq!(resume_point.resume_position, duration);
+}
+
+#[test]
 fn test_currently_playing_context() {
     let json = r#"
 {
