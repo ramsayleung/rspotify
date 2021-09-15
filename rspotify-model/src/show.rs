@@ -77,7 +77,7 @@ pub struct FullShow {
 
 /// Simplified episode object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedepisodeobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodebase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
@@ -92,7 +92,8 @@ pub struct SimplifiedEpisode {
     pub is_externally_hosted: bool,
     pub is_playable: bool,
     #[deprecated(
-        note = "This `language` field is deprecated and might be removed in the future by Spotify. Please use the languages field instead"
+        note = "This `language` field is deprecated and might be removed in \
+        the future by Spotify. Please use the languages field instead"
     )]
     pub language: String,
     pub languages: Vec<String>,
@@ -100,13 +101,11 @@ pub struct SimplifiedEpisode {
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub resume_point: Option<ResumePoint>,
-    #[serde(rename = "type")]
-    pub _type: String,
 }
 
 /// Full episode object
 ///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodeobject)
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodebase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
@@ -120,8 +119,10 @@ pub struct FullEpisode {
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
-    /// Note: This field is deprecated and might be removed in the future.
-    /// Please use the languages field instead.
+    #[deprecated(
+        note = "This `language` field is deprecated and might be removed in \
+        the future by Spotify. Please use the languages field instead"
+    )]
     pub language: String,
     pub languages: Vec<String>,
     pub name: String,
@@ -129,8 +130,6 @@ pub struct FullEpisode {
     pub release_date_precision: DatePrecision,
     pub resume_point: Option<ResumePoint>,
     pub show: SimplifiedShow,
-    #[serde(rename = "type")]
-    pub _type: String,
 }
 
 /// Episodes feature object wrapped by `Vec`
