@@ -952,6 +952,8 @@ where
     /// See [`Self::playlist_tracks`] for a manually paginated version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
+    ///
+    /// TODO: rename to `playlist_items`, as it may also contain episodes
     fn playlist_tracks<'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
@@ -967,6 +969,8 @@ where
     }
 
     /// The manually paginated version of [`Self::playlist_tracks`].
+    ///
+    /// TODO: rename to `playlist_items_manual`, as it may also contain episodes
     async fn playlist_tracks_manual(
         &self,
         playlist_id: &PlaylistId,

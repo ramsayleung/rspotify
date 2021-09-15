@@ -225,6 +225,9 @@ pub trait OAuthClient: BaseClient {
     /// - position - the position to add the tracks
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
+    ///
+    /// TODO: rename to `playlist_add_items`, as one may also add episodes. Also
+    /// rename parameter names and use dyn PlayableId.
     async fn playlist_add_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -250,6 +253,9 @@ pub trait OAuthClient: BaseClient {
     /// - tracks - the list of track ids to add to the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
+    ///
+    /// TODO: rename to `playlist_replace_items`, as one may also replace
+    /// episodes. Also rename parameter names.
     async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -278,6 +284,9 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
+    ///
+    /// TODO: rename to `playlist_reorder_items`, as one may also reorder
+    /// episodes
     async fn playlist_reorder_tracks(
         &self,
         playlist_id: &PlaylistId,
@@ -306,6 +315,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
+    ///
+    /// TODO: rename to `playlist_remove_all_occurrences_of_items`, as one may
+    /// also remove episodes. Also rename parameter names and use dyn
+    /// PlayableId.
     async fn playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -360,6 +373,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id: optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
+    ///
+    /// TODO: rename to `playlist_remove_specific_occurrences_of_items`, as one
+    /// may also remove episodes. Also rename parameter names. And rename
+    /// `TrackPositions` to `ItemPositions`.
     async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -427,9 +444,10 @@ pub trait OAuthClient: BaseClient {
 
     /// Get information about the current users currently playing track.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
     ///
-    /// TODO: rename, this might return an episode as well, for example
+    /// TODO: rename to `current_user_playing_item`, as this also returns
+    /// episodes.
     async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
