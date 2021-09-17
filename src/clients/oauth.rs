@@ -30,6 +30,8 @@ use url::Url;
 pub trait OAuthClient: BaseClient {
     fn get_oauth(&self) -> &OAuth;
 
+    fn set_token(&mut self, token: Option<Token>);
+
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()>;
@@ -107,8 +109,8 @@ pub trait OAuthClient: BaseClient {
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
-            Ok(Some(ref mut new_token)) => {
-                self.get_token_mut().replace(new_token);
+            Ok(Some(new_token)) => {
+                self.set_token(Some(new_token));
             }
             // Otherwise following the usual procedure to get the token.
             _ => {

@@ -64,6 +64,10 @@ impl OAuthClient for AuthCodePkceSpotify {
         &self.oauth
     }
 
+    fn set_token(&mut self, token: Option<Token>) {
+        self.token = token;
+    }
+
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
         // TODO
         let mut data = Form::new();
