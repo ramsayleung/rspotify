@@ -1,5 +1,5 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
-use rspotify::model::*;
+use rspotify_async::model::*;
 use std::time::Duration;
 
 #[test]

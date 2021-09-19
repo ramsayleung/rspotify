@@ -1,6 +1,10 @@
+//! Note that all the endpoint tests should use async only; it is assumed that
+//! the async and sync implementations are the same at this point. Keep the
+//! sync-specific tests inside the `src` directory.
+
 use chrono::prelude::*;
 use chrono::Duration;
-use rspotify::{
+use rspotify_async::{
     prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token,
 };
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
@@ -32,7 +36,7 @@ fn test_get_authorize_url() {
     assert_eq!(hash_query.get("state").unwrap(), "fdsafdsfa");
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 async fn test_read_token_cache() {
     let expires_in = Duration::seconds(3600);
     let expires_at = Some(Utc::now() + expires_in);

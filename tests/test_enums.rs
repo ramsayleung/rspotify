@@ -1,4 +1,4 @@
-use rspotify::model::*;
+use rspotify_async::model::*;
 
 #[test]
 fn test_include_external() {

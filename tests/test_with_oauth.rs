@@ -14,8 +14,12 @@
 //! with the `oauth_tokens` example:
 //!
 //!   cargo run --example oauth_tokens --features=env-file,cli
+//!
+//! Note that all the endpoint tests should use async only; it is assumed that
+//! the async and sync implementations are the same at this point. Keep the
+//! sync-specific tests inside the `src` directory.
 
-use rspotify::{
+use rspotify_async::{
     clients::pagination::Paginator,
     model::{
         AlbumId, ArtistId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist,
@@ -30,6 +34,7 @@ use std::env;
 
 use chrono::prelude::*;
 use maybe_async::maybe_async;
+use futures::stream::TryStreamExt;
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
@@ -87,22 +92,14 @@ pub async fn oauth_client() -> AuthCodeSpotify {
     }
 }
 
-#[maybe_async]
 async fn fetch_all<'a, T>(paginator: Paginator<'a, ClientResult<T>>) -> Vec<T> {
-    #[cfg(feature = "__async")]
-    {
-        use futures::stream::TryStreamExt;
+    // TODO: make this into a test in the `paginator` module
+    // paginator.filter_map(|a| a.ok()).collect::<Vec<_>>()
 
-        paginator.try_collect::<Vec<_>>().await.unwrap()
-    }
-
-    #[cfg(feature = "__sync")]
-    {
-        paginator.filter_map(|a| a.ok()).collect::<Vec<_>>()
-    }
+    paginator.try_collect::<Vec<_>>().await.unwrap()
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_categories() {
     oauth_client()
@@ -117,7 +114,7 @@ async fn test_categories() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_category_playlists() {
     oauth_client()
@@ -132,7 +129,7 @@ async fn test_category_playlists() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_playback() {
     oauth_client()
@@ -142,7 +139,7 @@ async fn test_current_playback() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_playing() {
     oauth_client()
@@ -152,7 +149,7 @@ async fn test_current_playing() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_followed_artists() {
     oauth_client()
@@ -162,7 +159,7 @@ async fn test_current_user_followed_artists() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_playing_track() {
     oauth_client()
@@ -172,7 +169,7 @@ async fn test_current_user_playing_track() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_recently_played() {
     oauth_client()
@@ -182,7 +179,7 @@ async fn test_current_user_recently_played() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_saved_albums() {
     let album_ids = [
@@ -218,7 +215,7 @@ async fn test_current_user_saved_albums() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_saved_tracks_add() {
     let tracks_ids = [
@@ -252,7 +249,7 @@ async fn test_current_user_saved_tracks_add() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_top_artists() {
     oauth_client()
@@ -262,7 +259,7 @@ async fn test_current_user_top_artists() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_current_user_top_tracks() {
     oauth_client()
@@ -272,7 +269,7 @@ async fn test_current_user_top_tracks() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_featured_playlists() {
     let now: DateTime<Utc> = Utc::now();
@@ -283,13 +280,13 @@ async fn test_featured_playlists() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_me() {
     oauth_client().await.me().await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_new_releases() {
     oauth_client()
@@ -299,7 +296,7 @@ async fn test_new_releases() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_new_releases_with_from_token() {
     oauth_client()
@@ -309,7 +306,7 @@ async fn test_new_releases_with_from_token() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_playback() {
     let client = oauth_client().await;
@@ -390,7 +387,7 @@ async fn test_playback() {
     }
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_recommendations() {
     let seed_artists = [&ArtistId::from_id("4NHQUGzhtTLFvgF5SZesLK").unwrap()];
@@ -414,7 +411,7 @@ async fn test_recommendations() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_repeat() {
     let client = oauth_client().await;
@@ -429,7 +426,7 @@ async fn test_repeat() {
     }
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_search_album() {
     let query = "album:arrival artist:abba";
@@ -440,7 +437,7 @@ async fn test_search_album() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_search_artist() {
     let query = "tania bowra";
@@ -458,7 +455,7 @@ async fn test_search_artist() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_search_playlist() {
     let query = "\"doom metal\"";
@@ -476,7 +473,7 @@ async fn test_search_playlist() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_search_track() {
     let query = "abba";
@@ -494,7 +491,7 @@ async fn test_search_track() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_seek_track() {
     let client = oauth_client().await;
@@ -516,7 +513,7 @@ async fn test_seek_track() {
     }
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_shuffle() {
     let client = oauth_client().await;
@@ -531,7 +528,7 @@ async fn test_shuffle() {
     }
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_user_follow_artist() {
     let client = oauth_client().await;
@@ -544,7 +541,7 @@ async fn test_user_follow_artist() {
     client.user_unfollow_artists(artists).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_user_follow_users() {
     let client = oauth_client().await;
@@ -557,7 +554,7 @@ async fn test_user_follow_users() {
     client.user_unfollow_users(users).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_user_follow_playlist() {
     let client = oauth_client().await;
@@ -711,7 +708,7 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
     client.playlist_unfollow(&playlist.id).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_playlist() {
     let client = oauth_client().await;
@@ -721,7 +718,7 @@ async fn test_playlist() {
     check_playlist_follow(&client, &playlist).await;
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_volume() {
     let client = oauth_client().await;
@@ -743,7 +740,7 @@ async fn test_volume() {
     }
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_add_queue() {
     // NOTE: unfortunately it's impossible to revert this test
@@ -756,7 +753,7 @@ async fn test_add_queue() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_get_several_shows() {
     let shows = [
@@ -771,7 +768,7 @@ async fn test_get_several_shows() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[tokio::test]
 #[ignore]
 async fn test_get_several_episodes() {
     let episodes = [

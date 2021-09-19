@@ -71,7 +71,6 @@ reqwest-native-tls-vendored = ["rspotify-http/reqwest-native-tls-vendored"]
 
 # Internal features for checking async or sync compilation
 __async = ["futures", "async-stream", "async-trait"]
-__sync = []
 
 [package.metadata.docs.rs]
 # Documenting the CLI methods, and working links for `dotenv`
