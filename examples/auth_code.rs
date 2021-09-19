@@ -1,4 +1,4 @@
-use rspotify::{
+use rspotify_async::{
     model::{AdditionalType, Country, Market},
     prelude::*,
     scopes, AuthCodeSpotify, Credentials, OAuth,

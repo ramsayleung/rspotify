@@ -1,4 +1,4 @@
-use rspotify::{
+use rspotify_sync::{
     model::{Country, Market, SearchType},
     prelude::*,
     ClientCredsSpotify, Credentials,

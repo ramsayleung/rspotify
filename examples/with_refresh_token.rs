@@ -15,7 +15,7 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use rspotify_async::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.

@@ -1,4 +1,4 @@
-use rspotify::{prelude::*, scopes, AuthCodePkceSpotify, Credentials, OAuth};
+use rspotify_async::{prelude::*, scopes, AuthCodePkceSpotify, Credentials, OAuth};
 
 #[tokio::main]
 async fn main() {

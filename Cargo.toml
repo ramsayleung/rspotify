@@ -3,11 +3,11 @@ authors = [
     "Ramsay Leung <ramsayleung@gmail.com>",
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
-name = "rspotify"
+name = "rspotify-async"
 version = "0.10.0"
 license = "MIT"
 readme = "README.md"
-description = "Spotify API wrapper"
+description = "Asynchronous Spotify API wrapper"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
@@ -20,6 +20,7 @@ members = [
     "rspotify-http"
 ]
 exclude = [
+    "rspotify-sync",
     "examples/webapp"
 ]
 # For advanced features usage in the CLI, see:
@@ -59,9 +60,7 @@ cli = ["webbrowser"]
 env-file = ["dotenv"]
 
 ### HTTP ###
-# Available clients. By default they don't include a TLS so that it can be
-# configured.
-client-ureq = ["rspotify-http/client-ureq", "__sync"]
+# Only asynchronous clients are listed here.
 client-reqwest = ["rspotify-http/client-reqwest", "__async"]
 
 # Passing the TLS features to reqwest.
@@ -69,12 +68,10 @@ reqwest-default-tls = ["rspotify-http/reqwest-default-tls"]
 reqwest-rustls-tls = ["rspotify-http/reqwest-rustls-tls"]
 reqwest-native-tls = ["rspotify-http/reqwest-native-tls"]
 reqwest-native-tls-vendored = ["rspotify-http/reqwest-native-tls-vendored"]
-# Same for ureq.
-ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
 
 # Internal features for checking async or sync compilation
 __async = ["futures", "async-stream", "async-trait"]
-__sync = ["maybe-async/is_sync"]
+__sync = []
 
 [package.metadata.docs.rs]
 # Documenting the CLI methods, and working links for `dotenv`
@@ -82,60 +79,35 @@ features = ["cli", "env-file"]
 
 [[example]]
 name = "client_creds"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/client_creds.rs"
 
 [[example]]
 name = "auth_code"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/auth_code.rs"
 
 [[example]]
 name = "auth_code_pkce"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/auth_code_pkce.rs"
 
 [[example]]
 name = "oauth_tokens"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/oauth_tokens.rs"
 
 [[example]]
 name = "with_refresh_token"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/with_refresh_token.rs"
 
 [[example]]
-name = "device"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/device.rs"
-
-[[example]]
-name = "me"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/me.rs"
-
-[[example]]
-name = "search"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/search.rs"
-            
-[[example]]
-name = "seek_track"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/ureq/seek_track.rs"
-
-[[example]]
 name = "pagination_manual"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/pagination_manual.rs"
 
 [[example]]
-name = "pagination_sync"
-required-features = ["env-file", "cli", "client-ureq"]
-path = "examples/pagination_sync.rs"
-
-[[example]]
 name = "pagination_async"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "cli"]
 path = "examples/pagination_async.rs"

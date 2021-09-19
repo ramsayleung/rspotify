@@ -9,7 +9,7 @@
 //! }
 //! ```
 
-use rspotify::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use rspotify_sync::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 fn main() {
     // You can use any logger for debugging.
