@@ -38,16 +38,25 @@ pub trait OAuthClient: BaseClient {
     /// token will be saved internally.
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
 
-    /// Tries to read the cache file's token, which may not exist.
+    /// Tries to read the cache file's token.
+    ///
+    /// This will return an error if the token couldn't be read (e.g. it's not
+    /// available or the JSON is malformed). It may return `Ok(None)` if:
+    ///
+    /// * The read token is expired
+    /// * The cached token is disabled in the config
     async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
-        let tok = Token::from_cache(&self.get_config().cache_path)?;
+        if !self.get_config().token_cached {
+            return Ok(None);
+        }
 
-        if !self.get_oauth().scopes.is_subset(&tok.scopes) || tok.is_expired() {
+        let token = Token::from_cache(&self.get_config().cache_path)?;
+        if !self.get_oauth().scopes.is_subset(&token.scopes) || token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             Ok(None)
         } else {
-            Ok(Some(tok))
+            Ok(Some(token))
         }
     }
 
@@ -96,12 +105,12 @@ pub trait OAuthClient: BaseClient {
     #[cfg(feature = "cli")]
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_token_cache().await? {
-            Some(ref mut new_token) => {
+        match self.read_token_cache().await {
+            Ok(Some(ref mut new_token)) => {
                 self.get_token_mut().replace(new_token);
             }
             // Otherwise following the usual procedure to get the token.
-            None => {
+            _ => {
                 let code = self.get_code_from_user(url)?;
                 // Will write to the cache file if successful
                 self.request_token(&code).await?;
