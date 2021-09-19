@@ -28,6 +28,7 @@ use rspotify_async::{
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
+    http::ReqwestClient
 };
 
 use std::env;
@@ -45,7 +46,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
             ..Default::default()
         };
 
-        AuthCodeSpotify::from_token(tok)
+        AuthCodeSpotify::<ReqwestClient>::from_token(tok)
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.

@@ -6,6 +6,7 @@ use rspotify_async::{
     model::{AlbumId, AlbumType, ArtistId, Country, Id, Market, PlaylistId, TrackId, UserId},
     prelude::*,
     ClientCredsSpotify, Credentials,
+    http::ReqwestClient
 };
 
 /// Generating a new basic client for the requests.
@@ -19,7 +20,7 @@ pub async fn creds_client() -> ClientCredsSpotify {
         )
     });
 
-    let mut spotify = ClientCredsSpotify::new(creds);
+    let mut spotify = ClientCredsSpotify::<ReqwestClient>::new(creds);
     spotify.request_token().await.unwrap();
     spotify
 }

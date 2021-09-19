@@ -6,6 +6,7 @@ use chrono::prelude::*;
 use chrono::Duration;
 use rspotify_async::{
     prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token,
+    http::ReqwestClient
 };
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
 use url::Url;
@@ -20,7 +21,7 @@ fn test_get_authorize_url() {
     };
     let creds = Credentials::new("this-is-my-client-id", "this-is-my-client-secret");
 
-    let spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::<ReqwestClient>::new(creds, oauth);
 
     let authorize_url = spotify.get_authorize_url(false).unwrap();
     let hash_query: HashMap<_, _> = Url::parse(&authorize_url)
@@ -55,14 +56,14 @@ async fn test_read_token_cache() {
         cache_path: PathBuf::from(".test_read_token_cache.json"),
         ..Default::default()
     };
-    let mut predefined_spotify = ClientCredsSpotify::from_token(tok.clone());
+    let mut predefined_spotify = ClientCredsSpotify::<ReqwestClient>::from_token(tok.clone());
     predefined_spotify.config = config.clone();
 
     // write token data to cache_path
     predefined_spotify.write_token_cache().unwrap();
     assert!(predefined_spotify.config.cache_path.exists());
 
-    let mut spotify = ClientCredsSpotify::default();
+    let mut spotify = ClientCredsSpotify::<ReqwestClient>::default();
     spotify.config = config;
 
     // read token from cache file
@@ -94,7 +95,7 @@ fn test_write_token() {
         cache_path: PathBuf::from(".test_write_token_cache.json"),
         ..Default::default()
     };
-    let mut spotify = ClientCredsSpotify::from_token(tok.clone());
+    let mut spotify = ClientCredsSpotify::<ReqwestClient>::from_token(tok.clone());
     spotify.config = config;
 
     let tok_str = serde_json::to_string(&tok).unwrap();
@@ -130,7 +131,7 @@ fn test_token_is_expired() {
 
 #[test]
 fn test_parse_response_code() {
-    let spotify = AuthCodeSpotify::default();
+    let spotify = AuthCodeSpotify::<ReqwestClient>::default();
 
     let url = "http://localhost:8888/callback";
     let code = spotify.parse_response_code(url);

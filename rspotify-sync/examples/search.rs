@@ -1,4 +1,5 @@
 use rspotify_sync::{
+    http::UreqClient,
     model::{Country, Market, SearchType},
     prelude::*,
     ClientCredsSpotify, Credentials,
@@ -9,7 +10,7 @@ fn main() {
     env_logger::init();
 
     let creds = Credentials::from_env().unwrap();
-    let mut spotify = ClientCredsSpotify::new(creds);
+    let mut spotify = ClientCredsSpotify::<UreqClient>::new(creds);
 
     // Obtaining the access token
     spotify.request_token().unwrap();

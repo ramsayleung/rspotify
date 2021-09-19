@@ -1,4 +1,4 @@
-use rspotify_sync::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use rspotify_sync::{http::UreqClient, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
 
 fn main() {
     // You can use any logger for debugging.
@@ -7,7 +7,7 @@ fn main() {
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-read-playback-state")).unwrap();
 
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let mut spotify = AuthCodeSpotify::<UreqClient>::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();

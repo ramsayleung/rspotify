@@ -2,6 +2,7 @@ use rspotify_async::{
     model::{AdditionalType, Country, Market},
     prelude::*,
     scopes, AuthCodeSpotify, Credentials, OAuth,
+    http::ReqwestClient
 };
 
 #[tokio::main]
@@ -38,7 +39,7 @@ async fn main() {
     // ```
     let oauth = OAuth::from_env(scopes!("user-read-currently-playing")).unwrap();
 
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let mut spotify = AuthCodeSpotify::<ReqwestClient>::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();

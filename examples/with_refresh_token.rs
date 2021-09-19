@@ -15,7 +15,7 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify_async::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use rspotify_async::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth, http::ReqwestClient};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
@@ -56,7 +56,7 @@ async fn main() {
     // The default credentials from the `.env` file will be used by default.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
-    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
+    let mut spotify = AuthCodeSpotify::<ReqwestClient>::new(creds.clone(), oauth.clone());
 
     // In the first session of the application we authenticate and obtain the
     // refresh token. We can also do some requests here.

@@ -55,7 +55,7 @@ pub fn basic_auth(user: &str, password: &str) -> (String, String) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{scopes, ClientCredsSpotify, Token};
+    use crate::{scopes, ClientCredsSpotify, TestClient, Token};
     use chrono::{prelude::*, Duration};
 
     #[test]
@@ -98,7 +98,7 @@ mod test {
 
     #[test]
     fn test_endpoint_url() {
-        let spotify = ClientCredsSpotify::default();
+        let spotify = ClientCredsSpotify::<TestClient>::default();
         assert_eq!(
             spotify.endpoint_url("me/player/play"),
             "https://api.spotify.com/v1/me/player/play"
@@ -123,7 +123,7 @@ mod test {
             refresh_token: Some("...".to_string()),
         };
 
-        let spotify = ClientCredsSpotify::from_token(tok);
+        let spotify = ClientCredsSpotify::<TestClient>::from_token(tok);
         let headers = spotify.auth_headers().unwrap();
         assert_eq!(
             headers.get("authorization"),

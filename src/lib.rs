@@ -137,6 +137,11 @@ pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 pub use model::Token;
 
+#[cfg(feature = "__async")]
+pub(in crate) use http::ReqwestClient as TestClient;
+#[cfg(feature = "__sync")]
+pub(in crate) use http::UreqClient as TestClient;
+
 use crate::http::HttpError;
 
 use std::{collections::HashSet, env, path::PathBuf};
