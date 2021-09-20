@@ -1,8 +1,8 @@
 use rspotify_async::{
+    http::ReqwestClient,
     model::{AdditionalType, Country, Market},
     prelude::*,
     scopes, AuthCodeSpotify, Credentials, OAuth,
-    http::ReqwestClient
 };
 
 #[tokio::main]

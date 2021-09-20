@@ -5,8 +5,8 @@
 use chrono::prelude::*;
 use chrono::Duration;
 use rspotify_async::{
-    prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token,
-    http::ReqwestClient
+    http::ReqwestClient, prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config,
+    Credentials, OAuth, Token,
 };
 use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
 use url::Url;

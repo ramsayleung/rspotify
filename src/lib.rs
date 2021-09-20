@@ -137,9 +137,11 @@ pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 pub use model::Token;
 
-#[cfg(feature = "__async")]
+#[cfg(all(test, feature = "__async", not(feature = "__sync")))]
 pub(in crate) use http::ReqwestClient as TestClient;
-#[cfg(feature = "__sync")]
+#[cfg(all(test, feature = "__async", feature = "__sync"))]
+pub(in crate) use http::ReqwestClient as TestClient;
+#[cfg(all(test, feature = "__sync", not(feature = "__async")))]
 pub(in crate) use http::UreqClient as TestClient;
 
 use crate::http::HttpError;

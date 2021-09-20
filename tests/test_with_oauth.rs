@@ -21,6 +21,7 @@
 
 use rspotify_async::{
     clients::pagination::Paginator,
+    http::ReqwestClient,
     model::{
         AlbumId, ArtistId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist,
         Market, Offset, PlaylistId, RecommendationsAttribute, RepeatState, SearchType, ShowId,
@@ -28,25 +29,22 @@ use rspotify_async::{
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
-    http::ReqwestClient
 };
 
 use std::env;
 
 use chrono::prelude::*;
-use maybe_async::maybe_async;
 use futures::stream::TryStreamExt;
 
 /// Generating a new OAuth client for the requests.
-#[maybe_async]
-pub async fn oauth_client() -> AuthCodeSpotify {
+pub async fn oauth_client() -> AuthCodeSpotify<ReqwestClient> {
     if let Ok(access_token) = env::var("RSPOTIFY_ACCESS_TOKEN") {
         let tok = Token {
             access_token,
             ..Default::default()
         };
 
-        AuthCodeSpotify::<ReqwestClient>::from_token(tok)
+        AuthCodeSpotify::from_token(tok)
     } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
@@ -569,8 +567,7 @@ async fn test_user_follow_playlist() {
     client.playlist_unfollow(&playlist_id).await.unwrap();
 }
 
-#[maybe_async]
-async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
+async fn check_playlist_create(client: &AuthCodeSpotify<ReqwestClient>) -> FullPlaylist {
     let user = client.me().await.unwrap();
     let name = "A New Playlist";
 
@@ -607,14 +604,16 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     playlist
 }
 
-#[maybe_async]
-async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: &PlaylistId, num: i32) {
+async fn check_num_tracks(
+    client: &AuthCodeSpotify<ReqwestClient>,
+    playlist_id: &PlaylistId,
+    num: i32,
+) {
     let fetched_tracks = fetch_all(client.playlist_tracks(playlist_id, None, None)).await;
     assert_eq!(fetched_tracks.len() as i32, num);
 }
 
-#[maybe_async]
-async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
+async fn check_playlist_tracks(client: &AuthCodeSpotify<ReqwestClient>, playlist: &FullPlaylist) {
     // The tracks in the playlist, some of them repeated
     // TODO: include episodes after https://github.com/ramsayleung/rspotify/issues/203
     let tracks = [
@@ -691,8 +690,7 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32 - 5).await;
 }
 
-#[maybe_async]
-async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
+async fn check_playlist_follow(client: &AuthCodeSpotify<ReqwestClient>, playlist: &FullPlaylist) {
     let user_ids = [
         &UserId::from_id("possan").unwrap(),
         &UserId::from_id("elogain").unwrap(),

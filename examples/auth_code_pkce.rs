@@ -1,4 +1,6 @@
-use rspotify_async::{prelude::*, scopes, AuthCodePkceSpotify, Credentials, OAuth, http::ReqwestClient};
+use rspotify_async::{
+    http::ReqwestClient, prelude::*, scopes, AuthCodePkceSpotify, Credentials, OAuth,
+};
 
 #[tokio::main]
 async fn main() {

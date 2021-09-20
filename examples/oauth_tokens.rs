@@ -5,7 +5,9 @@
 //! an .env file or export them manually as environmental variables for this to
 //! work.
 
-use rspotify_async::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth, http::ReqwestClient};
+use rspotify_async::{
+    http::ReqwestClient, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth,
+};
 
 #[tokio::main]
 async fn main() {

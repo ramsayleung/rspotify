@@ -1,7 +1,9 @@
 //! This example shows how manual pagination works. It's what the raw API
 //! returns, but harder to use than an iterator or stream.
 
-use rspotify_async::{prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth, http::ReqwestClient};
+use rspotify_async::{
+    http::ReqwestClient, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth,
+};
 
 #[tokio::main]
 async fn main() {

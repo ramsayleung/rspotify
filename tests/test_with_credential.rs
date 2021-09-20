@@ -3,14 +3,14 @@
 //! sync-specific tests inside the `src` directory.
 
 use rspotify_async::{
+    http::ReqwestClient,
     model::{AlbumId, AlbumType, ArtistId, Country, Id, Market, PlaylistId, TrackId, UserId},
     prelude::*,
     ClientCredsSpotify, Credentials,
-    http::ReqwestClient
 };
 
 /// Generating a new basic client for the requests.
-pub async fn creds_client() -> ClientCredsSpotify {
+pub async fn creds_client() -> ClientCredsSpotify<ReqwestClient> {
     // The credentials must be available in the environment.
     let creds = Credentials::from_env().unwrap_or_else(|| {
         panic!(
@@ -20,7 +20,7 @@ pub async fn creds_client() -> ClientCredsSpotify {
         )
     });
 
-    let mut spotify = ClientCredsSpotify::<ReqwestClient>::new(creds);
+    let mut spotify = ClientCredsSpotify::new(creds);
     spotify.request_token().await.unwrap();
     spotify
 }
