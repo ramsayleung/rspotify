@@ -63,12 +63,16 @@ jobs:
       RUST_BACKTRACE: 1
     strategy:
       matrix:
-        features:
-          - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-rustls-tls,rspotify-http/client-ureq,rspotify-http/ureq-rustls-tls
-          - rspotify/cli,rspotify/env-file,rspotify/client-reqwest,rspotify/reqwest-rustls-tls,rspotify-http/client-reqwest,rspotify-http/reqwest-rustls-tls
+        # For testing both async and sync
+        directory:
+          - .
+          - rspotify-sync
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+
+      - name: Change directory
+        run: cd ${{ matrix.directory }}
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -82,10 +86,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }} -- -D warnings
+          args: --workspace --all-features -- -D warnings
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }}
+          args: --workspace --all-features

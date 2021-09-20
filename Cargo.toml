@@ -20,6 +20,9 @@ members = [
     "rspotify-http"
 ]
 exclude = [
+    # The synchronous crate must not be in the same workspace so that commands
+    # like `--workspace` don't enable both async and sync and thus fail due to
+    # conflicts.
     "rspotify-sync",
     "examples/webapp"
 ]
