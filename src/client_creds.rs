@@ -86,7 +86,6 @@ impl ClientCredsSpotify {
     /// available or the JSON is malformed). It may return `Ok(None)` if:
     ///
     /// * The read token is expired
-    /// * Its scopes don't match with the current client
     /// * The cached token is disabled in the config
     #[maybe_async]
     pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
