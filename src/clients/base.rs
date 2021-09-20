@@ -27,7 +27,7 @@ where
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
     fn get_token(&self) -> Option<&Token>;
-    fn get_token_mut(&mut self) -> Option<&mut Token>;
+    fn get_token_mut(&mut self) -> &mut Option<Token>;
     fn get_creds(&self) -> &Credentials;
 
     /// If it's a relative URL like "me", the prefix is appended to it.
