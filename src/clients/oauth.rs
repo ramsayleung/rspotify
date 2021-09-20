@@ -981,7 +981,7 @@ pub trait OAuthClient: BaseClient {
         };
 
         let url = append_device_id("me/player/play", device_id);
-        self.put(&url, None, &params).await?;
+        self.endpoint_put(&url, &params).await?;
 
         Ok(())
     }
