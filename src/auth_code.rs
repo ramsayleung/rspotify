@@ -101,10 +101,6 @@ impl OAuthClient for AuthCodeSpotify {
         &self.oauth
     }
 
-    fn set_token(&mut self, token: Option<Token>) {
-        self.token = token;
-    }
-
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
