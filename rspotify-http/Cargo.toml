@@ -29,8 +29,6 @@ reqwest = { version = "0.11.4", default-features = false, features = ["json", "s
 ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies"], optional = true }
 
 [features]
-default = ["client-reqwest", "reqwest-default-tls"]
-
 # Available clients. By default they don't include a TLS so that it can be
 # configured.
 client-ureq = ["ureq", "__sync"]

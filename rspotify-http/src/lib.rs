@@ -8,12 +8,12 @@
 mod common;
 
 #[cfg(feature = "client-reqwest")]
-mod reqwest;
+pub mod reqwest;
 #[cfg(feature = "client-reqwest")]
 pub use self::reqwest::ReqwestClient;
 
 #[cfg(feature = "client-ureq")]
-mod ureq;
+pub mod ureq;
 #[cfg(feature = "client-ureq")]
 pub use self::ureq::UreqClient;
 
