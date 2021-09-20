@@ -107,8 +107,9 @@ pub trait OAuthClient: BaseClient {
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
-            Ok(Some(ref mut new_token)) => {
-                self.get_token_mut().replace(new_token);
+            Ok(Some(new_token)) => {
+                let token = self.get_token_mut();
+                *token = Some(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             _ => {
@@ -979,7 +980,7 @@ pub trait OAuthClient: BaseClient {
         };
 
         let url = append_device_id("me/player/play", device_id);
-        self.put(&url, None, &params).await?;
+        self.endpoint_put(&url, &params).await?;
 
         Ok(())
     }
