@@ -14,4 +14,4 @@ keywords = ["spotify", "api", "rspotify"]
 edition = "2018"
 
 [dev-dependencies]
-serde_json = "1.0.67"
+serde_json = "1.0.68"
