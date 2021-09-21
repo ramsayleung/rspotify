@@ -125,9 +125,9 @@ pub mod auth_code;
 pub mod auth_code_pkce;
 pub mod client_creds;
 pub mod clients;
+pub mod http;
 
 // Subcrate re-exports
-pub use rspotify_http as http;
 pub use rspotify_macros as macros;
 pub use rspotify_model as model;
 // Top-level re-exports

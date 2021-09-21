@@ -5,7 +5,11 @@
 // This way only the compile error below gets shown instead of a whole list of
 // confusing errors..
 
+// If no client is configured the crate is empty to avoid compilation errors
+#[cfg(any(feature = "__async", feature = "__sync"))]
 mod common;
+#[cfg(any(feature = "__async", feature = "__sync"))]
+pub use common::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 
 #[cfg(feature = "client-reqwest")]
 pub mod reqwest;
@@ -16,5 +20,3 @@ pub use self::reqwest::ReqwestClient;
 pub mod ureq;
 #[cfg(feature = "client-ureq")]
 pub use self::ureq::UreqClient;
-
-pub use common::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};

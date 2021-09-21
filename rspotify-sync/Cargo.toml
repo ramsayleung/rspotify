@@ -19,7 +19,6 @@ path = "../src/lib.rs"
 [dependencies]
 rspotify-macros = { path = "../rspotify-macros", version = "0.10.0" }
 rspotify-model = { path = "../rspotify-model", version = "0.10.0" }
-rspotify-http = { path = "../rspotify-http", version = "0.10.0" }
 
 base64 = "0.13.0"
 chrono = { version = "0.4.19", features = ["serde", "rustc-serialize"] }
@@ -33,6 +32,9 @@ thiserror = "1.0.29"
 url = "2.2.2"
 webbrowser = { version = "0.5.5", optional = true }
 
+# Supported clients
+ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies"], optional = true }
+
 [dev-dependencies]
 env_logger = { version = "0.9.0", default-features = false }
 
@@ -45,10 +47,10 @@ env-file = ["dotenv"]
 
 ### HTTP ###
 # Only synchronous clients are listed here.
-client-ureq = ["rspotify-http/client-ureq", "__sync"]
+client-ureq = ["ureq", "__sync"]
 
 # Passing the TLS features to ureq.
-ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
+ureq-rustls-tls = ["ureq/rustls"]
 
 # Internal features for checking async or sync compilation
 __sync = ["maybe-async/is_sync"]

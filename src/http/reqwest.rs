@@ -1,7 +1,7 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use crate::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
+use crate::http::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 
 use std::convert::TryInto;
 
