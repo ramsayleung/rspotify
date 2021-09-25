@@ -30,7 +30,7 @@ pub(in crate) fn append_device_id(path: &str, device_id: Option<&str>) -> String
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{scopes, ClientCredsSpotify, Credentials, Token};
+    use crate::{model::Token, scopes, ClientCredsSpotify};
     use chrono::{prelude::*, Duration};
 
     #[test]
@@ -49,37 +49,6 @@ mod test {
         assert_eq!(
             new_path,
             "me/player/shuffle?state=true&device_id=fdafdsadfa"
-        );
-    }
-
-    #[test]
-    fn test_bearer_auth() {
-        let tok = Token {
-            access_token: "access_token".to_string(),
-            ..Default::default()
-        };
-
-        let headers = tok.auth_headers();
-        assert_eq!(headers.len(), 1);
-        assert_eq!(
-            headers.get("authorization"),
-            Some(&"Bearer access_token".to_owned())
-        );
-    }
-
-    #[test]
-    fn test_basic_auth() {
-        let creds = Credentials::new_pkce("ramsay");
-        let headers = creds.auth_headers();
-        assert_eq!(headers, None);
-
-        let creds = Credentials::new("ramsay", "123456");
-
-        let headers = creds.auth_headers().unwrap();
-        assert_eq!(headers.len(), 1);
-        assert_eq!(
-            headers.get("authorization"),
-            Some(&"Basic cmFtc2F5OjEyMzQ1Ng==".to_owned())
         );
     }
 

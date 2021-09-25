@@ -383,7 +383,7 @@ impl OAuth {
 
 #[cfg(test)]
 mod test {
-    use super::{alphabets, generate_random_string};
+    use crate::{alphabets, generate_random_string, Credentials};
     use std::collections::HashSet;
 
     #[test]
@@ -393,5 +393,21 @@ mod test {
             containers.insert(generate_random_string(10, alphabets::ALPHANUM));
         }
         assert_eq!(containers.len(), 100);
+    }
+
+    #[test]
+    fn test_basic_auth() {
+        let creds = Credentials::new_pkce("ramsay");
+        let headers = creds.auth_headers();
+        assert_eq!(headers, None);
+
+        let creds = Credentials::new("ramsay", "123456");
+
+        let headers = creds.auth_headers().unwrap();
+        assert_eq!(headers.len(), 1);
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Basic cmFtc2F5OjEyMzQ1Ng==".to_owned())
+        );
     }
 }

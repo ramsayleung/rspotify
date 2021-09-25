@@ -92,3 +92,23 @@ impl Token {
         headers
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::Token;
+
+    #[test]
+    fn test_bearer_auth() {
+        let tok = Token {
+            access_token: "access_token".to_string(),
+            ..Default::default()
+        };
+
+        let headers = tok.auth_headers();
+        assert_eq!(headers.len(), 1);
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Bearer access_token".to_owned())
+        );
+    }
+}
