@@ -49,9 +49,11 @@ pub trait OAuthClient: BaseClient {
     /// * The cached token is disabled in the config
     async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
+            log::info!("Auth token cache read ignored (not configured)");
             return Ok(None);
         }
 
+        log::info!("Reading auth token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
         if !self.get_oauth().scopes.is_subset(&token.scopes) || token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
@@ -79,6 +81,7 @@ pub trait OAuthClient: BaseClient {
     fn get_code_from_user(&self, url: &str) -> ClientResult<String> {
         use crate::ClientError;
 
+        log::info!("Opening brower with auth URL");
         match webbrowser::open(url) {
             Ok(_) => println!("Opened {} in your browser.", url),
             Err(why) => eprintln!(
@@ -88,6 +91,7 @@ pub trait OAuthClient: BaseClient {
             ),
         }
 
+        log::info!("Prompting user for code");
         println!("Please enter the URL you were redirected to: ");
         let mut input = String::new();
         std::io::stdin().read_line(&mut input)?;

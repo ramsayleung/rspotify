@@ -1,9 +1,9 @@
 use crate::{
     alphabets, auth_urls,
     clients::{BaseClient, OAuthClient},
-    generate_random_string, params,
+    generate_random_string,
     http::{Form, HttpClient},
-    join_scopes, ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
@@ -73,6 +73,8 @@ impl OAuthClient for AuthCodePkceSpotify {
     /// or with [`Self::get_authorize_url`]. Otherwise, this function will
     /// panic.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+        log::info!("Requesting PKCE Auth Code token");
+
         let verifier = self.verifier.as_ref().expect(
             "Unknown code verifier. Try calling \
             `AuthCodePkceSpotify::get_authorize_url` first or setting it \
@@ -93,6 +95,8 @@ impl OAuthClient for AuthCodePkceSpotify {
     }
 
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
+        log::info!("Refreshing PKCE Auth Code token");
+
         let mut data = Form::new();
         data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
         data.insert(params::REFRESH_TOKEN, refresh_token);
@@ -140,6 +144,8 @@ impl AuthCodePkceSpotify {
 
     /// Generate the verifier code and the challenge code.
     fn generate_codes(&self, verifier_bytes: usize) -> (String, String) {
+        log::info!("Generating PKCE codes");
+
         debug_assert!(verifier_bytes >= 43);
         debug_assert!(verifier_bytes <= 128);
         // The code verifier is just the randomly generated string.
@@ -171,6 +177,8 @@ impl AuthCodePkceSpotify {
     /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
     /// [rfce]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
     pub fn get_authorize_url(&mut self, verifier_bytes: Option<usize>) -> ClientResult<String> {
+        log::info!("Building auth URL");
+
         let scopes = join_scopes(&self.oauth.scopes);
         let verifier_bytes = verifier_bytes.unwrap_or(43);
         let (verifier, challenge) = self.generate_codes(verifier_bytes);

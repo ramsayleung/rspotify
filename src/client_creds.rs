@@ -1,8 +1,7 @@
 use crate::{
     clients::BaseClient,
-    params,
     http::{Form, HttpClient},
-    ClientResult, Config, Credentials, Token,
+    params, ClientResult, Config, Credentials, Token,
 };
 
 use maybe_async::maybe_async;
@@ -90,9 +89,11 @@ impl ClientCredsSpotify {
     #[maybe_async]
     pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
+            log::info!("Token cache read ignored (not configured)");
             return Ok(None);
         }
 
+        log::info!("Reading token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
         if token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
@@ -107,6 +108,8 @@ impl ClientCredsSpotify {
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&mut self) -> ClientResult<()> {
+        log::info!("Requesting Client Credentials token");
+
         let mut data = Form::new();
         data.insert(params::GRANT_TYPE, params::GRANT_TYPE_CLIENT_CREDS);
 

@@ -151,9 +151,11 @@ where
     /// and do nothing in that case already.
     fn write_token_cache(&self) -> ClientResult<()> {
         if !self.get_config().token_cached {
+            log::info!("Token cache write ignored (not configured)");
             return Ok(());
         }
 
+        log::info!("Writing token cache");
         if let Some(tok) = self.get_token().as_ref() {
             tok.write_cache(&self.get_config().cache_path)?;
         }
