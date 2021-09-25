@@ -53,7 +53,7 @@ impl UreqClient {
         log::info!("Making request {:?}", request);
         // Converting errors from ureq into our custom error types
         match send_request(request) {
-            Ok(response) => response.into_string().map_err(|error| UreqError::Io(error)),
+            Ok(response) => response.into_string().map_err(UreqError::Io),
             Err(err) => match err {
                 ureq::Error::Status(_, response) => Err(UreqError::StatusCode(response)),
                 ureq::Error::Transport(transport) => Err(UreqError::Transport(transport)),

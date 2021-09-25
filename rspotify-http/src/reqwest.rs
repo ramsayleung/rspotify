@@ -57,20 +57,14 @@ impl ReqwestClient {
 
         // Finally performing the request and handling the response
         log::info!("Making request {:?}", request);
-        let response = request
-            .send()
-            .await
-            .map_err(|error| ReqwestError::Client(error))?;
+        let response = request.send().await.map_err(ReqwestError::Client)?;
 
         // Making sure that the status code is OK
         if !response.status().is_success() {
             return Err(ReqwestError::StatusCode(response));
         }
 
-        response
-            .text()
-            .await
-            .map_err(|error| ReqwestError::Client(error))
+        response.text().await.map_err(ReqwestError::Client)
     }
 }
 
