@@ -6,45 +6,10 @@ use super::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 use std::convert::TryInto;
 
 use maybe_async::async_impl;
-use reqwest::{Method, RequestBuilder, StatusCode};
-use rspotify_model::ApiError;
+use reqwest::{Method, RequestBuilder};
 use serde_json::Value;
 
-impl HttpError {
-    pub async fn from_response(response: reqwest::Response) -> Self {
-        match response.status() {
-            StatusCode::UNAUTHORIZED => Self::Unauthorized,
-            StatusCode::TOO_MANY_REQUESTS => Self::RateLimited(
-                response
-                    .headers()
-                    .get(reqwest::header::RETRY_AFTER)
-                    .and_then(|header| header.to_str().ok())
-                    .and_then(|duration| duration.parse().ok()),
-            ),
-            status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => response
-                .json::<ApiError>()
-                .await
-                .map(Into::into)
-                .unwrap_or_else(|_| status.into()),
-            status => status.into(),
-        }
-    }
-}
-
-impl From<reqwest::Error> for HttpError {
-    fn from(err: reqwest::Error) -> Self {
-        Self::Request(err.to_string())
-    }
-}
-
-impl From<reqwest::StatusCode> for HttpError {
-    fn from(code: reqwest::StatusCode) -> Self {
-        Self::StatusCode(
-            code.as_u16(),
-            code.canonical_reason().unwrap_or("unknown").to_string(),
-        )
-    }
-}
+pub type Error = reqwest::Error;
 
 #[derive(Default, Debug, Clone)]
 pub struct ReqwestClient {
@@ -88,7 +53,10 @@ impl ReqwestClient {
         if response.status().is_success() {
             response.text().await.map_err(Into::into)
         } else {
-            Err(HttpError::from_response(response).await)
+            Err(HttpError::StatusCode(
+                response.status().as_u16(),
+                response.json().await.ok(),
+            ))
         }
     }
 }

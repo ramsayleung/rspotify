@@ -2,14 +2,21 @@
 
 use super::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
 
+use std::io;
+
 use maybe_async::sync_impl;
 use serde_json::Value;
 use ureq::{Request, Response};
 
-impl HttpError {
-    pub fn from_response(r: ureq::Response) -> Self {
-        HttpError::StatusCode(r.status(), r.status_text().to_string())
-    }
+/// Custom enum that contains all the possible errors that may occur when using
+/// `ureq`.
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("transport: {0}")]
+    Transport(#[from] ureq::Transport),
+
+    #[error("I/O: {0}")]
+    Io(#[from] io::Error),
 }
 
 #[derive(Default, Debug, Clone)]
@@ -41,13 +48,19 @@ impl UreqClient {
         }
 
         log::info!("Making request {:?}", request);
+        // Converting errors from ureq into our custom error types
         match send_request(request) {
-            // Successful request
-            Ok(response) => response.into_string().map_err(Into::into),
-            // HTTP status error
-            Err(ureq::Error::Status(_, response)) => Err(HttpError::from_response(response)),
-            // Some kind of IO/transport error
-            Err(err) => Err(HttpError::Request(err.to_string())),
+            Ok(response) => response
+                .into_string()
+                .map_err(|error| HttpError::Ureq(Error::Io(error))),
+            Err(err) => match err {
+                ureq::Error::Status(status, response) => {
+                    Err(HttpError::StatusCode(status, response.into_json().ok()))
+                }
+                ureq::Error::Transport(transport) => {
+                    Err(HttpError::Ureq(Error::Transport(transport)))
+                }
+            },
         }
     }
 }

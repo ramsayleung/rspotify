@@ -9,25 +9,22 @@ pub type Headers = HashMap<String, String>;
 pub type Query<'a> = HashMap<&'a str, &'a str>;
 pub type Form<'a> = HashMap<&'a str, &'a str>;
 
+/// Any kind of error when performing an HTTP request
 #[derive(thiserror::Error, Debug)]
 pub enum HttpError {
-    #[error("request unauthorized")]
-    Unauthorized,
+    /// Error specific to the ureq queries
+    #[cfg(feature = "client-ureq")]
+    #[error("ureq: {0}")]
+    Ureq(#[from] crate::ureq::Error),
 
-    #[error("exceeded request limit")]
-    RateLimited(Option<usize>),
+    /// Error specific to the reqwest queries
+    #[cfg(feature = "client-reqwest")]
+    #[error("reqwest: {0}")]
+    Reqwest(#[from] crate::reqwest::Error),
 
-    #[error("request error: {0}")]
-    Request(String),
-
-    #[error("status code {0}: {1}")]
-    StatusCode(u16, String),
-
-    #[error("spotify error: {0}")]
-    Api(#[from] ApiError),
-
-    #[error("input/output error: {0}")]
-    Io(#[from] std::io::Error),
+    /// Something failed server-side (a logic error, the server is down, etc)
+    #[error("unsuccessful status code: {0}")]
+    StatusCode(u16, Option<ApiError>),
 }
 
 pub type HttpResult<T> = Result<T, HttpError>;
