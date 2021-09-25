@@ -1,6 +1,6 @@
 use crate::{
     auth_urls,
-    clients::{BaseClient, OAuthClient},
+    clients::{mutex::Mutex, BaseClient, OAuthClient},
     headers,
     http::{Form, HttpClient},
     ClientResult, Config, Credentials, OAuth, Token,
@@ -8,11 +8,6 @@ use crate::{
 
 use std::{collections::HashMap, sync::Arc};
 
-#[cfg(feature = "__sync")]
-use std::sync::Mutex;
-
-#[cfg(feature = "__async")]
-use futures::lock::Mutex;
 use maybe_async::maybe_async;
 use url::Url;
 
@@ -101,21 +96,7 @@ impl BaseClient for AuthCodeSpotify {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
 
-        // The sync and async versions of Mutex have different function signatures
-        let tok = self.get_token().await;
-        let locked_token = tok.lock().await;
-        let mut tmp_locked_lock = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tmp_locked_lock = locked_token.as_ref();
-        }
-
-        #[cfg(feature = "__sync")]
-        {
-            tmp_locked_lock = locked_token.unwrap().as_ref();
-        }
-
-        match tmp_locked_lock {
+        match self.get_token().await.lock().await.unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
@@ -160,14 +141,7 @@ impl OAuthClient for AuthCodeSpotify {
 
         let token = self.fetch_access_token(&data).await?;
 
-        #[cfg(feature = "__async")]
-        {
-            *self.token.lock().await = Some(token);
-        }
-        #[cfg(feature = "__sync")]
-        {
-            *self.token.lock().unwrap() = Some(token);
-        }
+        *self.token.lock().await.unwrap() = Some(token);
 
         self.write_token_cache().await
     }

@@ -2,6 +2,7 @@ use crate::{
     auth_urls,
     clients::{
         basic_auth, bearer_auth, convert_result, join_ids,
+        mutex::Mutex,
         pagination::{paginate, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
@@ -11,12 +12,6 @@ use crate::{
 };
 
 use std::{collections::HashMap, fmt, sync::Arc};
-
-#[cfg(feature = "__sync")]
-use std::sync::Mutex;
-
-#[cfg(feature = "__async")]
-use futures::lock::Mutex;
 
 use chrono::Utc;
 use maybe_async::maybe_async;
@@ -62,14 +57,7 @@ where
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
         if let Some(token) = token {
-            #[cfg(feature = "__async")]
-            {
-                self.get_token().await.lock().await.replace(token);
-            }
-            #[cfg(feature = "__sync")]
-            {
-                self.get_token().lock().unwrap().replace(token);
-            }
+            self.get_token().await.lock().await.unwrap().replace(token);
         }
 
         self.write_token_cache().await
@@ -89,19 +77,10 @@ where
     /// The headers required for authenticated requests to the API
     async fn auth_headers(&self) -> ClientResult<Headers> {
         let mut auth = Headers::new();
-        let tok = self.get_token().await;
-        let locked_token = tok.lock().await;
-        let mut tmp_locked_lock = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tmp_locked_lock = locked_token.as_ref();
-        }
-
-        #[cfg(feature = "__sync")]
-        {
-            tmp_locked_lock = locked_token.unwrap().as_ref();
-        }
-        let (key, val) = bearer_auth(&tmp_locked_lock.expect("Rspotify not authenticated"));
+        let token = self.get_token().await;
+        let token = token.lock().await.unwrap();
+        let token = token.as_ref().expect("Rspotify not authenticated");
+        let (key, val) = bearer_auth(token);
         auth.insert(key, val);
 
         Ok(auth)
@@ -212,19 +191,7 @@ where
             return Ok(());
         }
 
-        let tok = self.get_token().await;
-        let locked_token = tok.lock().await;
-        let mut tmp_locked_lock = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tmp_locked_lock = locked_token.as_ref();
-        }
-
-        #[cfg(feature = "__sync")]
-        {
-            tmp_locked_lock = locked_token.unwrap().as_ref();
-        }
-        if let Some(token) = tmp_locked_lock {
+        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
             token.write_cache(&self.get_config().cache_path)?;
         }
 

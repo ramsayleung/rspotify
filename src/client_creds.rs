@@ -1,5 +1,5 @@
 use crate::{
-    clients::BaseClient,
+    clients::{mutex::Mutex, BaseClient},
     headers,
     http::{Form, HttpClient},
     ClientResult, Config, Credentials, Token,
@@ -7,11 +7,6 @@ use crate::{
 
 use std::sync::Arc;
 
-#[cfg(feature = "__sync")]
-use std::sync::Mutex;
-
-#[cfg(feature = "__async")]
-use futures::lock::Mutex;
 use maybe_async::maybe_async;
 
 /// The [Client Credentials Flow][reference] client for the Spotify API.
@@ -119,14 +114,7 @@ impl ClientCredsSpotify {
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&self) -> ClientResult<()> {
-        #[cfg(feature = "__async")]
-        {
-            *self.token.lock().await = Some(self.fetch_token().await?);
-        }
-        #[cfg(feature = "__sync")]
-        {
-            *self.token.lock().unwrap() = Some(self.fetch_token()?);
-        }
+        *self.token.lock().await.unwrap() = Some(self.fetch_token().await?);
 
         self.write_token_cache().await
     }
@@ -152,20 +140,7 @@ impl ClientCredsSpotify {
         // You could not have read lock and write lock at the same time, which
         // will result in deadlock, so obtain the write lock and use it in the
         // whole process.
-        let tok = self.get_token().await;
-        let locked_token = tok.lock().await;
-        let mut tmp_locked_lock = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tmp_locked_lock = locked_token.as_ref();
-        }
-
-        #[cfg(feature = "__sync")]
-        {
-            tmp_locked_lock = locked_token.unwrap().as_ref();
-        }
-
-        if let Some(token) = tmp_locked_lock {
+        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
             if !token.is_expired() {
                 return Ok(());
             }
@@ -179,14 +154,7 @@ impl ClientCredsSpotify {
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
         if let Some(token) = token {
-            #[cfg(feature = "__async")]
-            {
-                self.token.lock().await.replace(token);
-            }
-            #[cfg(feature = "__sync")]
-            {
-                self.token.lock().unwrap().replace(token);
-            }
+            self.token.lock().await.unwrap().replace(token);
         }
 
         self.write_token_cache().await

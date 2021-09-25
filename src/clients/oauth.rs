@@ -44,19 +44,7 @@ pub trait OAuthClient: BaseClient {
         // You cannot have read lock and write lock at the same time, which
         // would result in a deadlock, so obtain the write lock and use it in
         // the whole process.
-        let tok = self.get_token().await;
-        let locked_token = tok.lock().await;
-        let mut tmp_locked_lock = Option::None;
-        #[cfg(feature = "__async")]
-        {
-            tmp_locked_lock = locked_token.as_ref();
-        }
-
-        #[cfg(feature = "__sync")]
-        {
-            tmp_locked_lock = locked_token.unwrap().as_ref();
-        }
-        if let Some(token) = tmp_locked_lock {
+        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
             if !token.can_reauth() {
                 return Ok(());
             }
@@ -127,19 +115,13 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             Some(new_token) => {
-                let tok = self.get_token().await;
-                let locked_token = tok.lock().await;
-                let mut tmp_locked_lock = Option::None;
-                #[cfg(feature = "__async")]
-                {
-                    tmp_locked_lock = locked_token.as_ref();
-                }
-
-                #[cfg(feature = "__sync")]
-                {
-                    tmp_locked_lock = locked_token.unwrap().as_ref();
-                }
-                tmp_locked_lock.replace(&new_token);
+                self.get_token()
+                    .await
+                    .lock()
+                    .await
+                    .unwrap()
+                    .as_ref()
+                    .replace(&new_token);
             }
             // Otherwise following the usual procedure to get the token.
             None => {

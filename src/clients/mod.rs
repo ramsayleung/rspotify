@@ -1,4 +1,5 @@
 pub mod base;
+pub mod mutex;
 pub mod oauth;
 pub mod pagination;
 
