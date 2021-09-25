@@ -3,7 +3,7 @@ use crate::{
     clients::{BaseClient, OAuthClient},
     headers,
     http::{Form, HttpClient},
-    ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
@@ -104,21 +104,21 @@ impl OAuthClient for AuthCodeSpotify {
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
-        let mut data = Form::new();
-        let oauth = self.get_oauth();
-        let scopes = oauth
-            .scopes
-            .clone()
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
-        data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
-        data.insert(headers::REDIRECT_URI, oauth.redirect_uri.as_ref());
-        data.insert(headers::CODE, code);
-        data.insert(headers::SCOPE, scopes.as_ref());
-        data.insert(headers::STATE, oauth.state.as_ref());
+        let scopes = join_scopes(&self.oauth.scopes);
 
-        let token = self.fetch_access_token(&data).await?;
+        let mut data = Form::new();
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_AUTH_CODE);
+        data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
+        data.insert(headers::CODE, code);
+        data.insert(headers::SCOPE, &scopes);
+        data.insert(headers::STATE, &self.oauth.state);
+
+        let headers = self
+            .creds
+            .auth_headers()
+            .expect("No client secret set in the credentials.");
+
+        let token = self.fetch_access_token(&data, Some(&headers)).await?;
         self.token = Some(token);
 
         self.write_token_cache()
@@ -130,9 +130,14 @@ impl OAuthClient for AuthCodeSpotify {
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
         let mut data = Form::new();
         data.insert(headers::REFRESH_TOKEN, refresh_token);
-        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_REFRESH_TOKEN);
 
-        let mut token = self.fetch_access_token(&data).await?;
+        let headers = self
+            .creds
+            .auth_headers()
+            .expect("No client secret set in the credentials.");
+
+        let mut token = self.fetch_access_token(&data, Some(&headers)).await?;
         token.refresh_token = Some(refresh_token.to_string());
         self.token = Some(token);
 
@@ -175,19 +180,14 @@ impl AuthCodeSpotify {
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
+        let scopes = join_scopes(&self.oauth.scopes);
+
         let mut payload: HashMap<&str, &str> = HashMap::new();
-        let oauth = self.get_oauth();
-        let scopes = oauth
-            .scopes
-            .clone()
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
-        payload.insert(headers::CLIENT_ID, &self.get_creds().id);
-        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
-        payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
+        payload.insert(headers::CLIENT_ID, &self.creds.id);
+        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_TYPE_CODE);
+        payload.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
         payload.insert(headers::SCOPE, &scopes);
-        payload.insert(headers::STATE, &oauth.state);
+        payload.insert(headers::STATE, &self.oauth.state);
 
         if show_dialog {
             payload.insert(headers::SHOW_DIALOG, "true");

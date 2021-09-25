@@ -1,14 +1,15 @@
 use crate::{
-    auth_urls,
+    alphabets, auth_urls,
     clients::{BaseClient, OAuthClient},
-    headers,
+    generate_random_string, headers,
     http::{Form, HttpClient},
-    ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
 
 use maybe_async::maybe_async;
+use sha2::{Digest, Sha256};
 use url::Url;
 
 /// The [Authorization Code Flow with Proof Key for Code Exchange
@@ -18,6 +19,8 @@ use url::Url;
 /// read [`AuthCodeSpotify`](crate::AuthCodeSpotify) for more information about
 /// it. The main difference in this case is that you can avoid storing your
 /// client secret by generating a *code verifier* and a *code challenge*.
+/// However, note that the refresh token obtained with PKCE will only work to
+/// request the next one, after which it'll become invalid.
 ///
 /// There's an [example][example-main] available to learn how to use this
 /// client.
@@ -30,6 +33,8 @@ pub struct AuthCodePkceSpotify {
     pub oauth: OAuth,
     pub config: Config,
     pub token: Option<Token>,
+    /// The code verifier for the authentication process
+    pub verifier: Option<String>,
     pub(in crate) http: HttpClient,
 }
 
@@ -64,35 +69,36 @@ impl OAuthClient for AuthCodePkceSpotify {
         &self.oauth
     }
 
+    /// Note that the code verifier must be set at this point, either manually
+    /// or with [`Self::get_authorize_url`]. Otherwise, this function will
+    /// panic.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
-        // TODO
-        let mut data = Form::new();
-        let oauth = self.get_oauth();
-        let scopes = oauth
-            .scopes
-            .clone()
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
-        data.insert(headers::GRANT_TYPE, headers::GRANT_AUTH_CODE);
-        data.insert(headers::REDIRECT_URI, oauth.redirect_uri.as_ref());
-        data.insert(headers::CODE, code);
-        data.insert(headers::SCOPE, scopes.as_ref());
-        data.insert(headers::STATE, oauth.state.as_ref());
+        let verifier = self.verifier.as_ref().expect(
+            "Unknown code verifier. Try calling \
+            `AuthCodePkceSpotify::get_authorize_url` first or setting it \
+            yourself.",
+        );
 
-        let token = self.fetch_access_token(&data).await?;
+        let mut data = Form::new();
+        data.insert(headers::CLIENT_ID, &self.creds.id);
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_AUTH_CODE);
+        data.insert(headers::CODE, code);
+        data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
+        data.insert(headers::CODE_VERIFIER, verifier);
+
+        let token = self.fetch_access_token(&data, None).await?;
         self.token = Some(token);
 
         self.write_token_cache()
     }
 
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        // TODO
         let mut data = Form::new();
+        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_REFRESH_TOKEN);
         data.insert(headers::REFRESH_TOKEN, refresh_token);
-        data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
+        data.insert(headers::CLIENT_ID, &self.creds.id);
 
-        let mut token = self.fetch_access_token(&data).await?;
+        let mut token = self.fetch_access_token(&data, None).await?;
         token.refresh_token = Some(refresh_token.to_string());
         self.token = Some(token);
 
@@ -132,25 +138,56 @@ impl AuthCodePkceSpotify {
         }
     }
 
+    /// Generate the verifier code and the challenge code.
+    fn generate_codes(&self, verifier_bytes: usize) -> (String, String) {
+        debug_assert!(verifier_bytes >= 43);
+        debug_assert!(verifier_bytes <= 128);
+        // The code verifier is just the randomly generated string.
+        let verifier = generate_random_string(verifier_bytes, alphabets::PKCE_CODE_VERIFIER);
+        // The code challenge is the code verifier hashed with SHA256 and then
+        // encoded with base64url.
+        //
+        // NOTE: base64url != base64; it uses a different set of characters. See
+        // https://datatracker.ietf.org/doc/html/rfc4648#section-5 for more
+        // information.
+        let mut hasher = Sha256::new();
+        hasher.update(verifier.as_bytes());
+        let challenge = hasher.finalize();
+
+        let challenge = base64::encode_config(challenge, base64::URL_SAFE_NO_PAD);
+
+        (verifier, challenge)
+    }
+
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
-    pub fn get_authorize_url(&self) -> ClientResult<String> {
-        // TODO
+    ///
+    /// The parameter `verifier_bytes` is the length of the randomly generated
+    /// code verifier. Note that it must be between 43 and 128. If `None` is
+    /// given, a length of 43 will be used by default. See [the official
+    /// docs][reference] or [PKCE's RFC][rfce] for more information about the
+    /// code verifier.
+    ///
+    /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
+    /// [rfce]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+    pub fn get_authorize_url(&mut self, verifier_bytes: Option<usize>) -> ClientResult<String> {
+        let scopes = join_scopes(&self.oauth.scopes);
+        let verifier_bytes = verifier_bytes.unwrap_or(43);
+        let (verifier, challenge) = self.generate_codes(verifier_bytes);
+        // The verifier will be needed later when requesting the token
+        self.verifier = Some(verifier);
+
         let mut payload: HashMap<&str, &str> = HashMap::new();
-        let oauth = self.get_oauth();
-        let scopes = oauth
-            .scopes
-            .clone()
-            .into_iter()
-            .collect::<Vec<_>>()
-            .join(" ");
-        payload.insert(headers::CLIENT_ID, &self.get_creds().id);
-        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_CODE);
-        payload.insert(headers::REDIRECT_URI, &oauth.redirect_uri);
+        payload.insert(headers::CLIENT_ID, &self.creds.id);
+        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_TYPE_CODE);
+        payload.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
+        payload.insert(
+            headers::CODE_CHALLENGE_METHOD,
+            headers::CODE_CHALLENGE_METHOD_S256,
+        );
+        payload.insert(headers::CODE_CHALLENGE, &challenge);
+        payload.insert(headers::STATE, &self.oauth.state);
         payload.insert(headers::SCOPE, &scopes);
-        payload.insert(headers::STATE, &oauth.state);
-        // payload.insert(headers::CODE_CHALLENGE, todo!());
-        // payload.insert(headers::CODE_CHALLENGE_METHOD, "S256");
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
         Ok(parsed.into())

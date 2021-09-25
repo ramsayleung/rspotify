@@ -1,10 +1,11 @@
 use crate::{
     clients::{
-        append_device_id, convert_result, join_ids,
+        append_device_id, convert_result,
         pagination::{paginate, Paginator},
         BaseClient,
     },
     http::Query,
+    join_ids,
     macros::{build_json, build_map},
     model::*,
     ClientResult, OAuth, Token,
@@ -114,7 +115,6 @@ pub trait OAuthClient: BaseClient {
             // Otherwise following the usual procedure to get the token.
             _ => {
                 let code = self.get_code_from_user(url)?;
-                // Will write to the cache file if successful
                 self.request_token(&code).await?;
             }
         }

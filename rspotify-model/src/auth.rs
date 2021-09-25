@@ -6,7 +6,7 @@ use crate::{
 };
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs,
     io::{Read, Write},
     path::Path,
@@ -80,5 +80,35 @@ impl Token {
     pub fn is_expired(&self) -> bool {
         self.expires_at
             .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
+    }
+
+    /// Generates an HTTP token authorization header with proper formatting
+    pub fn auth_headers(&self) -> HashMap<String, String> {
+        let auth = "authorization".to_owned();
+        let value = format!("Bearer {}", self.access_token);
+
+        let mut headers = HashMap::new();
+        headers.insert(auth, value);
+        headers
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::Token;
+
+    #[test]
+    fn test_bearer_auth() {
+        let tok = Token {
+            access_token: "access_token".to_string(),
+            ..Default::default()
+        };
+
+        let headers = tok.auth_headers();
+        assert_eq!(headers.len(), 1);
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Bearer access_token".to_owned())
+        );
     }
 }

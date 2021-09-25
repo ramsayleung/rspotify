@@ -1,10 +1,11 @@
 use crate::{
     auth_urls,
     clients::{
-        basic_auth, bearer_auth, convert_result, join_ids,
+        convert_result,
         pagination::{paginate, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
+    join_ids,
     macros::build_map,
     model::*,
     ClientResult, Config, Credentials, Token,
@@ -42,12 +43,10 @@ where
     }
 
     /// The headers required for authenticated requests to the API
-    fn auth_headers(&self) -> ClientResult<Headers> {
-        let mut auth = Headers::new();
-        let (key, val) = bearer_auth(self.get_token().expect("Rspotify not authenticated"));
-        auth.insert(key, val);
-
-        Ok(auth)
+    fn auth_headers(&self) -> Headers {
+        self.get_token()
+            .expect("Rspotify not authenticated")
+            .auth_headers()
     }
 
     // HTTP-related methods for the Spotify client. It wraps the basic HTTP
@@ -123,25 +122,25 @@ where
     /// autentication.
     #[inline]
     async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
-        let headers = self.auth_headers()?;
+        let headers = self.auth_headers();
         self.get(url, Some(&headers), payload).await
     }
 
     #[inline]
     async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers()?;
+        let headers = self.auth_headers();
         self.post(url, Some(&headers), payload).await
     }
 
     #[inline]
     async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers()?;
+        let headers = self.auth_headers();
         self.put(url, Some(&headers), payload).await
     }
 
     #[inline]
     async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers()?;
+        let headers = self.auth_headers();
         self.delete(url, Some(&headers), payload).await
     }
 
@@ -163,16 +162,15 @@ where
     }
 
     /// Sends a request to Spotify for an access token.
-    async fn fetch_access_token(&self, payload: &Form<'_>) -> ClientResult<Token> {
-        // This request uses a specific content type, and the client ID/secret
-        // as the authentication, since the access token isn't available yet.
-        let mut head = Headers::new();
-        let (key, val) = basic_auth(&self.get_creds().id, &self.get_creds().secret);
-        head.insert(key, val);
+    ///
+    /// TODO: are we checking that state == self.state? I think not
+    async fn fetch_access_token(
+        &self,
+        payload: &Form<'_>,
+        headers: Option<&Headers>,
+    ) -> ClientResult<Token> {
+        let response = self.post_form(auth_urls::TOKEN, headers, payload).await?;
 
-        let response = self
-            .post_form(auth_urls::TOKEN, Some(&head), payload)
-            .await?;
         let mut tok = serde_json::from_str::<Token>(&response)?;
         tok.expires_at = Utc::now().checked_add_signed(tok.expires_in);
         Ok(tok)

@@ -172,6 +172,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scopes for `Token` from string literal
 - Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
+- ([#246](https://github.com/ramsayleung/rspotify/pull/246)) Add support for PKCE, see `AuthCodePkceSpotify`.
 
 **Breaking changes:**
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Rspotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.

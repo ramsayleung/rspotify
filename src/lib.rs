@@ -137,9 +137,13 @@ pub use client_creds::ClientCredsSpotify;
 pub use macros::scopes;
 pub use model::Token;
 
-use crate::http::HttpError;
+use crate::{http::HttpError, model::Id};
 
-use std::{collections::HashSet, env, path::PathBuf};
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    path::PathBuf,
+};
 
 use getrandom::getrandom;
 use thiserror::Error;
@@ -149,24 +153,34 @@ pub mod prelude {
     pub use crate::model::idtypes::{Id, PlayContextId, PlayableId};
 }
 
+/// Common headers as constants.
+/// TODO: rename; these aren't all headers. Most are keys/values for forms.
 pub(in crate) mod headers {
-    // Common headers as constants
     pub const CLIENT_ID: &str = "client_id";
     pub const CODE: &str = "code";
-    pub const GRANT_AUTH_CODE: &str = "authorization_code";
-    pub const GRANT_CLIENT_CREDS: &str = "client_credentials";
-    pub const GRANT_REFRESH_TOKEN: &str = "refresh_token";
     pub const GRANT_TYPE: &str = "grant_type";
+    pub const GRANT_TYPE_AUTH_CODE: &str = "authorization_code";
+    pub const GRANT_TYPE_CLIENT_CREDS: &str = "client_credentials";
+    pub const GRANT_TYPE_REFRESH_TOKEN: &str = "refresh_token";
     pub const REDIRECT_URI: &str = "redirect_uri";
     pub const REFRESH_TOKEN: &str = "refresh_token";
-    pub const RESPONSE_CODE: &str = "code";
+    pub const RESPONSE_TYPE_CODE: &str = "code";
     pub const RESPONSE_TYPE: &str = "response_type";
     pub const SCOPE: &str = "scope";
     pub const SHOW_DIALOG: &str = "show_dialog";
     pub const STATE: &str = "state";
-    // TODO:
-    // pub const CODE_CHALLENGE: &str = "code_challenge";
-    // pub const CODE_CHALLENGE_METHOD: &str = "code_challenge_method";
+    pub const CODE_CHALLENGE: &str = "code_challenge";
+    pub const CODE_VERIFIER: &str = "code_verifier";
+    pub const CODE_CHALLENGE_METHOD: &str = "code_challenge_method";
+    pub const CODE_CHALLENGE_METHOD_S256: &str = "S256";
+}
+
+/// Common alphabets for random number generation and similars
+pub(in crate) mod alphabets {
+    pub const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    /// From https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+    pub const PKCE_CODE_VERIFIER: &[u8] =
+        b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 }
 
 pub(in crate) mod auth_urls {
@@ -243,31 +257,56 @@ impl Default for Config {
     }
 }
 
-/// Generate `length` random chars
-pub(in crate) fn generate_random_string(length: usize) -> String {
-    let alphanum: &[u8] =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".as_bytes();
+/// Generate `length` random chars from the Operating System.
+///
+/// It is assumed that system always provides high-quality cryptographically
+/// secure random data, ideally backed by hardware entropy sources.
+pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> String {
     let mut buf = vec![0u8; length];
     getrandom(&mut buf).unwrap();
-    let range = alphanum.len();
+    let range = alphabet.len();
 
     buf.iter()
-        .map(|byte| alphanum[*byte as usize % range] as char)
+        .map(|byte| alphabet[*byte as usize % range] as char)
         .collect()
+}
+
+#[inline]
+pub(in crate) fn join_ids<'a, T: Id + 'a + ?Sized>(ids: impl IntoIterator<Item = &'a T>) -> String {
+    ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
+}
+
+#[inline]
+pub(in crate) fn join_scopes(scopes: &HashSet<String>) -> String {
+    scopes
+        .iter()
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// Simple client credentials object for Spotify.
 #[derive(Debug, Clone, Default)]
 pub struct Credentials {
     pub id: String,
-    pub secret: String,
+    /// PKCE doesn't require a client secret
+    pub secret: Option<String>,
 }
 
 impl Credentials {
+    /// Initialization with both the client ID and the client secret
     pub fn new(id: &str, secret: &str) -> Self {
         Credentials {
             id: id.to_owned(),
-            secret: secret.to_owned(),
+            secret: Some(secret.to_owned()),
+        }
+    }
+
+    /// Initialization with just the client ID
+    pub fn new_pkce(id: &str) -> Self {
+        Credentials {
+            id: id.to_owned(),
+            secret: None,
         }
     }
 
@@ -283,8 +322,21 @@ impl Credentials {
 
         Some(Credentials {
             id: env::var("RSPOTIFY_CLIENT_ID").ok()?,
-            secret: env::var("RSPOTIFY_CLIENT_SECRET").ok()?,
+            secret: env::var("RSPOTIFY_CLIENT_SECRET").ok(),
         })
+    }
+
+    /// Generates an HTTP basic authorization header with proper formatting
+    ///
+    /// This will only work when the client secret is set to `Option::Some`.
+    pub fn auth_headers(&self) -> Option<HashMap<String, String>> {
+        let auth = "authorization".to_owned();
+        let value = format!("{}:{}", self.id, self.secret.as_ref()?);
+        let value = format!("Basic {}", base64::encode(value));
+
+        let mut headers = HashMap::new();
+        headers.insert(auth, value);
+        Some(headers)
     }
 }
 
@@ -304,7 +356,7 @@ impl Default for OAuth {
     fn default() -> Self {
         OAuth {
             redirect_uri: String::new(),
-            state: generate_random_string(16),
+            state: generate_random_string(16, alphabets::ALPHANUM),
             scopes: HashSet::new(),
             proxies: None,
         }
@@ -331,15 +383,31 @@ impl OAuth {
 
 #[cfg(test)]
 mod test {
-    use super::generate_random_string;
+    use crate::{alphabets, generate_random_string, Credentials};
     use std::collections::HashSet;
 
     #[test]
     fn test_generate_random_string() {
         let mut containers = HashSet::new();
         for _ in 1..101 {
-            containers.insert(generate_random_string(10));
+            containers.insert(generate_random_string(10, alphabets::ALPHANUM));
         }
         assert_eq!(containers.len(), 100);
+    }
+
+    #[test]
+    fn test_basic_auth() {
+        let creds = Credentials::new_pkce("ramsay");
+        let headers = creds.auth_headers();
+        assert_eq!(headers, None);
+
+        let creds = Credentials::new("ramsay", "123456");
+
+        let headers = creds.auth_headers().unwrap();
+        assert_eq!(headers.len(), 1);
+        assert_eq!(
+            headers.get("authorization"),
+            Some(&"Basic cmFtc2F5OjEyMzQ1Ng==".to_owned())
+        );
     }
 }

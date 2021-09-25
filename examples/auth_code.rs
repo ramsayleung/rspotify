@@ -9,8 +9,8 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // Set RSPOTIFY_CLIENT_ID, RSPOTIFY_CLIENT_SECRET and
-    // RSPOTIFY_REDIRECT_URI in an .env file or export them manually:
+    // Set RSPOTIFY_CLIENT_ID and RSPOTIFY_CLIENT_SECRET in an .env file or
+    // export them manually:
     //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     // export RSPOTIFY_CLIENT_SECRET="secret"
@@ -20,14 +20,11 @@ async fn main() {
     // Otherwise, set client_id and client_secret explictly:
     //
     // ```
-    // let creds = Credentials {
-    //     id: "this-is-my-client-id".to_string(),
-    //     secret: "this-is-my-client-secret".to_string()
-    // };
+    // let creds = Credentials::new("my-client-id", "my-client-secret");
     // ```
     let creds = Credentials::from_env().unwrap();
 
-    // Or set the redirect_uri explictly:
+    // Same for RSPOTIFY_REDIRECT_URI. You can also set it explictly:
     //
     // ```
     // let oauth = OAuth {
