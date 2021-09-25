@@ -309,6 +309,16 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `get_an_episode`
     + `get_several_episodes`
     + `remove_users_saved_shows`
+- ([#257](https://github.com/ramsayleung/rspotify/pull/257)) Fix naming for most playlist-related endpoints. They used to work only for tracks, but they've been extended to episodes as well, so we call the contents of a playlist "items" instead of "tracks".
+    + `playlist_add_tracks` is now `playlist_add_items`
+    + `playlist_tracks` is now `playlist_items`
+    + `playlist_tracks_manual` is now `playlist_items_manual`
+    + `playlist_replace_tracks` is now `playlist_replace_items`
+    + `playlist_reorder_tracks` is now `playlist_reorder_items`
+    + `playlist_remove_all_occurrences_of_tracks` is now `playlist_remove_all_occurrences_of_items`
+    + `playlist_remove_specific_occurrences_of_tracks` is now `playlist_remove_specific_occurrences_of_tracks`
+    + `model::TrackPositions` is now `model::ItemPositions`
+    + `current_user_playing_track` is now `current_user_playing_item`
 
 ## 0.10 (2020/07/01)
 

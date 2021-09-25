@@ -92,7 +92,7 @@ pub struct SavedTrack {
 }
 
 /// Track id with specific positions track in a playlist
-pub struct TrackPositions {
+pub struct ItemPositions {
     pub id: TrackId,
     pub positions: Vec<u32>,
 }

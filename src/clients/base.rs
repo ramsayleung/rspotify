@@ -951,7 +951,7 @@ where
         convert_result(&result)
     }
 
-    /// Get full details of the tracks of a playlist owned by a user.
+    /// Get full details of the items of a playlist owned by a user.
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
@@ -960,12 +960,11 @@ where
     /// - offset - the index of the first track to return
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// See [`Self::playlist_tracks`] for a manually paginated version of this.
+    /// See [`Self::playlist_items_manual`] for a manually paginated version of
+    /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
-    ///
-    /// TODO: rename to `playlist_items`, as it may also contain episodes
-    fn playlist_tracks<'a>(
+    fn playlist_items<'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
@@ -973,16 +972,14 @@ where
     ) -> Paginator<'_, ClientResult<PlaylistItem>> {
         paginate(
             move |limit, offset| {
-                self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
+                self.playlist_items_manual(playlist_id, fields, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
         )
     }
 
-    /// The manually paginated version of [`Self::playlist_tracks`].
-    ///
-    /// TODO: rename to `playlist_items_manual`, as it may also contain episodes
-    async fn playlist_tracks_manual(
+    /// The manually paginated version of [`Self::playlist_items`].
+    async fn playlist_items_manual(
         &self,
         playlist_id: &PlaylistId,
         fields: Option<&str>,
