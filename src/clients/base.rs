@@ -35,10 +35,10 @@ where
     /// Otherwise, the same URL is returned.
     fn endpoint_url(&self, url: &str) -> String {
         // Using the client's prefix in case it's a relative route.
-        if !url.starts_with("http") {
-            self.get_config().prefix.clone() + url
-        } else {
+        if url.starts_with("http") {
             url.to_string()
+        } else {
+            self.get_config().prefix.clone() + url
         }
     }
 
