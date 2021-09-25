@@ -43,6 +43,7 @@ where
     }
 
     /// The headers required for authenticated requests to the API
+    #[doc(hidden)]
     fn auth_headers(&self) -> Headers {
         self.get_token()
             .expect("Rspotify not authenticated")
@@ -63,6 +64,7 @@ where
     //   requests to reduce the code needed for endpoints and make them as
     //   concise as possible.
 
+    #[doc(hidden)]
     #[inline]
     async fn get(
         &self,
@@ -74,6 +76,7 @@ where
         Ok(self.get_http().get(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn post(
         &self,
@@ -85,6 +88,7 @@ where
         Ok(self.get_http().post(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn post_form(
         &self,
@@ -96,6 +100,7 @@ where
         Ok(self.get_http().post_form(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn put(
         &self,
@@ -107,6 +112,7 @@ where
         Ok(self.get_http().put(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn delete(
         &self,
@@ -118,26 +124,31 @@ where
         Ok(self.get_http().delete(&url, headers, payload).await?)
     }
 
-    /// The wrapper for the endpoints, which also includes the required
-    /// autentication.
+    // The wrappers for the endpoints, which also includes the required
+    // autentication.
+
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let headers = self.auth_headers();
         self.get(url, Some(&headers), payload).await
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers();
         self.post(url, Some(&headers), payload).await
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers();
         self.put(url, Some(&headers), payload).await
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers();
