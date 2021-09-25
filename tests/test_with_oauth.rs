@@ -28,7 +28,7 @@ use rspotify::{
 
 use std::env;
 
-use chrono::prelude::*;
+use chrono::{prelude::*, Duration};
 use maybe_async::maybe_async;
 
 /// Generating a new OAuth client for the requests.
@@ -175,9 +175,10 @@ async fn test_current_user_playing_track() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_recently_played() {
+    let limit = TimeLimits::After(Utc::now() - Duration::days(2));
     oauth_client()
         .await
-        .current_user_recently_played(Some(10), Some(TimeLimits::After(1)))
+        .current_user_recently_played(Some(10), Some(limit))
         .await
         .unwrap();
 }

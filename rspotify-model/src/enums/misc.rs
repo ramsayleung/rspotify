@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::AsRefStr;
 
@@ -118,6 +119,6 @@ impl AsRef<str> for Market {
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, Copy, PartialEq, Eq)]
 pub enum TimeLimits {
-    Before(i64),
-    After(i64),
+    Before(DateTime<Utc>),
+    After(DateTime<Utc>),
 }
