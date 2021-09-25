@@ -14,8 +14,6 @@ keywords = ["spotify", "api"]
 edition = "2018"
 
 [dependencies]
-rspotify-model = { path = "../rspotify-model", version = "0.10.0" }
-
 # Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
 # `maybe_async`.
 async-trait = { version = "0.1.51", optional = true }

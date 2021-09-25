@@ -8,7 +8,8 @@ pub type Headers = HashMap<String, String>;
 pub type Query<'a> = HashMap<&'a str, &'a str>;
 pub type Form<'a> = HashMap<&'a str, &'a str>;
 
-/// Any kind of error when performing an HTTP request
+/// An error in the HTTP request of any kind. This delegates the information to
+/// whichever client is configured for Rspotify.
 #[derive(thiserror::Error, Debug)]
 pub enum HttpError {
     /// Error specific to the ureq queries

@@ -60,17 +60,17 @@ impl ReqwestClient {
         let response = request
             .send()
             .await
-            .map_err(|error| HttpError::Reqwest(Error::Client(error)))?;
+            .map_err(|error| HttpError::Reqwest(ReqwestError::Client(error)))?;
 
         // Making sure that the status code is OK
         if !response.status().is_success() {
-            return Err(HttpError::Reqwest(Error::StatusCode(response)));
+            return Err(HttpError::Reqwest(ReqwestError::StatusCode(response)));
         }
 
         response
             .text()
             .await
-            .map_err(|error| HttpError::Reqwest(Error::Client(error)))
+            .map_err(|error| HttpError::Reqwest(ReqwestError::Client(error)))
     }
 }
 

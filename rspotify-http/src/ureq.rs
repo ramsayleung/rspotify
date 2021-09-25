@@ -55,13 +55,13 @@ impl UreqClient {
         match send_request(request) {
             Ok(response) => response
                 .into_string()
-                .map_err(|error| HttpError::Ureq(Error::Io(error))),
+                .map_err(|error| HttpError::Ureq(UreqError::Io(error))),
             Err(err) => match err {
                 ureq::Error::Status(_, response) => {
-                    Err(HttpError::Ureq(Error::StatusCode(response)))
+                    Err(HttpError::Ureq(UreqError::StatusCode(response)))
                 }
                 ureq::Error::Transport(transport) => {
-                    Err(HttpError::Ureq(Error::Transport(transport)))
+                    Err(HttpError::Ureq(UreqError::Transport(transport)))
                 }
             },
         }
