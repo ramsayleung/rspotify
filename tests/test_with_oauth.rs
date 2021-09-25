@@ -494,6 +494,19 @@ async fn test_search_track() {
         .unwrap();
 }
 
+// This also tests percentage signs in search queries to avoid regressions of
+// https://github.com/ramsayleung/rspotify/issues/141
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[ignore]
+async fn test_search_show() {
+    let query = "99% invisible";
+    oauth_client()
+        .await
+        .search(query, &SearchType::Show, None, None, None, Some(0))
+        .await
+        .unwrap();
+}
+
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_seek_track() {
