@@ -11,7 +11,7 @@ use ureq::{Request, Response};
 /// Custom enum that contains all the possible errors that may occur when using
 /// `ureq`.
 #[derive(thiserror::Error, Debug)]
-pub enum Error {
+pub enum UreqError {
     #[error("transport: {0}")]
     Transport(#[from] ureq::Transport),
 

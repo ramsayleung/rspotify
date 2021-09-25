@@ -12,7 +12,7 @@ use serde_json::Value;
 /// Custom enum that contains all the possible errors that may occur when using
 /// `reqwest`.
 #[derive(thiserror::Error, Debug)]
-pub enum Error {
+pub enum ReqwestError {
     #[error("request: {0}")]
     Client(#[from] reqwest::Error),
 

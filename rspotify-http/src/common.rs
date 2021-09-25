@@ -14,12 +14,12 @@ pub enum HttpError {
     /// Error specific to the ureq queries
     #[cfg(feature = "client-ureq")]
     #[error("ureq: {0}")]
-    Ureq(#[from] crate::ureq::Error),
+    Ureq(#[from] crate::ureq::UreqError),
 
     /// Error specific to the reqwest queries
     #[cfg(feature = "client-reqwest")]
     #[error("reqwest: {0}")]
-    Reqwest(#[from] crate::reqwest::Error),
+    Reqwest(#[from] crate::reqwest::ReqwestError),
 }
 
 pub type HttpResult<T> = Result<T, HttpError>;
