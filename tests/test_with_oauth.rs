@@ -238,10 +238,10 @@ async fn test_current_user_saved_tracks_add() {
     // Every track should be saved
     assert!(contains.into_iter().all(|x| x));
 
-    let all = client
-        .current_user_saved_tracks(None)
-        .await
-        .filter_map(|saved| Some(saved.ok()?.track.id))
+    let all = fetch_all(client.current_user_saved_tracks(None)).await;
+    let all = all
+        .into_iter()
+        .filter_map(|saved| Some(saved.track.id))
         .collect::<Vec<_>>();
     // All the initial tracks should appear
     assert!(tracks_ids.iter().all(|track| all.contains(track)));
