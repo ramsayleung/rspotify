@@ -83,6 +83,7 @@ async fn main() {
         .await
         .lock()
         .await
+        .unwrap()
         .as_mut()
         .map(|x| x.expires_at = Some(now.clone()));
     println!(">>> Session two, the token should expire, then re-auth automatically");
@@ -104,6 +105,7 @@ async fn main() {
         .await
         .lock()
         .await
+        .unwrap()
         .as_mut()
         .map(|x| x.expires_at.replace(now));
     println!(">>> New Session two from ClientCredsSpotify, expiring the token and then re-auth automatically");

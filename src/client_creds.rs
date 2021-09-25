@@ -114,7 +114,8 @@ impl ClientCredsSpotify {
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&self) -> ClientResult<()> {
-        *self.token.lock().await.unwrap() = Some(self.fetch_token().await?);
+        // NOTE: `get_token` can be used safely here
+        *self.get_token().await.lock().await.unwrap() = Some(self.fetch_token().await?);
 
         self.write_token_cache().await
     }
@@ -137,10 +138,13 @@ impl ClientCredsSpotify {
         if !self.config.token_refreshing {
             return Ok(());
         }
+        // NOTE: this can't use `get_token` because `get_token` itself might
+        // call this function when automatic reauthentication is enabled.
+        //
         // You could not have read lock and write lock at the same time, which
         // will result in deadlock, so obtain the write lock and use it in the
         // whole process.
-        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
+        if let Some(token) = self.token.lock().await.unwrap().as_ref() {
             if !token.is_expired() {
                 return Ok(());
             }
@@ -154,6 +158,8 @@ impl ClientCredsSpotify {
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
         if let Some(token) = token {
+            // NOTE: this can't use `get_token` because `get_token` itself might
+            // call this function when automatic reauthentication is enabled.
             self.token.lock().await.unwrap().replace(token);
         }
 

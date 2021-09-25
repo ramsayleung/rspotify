@@ -59,7 +59,7 @@ impl BaseClient for AuthCodePkceSpotify {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
 
-        match self.get_token().await.lock().await.unwrap().as_ref() {
+        match self.token.lock().await.unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
@@ -86,7 +86,6 @@ impl OAuthClient for AuthCodePkceSpotify {
     }
 
     async fn request_token(&self, code: &str) -> ClientResult<()> {
-        // TODO
         let mut data = Form::new();
         let oauth = self.get_oauth();
         let scopes = oauth
@@ -103,7 +102,8 @@ impl OAuthClient for AuthCodePkceSpotify {
 
         let token = self.fetch_access_token(&data).await?;
 
-        *self.token.lock().await.unwrap() = Some(token);
+        // NOTE: get_token can be used safely here
+        *self.get_token().await.lock().await.unwrap() = Some(token);
 
         self.write_token_cache().await
     }

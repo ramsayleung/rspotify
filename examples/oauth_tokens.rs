@@ -43,7 +43,7 @@ async fn main() {
     let url = spotify.get_authorize_url(false).unwrap();
     spotify.prompt_for_token(&url).await.unwrap();
 
-    let token = spotify.get_token().await;
+    let token = spotify.token.lock().await.unwrap();
     println!("Access token: {}", token.as_ref().unwrap().access_token);
     println!(
         "Refresh token: {}",

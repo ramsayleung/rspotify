@@ -95,8 +95,7 @@ impl BaseClient for AuthCodeSpotify {
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
-
-        match self.get_token().await.lock().await.unwrap().as_ref() {
+        match self.token.lock().await.unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..

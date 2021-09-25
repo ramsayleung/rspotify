@@ -23,7 +23,7 @@ use rspotify::{
         TrackPositions,
     },
     prelude::*,
-    scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
+    scopes, AuthCodeSpotify, ClientResult, Token,
 };
 
 use std::env;
