@@ -11,7 +11,7 @@ use crate::{
     ClientResult, OAuth, Token,
 };
 
-use std::time;
+use std::{collections::HashMap, time};
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextId;
@@ -66,11 +66,26 @@ pub trait OAuthClient: BaseClient {
 
     /// Parse the response code in the given response url. If the URL cannot be
     /// parsed or the `code` parameter is not present, this will return `None`.
+    ///
+    // As the [RFC
+    // indicates](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1),
+    // the state should be the same between the request and the callback. This
+    // will also return `None` if this is not true.
     fn parse_response_code(&self, url: &str) -> Option<String> {
         let url = Url::parse(url).ok()?;
-        let mut params = url.query_pairs();
-        let (_, url) = params.find(|(key, _)| key == "code")?;
-        Some(url.to_string())
+        let params = url.query_pairs().collect::<HashMap<_, _>>();
+
+        let code = params.get("code")?;
+
+        // Making sure the state is the same
+        let expected_state = &self.get_oauth().state;
+        let state = params.get("state").map(|cow| cow.as_ref());
+        if state != Some(expected_state) {
+            log::error!("Request state doesn't match the callback state");
+            return None;
+        }
+
+        Some(code.to_string())
     }
 
     /// Tries to open the authorization URL in the user's browser, and returns
