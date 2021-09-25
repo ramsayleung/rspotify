@@ -17,6 +17,9 @@ pub enum Error {
 
     #[error("I/O: {0}")]
     Io(#[from] io::Error),
+
+    #[error("status code {}", ureq::Response::status(.0))]
+    StatusCode(ureq::Response),
 }
 
 #[derive(Default, Debug, Clone)]
@@ -54,8 +57,8 @@ impl UreqClient {
                 .into_string()
                 .map_err(|error| HttpError::Ureq(Error::Io(error))),
             Err(err) => match err {
-                ureq::Error::Status(status, response) => {
-                    Err(HttpError::StatusCode(status, response.into_json().ok()))
+                ureq::Error::Status(_, response) => {
+                    Err(HttpError::Ureq(Error::StatusCode(response)))
                 }
                 ureq::Error::Transport(transport) => {
                     Err(HttpError::Ureq(Error::Transport(transport)))

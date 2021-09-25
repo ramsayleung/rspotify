@@ -9,7 +9,16 @@ use maybe_async::async_impl;
 use reqwest::{Method, RequestBuilder};
 use serde_json::Value;
 
-pub type Error = reqwest::Error;
+/// Custom enum that contains all the possible errors that may occur when using
+/// `reqwest`.
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("request: {0}")]
+    Client(#[from] reqwest::Error),
+
+    #[error("status code {}", reqwest::Response::status(.0))]
+    StatusCode(reqwest::Response),
+}
 
 #[derive(Default, Debug, Clone)]
 pub struct ReqwestClient {
@@ -48,16 +57,20 @@ impl ReqwestClient {
 
         // Finally performing the request and handling the response
         log::info!("Making request {:?}", request);
-        let response = request.send().await?;
+        let response = request
+            .send()
+            .await
+            .map_err(|error| HttpError::Reqwest(Error::Client(error)))?;
 
-        if response.status().is_success() {
-            response.text().await.map_err(Into::into)
-        } else {
-            Err(HttpError::StatusCode(
-                response.status().as_u16(),
-                response.json().await.ok(),
-            ))
+        // Making sure that the status code is OK
+        if !response.status().is_success() {
+            return Err(HttpError::Reqwest(Error::StatusCode(response)));
         }
+
+        response
+            .text()
+            .await
+            .map_err(|error| HttpError::Reqwest(Error::Client(error)))
     }
 }
 

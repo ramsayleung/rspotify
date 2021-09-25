@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fmt;
 
 use maybe_async::maybe_async;
-use rspotify_model::ApiError;
 use serde_json::Value;
 
 pub type Headers = HashMap<String, String>;
@@ -21,10 +20,6 @@ pub enum HttpError {
     #[cfg(feature = "client-reqwest")]
     #[error("reqwest: {0}")]
     Reqwest(#[from] crate::reqwest::Error),
-
-    /// Something failed server-side (a logic error, the server is down, etc)
-    #[error("unsuccessful status code: {0}")]
-    StatusCode(u16, Option<ApiError>),
 }
 
 pub type HttpResult<T> = Result<T, HttpError>;
