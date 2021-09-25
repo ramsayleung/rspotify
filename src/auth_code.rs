@@ -101,7 +101,7 @@ impl BaseClient for AuthCodeSpotify {
                 ..
             }) => {
                 let mut data = Form::new();
-                data.insert(headers::REFRESH_TOKEN, &refresh_token);
+                data.insert(headers::REFRESH_TOKEN, refresh_token);
                 data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
                 let mut token = self.fetch_access_token(&data).await?;
