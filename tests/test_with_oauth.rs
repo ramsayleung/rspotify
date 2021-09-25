@@ -20,7 +20,7 @@ use rspotify::{
     model::{
         AlbumId, ArtistId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist,
         Market, Offset, PlaylistId, RecommendationsAttribute, RepeatState, SearchType, ShowId,
-        TimeRange, TrackId, TrackPositions, UserId,
+        TimeLimits, TimeRange, TrackId, TrackPositions, UserId,
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
@@ -177,7 +177,7 @@ async fn test_current_user_playing_track() {
 async fn test_current_user_recently_played() {
     oauth_client()
         .await
-        .current_user_recently_played(Some(10))
+        .current_user_recently_played(Some(10), Some(TimeLimits::After(1)))
         .await
         .unwrap();
 }

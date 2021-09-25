@@ -112,3 +112,12 @@ impl AsRef<str> for Market {
         }
     }
 }
+
+/// Time limits in miliseconds (unix timestamps)
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
+#[derive(Clone, Debug, Serialize, Deserialize, Copy, PartialEq, Eq)]
+pub enum TimeLimits {
+    Before(i64),
+    After(i64),
+}
