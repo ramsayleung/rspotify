@@ -19,11 +19,11 @@ mod common;
 
 #[cfg(feature = "client-reqwest")]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub use self::reqwest::{ReqwestClient as HttpClient, ReqwestError as Error};
+pub use self::reqwest::{ReqwestClient as HttpClient, ReqwestError as HttpError};
 
 #[cfg(feature = "client-ureq")]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub use self::ureq::{UreqClient as HttpClient, UreqError as Error};
+pub use self::ureq::{UreqClient as HttpClient, UreqError as HttpError};
 
 #[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
