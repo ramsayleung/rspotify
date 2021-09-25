@@ -107,7 +107,7 @@ async fn main() {
         .await
         .unwrap()
         .as_mut()
-        .map(|x| x.expires_at.replace(now));
+        .map(|x| x.expires_at = Some(now));
     println!(">>> New Session two from ClientCredsSpotify, expiring the token and then re-auth automatically");
     client_creds_do_things(&spotify).await;
 }

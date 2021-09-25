@@ -12,9 +12,8 @@ use crate::{
 
 use std::time;
 
-use log::error;
 use maybe_async::maybe_async;
-use rspotify_model::idtypes::PlayContextIdType;
+use rspotify_model::idtypes::PlayContextId;
 use serde_json::{json, Map};
 use url::Url;
 
@@ -55,16 +54,26 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
-    /// Tries to read the cache file's token, which may not exist.
-    async fn read_token_cache(&mut self) -> Option<Token> {
-        let tok = Token::from_cache(&self.get_config().cache_path)?;
+    /// Tries to read the cache file's token.
+    ///
+    /// This will return an error if the token couldn't be read (e.g. it's not
+    /// available or the JSON is malformed). It may return `Ok(None)` if:
+    ///
+    /// * The read token is expired
+    /// * Its scopes don't match with the current client
+    /// * The cached token is disabled in the config
+    async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
+        if !self.get_config().token_cached {
+            return Ok(None);
+        }
 
-        if !self.get_oauth().scopes.is_subset(&tok.scopes) || tok.is_expired() {
+        let token = Token::from_cache(&self.get_config().cache_path)?;
+        if !self.get_oauth().scopes.is_subset(&token.scopes) || token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
-            None
+            Ok(None)
         } else {
-            Some(tok)
+            Ok(Some(token))
         }
     }
 
@@ -114,17 +123,11 @@ pub trait OAuthClient: BaseClient {
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
-            Some(new_token) => {
-                self.get_token()
-                    .await
-                    .lock()
-                    .await
-                    .unwrap()
-                    .as_ref()
-                    .replace(&new_token);
+            Ok(Some(new_token)) => {
+                *self.get_token().await.lock().await.unwrap() = Some(new_token);
             }
             // Otherwise following the usual procedure to get the token.
-            None => {
+            _ => {
                 let code = self.get_code_from_user(url)?;
                 // Will write to the cache file if successful
                 self.request_token(&code).await?;
@@ -248,6 +251,9 @@ pub trait OAuthClient: BaseClient {
     /// - position - the position to add the tracks
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
+    ///
+    /// TODO: rename to `playlist_add_items`, as one may also add episodes. Also
+    /// rename parameter names and use dyn PlayableId.
     async fn playlist_add_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -273,10 +279,13 @@ pub trait OAuthClient: BaseClient {
     /// - tracks - the list of track ids to add to the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
+    ///
+    /// TODO: rename to `playlist_replace_items`, as one may also replace
+    /// episodes. Also rename parameter names.
     async fn playlist_replace_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
+        track_ids: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
     ) -> ClientResult<()> {
         let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
@@ -301,6 +310,9 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
+    ///
+    /// TODO: rename to `playlist_reorder_items`, as one may also reorder
+    /// episodes
     async fn playlist_reorder_tracks(
         &self,
         playlist_id: &PlaylistId,
@@ -329,6 +341,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
+    ///
+    /// TODO: rename to `playlist_remove_all_occurrences_of_items`, as one may
+    /// also remove episodes. Also rename parameter names and use dyn
+    /// PlayableId.
     async fn playlist_remove_all_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -383,10 +399,14 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id: optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
+    ///
+    /// TODO: rename to `playlist_remove_specific_occurrences_of_items`, as one
+    /// may also remove episodes. Also rename parameter names. And rename
+    /// `TrackPositions` to `ItemPositions`.
     async fn playlist_remove_specific_occurrences_of_tracks<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: impl IntoIterator<Item = &'a TrackPositions<'a>> + Send + 'a,
+        tracks: impl IntoIterator<Item = &'a TrackPositions> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = tracks
@@ -450,7 +470,10 @@ pub trait OAuthClient: BaseClient {
 
     /// Get information about the current users currently playing track.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
+    ///
+    /// TODO: rename to `current_user_playing_item`, as this also returns
+    /// episodes.
     async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
@@ -954,25 +977,25 @@ pub trait OAuthClient: BaseClient {
     /// - position_ms - Indicates from what position to start playback.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
-    async fn start_context_playback<U: PlayContextIdType, O: PlayableIdType>(
+    async fn start_context_playback<T: PlayContextId>(
         &self,
-        context_uri: &Id<U>,
+        context_uri: &T,
         device_id: Option<&str>,
-        offset: Option<Offset<O>>,
+        offset: Option<Offset>,
         position_ms: Option<time::Duration>,
     ) -> ClientResult<()> {
         let params = build_json! {
             "context_uri": context_uri.uri(),
             optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
-                Offset::Uri(uri) => json!({ "uri": uri.uri() }),
+                Offset::Uri(uri) => json!({ "uri": uri }),
             }),
             optional "position_ms": position_ms,
 
         };
 
         let url = append_device_id("me/player/play", device_id);
-        self.put(&url, None, &params).await?;
+        self.endpoint_put(&url, &params).await?;
 
         Ok(())
     }
@@ -986,11 +1009,11 @@ pub trait OAuthClient: BaseClient {
     /// - position_ms
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-start-a-users-playback)
-    async fn start_uris_playback<'a, T: PlayableIdType + 'a>(
+    async fn start_uris_playback<'a>(
         &self,
-        uris: impl IntoIterator<Item = &'a Id<T>> + Send + 'a,
+        uris: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
         device_id: Option<&str>,
-        offset: Option<crate::model::Offset<T>>,
+        offset: Option<crate::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = build_json! {
@@ -998,7 +1021,7 @@ pub trait OAuthClient: BaseClient {
             optional "position_ms": position_ms,
             optional "offset": offset.map(|x| match x {
                 Offset::Position(position) => json!({ "position": position }),
-                Offset::Uri(uri) => json!({ "uri": uri.uri() }),
+                Offset::Uri(uri) => json!({ "uri": uri }),
             }),
         };
 
@@ -1111,9 +1134,10 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     async fn volume(&self, volume_percent: u8, device_id: Option<&str>) -> ClientResult<()> {
-        if volume_percent > 100u8 {
-            error!("volume must be between 0 and 100, inclusive");
-        }
+        debug_assert!(
+            volume_percent > 100u8,
+            "volume must be between 0 and 100, inclusive"
+        );
         let url = append_device_id(
             &format!("me/player/volume?volume_percent={}", volume_percent),
             device_id,
@@ -1146,12 +1170,12 @@ pub trait OAuthClient: BaseClient {
     ///   targeted
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue)
-    async fn add_item_to_queue<Item: PlayableIdType>(
+    async fn add_item_to_queue<T: PlayableId>(
         &self,
-        item: &Id<Item>,
+        item: &T,
         device_id: Option<&str>,
     ) -> ClientResult<()> {
-        let url = append_device_id(&format!("me/player/queue?uri={}", item), device_id);
+        let url = append_device_id(&format!("me/player/queue?uri={}", item.uri()), device_id);
         self.endpoint_post(&url, &json!({})).await?;
 
         Ok(())

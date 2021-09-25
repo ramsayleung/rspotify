@@ -105,7 +105,7 @@ impl BaseClient for AuthCodeSpotify {
                 data.insert(headers::GRANT_TYPE, headers::GRANT_REFRESH_TOKEN);
 
                 let mut token = self.fetch_access_token(&data).await?;
-                token.refresh_token.replace(refresh_token.to_string());
+                token.refresh_token = Some(refresh_token.to_string());
                 Ok(Some(token))
             }
             _ => Ok(None),

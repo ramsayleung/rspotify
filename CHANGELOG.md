@@ -187,15 +187,16 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - The `Spotify` client has been split up by authorization flows (`ClientCredsSpotify`, `AuthCodeSpotify`, `AuthCodePkceSpotify`), which allows us to remove the builder pattern. The authentication process has been rewritten. ([#216](https://github.com/ramsayleung/rspotify/pull/216)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123)) All fallible calls in the client return a `ClientError` rather than using `failure`.
-- ([#161](https://github.com/ramsayleung/rspotify/pull/161)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id<Type>>`.
-  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id<Type>>`:
+- ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Model objects like `FullTrack` or `AudioFeatures` have had their `_type` and `uri` fields removed. These can be accessed instead with the `id` field: `id._type()` or `id.uri()`.
+- ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id>`.
+  + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id>`:
 	- `albums`
 	- `artists`
 	- `check_users_saved_shows`
 	- `get_several_episodes`
 	- `remove_users_saved_shows`
 	- `save_shows`
-  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id<Type>>`:
+  + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id>`:
 	- `audios_features`
 	- `current_user_saved_albums_add`
 	- `current_user_saved_albums_contains`
@@ -211,7 +212,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 	- `user_playlist_replace_tracks`
 	- `user_unfollow_artists`
 	- `user_unfollow_users`
-  + The endpoints which changes parameter from `String` to `&Id<Type>`:
+  + The endpoints which changes parameter from `String` to `&Id`:
         - `get_a_show`
         - `get_an_episode`
         - `get_shows_episodes`
@@ -226,6 +227,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Refactor all enum files with `strum`, reduced boilerplate code.
    + All enums don't have a method named `as_str()` anymore, by leveraging `strum`, it's easy to convert strings to enum variants based on their name, with method `as_ref()`.
 - Fix typo in `transfer_playback`: `device_id` to `device_ids`.
+- ([#249](https://github.com/ramsayleung/rspotify/pull/249)) The `recommendations` endpoint has been made simpler to use; the attributes are now serialized with `RecommendationsAttribute`.
 - ([#145](https://github.com/ramsayleung/rspotify/pull/145)) Refactor models to make it easier to use:
   + Changed type of `track` in `PlayHistory` to `FullTrack` ([#139](https://github.com/ramsayleung/rspotify/pull/139)).
   + Rename model `CurrentlyPlaybackContext` to `CurrentPlaybackContext`
@@ -245,7 +247,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + Change `{FullArtist, FullPlaylist, PublicUser, PrivateUser}::followers` from `HashMap<String, Option<Value>>` to struct `Followers`
   + Replace `Actions::disallows` with a `Vec<DisallowKey>` by removing all entires whose value is false, which will result in a simpler API
   + Replace `{FullAlbum, SimplifiedEpisode, FullEpisode}::release_date_precision` from `String` to `DatePrecision` enum, makes it easier to use.
-  + Id and URI parameters are type-safe now everywhere, `Id<Type>` and `IdBuf<Type>` types for ids/URIs added (non-owning and owning structs).
+  + Id and URI parameters are type-safe now everywhere thanks to the `Id` trait and its implementations.
 - ([#157](https://github.com/ramsayleung/rspotify/pull/157)) Keep polishing models to make it easier to use:
   + Constrain visibility of `FullArtists` struct with `pub (in crate)`, make `artists` and `artist_related_artists` endpoints return a `Vec<FullArtist>` instead.
   + Constrain visibility of `FullTracks` struct with `pub (in crate)`, make `tracks` and `artist_top_tracks` endpoints return a `Vec<FullTrack>` instead.

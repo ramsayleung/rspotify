@@ -65,7 +65,7 @@ fn test_public_user() {
         }
         "#;
     let user: PublicUser = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(user.id, "wizzler".to_string());
+    assert_eq!(user.id, UserId::from_id("wizzler").unwrap());
 }
 
 #[test]
@@ -464,7 +464,7 @@ fn test_full_playlist() {
         "#.replace("json_str_images", json_str_images).replace("json_str_simplified_artists", json_str_simplified_artists);
     let full_playlist: FullPlaylist = serde_json::from_str(&json_str).unwrap();
     assert_eq!(
-        full_playlist.uri,
+        full_playlist.id.uri(),
         "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
     );
     assert_eq!(full_playlist.followers.total, 109);
@@ -588,6 +588,19 @@ fn test_resume_point() {
     "#;
     let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
     let duration = Duration::from_millis(423432);
+    assert_eq!(resume_point.resume_position, duration);
+}
+
+#[test]
+fn test_resume_point_negative() {
+    let json = r#"
+    {
+        "fully_played": true,
+        "resume_position_ms": -1000
+    }
+    "#;
+    let resume_point: ResumePoint = serde_json::from_str(&json).unwrap();
+    let duration = Duration::default();
     assert_eq!(resume_point.resume_position, duration);
 }
 

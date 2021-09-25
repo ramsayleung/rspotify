@@ -2,12 +2,10 @@
 
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
+
 use std::collections::HashMap;
 
-use super::image::Image;
-use super::page::Page;
-use super::user::PublicUser;
-use crate::{Followers, PlayableItem, Type};
+use crate::{Followers, Image, Page, PlayableItem, PlaylistId, PublicUser};
 
 /// Playlist result object
 ///
@@ -34,16 +32,13 @@ pub struct SimplifiedPlaylist {
     pub collaborative: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: String,
+    pub id: PlaylistId,
     pub images: Vec<Image>,
     pub name: String,
     pub owner: PublicUser,
     pub public: Option<bool>,
     pub snapshot_id: String,
     pub tracks: PlaylistTracksRef,
-    #[serde(rename = "type")]
-    pub _type: Type,
-    pub uri: String,
 }
 
 /// Full playlist object
@@ -56,16 +51,13 @@ pub struct FullPlaylist {
     pub external_urls: HashMap<String, String>,
     pub followers: Followers,
     pub href: String,
-    pub id: String,
+    pub id: PlaylistId,
     pub images: Vec<Image>,
     pub name: String,
     pub owner: PublicUser,
     pub public: Option<bool>,
     pub snapshot_id: String,
     pub tracks: Page<PlaylistItem>,
-    #[serde(rename = "type")]
-    pub _type: Type,
-    pub uri: String,
 }
 
 /// Playlist track object

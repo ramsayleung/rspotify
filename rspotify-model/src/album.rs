@@ -5,12 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::artist::SimplifiedArtist;
-use super::image::Image;
-use super::page::Page;
-use super::track::SimplifiedTrack;
-use super::Restriction;
-use crate::{AlbumType, Copyright, DatePrecision, Type};
+use crate::{
+    AlbumId, AlbumType, Copyright, DatePrecision, Image, Page, RestrictionReason, SimplifiedArtist,
+    SimplifiedTrack,
+};
 
 /// Simplified Album Object
 ///
@@ -25,7 +23,7 @@ pub struct SimplifiedAlbum {
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<String>,
+    pub id: Option<AlbumId>,
     pub images: Vec<Image>,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -34,9 +32,6 @@ pub struct SimplifiedAlbum {
     pub release_date_precision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restriction>,
-    #[serde(rename = "type")]
-    pub _type: Type,
-    pub uri: Option<String>,
 }
 
 /// Full Album Object
@@ -52,16 +47,13 @@ pub struct FullAlbum {
     pub external_urls: HashMap<String, String>,
     pub genres: Vec<String>,
     pub href: String,
-    pub id: String,
+    pub id: AlbumId,
     pub images: Vec<Image>,
     pub name: String,
     pub popularity: u32,
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub tracks: Page<SimplifiedTrack>,
-    #[serde(rename = "type")]
-    pub _type: Type,
-    pub uri: String,
 }
 
 /// Full Albums wrapped by Vec object
@@ -87,4 +79,12 @@ pub struct PageSimpliedAlbums {
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
     pub album: FullAlbum,
+}
+
+/// Album restriction object
+///
+/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject)
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Restriction {
+    pub reason: RestrictionReason,
 }

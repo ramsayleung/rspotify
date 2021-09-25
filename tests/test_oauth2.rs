@@ -34,13 +34,14 @@ fn test_get_authorize_url() {
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_read_token_cache() {
-    let now = Utc::now();
+    let expires_in = Duration::seconds(3600);
+    let expires_at = Some(Utc::now() + expires_in);
     let scopes = scopes!("playlist-read-private", "playlist-read-collaborative");
 
     let tok = Token {
+        expires_in,
+        expires_at,
         access_token: "test-access_token".to_owned(),
-        expires_in: Duration::seconds(3600),
-        expires_at: Some(now),
         scopes: scopes.clone(),
         refresh_token: Some("...".to_owned()),
     };
@@ -61,11 +62,11 @@ async fn test_read_token_cache() {
     spotify.config = config;
 
     // read token from cache file
-    let tok_from_file = spotify.read_token_cache().await.unwrap();
+    let tok_from_file = spotify.read_token_cache().await.unwrap().unwrap();
     assert_eq!(tok_from_file.scopes, scopes);
     assert_eq!(tok_from_file.refresh_token.unwrap(), "...");
     assert_eq!(tok_from_file.expires_in, Duration::seconds(3600));
-    assert_eq!(tok_from_file.expires_at.unwrap(), now);
+    assert_eq!(tok_from_file.expires_at, expires_at);
 
     // delete cache file in the end
     fs::remove_file(&spotify.config.cache_path).unwrap();

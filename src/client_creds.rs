@@ -90,23 +90,26 @@ impl ClientCredsSpotify {
         }
     }
 
-    /// Tries to read the cache file's token, which may not exist.
+    /// Tries to read the cache file's token.
     ///
-    /// Similarly to [`Self::write_token_cache`], this will already check if the
-    /// cached token is enabled and return `None` in case it isn't.
+    /// This will return an error if the token couldn't be read (e.g. it's not
+    /// available or the JSON is malformed). It may return `Ok(None)` if:
+    ///
+    /// * The read token is expired
+    /// * The cached token is disabled in the config
     #[maybe_async]
-    pub async fn read_token_cache(&self) -> Option<Token> {
+    pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
-            return None;
+            return Ok(None);
         }
 
         let token = Token::from_cache(&self.get_config().cache_path)?;
         if token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
-            None
+            Ok(None)
         } else {
-            Some(token)
+            Ok(Some(token))
         }
     }
 
@@ -157,11 +160,10 @@ impl ClientCredsSpotify {
     #[maybe_async]
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
-        if let Some(token) = token {
-            // NOTE: this can't use `get_token` because `get_token` itself might
-            // call this function when automatic reauthentication is enabled.
-            self.token.lock().await.unwrap().replace(token);
-        }
+
+        // NOTE: this can't use `get_token` because `get_token` itself might
+        // call this function when automatic reauthentication is enabled.
+        *self.token.lock().await.unwrap() = token;
 
         self.write_token_cache().await
     }

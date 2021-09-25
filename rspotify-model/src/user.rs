@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::image::Image;
-use crate::{Country, Followers, SubscriptionLevel, Type};
+use crate::{Country, Followers, Image, SubscriptionLevel, UserId};
 
 /// Public user object
 ///
@@ -16,12 +15,9 @@ pub struct PublicUser {
     pub external_urls: HashMap<String, String>,
     pub followers: Option<Followers>,
     pub href: String,
-    pub id: String,
+    pub id: UserId,
     #[serde(default = "Vec::new")]
     pub images: Vec<Image>,
-    #[serde(rename = "type")]
-    pub _type: Type,
-    pub uri: String,
 }
 
 /// Private user object
@@ -36,12 +32,9 @@ pub struct PrivateUser {
     pub explicit_content: Option<ExplicitContent>,
     pub followers: Option<Followers>,
     pub href: String,
-    pub id: String,
+    pub id: UserId,
     pub images: Option<Vec<Image>>,
     pub product: Option<SubscriptionLevel>,
-    #[serde(rename = "type")]
-    pub _type: Type,
-    pub uri: String,
 }
 
 /// Explicit content setting object
