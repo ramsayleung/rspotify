@@ -309,6 +309,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `get_an_episode`
     + `get_several_episodes`
     + `remove_users_saved_shows`
+- ([#256](https://github.com/ramsayleung/rspotify/pull/256), [#198](https://github.com/ramsayleung/rspotify/pull/198)) Added missing `before` and `after` parameters from `current_user_recently_played`
 
 ## 0.10 (2020/07/01)
 
