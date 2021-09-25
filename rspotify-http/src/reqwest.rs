@@ -1,7 +1,7 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
+use super::{BaseHttpClient, Form, Headers, Query};
 
 use std::convert::TryInto;
 
@@ -33,7 +33,7 @@ impl ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         add_data: D,
-    ) -> HttpResult<String>
+    ) -> Result<String, ReqwestError>
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
     {
@@ -60,29 +60,31 @@ impl ReqwestClient {
         let response = request
             .send()
             .await
-            .map_err(|error| HttpError::Reqwest(ReqwestError::Client(error)))?;
+            .map_err(|error| ReqwestError::Client(error))?;
 
         // Making sure that the status code is OK
         if !response.status().is_success() {
-            return Err(HttpError::Reqwest(ReqwestError::StatusCode(response)));
+            return Err(ReqwestError::StatusCode(response));
         }
 
         response
             .text()
             .await
-            .map_err(|error| HttpError::Reqwest(ReqwestError::Client(error)))
+            .map_err(|error| ReqwestError::Client(error))
     }
 }
 
 #[async_impl]
 impl BaseHttpClient for ReqwestClient {
+    type Error = ReqwestError;
+
     #[inline]
     async fn get(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Query,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::GET, url, headers, |req| req.query(payload))
             .await
     }
@@ -93,7 +95,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::POST, url, headers, |req| req.json(payload))
             .await
     }
@@ -104,7 +106,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::POST, url, headers, |req| req.form(payload))
             .await
     }
@@ -115,7 +117,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::PUT, url, headers, |req| req.json(payload))
             .await
     }
@@ -126,7 +128,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::DELETE, url, headers, |req| req.json(payload))
             .await
     }

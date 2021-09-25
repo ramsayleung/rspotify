@@ -19,15 +19,15 @@ mod common;
 
 #[cfg(feature = "client-reqwest")]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub use self::reqwest::ReqwestClient as HttpClient;
+pub use self::reqwest::{ReqwestClient as HttpClient, ReqwestError as Error};
 
 #[cfg(feature = "client-ureq")]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub use self::ureq::UreqClient as HttpClient;
+pub use self::ureq::{UreqClient as HttpClient, UreqError as Error};
 
 #[cfg(any(feature = "client-reqwest", feature = "client-ureq"))]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
-pub use common::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
+pub use common::{BaseHttpClient, Form, Headers, Query};
 
 #[cfg(all(feature = "client-reqwest", feature = "client-ureq"))]
 compile_error!(

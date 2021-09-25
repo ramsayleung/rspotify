@@ -8,23 +8,6 @@ pub type Headers = HashMap<String, String>;
 pub type Query<'a> = HashMap<&'a str, &'a str>;
 pub type Form<'a> = HashMap<&'a str, &'a str>;
 
-/// An error in the HTTP request of any kind. This delegates the information to
-/// whichever client is configured for Rspotify.
-#[derive(thiserror::Error, Debug)]
-pub enum HttpError {
-    /// Error specific to the ureq queries
-    #[cfg(feature = "client-ureq")]
-    #[error("ureq: {0}")]
-    Ureq(#[from] crate::ureq::UreqError),
-
-    /// Error specific to the reqwest queries
-    #[cfg(feature = "client-reqwest")]
-    #[error("reqwest: {0}")]
-    Reqwest(#[from] crate::reqwest::ReqwestError),
-}
-
-pub type HttpResult<T> = Result<T, HttpError>;
-
 /// This trait represents the interface to be implemented for an HTTP client,
 /// which is kept separate from the Spotify client for cleaner code. Thus, it
 /// also requires other basic traits that are needed for the Spotify client.
@@ -37,39 +20,41 @@ pub type HttpResult<T> = Result<T, HttpError>;
 /// much sense).
 #[maybe_async]
 pub trait BaseHttpClient: Send + Default + Clone + fmt::Debug {
+    type Error;
+
     // This internal function should always be given an object value in JSON.
     async fn get(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Query,
-    ) -> HttpResult<String>;
+    ) -> Result<String, Self::Error>;
 
     async fn post(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String>;
+    ) -> Result<String, Self::Error>;
 
     async fn post_form<'a>(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> HttpResult<String>;
+    ) -> Result<String, Self::Error>;
 
     async fn put(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String>;
+    ) -> Result<String, Self::Error>;
 
     async fn delete(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String>;
+    ) -> Result<String, Self::Error>;
 }
