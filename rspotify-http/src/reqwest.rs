@@ -60,11 +60,11 @@ impl ReqwestClient {
         let response = request.send().await.map_err(ReqwestError::Client)?;
 
         // Making sure that the status code is OK
-        if !response.status().is_success() {
-            return Err(ReqwestError::StatusCode(response));
+        if response.status().is_success() {
+            response.text().await.map_err(ReqwestError::Client)
+        } else {
+            Err(ReqwestError::StatusCode(response))
         }
-
-        response.text().await.map_err(ReqwestError::Client)
     }
 }
 
