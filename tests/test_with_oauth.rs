@@ -199,7 +199,7 @@ async fn test_current_user_saved_albums() {
         .unwrap();
 
     // Making sure the new albums appear
-    let all_albums = fetch_all(client.current_user_saved_albums()).await;
+    let all_albums = fetch_all(client.current_user_saved_albums(None)).await;
     let all_uris = all_albums
         .into_iter()
         .map(|a| a.album.id)
@@ -221,32 +221,32 @@ async fn test_current_user_saved_albums() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_current_user_saved_tracks_add() {
+    let client = oauth_client().await;
     let tracks_ids = [
         &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
         &TrackId::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
     ];
-    oauth_client()
-        .await
+    client
         .current_user_saved_tracks_add(tracks_ids)
         .await
         .unwrap();
 
-    let contains = oauth_client()
-        .await
+    let contains = client
         .current_user_saved_tracks_contains(tracks_ids)
         .await
         .unwrap();
     // Every track should be saved
     assert!(contains.into_iter().all(|x| x));
 
-    oauth_client()
+    let all = client
+        .current_user_saved_tracks(None)
         .await
-        .current_user_saved_tracks_manual(Some(10), Some(0))
-        .await
-        .unwrap();
+        .filter_map(|saved| Some(saved.ok()?.track.id))
+        .collect::<Vec<_>>();
+    // All the initial tracks should appear
+    assert!(tracks_ids.iter().all(|track| all.contains(track)));
 
-    oauth_client()
-        .await
+    client
         .current_user_saved_tracks_delete(tracks_ids)
         .await
         .unwrap();
