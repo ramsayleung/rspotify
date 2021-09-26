@@ -309,8 +309,8 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `get_an_episode`
     + `get_several_episodes`
     + `remove_users_saved_shows`
-- `PageSimpliedAlbums` has been renamed to `PageSimplifiedAlbums`
-- `Default` has been implemented for all the possible models
+- ([#261](https://github.com/ramsayleung/rspotify/pull/261/files)) `PageSimpliedAlbums` has been renamed to `PageSimplifiedAlbums`
+- ([#261](https://github.com/ramsayleung/rspotify/pull/261/files)) `Default` has been implemented for all the possible models
 
 ## 0.10 (2020/07/01)
 
