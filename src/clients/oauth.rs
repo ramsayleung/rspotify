@@ -716,8 +716,8 @@ pub trait OAuthClient: BaseClient {
         };
 
         let time_limit = match time_limit {
-            Some(TimeLimits::Before(y)) => Some(("before", y.timestamp().to_string())),
-            Some(TimeLimits::After(y)) => Some(("after", y.timestamp().to_string())),
+            Some(TimeLimits::Before(y)) => Some(("before", y.timestamp_millis().to_string())),
+            Some(TimeLimits::After(y)) => Some(("after", y.timestamp_millis().to_string())),
             None => None,
         };
         if let Some((name, value)) = time_limit.as_ref() {
