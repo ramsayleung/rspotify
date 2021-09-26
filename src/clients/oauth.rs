@@ -393,7 +393,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_remove_specific_occurrences_of_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        items: impl IntoIterator<Item = &'a ItemPositions> + Send + 'a,
+        items: impl IntoIterator<Item = ItemPositions<'a>> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = items

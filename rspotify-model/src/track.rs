@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, time::Duration};
 
-use crate::{custom_serde::duration_ms, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId};
+use crate::{
+    custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
+};
 
 /// Full track object
 ///
@@ -92,7 +94,11 @@ pub struct SavedTrack {
 }
 
 /// Track id with specific positions track in a playlist
-pub struct ItemPositions {
-    pub id: TrackId,
-    pub positions: Vec<u32>,
+///
+/// This is a short-lived struct for endpoint parameters, so it uses `&dyn
+/// PlayableId` instead of `Box<dyn PlayableId>` to avoid the unnecessary
+/// allocation. Same goes for the positions slice instead of vector.
+pub struct ItemPositions<'a> {
+    pub id: &'a dyn PlayableId,
+    pub positions: &'a [u32],
 }

@@ -660,20 +660,16 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     // Removes a few specific tracks
     let tracks = [
         ItemPositions {
-            id: TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh")
-                .unwrap()
-                .to_owned(),
-            positions: vec![0],
+            id: &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+            positions: &[0],
         },
         ItemPositions {
-            id: TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL")
-                .unwrap()
-                .to_owned(),
-            positions: vec![4, 6],
+            id: &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
+            positions: &[4, 6],
         },
     ];
     client
-        .playlist_remove_specific_occurrences_of_items(&playlist.id, tracks.as_ref(), None)
+        .playlist_remove_specific_occurrences_of_items(&playlist.id, tracks, None)
         .await
         .unwrap();
     // Making sure three tracks were removed
