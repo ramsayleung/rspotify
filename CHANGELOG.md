@@ -317,7 +317,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `playlist_replace_tracks` is now `playlist_replace_items`
     + `playlist_reorder_tracks` is now `playlist_reorder_items`
     + `playlist_remove_all_occurrences_of_tracks` is now `playlist_remove_all_occurrences_of_items`
-    + `playlist_remove_specific_occurrences_of_tracks` is now `playlist_remove_specific_occurrences_of_tracks`
+    + `playlist_remove_specific_occurrences_of_tracks` is now `playlist_remove_specific_occurrences_of_items`
     + `model::TrackPositions` is now `model::ItemPositions`
     + `current_user_playing_track` is now `current_user_playing_item`
 
