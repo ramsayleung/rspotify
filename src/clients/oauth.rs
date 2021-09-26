@@ -701,16 +701,28 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Parameters:
     /// - limit - the number of entities to return
+    /// - time_limit - a Unix timestamp in milliseconds. Returns all items after
+    /// or before (but not including) this cursor position.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
     async fn current_user_recently_played(
         &self,
         limit: Option<u32>,
+        time_limit: Option<TimeLimits>,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let limit = limit.map(|x| x.to_string());
-        let params = build_map! {
+        let mut params = build_map! {
             optional "limit": limit.as_deref(),
         };
+
+        let time_limit = match time_limit {
+            Some(TimeLimits::Before(y)) => Some(("before", y.timestamp_millis().to_string())),
+            Some(TimeLimits::After(y)) => Some(("after", y.timestamp_millis().to_string())),
+            None => None,
+        };
+        if let Some((name, value)) = time_limit.as_ref() {
+            params.insert(name, value);
+        }
 
         let result = self
             .endpoint_get("me/player/recently-played", &params)
