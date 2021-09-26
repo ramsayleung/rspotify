@@ -61,7 +61,7 @@ pub struct CurrentPlaybackContext {
 /// Actions object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
-#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, PartialEq, Eq, Default)]
 pub struct Actions {
     pub disallows: Vec<DisallowKey>,
 }

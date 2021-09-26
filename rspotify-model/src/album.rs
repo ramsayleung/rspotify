@@ -13,7 +13,7 @@ use crate::{
 /// Simplified Album Object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedalbumobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub album_group: Option<String>,
@@ -56,7 +56,7 @@ pub struct FullAlbum {
     pub tracks: Page<SimplifiedTrack>,
 }
 
-/// Full Albums wrapped by Vec object
+/// Intermediate full Albums wrapped by Vec object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
 #[derive(Deserialize)]
@@ -64,11 +64,11 @@ pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
-/// Simplified Albums wrapped by Page object
+/// Intermediate simplified Albums wrapped by Page object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
 #[derive(Deserialize)]
-pub struct PageSimpliedAlbums {
+pub struct PageSimplifiedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 

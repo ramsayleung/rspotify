@@ -35,7 +35,7 @@ use serde::{Deserialize, Serialize};
 /// Followers object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-followersobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Followers {
     // This field will always set to null, as the Web API does not support it at the moment.
     // pub href: Option<String>,

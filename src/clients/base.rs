@@ -880,7 +880,7 @@ where
         };
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
-        convert_result::<PageSimpliedAlbums>(&result).map(|x| x.albums)
+        convert_result::<PageSimplifiedAlbums>(&result).map(|x| x.albums)
     }
 
     /// Get Recommendations Based on Seeds

@@ -18,7 +18,7 @@ pub struct SearchPlaylists {
 /// Search for albums
 ///
 ///[Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SearchAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }

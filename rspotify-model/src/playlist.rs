@@ -10,7 +10,7 @@ use crate::{Followers, Image, Page, PlayableItem, PlaylistId, PublicUser};
 /// Playlist result object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct PlaylistResult {
     pub snapshot_id: String,
 }
@@ -18,7 +18,7 @@ pub struct PlaylistResult {
 /// Playlist Track Reference Object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-playlisttracksrefobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct PlaylistTracksRef {
     pub href: String,
     pub total: u32,
@@ -63,7 +63,7 @@ pub struct FullPlaylist {
 /// Playlist track object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-playlisttrackobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct PlaylistItem {
     pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
@@ -78,7 +78,7 @@ pub struct FeaturedPlaylists {
     pub playlists: Page<SimplifiedPlaylist>,
 }
 
-/// Category playlists object wrapped by `Page`
+/// Intermediate category playlists object wrapped by `Page`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
 #[derive(Deserialize)]

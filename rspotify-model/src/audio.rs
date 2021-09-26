@@ -34,7 +34,7 @@ pub struct AudioFeatures {
     pub valence: f32,
 }
 
-/// Audio feature object wrapped by `Vec`
+/// Intermediate audio feature object wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
 #[derive(Deserialize)]
@@ -58,7 +58,7 @@ pub struct AudioAnalysis {
 
 /// Time interval object
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct TimeInterval {
     pub start: f32,
     pub duration: f32,
@@ -87,7 +87,7 @@ pub struct AudioAnalysisSection {
 /// Audio analysis meta object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct AudioAnalysisMeta {
     pub analyzer_version: String,
     pub platform: String,
@@ -101,7 +101,7 @@ pub struct AudioAnalysisMeta {
 /// Audio analysis segment object
 ///
 ///[Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct AudioAnalysisSegment {
     #[serde(flatten)]
     pub time_interval: TimeInterval,

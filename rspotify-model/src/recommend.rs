@@ -8,7 +8,7 @@ use crate::{RecommendationsSeedType, SimplifiedTrack};
 /// Recommendations object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationsobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Recommendations {
     pub seeds: Vec<RecommendationsSeed>,
     pub tracks: Vec<SimplifiedTrack>,

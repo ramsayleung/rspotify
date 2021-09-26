@@ -9,7 +9,7 @@ use crate::{ArtistId, CursorBasedPage, Followers, Image};
 /// Simplified Artist Object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedartistobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
@@ -32,7 +32,7 @@ pub struct FullArtist {
     pub popularity: u32,
 }
 
-/// Full artist object wrapped by `Vec`
+/// Intermediate full artist object wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
 #[derive(Deserialize)]
@@ -40,7 +40,7 @@ pub struct FullArtists {
     pub artists: Vec<FullArtist>,
 }
 
-/// Full Artists vector wrapped by cursor-based-page object
+/// Intermediate full Artists vector wrapped by cursor-based-page object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-followed)
 #[derive(Deserialize)]
