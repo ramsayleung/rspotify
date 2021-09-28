@@ -25,7 +25,7 @@ fn main() {
     spotify.prompt_for_token(&url).unwrap();
 
     // Typical iteration, no extra boilerplate needed.
-    let stream = spotify.current_user_saved_tracks();
+    let stream = spotify.current_user_saved_tracks(None);
     println!("Items:");
     for item in stream {
         println!("* {}", item.unwrap().track.name);

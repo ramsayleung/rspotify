@@ -309,6 +309,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `get_an_episode`
     + `get_several_episodes`
     + `remove_users_saved_shows`
+- ([#260](https://github.com/ramsayleung/rspotify/pull/260)) The `current_user_saved_albums` and `current_user_saved_tracks` now have a `market` parameter
 
 ## 0.10 (2020/07/01)
 

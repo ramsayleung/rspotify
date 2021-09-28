@@ -24,7 +24,7 @@ async fn main() {
     println!("Items:");
     loop {
         let page = spotify
-            .current_user_saved_tracks_manual(Some(limit), Some(offset))
+            .current_user_saved_tracks_manual(None, Some(limit), Some(offset))
             .await
             .unwrap();
         for item in page.items {
