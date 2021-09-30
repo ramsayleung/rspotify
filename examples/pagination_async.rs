@@ -25,7 +25,7 @@ async fn main() {
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Executing the futures sequentially
-    let stream = spotify.current_user_saved_tracks();
+    let stream = spotify.current_user_saved_tracks(None);
     pin_mut!(stream);
     println!("Items (blocking):");
     while let Some(item) = stream.try_next().await.unwrap() {
@@ -33,7 +33,7 @@ async fn main() {
     }
 
     // Executing the futures concurrently
-    let stream = spotify.current_user_saved_tracks();
+    let stream = spotify.current_user_saved_tracks(None);
     println!("\nItems (concurrent):");
     stream
         .try_for_each_concurrent(10, |item| async move {

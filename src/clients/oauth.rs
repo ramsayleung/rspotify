@@ -482,9 +482,14 @@ pub trait OAuthClient: BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-albums)
-    fn current_user_saved_albums(&self) -> Paginator<'_, ClientResult<SavedAlbum>> {
+    fn current_user_saved_albums<'a>(
+        &'a self,
+        market: Option<&'a Market>,
+    ) -> Paginator<'a, ClientResult<SavedAlbum>> {
         paginate(
-            move |limit, offset| self.current_user_saved_albums_manual(Some(limit), Some(offset)),
+            move |limit, offset| {
+                self.current_user_saved_albums_manual(market, Some(limit), Some(offset))
+            },
             self.get_config().pagination_chunks,
         )
     }
@@ -492,12 +497,14 @@ pub trait OAuthClient: BaseClient {
     /// The manually paginated version of [`Self::current_user_saved_albums`].
     async fn current_user_saved_albums_manual(
         &self,
+        market: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SavedAlbum>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
+            optional "market": market.map(|x| x.as_ref()),
             optional "limit": limit.as_deref(),
             optional "offset": offset.as_deref(),
         };
@@ -518,9 +525,14 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-saved-tracks)
-    fn current_user_saved_tracks(&self) -> Paginator<'_, ClientResult<SavedTrack>> {
+    fn current_user_saved_tracks<'a>(
+        &'a self,
+        market: Option<&'a Market>,
+    ) -> Paginator<'a, ClientResult<SavedTrack>> {
         paginate(
-            move |limit, offset| self.current_user_saved_tracks_manual(Some(limit), Some(offset)),
+            move |limit, offset| {
+                self.current_user_saved_tracks_manual(market, Some(limit), Some(offset))
+            },
             self.get_config().pagination_chunks,
         )
     }
@@ -528,12 +540,14 @@ pub trait OAuthClient: BaseClient {
     /// The manually paginated version of [`Self::current_user_saved_tracks`].
     async fn current_user_saved_tracks_manual(
         &self,
+        market: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SavedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map! {
+            optional "market": market.map(|x| x.as_ref()),
             optional "limit": limit.as_deref(),
             optional "offset": offset.as_deref(),
         };
