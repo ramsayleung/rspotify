@@ -14,6 +14,8 @@ keywords = ["spotify", "api"]
 edition = "2018"
 
 [dependencies]
+rspotify-model = { path = "../rspotify-model", version = "0.10.0" }
+
 # Temporary until https://github.com/rust-lang/rfcs/issues/2739, for
 # `maybe_async`.
 async-trait = { version = "0.1.51", optional = true }
@@ -25,6 +27,9 @@ thiserror = "1.0.29"
 # Supported clients
 reqwest = { version = "0.11.4", default-features = false, features = ["json", "socks"], optional = true }
 ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies"], optional = true }
+
+[dev-dependencies]
+tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread"] }
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]

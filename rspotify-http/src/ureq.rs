@@ -10,14 +10,42 @@ use ureq::{Request, Response};
 
 /// Custom enum that contains all the possible errors that may occur when using
 /// `ureq`.
+///
+/// Sample usage:
+///
+/// ```
+/// use rspotify_http::{HttpError, HttpClient, BaseHttpClient};
+///
+/// let client = HttpClient::default();
+/// let response = client.get("wrongurl", None, &Default::default());
+/// match response {
+///     Ok(data) => println!("request succeeded: {:?}", data),
+///     Err(HttpError::Transport(e)) => eprintln!("request failed: {}", e),
+///     Err(HttpError::Io(e)) => eprintln!("failed to decode response: {}", e),
+///     Err(HttpError::StatusCode(response)) => {
+///         let code = response.status();
+///         match response.into_json::<rspotify_model::ApiError>() {
+///             Ok(api_error) => eprintln!("status code {}: {:?}", code, api_error),
+///             Err(_) => eprintln!("status code {}", code),
+///         }
+///     },
+/// }
+/// ```
 #[derive(thiserror::Error, Debug)]
 pub enum UreqError {
+    /// The request couldn't be completed because there was an error when trying
+    /// to do so
     #[error("transport: {0}")]
     Transport(#[from] ureq::Transport),
 
+    /// There was an error when trying to decode the response
     #[error("I/O: {0}")]
     Io(#[from] io::Error),
 
+    /// The request was made, but the server returned an unsuccessful status
+    /// code, such as 404 or 503. In some cases, the response may contain a
+    /// custom message from Spotify with more information, which can be
+    /// serialized into [`rspotify_model::ApiError`].
     #[error("status code {}", ureq::Response::status(.0))]
     StatusCode(ureq::Response),
 }

@@ -10,12 +10,41 @@ use reqwest::{Method, RequestBuilder};
 use serde_json::Value;
 
 /// Custom enum that contains all the possible errors that may occur when using
-/// `reqwest`.
+/// [`reqwest`].
+///
+/// Sample usage:
+///
+/// ```
+/// # #[tokio::main]
+/// # async fn main() {
+/// use rspotify_http::{HttpError, HttpClient, BaseHttpClient};
+///
+/// let client = HttpClient::default();
+/// let response = client.get("wrongurl", None, &Default::default()).await;
+/// match response {
+///     Ok(data) => println!("request succeeded: {:?}", data),
+///     Err(HttpError::Client(e)) => eprintln!("request failed: {}", e),
+///     Err(HttpError::StatusCode(response)) => {
+///         let code = response.status().as_u16();
+///         match response.json::<rspotify_model::ApiError>().await {
+///             Ok(api_error) => eprintln!("status code {}: {:?}", code, api_error),
+///             Err(_) => eprintln!("status code {}", code),
+///         }
+///     },
+/// }
+/// # }
+/// ```
 #[derive(thiserror::Error, Debug)]
 pub enum ReqwestError {
+    /// The request couldn't be completed because there was an error when trying
+    /// to do so
     #[error("request: {0}")]
     Client(#[from] reqwest::Error),
 
+    /// The request was made, but the server returned an unsuccessful status
+    /// code, such as 404 or 503. In some cases, the response may contain a
+    /// custom message from Spotify with more information, which can be
+    /// serialized into [`rspotify_model::ApiError`].
     #[error("status code {}", reqwest::Response::status(.0))]
     StatusCode(reqwest::Response),
 }
