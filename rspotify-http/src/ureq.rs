@@ -100,7 +100,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Query,
-    ) -> Result<String, UreqError> {
+    ) -> Result<String, Self::Error> {
         let request = ureq::get(url);
         let sender = |mut req: Request| {
             for (key, val) in payload.iter() {
@@ -117,7 +117,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> Result<String, UreqError> {
+    ) -> Result<String, Self::Error> {
         let request = ureq::post(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
@@ -129,7 +129,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> Result<String, UreqError> {
+    ) -> Result<String, Self::Error> {
         let request = ureq::post(url);
         let sender = |req: Request| {
             let payload = payload
@@ -149,7 +149,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> Result<String, UreqError> {
+    ) -> Result<String, Self::Error> {
         let request = ureq::put(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
@@ -161,7 +161,7 @@ impl BaseHttpClient for UreqClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> Result<String, UreqError> {
+    ) -> Result<String, Self::Error> {
         let request = ureq::delete(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
