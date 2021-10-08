@@ -311,6 +311,8 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `remove_users_saved_shows`
 - ([#261](https://github.com/ramsayleung/rspotify/pull/261/files)) `PageSimpliedAlbums` has been renamed to `PageSimplifiedAlbums`
 - ([#261](https://github.com/ramsayleung/rspotify/pull/261/files)) `Default` has been implemented for all the possible models
+- ([#260](https://github.com/ramsayleung/rspotify/pull/260)) The `current_user_saved_albums` and `current_user_saved_tracks` now have a `market` parameter
+- ([#256](https://github.com/ramsayleung/rspotify/pull/256), [#198](https://github.com/ramsayleung/rspotify/pull/198)) Added missing `before` and `after` parameters from `current_user_recently_played`
 
 ## 0.10 (2020/07/01)
 
