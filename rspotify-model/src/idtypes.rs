@@ -428,9 +428,7 @@ mod test {
     const URI_SLASHES: &str = "spotify/track/4iV5W9uYEdYUVa79Axb7Rh";
     // Invalid values:
     const URI_EMPTY: &str = "spotify::4iV5W9uYEdYUVa79Axb7Rh";
-    // TODO: remove one of these
     const URI_WRONGTYPE1: &str = "spotify:unknown:4iV5W9uYEdYUVa79Axb7Rh";
-    const URI_WRONGTYPE2: &str = "spotify:something:4iV5W9uYEdYUVa79Axb7Rh";
     const URI_SHORT: &str = "track:4iV5W9uYEdYUVa79Axb7Rh";
     const URI_MIXED1: &str = "spotify/track:4iV5W9uYEdYUVa79Axb7Rh";
     const URI_MIXED2: &str = "spotify:track/4iV5W9uYEdYUVa79Axb7Rh";
@@ -442,7 +440,6 @@ mod test {
         assert_eq!(TrackId::from_id(URI_SLASHES), Err(IdError::InvalidId));
         assert_eq!(TrackId::from_id(URI_EMPTY), Err(IdError::InvalidId));
         assert_eq!(TrackId::from_id(URI_WRONGTYPE1), Err(IdError::InvalidId));
-        assert_eq!(TrackId::from_id(URI_WRONGTYPE2), Err(IdError::InvalidId));
         assert_eq!(TrackId::from_id(URI_SHORT), Err(IdError::InvalidId));
         assert_eq!(TrackId::from_id(URI_MIXED1), Err(IdError::InvalidId));
         assert_eq!(TrackId::from_id(URI_MIXED2), Err(IdError::InvalidId));
@@ -456,7 +453,6 @@ mod test {
         assert_eq!(TrackId::from_uri(URI_SHORT), Err(IdError::InvalidPrefix));
         assert_eq!(TrackId::from_uri(URI_EMPTY), Err(IdError::InvalidType));
         assert_eq!(TrackId::from_uri(URI_WRONGTYPE1), Err(IdError::InvalidType));
-        assert_eq!(TrackId::from_uri(URI_WRONGTYPE2), Err(IdError::InvalidType));
         assert_eq!(TrackId::from_uri(URI_MIXED1), Err(IdError::InvalidFormat));
         assert_eq!(TrackId::from_uri(URI_MIXED2), Err(IdError::InvalidFormat));
     }
@@ -482,7 +478,6 @@ mod test {
             assert!(check(URI_SHORT).is_err());
             assert!(check(URI_EMPTY).is_err());
             assert!(check(URI_WRONGTYPE1).is_err());
-            assert!(check(URI_WRONGTYPE2).is_err());
             assert!(check(URI_MIXED1).is_err());
             assert!(check(URI_MIXED2).is_err());
         }

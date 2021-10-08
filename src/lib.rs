@@ -154,8 +154,7 @@ pub mod prelude {
 }
 
 /// Common headers as constants.
-/// TODO: rename; these aren't all headers. Most are keys/values for forms.
-pub(in crate) mod headers {
+pub(in crate) mod params {
     pub const CLIENT_ID: &str = "client_id";
     pub const CODE: &str = "code";
     pub const GRANT_TYPE: &str = "grant_type";

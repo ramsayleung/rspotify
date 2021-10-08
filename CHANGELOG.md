@@ -173,6 +173,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - ([#246](https://github.com/ramsayleung/rspotify/pull/246)) Add support for PKCE, see `AuthCodePkceSpotify`.
+- ([#257](https://github.com/ramsayleung/rspotify/pull/257)) `parse_response_code` now checks that the state is the same in the request and in the callback.
 
 **Breaking changes:**
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Rspotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.
@@ -309,6 +310,16 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `get_an_episode`
     + `get_several_episodes`
     + `remove_users_saved_shows`
+- ([#257](https://github.com/ramsayleung/rspotify/pull/257)) Fix naming for most playlist-related endpoints. They used to work only for tracks, but they've been extended to episodes as well, so we call the contents of a playlist "items" instead of "tracks".
+    + `playlist_add_tracks` is now `playlist_add_items`
+    + `playlist_tracks` is now `playlist_items`
+    + `playlist_tracks_manual` is now `playlist_items_manual`
+    + `playlist_replace_tracks` is now `playlist_replace_items`
+    + `playlist_reorder_tracks` is now `playlist_reorder_items`
+    + `playlist_remove_all_occurrences_of_tracks` is now `playlist_remove_all_occurrences_of_items`
+    + `playlist_remove_specific_occurrences_of_tracks` is now `playlist_remove_specific_occurrences_of_items`
+    + `model::TrackPositions` is now `model::ItemPositions`
+    + `current_user_playing_track` is now `current_user_playing_item`
 - ([#260](https://github.com/ramsayleung/rspotify/pull/260)) The `current_user_saved_albums` and `current_user_saved_tracks` now have a `market` parameter
 - ([#256](https://github.com/ramsayleung/rspotify/pull/256), [#198](https://github.com/ramsayleung/rspotify/pull/198)) Added missing `before` and `after` parameters from `current_user_recently_played`
 

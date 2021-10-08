@@ -11,7 +11,7 @@ use crate::{
     ClientResult, OAuth, Token,
 };
 
-use std::time;
+use std::{collections::HashMap, time};
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::PlayContextId;
@@ -49,9 +49,11 @@ pub trait OAuthClient: BaseClient {
     /// * The cached token is disabled in the config
     async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
+            log::info!("Auth token cache read ignored (not configured)");
             return Ok(None);
         }
 
+        log::info!("Reading auth token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
         if !self.get_oauth().scopes.is_subset(&token.scopes) || token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
@@ -64,11 +66,26 @@ pub trait OAuthClient: BaseClient {
 
     /// Parse the response code in the given response url. If the URL cannot be
     /// parsed or the `code` parameter is not present, this will return `None`.
+    ///
+    // As the [RFC
+    // indicates](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1),
+    // the state should be the same between the request and the callback. This
+    // will also return `None` if this is not true.
     fn parse_response_code(&self, url: &str) -> Option<String> {
         let url = Url::parse(url).ok()?;
-        let mut params = url.query_pairs();
-        let (_, url) = params.find(|(key, _)| key == "code")?;
-        Some(url.to_string())
+        let params = url.query_pairs().collect::<HashMap<_, _>>();
+
+        let code = params.get("code")?;
+
+        // Making sure the state is the same
+        let expected_state = &self.get_oauth().state;
+        let state = params.get("state").map(|cow| cow.as_ref());
+        if state != Some(expected_state) {
+            log::error!("Request state doesn't match the callback state");
+            return None;
+        }
+
+        Some(code.to_string())
     }
 
     /// Tries to open the authorization URL in the user's browser, and returns
@@ -79,6 +96,7 @@ pub trait OAuthClient: BaseClient {
     fn get_code_from_user(&self, url: &str) -> ClientResult<String> {
         use crate::ClientError;
 
+        log::info!("Opening brower with auth URL");
         match webbrowser::open(url) {
             Ok(_) => println!("Opened {} in your browser.", url),
             Err(why) => eprintln!(
@@ -88,6 +106,7 @@ pub trait OAuthClient: BaseClient {
             ),
         }
 
+        log::info!("Prompting user for code");
         println!("Please enter the URL you were redirected to: ");
         let mut input = String::new();
         std::io::stdin().read_line(&mut input)?;
@@ -228,7 +247,7 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
-    /// Adds tracks to a playlist.
+    /// Adds items to a playlist.
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
@@ -236,16 +255,13 @@ pub trait OAuthClient: BaseClient {
     /// - position - the position to add the tracks
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-tracks-to-playlist)
-    ///
-    /// TODO: rename to `playlist_add_items`, as one may also add episodes. Also
-    /// rename parameter names and use dyn PlayableId.
-    async fn playlist_add_tracks<'a>(
+    async fn playlist_add_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
+        items: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
-        let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+        let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
             "uris": uris,
             optional "position": position,
@@ -256,7 +272,7 @@ pub trait OAuthClient: BaseClient {
         convert_result(&result)
     }
 
-    /// Replace all tracks in a playlist
+    /// Replace all items in a playlist
     ///
     /// Parameters:
     /// - user - the id of the user
@@ -264,15 +280,12 @@ pub trait OAuthClient: BaseClient {
     /// - tracks - the list of track ids to add to the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
-    ///
-    /// TODO: rename to `playlist_replace_items`, as one may also replace
-    /// episodes. Also rename parameter names.
-    async fn playlist_replace_tracks<'a>(
+    async fn playlist_replace_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
+        items: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
     ) -> ClientResult<()> {
-        let uris = track_ids.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+        let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
             "uris": uris
         };
@@ -283,7 +296,7 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
-    /// Reorder tracks in a playlist.
+    /// Reorder items in a playlist.
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
@@ -295,10 +308,7 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-reorder-or-replace-playlists-tracks)
-    ///
-    /// TODO: rename to `playlist_reorder_items`, as one may also reorder
-    /// episodes
-    async fn playlist_reorder_tracks(
+    async fn playlist_reorder_items(
         &self,
         playlist_id: &PlaylistId,
         range_start: Option<i32>,
@@ -318,7 +328,7 @@ pub trait OAuthClient: BaseClient {
         convert_result(&result)
     }
 
-    /// Removes all occurrences of the given tracks from the given playlist.
+    /// Removes all occurrences of the given items from the given playlist.
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
@@ -326,14 +336,10 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
-    ///
-    /// TODO: rename to `playlist_remove_all_occurrences_of_items`, as one may
-    /// also remove episodes. Also rename parameter names and use dyn
-    /// PlayableId.
-    async fn playlist_remove_all_occurrences_of_tracks<'a>(
+    async fn playlist_remove_all_occurrences_of_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
+        track_ids: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = track_ids
@@ -355,7 +361,7 @@ pub trait OAuthClient: BaseClient {
         convert_result(&result)
     }
 
-    /// Removes specfic occurrences of the given tracks from the given playlist.
+    /// Removes specfic occurrences of the given items from the given playlist.
     ///
     /// Parameters:
     /// - playlist_id: the id of the playlist
@@ -384,17 +390,13 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id: optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-remove-tracks-playlist)
-    ///
-    /// TODO: rename to `playlist_remove_specific_occurrences_of_items`, as one
-    /// may also remove episodes. Also rename parameter names. And rename
-    /// `TrackPositions` to `ItemPositions`.
-    async fn playlist_remove_specific_occurrences_of_tracks<'a>(
+    async fn playlist_remove_specific_occurrences_of_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        tracks: impl IntoIterator<Item = &'a TrackPositions> + Send + 'a,
+        items: impl IntoIterator<Item = ItemPositions<'a>> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
-        let tracks = tracks
+        let tracks = items
             .into_iter()
             .map(|track| {
                 let mut map = Map::new();
@@ -453,13 +455,10 @@ pub trait OAuthClient: BaseClient {
         self.me().await
     }
 
-    /// Get information about the current users currently playing track.
+    /// Get information about the current users currently playing item.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-the-users-currently-playing-track)
-    ///
-    /// TODO: rename to `current_user_playing_item`, as this also returns
-    /// episodes.
-    async fn current_user_playing_track(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
+    async fn current_user_playing_item(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
             .endpoint_get("me/player/currently-playing", &Query::new())
             .await?;
