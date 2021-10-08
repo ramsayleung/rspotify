@@ -35,14 +35,15 @@ where
     /// Otherwise, the same URL is returned.
     fn endpoint_url(&self, url: &str) -> String {
         // Using the client's prefix in case it's a relative route.
-        if !url.starts_with("http") {
-            self.get_config().prefix.clone() + url
-        } else {
+        if url.starts_with("http") {
             url.to_string()
+        } else {
+            self.get_config().prefix.clone() + url
         }
     }
 
     /// The headers required for authenticated requests to the API
+    #[doc(hidden)]
     fn auth_headers(&self) -> Headers {
         self.get_token()
             .expect("Rspotify not authenticated")
@@ -63,6 +64,7 @@ where
     //   requests to reduce the code needed for endpoints and make them as
     //   concise as possible.
 
+    #[doc(hidden)]
     #[inline]
     async fn get(
         &self,
@@ -74,6 +76,7 @@ where
         Ok(self.get_http().get(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn post(
         &self,
@@ -85,6 +88,7 @@ where
         Ok(self.get_http().post(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn post_form(
         &self,
@@ -96,6 +100,7 @@ where
         Ok(self.get_http().post_form(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn put(
         &self,
@@ -107,6 +112,7 @@ where
         Ok(self.get_http().put(&url, headers, payload).await?)
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn delete(
         &self,
@@ -118,26 +124,31 @@ where
         Ok(self.get_http().delete(&url, headers, payload).await?)
     }
 
-    /// The wrapper for the endpoints, which also includes the required
-    /// autentication.
+    // The wrappers for the endpoints, which also includes the required
+    // autentication.
+
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let headers = self.auth_headers();
         self.get(url, Some(&headers), payload).await
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers();
         self.post(url, Some(&headers), payload).await
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers();
         self.put(url, Some(&headers), payload).await
     }
 
+    #[doc(hidden)]
     #[inline]
     async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let headers = self.auth_headers();
@@ -151,9 +162,11 @@ where
     /// and do nothing in that case already.
     fn write_token_cache(&self) -> ClientResult<()> {
         if !self.get_config().token_cached {
+            log::info!("Token cache write ignored (not configured)");
             return Ok(());
         }
 
+        log::info!("Writing token cache");
         if let Some(tok) = self.get_token().as_ref() {
             tok.write_cache(&self.get_config().cache_path)?;
         }
@@ -162,8 +175,6 @@ where
     }
 
     /// Sends a request to Spotify for an access token.
-    ///
-    /// TODO: are we checking that state == self.state? I think not
     async fn fetch_access_token(
         &self,
         payload: &Form<'_>,
@@ -938,7 +949,7 @@ where
         convert_result(&result)
     }
 
-    /// Get full details of the tracks of a playlist owned by a user.
+    /// Get full details of the items of a playlist owned by a user.
     ///
     /// Parameters:
     /// - playlist_id - the id of the playlist
@@ -947,12 +958,11 @@ where
     /// - offset - the index of the first track to return
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// See [`Self::playlist_tracks`] for a manually paginated version of this.
+    /// See [`Self::playlist_items_manual`] for a manually paginated version of
+    /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
-    ///
-    /// TODO: rename to `playlist_items`, as it may also contain episodes
-    fn playlist_tracks<'a>(
+    fn playlist_items<'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
         fields: Option<&'a str>,
@@ -960,16 +970,14 @@ where
     ) -> Paginator<'_, ClientResult<PlaylistItem>> {
         paginate(
             move |limit, offset| {
-                self.playlist_tracks_manual(playlist_id, fields, market, Some(limit), Some(offset))
+                self.playlist_items_manual(playlist_id, fields, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
         )
     }
 
-    /// The manually paginated version of [`Self::playlist_tracks`].
-    ///
-    /// TODO: rename to `playlist_items_manual`, as it may also contain episodes
-    async fn playlist_tracks_manual(
+    /// The manually paginated version of [`Self::playlist_items`].
+    async fn playlist_items_manual(
         &self,
         playlist_id: &PlaylistId,
         fields: Option<&str>,

@@ -1,49 +1,52 @@
 //! The client implementation for the reqwest HTTP client, which is async by
 //! default.
 
-use super::{BaseHttpClient, Form, Headers, HttpError, HttpResult, Query};
+use super::{BaseHttpClient, Form, Headers, Query};
 
 use std::convert::TryInto;
 
 use maybe_async::async_impl;
-use reqwest::{Method, RequestBuilder, StatusCode};
-use rspotify_model::ApiError;
+use reqwest::{Method, RequestBuilder};
 use serde_json::Value;
 
-impl HttpError {
-    pub async fn from_response(response: reqwest::Response) -> Self {
-        match response.status() {
-            StatusCode::UNAUTHORIZED => Self::Unauthorized,
-            StatusCode::TOO_MANY_REQUESTS => Self::RateLimited(
-                response
-                    .headers()
-                    .get(reqwest::header::RETRY_AFTER)
-                    .and_then(|header| header.to_str().ok())
-                    .and_then(|duration| duration.parse().ok()),
-            ),
-            status @ StatusCode::FORBIDDEN | status @ StatusCode::NOT_FOUND => response
-                .json::<ApiError>()
-                .await
-                .map(Into::into)
-                .unwrap_or_else(|_| status.into()),
-            status => status.into(),
-        }
-    }
-}
+/// Custom enum that contains all the possible errors that may occur when using
+/// [`reqwest`].
+///
+/// Sample usage:
+///
+/// ```
+/// # #[tokio::main]
+/// # async fn main() {
+/// use rspotify_http::{HttpError, HttpClient, BaseHttpClient};
+///
+/// let client = HttpClient::default();
+/// let response = client.get("wrongurl", None, &Default::default()).await;
+/// match response {
+///     Ok(data) => println!("request succeeded: {:?}", data),
+///     Err(HttpError::Client(e)) => eprintln!("request failed: {}", e),
+///     Err(HttpError::StatusCode(response)) => {
+///         let code = response.status().as_u16();
+///         match response.json::<rspotify_model::ApiError>().await {
+///             Ok(api_error) => eprintln!("status code {}: {:?}", code, api_error),
+///             Err(_) => eprintln!("status code {}", code),
+///         }
+///     },
+/// }
+/// # }
+/// ```
+#[derive(thiserror::Error, Debug)]
+pub enum ReqwestError {
+    /// The request couldn't be completed because there was an error when trying
+    /// to do so
+    #[error("request: {0}")]
+    Client(#[from] reqwest::Error),
 
-impl From<reqwest::Error> for HttpError {
-    fn from(err: reqwest::Error) -> Self {
-        Self::Request(err.to_string())
-    }
-}
-
-impl From<reqwest::StatusCode> for HttpError {
-    fn from(code: reqwest::StatusCode) -> Self {
-        Self::StatusCode(
-            code.as_u16(),
-            code.canonical_reason().unwrap_or("unknown").to_string(),
-        )
-    }
+    /// The request was made, but the server returned an unsuccessful status
+    /// code, such as 404 or 503. In some cases, the response may contain a
+    /// custom message from Spotify with more information, which can be
+    /// serialized into `rspotify_model::ApiError`.
+    #[error("status code {}", reqwest::Response::status(.0))]
+    StatusCode(reqwest::Response),
 }
 
 #[derive(Default, Debug, Clone)]
@@ -59,7 +62,7 @@ impl ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         add_data: D,
-    ) -> HttpResult<String>
+    ) -> Result<String, ReqwestError>
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
     {
@@ -85,23 +88,26 @@ impl ReqwestClient {
         log::info!("Making request {:?}", request);
         let response = request.send().await?;
 
+        // Making sure that the status code is OK
         if response.status().is_success() {
             response.text().await.map_err(Into::into)
         } else {
-            Err(HttpError::from_response(response).await)
+            Err(ReqwestError::StatusCode(response))
         }
     }
 }
 
 #[async_impl]
 impl BaseHttpClient for ReqwestClient {
+    type Error = ReqwestError;
+
     #[inline]
     async fn get(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Query,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::GET, url, headers, |req| req.query(payload))
             .await
     }
@@ -112,7 +118,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::POST, url, headers, |req| req.json(payload))
             .await
     }
@@ -123,7 +129,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'a>,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::POST, url, headers, |req| req.form(payload))
             .await
     }
@@ -134,7 +140,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::PUT, url, headers, |req| req.json(payload))
             .await
     }
@@ -145,7 +151,7 @@ impl BaseHttpClient for ReqwestClient {
         url: &str,
         headers: Option<&Headers>,
         payload: &Value,
-    ) -> HttpResult<String> {
+    ) -> Result<String, Self::Error> {
         self.request(Method::DELETE, url, headers, |req| req.json(payload))
             .await
     }

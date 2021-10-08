@@ -1,9 +1,8 @@
 use crate::{
     auth_urls,
     clients::{BaseClient, OAuthClient},
-    headers,
     http::{Form, HttpClient},
-    join_scopes, ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
@@ -104,14 +103,16 @@ impl OAuthClient for AuthCodeSpotify {
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+        log::info!("Requesting Auth Code token");
+
         let scopes = join_scopes(&self.oauth.scopes);
 
         let mut data = Form::new();
-        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_AUTH_CODE);
-        data.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
-        data.insert(headers::CODE, code);
-        data.insert(headers::SCOPE, &scopes);
-        data.insert(headers::STATE, &self.oauth.state);
+        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_AUTH_CODE);
+        data.insert(params::REDIRECT_URI, &self.oauth.redirect_uri);
+        data.insert(params::CODE, code);
+        data.insert(params::SCOPE, &scopes);
+        data.insert(params::STATE, &self.oauth.state);
 
         let headers = self
             .creds
@@ -128,9 +129,11 @@ impl OAuthClient for AuthCodeSpotify {
     ///
     /// The obtained token will be saved internally.
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
+        log::info!("Refresing Auth Code token");
+
         let mut data = Form::new();
-        data.insert(headers::REFRESH_TOKEN, refresh_token);
-        data.insert(headers::GRANT_TYPE, headers::GRANT_TYPE_REFRESH_TOKEN);
+        data.insert(params::REFRESH_TOKEN, refresh_token);
+        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
 
         let headers = self
             .creds
@@ -180,17 +183,19 @@ impl AuthCodeSpotify {
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
+        log::info!("Building auth URL");
+
         let scopes = join_scopes(&self.oauth.scopes);
 
         let mut payload: HashMap<&str, &str> = HashMap::new();
-        payload.insert(headers::CLIENT_ID, &self.creds.id);
-        payload.insert(headers::RESPONSE_TYPE, headers::RESPONSE_TYPE_CODE);
-        payload.insert(headers::REDIRECT_URI, &self.oauth.redirect_uri);
-        payload.insert(headers::SCOPE, &scopes);
-        payload.insert(headers::STATE, &self.oauth.state);
+        payload.insert(params::CLIENT_ID, &self.creds.id);
+        payload.insert(params::RESPONSE_TYPE, params::RESPONSE_TYPE_CODE);
+        payload.insert(params::REDIRECT_URI, &self.oauth.redirect_uri);
+        payload.insert(params::SCOPE, &scopes);
+        payload.insert(params::STATE, &self.oauth.state);
 
         if show_dialog {
-            payload.insert(headers::SHOW_DIALOG, "true");
+            payload.insert(params::SHOW_DIALOG, "true");
         }
 
         let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
