@@ -320,6 +320,8 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `playlist_remove_specific_occurrences_of_tracks` is now `playlist_remove_specific_occurrences_of_items`
     + `model::TrackPositions` is now `model::ItemPositions`
     + `current_user_playing_track` is now `current_user_playing_item`
+- ([#260](https://github.com/ramsayleung/rspotify/pull/260)) The `current_user_saved_albums` and `current_user_saved_tracks` now have a `market` parameter
+- ([#256](https://github.com/ramsayleung/rspotify/pull/256), [#198](https://github.com/ramsayleung/rspotify/pull/198)) Added missing `before` and `after` parameters from `current_user_recently_played`
 
 ## 0.10 (2020/07/01)
 
