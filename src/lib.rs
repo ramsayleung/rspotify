@@ -197,8 +197,11 @@ pub enum ClientError {
     #[error("url parse error: {0}")]
     ParseUrl(#[from] url::ParseError),
 
+    // Note that this type is boxed because its size might be very large in
+    // comparison to the rest. For more information visit:
+    // https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
     #[error("http error: {0}")]
-    Http(#[from] HttpError),
+    Http(Box<HttpError>),
 
     #[error("input/output error: {0}")]
     Io(#[from] std::io::Error),
@@ -212,6 +215,13 @@ pub enum ClientError {
 
     #[error("model error: {0}")]
     Model(#[from] model::ModelError),
+}
+
+// The conversion has to be done manually because it's in a `Box<T>`
+impl From<HttpError> for ClientError {
+    fn from(err: HttpError) -> Self {
+        ClientError::Http(Box::new(err))
+    }
 }
 
 pub type ClientResult<T> = Result<T, ClientError>;
