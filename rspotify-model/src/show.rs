@@ -130,10 +130,10 @@ pub struct FullEpisode {
     pub show: SimplifiedShow,
 }
 
-/// Episodes feature object wrapped by `Vec`
+/// Intermediate episodes feature object wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Deserialize)]
 pub struct EpisodesPayload {
     pub episodes: Vec<FullEpisode>,
 }
@@ -141,7 +141,7 @@ pub struct EpisodesPayload {
 /// Resume point object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-resumepointobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ResumePoint {
     pub fully_played: bool,
     #[serde(with = "duration_ms", rename = "resume_position_ms")]

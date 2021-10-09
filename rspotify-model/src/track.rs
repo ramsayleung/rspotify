@@ -49,7 +49,7 @@ pub struct TrackLink {
     pub id: TrackId,
 }
 
-/// Full track wrapped by `Vec`
+/// Intermediate full track wrapped by `Vec`
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
 #[derive(Deserialize)]
@@ -63,7 +63,7 @@ pub struct FullTracks {
 /// relinking is applied.
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedtrackobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
     pub available_markets: Option<Vec<String>>,

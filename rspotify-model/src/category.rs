@@ -7,7 +7,7 @@ use crate::{Image, Page};
 /// Category object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Category {
     pub href: String,
     pub icons: Vec<Image>,
@@ -15,7 +15,7 @@ pub struct Category {
     pub name: String,
 }
 
-/// Categories wrapped by page object
+/// Intermediate categories wrapped by page object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
 #[derive(Deserialize)]

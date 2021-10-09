@@ -310,6 +310,8 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
     + `get_an_episode`
     + `get_several_episodes`
     + `remove_users_saved_shows`
+- ([#261](https://github.com/ramsayleung/rspotify/pull/261/files)) `PageSimpliedAlbums` has been renamed to `PageSimplifiedAlbums`
+- ([#261](https://github.com/ramsayleung/rspotify/pull/261/files)) `Default` has been implemented for all the possible models
 - ([#257](https://github.com/ramsayleung/rspotify/pull/257)) Fix naming for most playlist-related endpoints. They used to work only for tracks, but they've been extended to episodes as well, so we call the contents of a playlist "items" instead of "tracks".
     + `playlist_add_tracks` is now `playlist_add_items`
     + `playlist_tracks` is now `playlist_items`

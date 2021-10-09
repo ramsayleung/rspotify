@@ -16,7 +16,7 @@ pub struct Device {
     pub volume_percent: Option<u32>,
 }
 
-/// Device payload object
+/// Intermediate device payload object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-users-available-devices)
 #[derive(Deserialize)]

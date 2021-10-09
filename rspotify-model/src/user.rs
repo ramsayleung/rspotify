@@ -40,7 +40,7 @@ pub struct PrivateUser {
 /// Explicit content setting object
 ///
 /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-explicitcontentsettingsobject)
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ExplicitContent {
     pub filter_enabled: bool,
     pub filter_locked: bool,
