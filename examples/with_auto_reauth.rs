@@ -6,7 +6,8 @@
 use chrono::offset::Utc;
 use chrono::Duration;
 use rspotify::{
-    model::ArtistId, model::AlbumId, prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth,
+    model::AlbumId, model::ArtistId, prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify,
+    Config, Credentials, OAuth,
 };
 
 // Sample request that will follow some artists, print the user's

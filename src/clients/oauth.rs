@@ -55,7 +55,6 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
-
     /// Tries to read the cache file's token.
     ///
     /// This will return an error if the token couldn't be read (e.g. it's not

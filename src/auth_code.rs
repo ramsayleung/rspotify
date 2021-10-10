@@ -150,7 +150,6 @@ impl OAuthClient for AuthCodeSpotify {
 
         self.write_token_cache().await
     }
-
 }
 
 impl AuthCodeSpotify {
