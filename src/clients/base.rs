@@ -74,8 +74,8 @@ where
             .lock()
             .await
             .expect("Failed to acquire lock")
-            .expect("Rspotify not authenticated")
             .as_ref()
+            .expect("Rspotify not authenticated")
             .auth_headers()
     }
 
