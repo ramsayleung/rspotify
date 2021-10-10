@@ -35,7 +35,7 @@ fn main() {
     }
     drop(wr); // Automatically closed channel
 
-    while let Some(album) = rd.recv() {
+    while let Ok(album) = rd.recv() {
         println!("Album: {}", album.name);
     }
 
