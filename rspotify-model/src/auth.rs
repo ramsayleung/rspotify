@@ -82,6 +82,11 @@ impl Token {
             .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
     }
 
+    /// Check if the token is ready to re-authenticate automatically
+    pub fn can_reauth(&self) -> bool {
+        self.is_expired() && self.refresh_token.is_some()
+    }
+
     /// Generates an HTTP token authorization header with proper formatting
     pub fn auth_headers(&self) -> HashMap<String, String> {
         let auth = "authorization".to_owned();
