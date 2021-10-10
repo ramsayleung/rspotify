@@ -35,6 +35,26 @@ pub trait OAuthClient: BaseClient {
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()>;
 
+    /// Re-authenticate automatically if it's configured to do so, which uses the refresh token to obtain a new access token.
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if !self.get_config().token_refreshing {
+            return Ok(());
+        }
+
+        // You cannot have read lock and write lock at the same time, which
+        // would result in a deadlock, so obtain the write lock and use it in
+        // the whole process.
+        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
+            if !token.can_reauth() {
+                return Ok(());
+            }
+
+            self.refresh_token().await?;
+        }
+
+        Ok(())
+    }
+
     /// Refreshes the current access token given a refresh token. The obtained
     /// token will be saved internally.
     async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
@@ -128,8 +148,7 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             Ok(Some(new_token)) => {
-                let token = self.get_token_mut();
-                *token = Some(new_token);
+                *self.get_token().lock().await.unwrap() = Some(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             _ => {
@@ -138,7 +157,7 @@ pub trait OAuthClient: BaseClient {
             }
         }
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 
     /// Get current user playlists without required getting his profile.

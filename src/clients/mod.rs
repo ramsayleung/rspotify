@@ -1,4 +1,10 @@
+/*
+ * @Description: 
+ * @Author: ramsayliang
+ * @Date: 2021-10-10 12:21:05
+ */
 pub mod base;
+pub mod mutex;
 pub mod oauth;
 pub mod pagination;
 
@@ -69,8 +75,8 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_auth_headers() {
+    #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+    async fn test_auth_headers() {
         let tok = Token {
             access_token: "test-access_token".to_string(),
             expires_in: Duration::seconds(1),
@@ -80,7 +86,7 @@ mod test {
         };
 
         let spotify = ClientCredsSpotify::from_token(tok);
-        let headers = spotify.auth_headers();
+        let headers = spotify.auth_headers().await;
         assert_eq!(
             headers.get("authorization"),
             Some(&"Bearer test-access_token".to_owned())
