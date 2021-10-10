@@ -49,7 +49,7 @@ async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
 }
 
 async fn expire_token<S: BaseClient>(spotify: &S) {
-    let token_mutex = spotify.get_token().await;
+    let token_mutex = spotify.get_token();
     let mut token = token_mutex.lock().await.unwrap();
     assert!(token.is_some());
     token.as_mut().map(|x| {

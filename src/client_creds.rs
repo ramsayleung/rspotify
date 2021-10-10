@@ -34,7 +34,7 @@ impl BaseClient for ClientCredsSpotify {
         &self.http
     }
 
-    fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>> {
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
         Arc::clone(&self.token)
     }
 

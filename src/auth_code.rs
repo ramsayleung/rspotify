@@ -76,7 +76,7 @@ impl BaseClient for AuthCodeSpotify {
         &self.http
     }
 
-    fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>> {
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
         Arc::clone(&self.token)
     }
 
@@ -91,8 +91,6 @@ impl BaseClient for AuthCodeSpotify {
     /// Refetch the current access token given a refresh token. May return
     /// `None` if there's no access/refresh token.
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
-        // NOTE: this can't use `get_token` because `get_token` itself might
-        // call this function when automatic reauthentication is enabled.
         match self.token.lock().await.unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
