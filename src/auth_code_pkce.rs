@@ -116,21 +116,6 @@ impl OAuthClient for AuthCodePkceSpotify {
 
         self.write_token_cache().await
     }
-
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        log::info!("Refreshing PKCE Auth Code token");
-
-        let mut data = Form::new();
-        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
-        data.insert(params::REFRESH_TOKEN, refresh_token);
-        data.insert(params::CLIENT_ID, &self.creds.id);
-
-        let mut token = self.fetch_access_token(&data, None).await?;
-        token.refresh_token = Some(refresh_token.to_string());
-        *self.token.lock().await.unwrap() = Some(token);
-
-        self.write_token_cache().await
-    }
 }
 
 impl AuthCodePkceSpotify {

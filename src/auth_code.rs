@@ -151,27 +151,6 @@ impl OAuthClient for AuthCodeSpotify {
         self.write_token_cache().await
     }
 
-    /// Refreshes the current access token given a refresh token.
-    ///
-    /// The obtained token will be saved internally.
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        log::info!("Refresing Auth Code token");
-
-        let mut data = Form::new();
-        data.insert(params::REFRESH_TOKEN, refresh_token);
-        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
-
-        let headers = self
-            .creds
-            .auth_headers()
-            .expect("No client secret set in the credentials.");
-
-        let mut token = self.fetch_access_token(&data, Some(&headers)).await?;
-        token.refresh_token = Some(refresh_token.to_string());
-        *self.token.lock().await.unwrap() = Some(token);
-
-        self.write_token_cache().await
-    }
 }
 
 impl AuthCodeSpotify {

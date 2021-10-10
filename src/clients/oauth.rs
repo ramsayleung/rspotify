@@ -55,9 +55,6 @@ pub trait OAuthClient: BaseClient {
         Ok(())
     }
 
-    /// Refreshes the current access token given a refresh token. The obtained
-    /// token will be saved internally.
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token.
     ///
