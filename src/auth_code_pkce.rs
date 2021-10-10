@@ -53,6 +53,10 @@ impl BaseClient for AuthCodePkceSpotify {
         Arc::clone(&self.token)
     }
 
+    fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>> {
+        Arc::clone(&self.token)
+    }
+
     fn get_creds(&self) -> &Credentials {
         &self.creds
     }
@@ -148,26 +152,6 @@ impl AuthCodePkceSpotify {
             config,
             ..Default::default()
         }
-    }
-
-    /// Re-authenticate automatically if it's configured to do so, which uses
-    /// the refresh token to obtain a new access token.
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        if !self.get_config().token_refreshing {
-            return Ok(());
-        }
-
-        // NOTE: this can't use `get_token` because `get_token` itself might
-        // call this function when automatic reauthentication is enabled.
-        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
-            if !token.can_reauth() {
-                return Ok(());
-            }
-
-            self.refresh_token().await?;
-        }
-
-        Ok(())
     }
 
     /// Generate the verifier code and the challenge code.

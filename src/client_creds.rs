@@ -40,6 +40,11 @@ impl BaseClient for ClientCredsSpotify {
             .expect("Failed to re-authenticate automatically, please obtain the token again");
         Arc::clone(&self.token)
     }
+
+    fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>> {
+        Arc::clone(&self.token)
+    }
+
     fn get_creds(&self) -> &Credentials {
         &self.creds
     }
@@ -125,40 +130,6 @@ impl ClientCredsSpotify {
 
         let token = self.fetch_access_token(&data, Some(&headers)).await?;
         Ok(token)
-    }
-
-    /// Re-authenticate automatically if it's configured to do so, which
-    /// authenticates the usual way to obtain a new access token.
-    #[maybe_async]
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        if !self.config.token_refreshing {
-            return Ok(());
-        }
-        // NOTE: this can't use `get_token` because `get_token` itself might
-        // call this function when automatic reauthentication is enabled.
-        //
-        // You could not have read lock and write lock at the same time, which
-        // will result in deadlock, so obtain the write lock and use it in the
-        // whole process.
-        if let Some(token) = self.token.lock().await.unwrap().as_ref() {
-            if !token.is_expired() {
-                return Ok(());
-            }
-
-            self.refresh_token().await?;
-        }
-        Ok(())
-    }
-
-    #[maybe_async]
-    async fn refresh_token(&self) -> ClientResult<()> {
-        let token = self.refetch_token().await?;
-
-        // NOTE: this can't use `get_token` because `get_token` itself might
-        // call this function when automatic reauthentication is enabled.
-        *self.token.lock().await.unwrap() = token;
-
-        self.write_token_cache().await
     }
 
     /// Obtains the client access token for the app. The resulting token will be

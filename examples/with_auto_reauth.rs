@@ -45,7 +45,7 @@ async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
     // Running the requests
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
     let albums = spotify.album(&birdy_uri).await;
-    println!("Get ablums: {}", albums.unwrap().id);
+    println!("Get albums: {}", albums.unwrap().id);
 }
 
 async fn expire_token<S: BaseClient>(spotify: &S) {
@@ -57,6 +57,7 @@ async fn expire_token<S: BaseClient>(spotify: &S) {
         // it manually.
         let now = Utc::now().checked_sub_signed(Duration::seconds(10));
         x.expires_at = now;
+        x.expires_in = Duration::seconds(0);
         // We also use a garbage access token to make sure it's actually
         // refreshed.
         x.access_token = "garbage".to_owned();

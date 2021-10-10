@@ -28,6 +28,8 @@ where
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
+    fn get_creds(&self) -> &Credentials;
+
     /// You may notice two things upon seeing the function signature of
     /// `get_token`:
     ///
@@ -42,9 +44,42 @@ where
     /// mutability. This is required so that the entire client doesn't have to
     /// be mutable (the token is accessed to from every endpoint).
     async fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
-    fn get_creds(&self) -> &Credentials;
+
+    /// This is the same as `get_token`, but it explicitly doesn't automatically
+    /// refresh the token.
+    fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>>;
+
     /// Refetch the current access token given a refresh token
     async fn refetch_token(&self) -> ClientResult<Option<Token>>;
+
+    /// Re-authenticate automatically if it's configured to do so, which uses
+    /// the refresh token to obtain a new access token.
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if !self.get_config().token_refreshing {
+            return Ok(());
+        }
+
+        // NOTE: this can't use `get_token` because `get_token` itself might
+        // call this function when automatic reauthentication is enabled.
+        //
+        // It's also important to not leave the token locked, or else a deadlock
+        // when calling `refresh_token` will occur.
+        let should_reauth = self
+            .get_token_norefresh()
+            .lock()
+            .await
+            .unwrap()
+            .as_ref()
+            .map(Token::is_expired)
+            .unwrap_or(false);
+
+        if should_reauth {
+            self.refresh_token().await
+        } else {
+            Ok(())
+        }
+    }
+
     /// If it's a relative URL like "me", the prefix is appended to it.
     /// Otherwise, the same URL is returned.
     fn endpoint_url(&self, url: &str) -> String {
@@ -60,7 +95,10 @@ where
     /// token will be saved internally.
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
-        *self.get_token().await.lock().await.unwrap() = token;
+
+        // NOTE: this can't use `get_token` because `get_token` itself might
+        // call this function when automatic reauthentication is enabled.
+        *self.get_token_norefresh().lock().await.unwrap() = token;
 
         self.write_token_cache().await
     }
