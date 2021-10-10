@@ -76,13 +76,6 @@ impl BaseClient for AuthCodeSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
-        self.auto_reauth()
-            .await
-            .expect("Failed to re-authenticate automatically, please authenticate");
-        Arc::clone(&self.token)
-    }
-
     fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>> {
         Arc::clone(&self.token)
     }

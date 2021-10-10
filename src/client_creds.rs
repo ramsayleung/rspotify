@@ -34,13 +34,6 @@ impl BaseClient for ClientCredsSpotify {
         &self.http
     }
 
-    async fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
-        self.auto_reauth()
-            .await
-            .expect("Failed to re-authenticate automatically, please obtain the token again");
-        Arc::clone(&self.token)
-    }
-
     fn get_token_norefresh(&self) -> Arc<Mutex<Option<Token>>> {
         Arc::clone(&self.token)
     }

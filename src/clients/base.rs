@@ -43,7 +43,12 @@ where
     /// Secondly, the token is wrapped by a `Mutex` in order to allow interior
     /// mutability. This is required so that the entire client doesn't have to
     /// be mutable (the token is accessed to from every endpoint).
-    async fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
+    async fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
+        self.get_token_norefresh()
+    }
 
     /// This is the same as `get_token`, but it explicitly doesn't automatically
     /// refresh the token.
