@@ -41,7 +41,6 @@ where
     /// Secondly, the token is wrapped by a `Mutex` in order to allow interior
     /// mutability. This is required so that the entire client doesn't have to
     /// be mutable (the token is accessed to from every endpoint).
-    ///
     async fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
     fn get_creds(&self) -> &Credentials;
     /// Refetch the current access token given a refresh token

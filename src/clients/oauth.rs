@@ -35,26 +35,6 @@ pub trait OAuthClient: BaseClient {
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()>;
 
-    /// Re-authenticate automatically if it's configured to do so, which uses the refresh token to obtain a new access token.
-    async fn auto_reauth(&self) -> ClientResult<()> {
-        if !self.get_config().token_refreshing {
-            return Ok(());
-        }
-
-        // You cannot have read lock and write lock at the same time, which
-        // would result in a deadlock, so obtain the write lock and use it in
-        // the whole process.
-        if let Some(token) = self.get_token().await.lock().await.unwrap().as_ref() {
-            if !token.can_reauth() {
-                return Ok(());
-            }
-
-            self.refresh_token().await?;
-        }
-
-        Ok(())
-    }
-
     /// Tries to read the cache file's token.
     ///
     /// This will return an error if the token couldn't be read (e.g. it's not

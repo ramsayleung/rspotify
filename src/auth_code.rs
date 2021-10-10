@@ -184,6 +184,26 @@ impl AuthCodeSpotify {
         }
     }
 
+    /// Re-authenticate automatically if it's configured to do so, which uses
+    /// the refresh token to obtain a new access token.
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if !self.get_config().token_refreshing {
+            return Ok(());
+        }
+
+        // NOTE: this can't use `get_token` because `get_token` itself might
+        // call this function when automatic reauthentication is enabled.
+        if let Some(token) = self.token.lock().await.unwrap().as_ref() {
+            if !token.can_reauth() {
+                return Ok(());
+            }
+
+            self.refresh_token().await?;
+        }
+
+        Ok(())
+    }
+
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
