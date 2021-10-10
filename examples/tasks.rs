@@ -2,12 +2,11 @@
 //! multithreaded requests as well.
 
 use rspotify::{model::AlbumId, prelude::*, ClientCredsSpotify, Credentials};
-use std::{
-    sync::{mpsc::channel, Arc},
-    thread,
-};
+use std::sync::Arc;
+use tokio::{sync::mpsc, task};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let creds = Credentials::from_env().unwrap();
 
     let mut spotify = ClientCredsSpotify::new(creds);
@@ -17,17 +16,17 @@ fn main() {
         AlbumId::from_uri("spotify:album:3jtOeny1Xh5fp6aSOHahe2").unwrap(),
     ];
     let mut handles = Vec::with_capacity(ids.len());
-    let (wr, rd) = channel();
+    let (wr, mut rd) = mpsc::unbounded_channel();
 
-    spotify.request_token().unwrap();
+    spotify.request_token().await.unwrap();
 
     // Performing the requests concurrently
     let spotify = Arc::new(spotify);
     for id in ids {
         let spotify = Arc::clone(&spotify);
         let wr = wr.clone();
-        let handle = thread::spawn(move || {
-            let albums = spotify.album(&id).unwrap();
+        let handle = task::spawn(async move {
+            let albums = spotify.album(&id).await.unwrap();
             wr.send(albums).unwrap();
         });
 
@@ -35,11 +34,11 @@ fn main() {
     }
     drop(wr); // Automatically closed channel
 
-    while let Some(album) = rd.recv() {
+    while let Some(album) = rd.recv().await {
         println!("Album: {}", album.name);
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle.await.unwrap();
     }
 }

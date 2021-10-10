@@ -137,6 +137,11 @@ required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/threading.rs"
 
 [[example]]
+name = "tasks"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/tasks.rs"
+
+[[example]]
 name = "pagination_manual"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/pagination_manual.rs"
