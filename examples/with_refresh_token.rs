@@ -71,7 +71,7 @@ async fn main() {
     // At a different time, the refresh token can be used to refresh an access
     // token directly and run requests:
     println!(">>> Session two, running some requests:");
-    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
+    let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
     // No `prompt_for_user_token_without_cache` needed.
     spotify
         .refresh_token()
@@ -82,7 +82,7 @@ async fn main() {
     // This process can now be repeated multiple times by using only the
     // refresh token that was obtained at the beginning.
     println!(">>> Session three, running some requests:");
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds, oauth);
     spotify
         .refresh_token()
         .await
