@@ -67,7 +67,6 @@ impl BaseClient for AuthCodePkceSpotify {
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         // NOTE: this can't use `get_token` because `get_token` itself might
         // call this function when automatic reauthentication is enabled.
-
         match self.token.lock().await.unwrap().as_ref() {
             Some(Token {
                 refresh_token: Some(refresh_token),
@@ -115,7 +114,6 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(params::CODE_VERIFIER, verifier);
 
         let token = self.fetch_access_token(&data, None).await?;
-        // NOTE: get_token can be used safely here
         *self.token.lock().await.unwrap() = Some(token);
 
         self.write_token_cache().await
