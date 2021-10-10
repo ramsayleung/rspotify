@@ -160,4 +160,15 @@ impl ClientCredsSpotify {
 
         self.write_token_cache().await
     }
+
+    /// Obtains the client access token for the app. The resulting token will be
+    /// saved internally.
+    #[maybe_async]
+    pub async fn request_token(&mut self) -> ClientResult<()> {
+        log::info!("Requesting Client Credentials token");
+
+        *self.token.lock().await.unwrap() = Some(self.fetch_token().await?);
+
+        self.write_token_cache().await
+    }
 }

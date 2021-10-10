@@ -6,19 +6,19 @@
 use chrono::offset::Utc;
 use chrono::Duration;
 use rspotify::{
-    model::Id, prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth,
+    model::ArtistId, model::AlbumId, prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth,
 };
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
 async fn auth_code_do_things(spotify: AuthCodeSpotify) {
-    let artists = vec![
-        Id::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
-        Id::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
-        Id::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
+    let artists = [
+        &ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        &ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        &ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
     spotify
-        .user_follow_artists(artists.clone())
+        .user_follow_artists(artists)
         .await
         .expect("couldn't follow artists");
     println!("Followed {} artists successfully.", artists.len());
@@ -34,7 +34,7 @@ async fn auth_code_do_things(spotify: AuthCodeSpotify) {
     );
 
     spotify
-        .user_unfollow_artists(artists.clone())
+        .user_unfollow_artists(artists)
         .await
         .expect("couldn't unfollow artists");
     println!("Unfollowed {} artists successfully.", artists.len());
@@ -42,9 +42,9 @@ async fn auth_code_do_things(spotify: AuthCodeSpotify) {
 
 async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
     // Running the requests
-    let birdy_uri = Id::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
-    let albums = spotify.album(birdy_uri).await;
-    println!("Get ablums: {}", albums.unwrap().uri);
+    let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
+    let albums = spotify.album(&birdy_uri).await;
+    println!("Get ablums: {}", albums.unwrap().id);
 }
 
 #[tokio::main]
@@ -83,13 +83,14 @@ async fn main() {
         .await
         .lock()
         .await
+        .unwrap()
         .as_mut()
         .map(|x| x.expires_at = Some(now.clone()));
     println!(">>> Session two, the token should expire, then re-auth automatically");
     auth_code_do_things(spotify).await;
 
     // Client-credential based spotify client
-    let spotify = ClientCredsSpotify::with_config(creds.clone(), config);
+    let mut spotify = ClientCredsSpotify::with_config(creds.clone(), config);
 
     // Obtaining the access token. Requires to be mutable because the internal
     // token will be modified. We don't need OAuth for this specific endpoint,
@@ -104,6 +105,7 @@ async fn main() {
         .await
         .lock()
         .await
+        .unwrap()
         .as_mut()
         .map(|x| x.expires_at.replace(now));
     println!(">>> New Session two from ClientCredsSpotify, expiring the token and then re-auth automatically");

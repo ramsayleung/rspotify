@@ -111,7 +111,8 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(params::CODE_VERIFIER, verifier);
 
         let token = self.fetch_access_token(&data, None).await?;
-        *self.token.lock().await.unwrap() = Some(token);
+        // NOTE: get_token can be used safely here
+        *self.get_token().await.lock().await.unwrap() = Some(token);
 
         self.write_token_cache().await
     }
