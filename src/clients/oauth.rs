@@ -1140,7 +1140,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     async fn volume(&self, volume_percent: u8, device_id: Option<&str>) -> ClientResult<()> {
         debug_assert!(
-            volume_percent > 100u8,
+            volume_percent <= 100u8,
             "volume must be between 0 and 100, inclusive"
         );
         let url = append_device_id(
