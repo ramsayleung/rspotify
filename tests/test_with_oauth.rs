@@ -41,7 +41,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         };
 
         AuthCodeSpotify::from_token(tok)
-    } else if let Ok(_refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
+    } else if let Ok(refresh_token) = env::var("RSPOTIFY_REFRESH_TOKEN") {
         // The credentials must be available in the environment. Enable
         // `env-file` in order to read them from an `.env` file.
         let creds = Credentials::from_env().unwrap_or_else(|| {
@@ -75,7 +75,15 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         // Using every possible scope
         let oauth = OAuth::from_env(scopes).unwrap();
 
+        // Creating a token with only the refresh token in order to obtain the
+        // access token later.
+        let token = Token {
+            refresh_token: Some(refresh_token),
+            ..Default::default()
+        };
+
         let spotify = AuthCodeSpotify::new(creds, oauth);
+        *spotify.token.lock().await.unwrap() = Some(token);
         spotify.refresh_token().await.unwrap();
         spotify
     } else {
