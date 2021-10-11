@@ -78,8 +78,11 @@ __async = ["futures", "async-stream", "async-trait"]
 __sync = ["maybe-async/is_sync"]
 
 [package.metadata.docs.rs]
-# Documenting the CLI methods, and working links for `dotenv`
-features = ["cli", "env-file"]
+# When generating the docs, we also want to include the CLI methods, and working
+# links for `dotenv`. We generate them for ureq so that the function signatures
+# of the endpoints don't look gnarly (because of `async-trait`).
+features = ["cli", "env-file", "client-ureq"]
+default-features = false
 
 [[example]]
 name = "client_creds"
