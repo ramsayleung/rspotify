@@ -28,24 +28,13 @@ where
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
-    /// You may notice two things upon seeing the function signature of
-    /// `get_token`:
-    ///
-    /// 1. It's a getter but it uses `async`
-    /// 2. It returns a `Arc<Mutex<Option<Token>>>`
-    ///
-    /// Firstly, the getter is async because of the self-refreshing feature. If
-    /// activated, the token may be automatically refreshed when the getter is
-    /// called, which may perform requests that can be handled asynchronously.
-    ///
-    /// Secondly, the token is wrapped by a `Mutex` in order to allow interior
+    fn get_creds(&self) -> &Credentials;
+
+    /// Note that the token is wrapped by a `Mutex` in order to allow interior
     /// mutability. This is required so that the entire client doesn't have to
     /// be mutable (the token is accessed to from every endpoint).
-    ///
-    async fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
-    fn get_creds(&self) -> &Credentials;
-    /// Refetch the current access token given a refresh token
-    async fn refetch_token(&self) -> ClientResult<Option<Token>>;
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
+
     /// If it's a relative URL like "me", the prefix is appended to it.
     /// Otherwise, the same URL is returned.
     fn endpoint_url(&self, url: &str) -> String {
@@ -57,20 +46,53 @@ where
         }
     }
 
+    /// Refetch the current access token given a refresh token.
+    async fn refetch_token(&self) -> ClientResult<Option<Token>>;
+
+    /// Re-authenticate the client automatically if it's configured to do so,
+    /// which uses the refresh token to obtain a new access token.
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if !self.get_config().token_refreshing {
+            return Ok(());
+        }
+
+        // NOTE: It's important to not leave the token locked, or else a
+        // deadlock when calling `refresh_token` will occur.
+        let should_reauth = self
+            .get_token()
+            .lock()
+            .await
+            .unwrap()
+            .as_ref()
+            .map(Token::is_expired)
+            .unwrap_or(false);
+
+        if should_reauth {
+            self.refresh_token().await
+        } else {
+            Ok(())
+        }
+    }
+
     /// Refreshes the current access token given a refresh token. The obtained
     /// token will be saved internally.
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
-        *self.get_token().await.lock().await.unwrap() = token;
-
+        *self.get_token().lock().await.unwrap() = token;
         self.write_token_cache().await
     }
 
-    /// The headers required for authenticated requests to the API
+    /// The headers required for authenticated requests to the API.
+    ///
+    /// Since this is accessed by authenticated requests always, it's where the
+    /// automatic reauthentication takes place, if enabled.
     #[doc(hidden)]
     async fn auth_headers(&self) -> Headers {
-        self.get_token()
+        self.auto_reauth()
             .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
+
+        self.get_token()
             .lock()
             .await
             .expect("Failed to acquire lock")
@@ -196,7 +218,7 @@ where
         }
 
         log::info!("Writing token cache");
-        if let Some(tok) = self.get_token().await.lock().await.unwrap().as_ref() {
+        if let Some(tok) = self.get_token().lock().await.unwrap().as_ref() {
             tok.write_cache(&self.get_config().cache_path)?;
         }
 
