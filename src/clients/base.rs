@@ -2,6 +2,7 @@ use crate::{
     auth_urls,
     clients::{
         convert_result,
+        mutex::Mutex,
         pagination::{paginate, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
@@ -11,7 +12,7 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt, sync::Arc};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
@@ -27,9 +28,12 @@ where
 {
     fn get_config(&self) -> &Config;
     fn get_http(&self) -> &HttpClient;
-    fn get_token(&self) -> Option<&Token>;
-    fn get_token_mut(&mut self) -> &mut Option<Token>;
     fn get_creds(&self) -> &Credentials;
+
+    /// Note that the token is wrapped by a `Mutex` in order to allow interior
+    /// mutability. This is required so that the entire client doesn't have to
+    /// be mutable (the token is accessed to from every endpoint).
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
     /// If it's a relative URL like "me", the prefix is appended to it.
     /// Otherwise, the same URL is returned.
@@ -42,10 +46,57 @@ where
         }
     }
 
-    /// The headers required for authenticated requests to the API
+    /// Refetch the current access token given a refresh token.
+    async fn refetch_token(&self) -> ClientResult<Option<Token>>;
+
+    /// Re-authenticate the client automatically if it's configured to do so,
+    /// which uses the refresh token to obtain a new access token.
+    async fn auto_reauth(&self) -> ClientResult<()> {
+        if !self.get_config().token_refreshing {
+            return Ok(());
+        }
+
+        // NOTE: It's important to not leave the token locked, or else a
+        // deadlock when calling `refresh_token` will occur.
+        let should_reauth = self
+            .get_token()
+            .lock()
+            .await
+            .unwrap()
+            .as_ref()
+            .map(Token::is_expired)
+            .unwrap_or(false);
+
+        if should_reauth {
+            self.refresh_token().await
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Refreshes the current access token given a refresh token. The obtained
+    /// token will be saved internally.
+    async fn refresh_token(&self) -> ClientResult<()> {
+        let token = self.refetch_token().await?;
+        *self.get_token().lock().await.unwrap() = token;
+        self.write_token_cache().await
+    }
+
+    /// The headers required for authenticated requests to the API.
+    ///
+    /// Since this is accessed by authenticated requests always, it's where the
+    /// automatic reauthentication takes place, if enabled.
     #[doc(hidden)]
-    fn auth_headers(&self) -> Headers {
+    async fn auth_headers(&self) -> Headers {
+        self.auto_reauth()
+            .await
+            .expect("Failed to re-authenticate automatically, please authenticate");
+
         self.get_token()
+            .lock()
+            .await
+            .expect("Failed to acquire lock")
+            .as_ref()
             .expect("Rspotify not authenticated")
             .auth_headers()
     }
@@ -130,28 +181,28 @@ where
     #[doc(hidden)]
     #[inline]
     async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
-        let headers = self.auth_headers();
+        let headers = self.auth_headers().await;
         self.get(url, Some(&headers), payload).await
     }
 
     #[doc(hidden)]
     #[inline]
     async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers();
+        let headers = self.auth_headers().await;
         self.post(url, Some(&headers), payload).await
     }
 
     #[doc(hidden)]
     #[inline]
     async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers();
+        let headers = self.auth_headers().await;
         self.put(url, Some(&headers), payload).await
     }
 
     #[doc(hidden)]
     #[inline]
     async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers();
+        let headers = self.auth_headers().await;
         self.delete(url, Some(&headers), payload).await
     }
 
@@ -160,14 +211,14 @@ where
     /// This should be used whenever it's possible to, even if the cached token
     /// isn't configured, because this will already check `Config::token_cached`
     /// and do nothing in that case already.
-    fn write_token_cache(&self) -> ClientResult<()> {
+    async fn write_token_cache(&self) -> ClientResult<()> {
         if !self.get_config().token_cached {
             log::info!("Token cache write ignored (not configured)");
             return Ok(());
         }
 
         log::info!("Writing token cache");
-        if let Some(tok) = self.get_token().as_ref() {
+        if let Some(tok) = self.get_token().lock().await.unwrap().as_ref() {
             tok.write_cache(&self.get_config().cache_path)?;
         }
 
@@ -519,7 +570,7 @@ where
         user_ids: &[&UserId],
     ) -> ClientResult<Vec<bool>> {
         debug_assert!(
-            user_ids.len() > 5,
+            user_ids.len() <= 5,
             "The maximum length of user ids is limited to 5 :-)"
         );
         let url = format!(

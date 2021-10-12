@@ -1,10 +1,11 @@
 use crate::{
-    clients::BaseClient,
+    clients::{mutex::Mutex, BaseClient},
     http::{Form, HttpClient},
     params, ClientResult, Config, Credentials, Token,
 };
 
 use maybe_async::maybe_async;
+use std::sync::Arc;
 
 /// The [Client Credentials Flow][reference] client for the Spotify API.
 ///
@@ -22,22 +23,19 @@ use maybe_async::maybe_async;
 pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,
-    pub token: Option<Token>,
+    pub token: Arc<Mutex<Option<Token>>>,
     pub(in crate) http: HttpClient,
 }
 
 /// This client has access to the base methods.
+#[maybe_async]
 impl BaseClient for ClientCredsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
-    fn get_token(&self) -> Option<&Token> {
-        self.token.as_ref()
-    }
-
-    fn get_token_mut(&mut self) -> &mut Option<Token> {
-        &mut self.token
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
+        Arc::clone(&self.token)
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -46,6 +44,14 @@ impl BaseClient for ClientCredsSpotify {
 
     fn get_config(&self) -> &Config {
         &self.config
+    }
+
+    /// Note that refetching a token in the Client Credentials flow is
+    /// equivalent to requesting a token from scratch, since there's no refresh
+    /// token available.
+    async fn refetch_token(&self) -> ClientResult<Option<Token>> {
+        let token = self.fetch_token().await?;
+        Ok(Some(token))
     }
 }
 
@@ -64,7 +70,7 @@ impl ClientCredsSpotify {
     /// as the client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         ClientCredsSpotify {
-            token: Some(token),
+            token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
     }
@@ -104,22 +110,29 @@ impl ClientCredsSpotify {
         }
     }
 
+    /// Fetch access token
+    #[maybe_async]
+    async fn fetch_token(&self) -> ClientResult<Token> {
+        let mut data = Form::new();
+
+        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_CLIENT_CREDS);
+        let headers = self
+            .creds
+            .auth_headers()
+            .expect("No client secret set in the credentials.");
+
+        let token = self.fetch_access_token(&data, Some(&headers)).await?;
+        Ok(token)
+    }
+
     /// Obtains the client access token for the app. The resulting token will be
     /// saved internally.
     #[maybe_async]
     pub async fn request_token(&mut self) -> ClientResult<()> {
         log::info!("Requesting Client Credentials token");
 
-        let mut data = Form::new();
-        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_CLIENT_CREDS);
+        *self.token.lock().await.unwrap() = Some(self.fetch_token().await?);
 
-        let headers = self
-            .creds
-            .auth_headers()
-            .expect("No client secret set in the credentials.");
-
-        self.token = Some(self.fetch_access_token(&data, Some(&headers)).await?);
-
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 }

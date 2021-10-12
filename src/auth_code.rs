@@ -1,11 +1,12 @@
 use crate::{
     auth_urls,
-    clients::{BaseClient, OAuthClient},
+    clients::{mutex::Mutex, BaseClient, OAuthClient},
     http::{Form, HttpClient},
     join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use maybe_async::maybe_async;
 use url::Url;
@@ -64,7 +65,7 @@ pub struct AuthCodeSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
-    pub token: Option<Token>,
+    pub token: Arc<Mutex<Option<Token>>>,
     pub(in crate) http: HttpClient,
 }
 
@@ -75,12 +76,8 @@ impl BaseClient for AuthCodeSpotify {
         &self.http
     }
 
-    fn get_token(&self) -> Option<&Token> {
-        self.token.as_ref()
-    }
-
-    fn get_token_mut(&mut self) -> &mut Option<Token> {
-        &mut self.token
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
+        Arc::clone(&self.token)
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -89,6 +86,30 @@ impl BaseClient for AuthCodeSpotify {
 
     fn get_config(&self) -> &Config {
         &self.config
+    }
+
+    /// Refetch the current access token given a refresh token. May return
+    /// `None` if there's no access/refresh token.
+    async fn refetch_token(&self) -> ClientResult<Option<Token>> {
+        match self.token.lock().await.unwrap().as_ref() {
+            Some(Token {
+                refresh_token: Some(refresh_token),
+                ..
+            }) => {
+                let mut data = Form::new();
+                data.insert(params::REFRESH_TOKEN, refresh_token);
+                data.insert(params::GRANT_TYPE, params::REFRESH_TOKEN);
+
+                let headers = self
+                    .creds
+                    .auth_headers()
+                    .expect("No client secret set in the credentials.");
+                let mut token = self.fetch_access_token(&data, Some(&headers)).await?;
+                token.refresh_token = Some(refresh_token.to_string());
+                Ok(Some(token))
+            }
+            _ => Ok(None),
+        }
     }
 }
 
@@ -120,31 +141,9 @@ impl OAuthClient for AuthCodeSpotify {
             .expect("No client secret set in the credentials.");
 
         let token = self.fetch_access_token(&data, Some(&headers)).await?;
-        self.token = Some(token);
+        *self.token.lock().await.unwrap() = Some(token);
 
-        self.write_token_cache()
-    }
-
-    /// Refreshes the current access token given a refresh token.
-    ///
-    /// The obtained token will be saved internally.
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        log::info!("Refresing Auth Code token");
-
-        let mut data = Form::new();
-        data.insert(params::REFRESH_TOKEN, refresh_token);
-        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
-
-        let headers = self
-            .creds
-            .auth_headers()
-            .expect("No client secret set in the credentials.");
-
-        let mut token = self.fetch_access_token(&data, Some(&headers)).await?;
-        token.refresh_token = Some(refresh_token.to_string());
-        self.token = Some(token);
-
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 }
 
@@ -164,7 +163,7 @@ impl AuthCodeSpotify {
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         AuthCodeSpotify {
-            token: Some(token),
+            token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
     }

@@ -1,12 +1,13 @@
 use crate::{
     alphabets, auth_urls,
-    clients::{BaseClient, OAuthClient},
+    clients::{mutex::Mutex, BaseClient, OAuthClient},
     generate_random_string,
     http::{Form, HttpClient},
     join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use maybe_async::maybe_async;
 use sha2::{Digest, Sha256};
@@ -32,24 +33,21 @@ pub struct AuthCodePkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
-    pub token: Option<Token>,
+    pub token: Arc<Mutex<Option<Token>>>,
     /// The code verifier for the authentication process
     pub verifier: Option<String>,
     pub(in crate) http: HttpClient,
 }
 
 /// This client has access to the base methods.
+#[maybe_async]
 impl BaseClient for AuthCodePkceSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http
     }
 
-    fn get_token(&self) -> Option<&Token> {
-        self.token.as_ref()
-    }
-
-    fn get_token_mut(&mut self) -> &mut Option<Token> {
-        &mut self.token
+    fn get_token(&self) -> Arc<Mutex<Option<Token>>> {
+        Arc::clone(&self.token)
     }
 
     fn get_creds(&self) -> &Credentials {
@@ -58,6 +56,24 @@ impl BaseClient for AuthCodePkceSpotify {
 
     fn get_config(&self) -> &Config {
         &self.config
+    }
+    async fn refetch_token(&self) -> ClientResult<Option<Token>> {
+        match self.token.lock().await.unwrap().as_ref() {
+            Some(Token {
+                refresh_token: Some(refresh_token),
+                ..
+            }) => {
+                let mut data = Form::new();
+                data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
+                data.insert(params::REFRESH_TOKEN, refresh_token);
+                data.insert(params::CLIENT_ID, &self.creds.id);
+
+                let mut token = self.fetch_access_token(&data, None).await?;
+                token.refresh_token = Some(refresh_token.to_string());
+                Ok(Some(token))
+            }
+            _ => Ok(None),
+        }
     }
 }
 
@@ -89,24 +105,9 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(params::CODE_VERIFIER, verifier);
 
         let token = self.fetch_access_token(&data, None).await?;
-        self.token = Some(token);
+        *self.token.lock().await.unwrap() = Some(token);
 
-        self.write_token_cache()
-    }
-
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()> {
-        log::info!("Refreshing PKCE Auth Code token");
-
-        let mut data = Form::new();
-        data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
-        data.insert(params::REFRESH_TOKEN, refresh_token);
-        data.insert(params::CLIENT_ID, &self.creds.id);
-
-        let mut token = self.fetch_access_token(&data, None).await?;
-        token.refresh_token = Some(refresh_token.to_string());
-        self.token = Some(token);
-
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 }
 
@@ -126,7 +127,7 @@ impl AuthCodePkceSpotify {
     /// client credentials aren't known.
     pub fn from_token(token: Token) -> Self {
         AuthCodePkceSpotify {
-            token: Some(token),
+            token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
     }

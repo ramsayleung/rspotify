@@ -75,8 +75,16 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         // Using every possible scope
         let oauth = OAuth::from_env(scopes).unwrap();
 
-        let mut spotify = AuthCodeSpotify::new(creds, oauth);
-        spotify.refresh_token(&refresh_token).await.unwrap();
+        // Creating a token with only the refresh token in order to obtain the
+        // access token later.
+        let token = Token {
+            refresh_token: Some(refresh_token),
+            ..Default::default()
+        };
+
+        let spotify = AuthCodeSpotify::new(creds, oauth);
+        *spotify.token.lock().await.unwrap() = Some(token);
+        spotify.refresh_token().await.unwrap();
         spotify
     } else {
         panic!(
@@ -659,10 +667,10 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
         &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
         &TrackId::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
-        &TrackId::from_uri("spotify:track:0b18g3G5spr4ZCkz7Y6Q0Q").unwrap(),
-        &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
         &EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+        &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
         &EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
+        &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
     ];
     client
         .playlist_replace_items(&playlist.id, replaced_tracks)

@@ -35,10 +35,6 @@ pub trait OAuthClient: BaseClient {
     /// authentication. The access token will be saved internally.
     async fn request_token(&mut self, code: &str) -> ClientResult<()>;
 
-    /// Refreshes the current access token given a refresh token. The obtained
-    /// token will be saved internally.
-    async fn refresh_token(&mut self, refresh_token: &str) -> ClientResult<()>;
-
     /// Tries to read the cache file's token.
     ///
     /// This will return an error if the token couldn't be read (e.g. it's not
@@ -128,8 +124,7 @@ pub trait OAuthClient: BaseClient {
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
         match self.read_token_cache().await {
             Ok(Some(new_token)) => {
-                let token = self.get_token_mut();
-                *token = Some(new_token);
+                *self.get_token().lock().await.unwrap() = Some(new_token);
             }
             // Otherwise following the usual procedure to get the token.
             _ => {
@@ -138,7 +133,7 @@ pub trait OAuthClient: BaseClient {
             }
         }
 
-        self.write_token_cache()
+        self.write_token_cache().await
     }
 
     /// Get current user playlists without required getting his profile.
@@ -1145,7 +1140,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-set-volume-for-users-playback)
     async fn volume(&self, volume_percent: u8, device_id: Option<&str>) -> ClientResult<()> {
         debug_assert!(
-            volume_percent > 100u8,
+            volume_percent <= 100u8,
             "volume must be between 0 and 100, inclusive"
         );
         let url = append_device_id(

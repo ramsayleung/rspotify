@@ -76,10 +76,12 @@ impl Token {
         Ok(())
     }
 
-    /// Check if the token is expired
+    /// Check if the token is expired. It includes a margin of 10 seconds (which
+    /// is how much a request would take in the worst case scenario).
     pub fn is_expired(&self) -> bool {
-        self.expires_at
-            .map_or(true, |x| Utc::now().timestamp() > x.timestamp())
+        self.expires_at.map_or(true, |expiration| {
+            Utc::now() + Duration::seconds(10) >= expiration
+        })
     }
 
     /// Generates an HTTP token authorization header with proper formatting

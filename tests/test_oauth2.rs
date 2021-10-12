@@ -3,7 +3,7 @@ use chrono::Duration;
 use rspotify::{
     prelude::*, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token,
 };
-use std::{collections::HashMap, fs, io::Read, path::PathBuf, thread::sleep};
+use std::{collections::HashMap, fs, io::Read, path::PathBuf};
 use url::Url;
 
 #[test]
@@ -55,7 +55,7 @@ async fn test_read_token_cache() {
     predefined_spotify.config = config.clone();
 
     // write token data to cache_path
-    predefined_spotify.write_token_cache().unwrap();
+    predefined_spotify.write_token_cache().await.unwrap();
     assert!(predefined_spotify.config.cache_path.exists());
 
     let mut spotify = ClientCredsSpotify::default();
@@ -72,8 +72,8 @@ async fn test_read_token_cache() {
     fs::remove_file(&spotify.config.cache_path).unwrap();
 }
 
-#[test]
-fn test_write_token() {
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+async fn test_write_token() {
     let now = Utc::now();
     let scopes = scopes!("playlist-read-private", "playlist-read-collaborative");
 
@@ -94,7 +94,7 @@ fn test_write_token() {
     spotify.config = config;
 
     let tok_str = serde_json::to_string(&tok).unwrap();
-    spotify.write_token_cache().unwrap();
+    spotify.write_token_cache().await.unwrap();
 
     let mut file = fs::File::open(&spotify.config.cache_path).unwrap();
     let mut tok_str_file = String::new();
@@ -112,15 +112,24 @@ fn test_write_token() {
 
 #[test]
 fn test_token_is_expired() {
+    let expires_in = Duration::seconds(20);
     let tok = Token {
         scopes: scopes!("playlist-read-private", "playlist-read-collaborative"),
         access_token: "test-access_token".to_owned(),
-        expires_in: Duration::seconds(1),
-        expires_at: Some(Utc::now()),
+        expires_in,
+        expires_at: Some(Utc::now() + expires_in),
         refresh_token: Some("...".to_owned()),
     };
     assert!(!tok.is_expired());
-    sleep(std::time::Duration::from_secs(2));
+
+    let expires_in = Duration::seconds(3); // There's a margin of 10 seconds
+    let tok = Token {
+        scopes: scopes!("playlist-read-private", "playlist-read-collaborative"),
+        access_token: "test-access_token".to_owned(),
+        expires_in,
+        expires_at: Some(Utc::now() + expires_in),
+        refresh_token: Some("...".to_owned()),
+    };
     assert!(tok.is_expired());
 }
 

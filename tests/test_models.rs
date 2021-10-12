@@ -45,14 +45,14 @@ fn test_public_user() {
         {
             "display_name": "Ronald Pompa",
             "external_urls": {
-                "spotify": "https://open.spotify.com/user/wizzler"
+                "spotify": "https://open.spotify.com/user/wizzler_with_underscores"
             },
             "followers": {
                 "href": null,
                 "total": 4050
             },
-            "href": "https://api.spotify.com/v1/users/wizzler",
-            "id": "wizzler",
+            "href": "https://api.spotify.com/v1/users/wizzler_with_underscores",
+            "id": "wizzler_with_underscores",
             "images": [
                 {
                 "height": null,
@@ -61,11 +61,16 @@ fn test_public_user() {
                 }
             ],
             "type": "user",
-            "uri": "spotify:user:wizzler"
+            "uri": "spotify:user:wizzler_with_underscores"
         }
         "#;
     let user: PublicUser = serde_json::from_str(&json_str).unwrap();
-    assert_eq!(user.id, UserId::from_id("wizzler").unwrap());
+    // This also makes sure user IDs can have other characters, such as
+    // underscores.
+    assert_eq!(
+        user.id,
+        UserId::from_id("wizzler_with_underscores").unwrap()
+    );
 }
 
 #[test]
