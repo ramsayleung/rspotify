@@ -110,7 +110,7 @@ pub enum IdError {
     /// Spotify URI has invalid type name, or id has invalid type in a given
     /// context (e.g. a method expects a track id, but artist id is provided)
     InvalidType,
-    /// Spotify id is invalid (empty or contains non-alphanumeric characters)
+    /// Spotify id is invalid (empty or contains invalid characters)
     InvalidId,
 }
 
@@ -129,7 +129,7 @@ pub enum IdError {
 /// simply a `str` internally because these aren't sized. Thus, IDs will have the
 /// slight overhead of having to use an owned type like `String`.
 pub trait Id: Send + Sync {
-    /// Spotify object Id (guaranteed to be a string of alphanumeric characters)
+    /// Spotify object Id (guaranteed to be valid for that type)
     fn id(&self) -> &str;
 
     /// The type of the ID. The difference with [`Self::_type_static`] is that
@@ -145,8 +145,8 @@ pub trait Id: Send + Sync {
     ///
     /// # Safety
     ///
-    /// The string passed to this method must be made out of alphanumeric
-    /// numbers only; otherwise undefined behaviour may occur.
+    /// The string passed to this method must be made out of valid characters
+    /// only; otherwise undefined behaviour may occur.
     unsafe fn from_id_unchecked(id: &str) -> Self
     where
         Self: Sized;
@@ -169,11 +169,12 @@ pub trait Id: Send + Sync {
 
     /// Parse Spotify id from string slice
     ///
-    /// A valid Spotify object id must be a non-empty alphanumeric string.
+    /// A valid Spotify object id must be a non-empty string with valid
+    /// characters.
     ///
     /// # Errors:
     ///
-    /// - `IdError::InvalidId` - if `id` contains non-alphanumeric characters.
+    /// - `IdError::InvalidId` - if `id` contains invalid characters.
     fn from_id(id: &str) -> Result<Self, IdError>
     where
         Self: Sized,
@@ -191,7 +192,7 @@ pub trait Id: Send + Sync {
     /// Spotify URI must be in one of the following formats:
     /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
     /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
-    /// `show`, or `episode`, and `{id}` is a non-empty alphanumeric string.
+    /// `show`, or `episode`, and `{id}` is a non-empty valid string.
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
@@ -237,24 +238,24 @@ pub trait Id: Send + Sync {
     /// Spotify URI must be in one of the following formats:
     /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
     /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
-    /// `show`, or `episode`, and `{id}` is a non-empty alphanumeric string.
-    /// The URI must be match with the ID's type (`Id::TYPE`), otherwise
+    /// `show`, or `episode`, and `{id}` is a non-empty valid string. The URI
+    /// must be match with the ID's type (`Id::TYPE`), otherwise
     /// `IdError::InvalidType` error is returned.
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
     ///
     /// If input string is not a valid Spotify URI (it's not started with
-    /// `spotify:` or `spotify/`), it must be a valid Spotify object id,
-    /// i.e. a non-empty alphanumeric string.
+    /// `spotify:` or `spotify/`), it must be a valid Spotify object ID,
+    /// i.e. a non-empty valid string.
     ///
     /// # Errors:
     ///
     /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part
     ///    is not equal to `T`,
     /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id
-    ///    part, or it's an invalid id (id is invalid if it contains
-    ///    non-alphanumeric characters),
+    ///    part, or it's an invalid id (id is invalid if it contains valid
+    ///    characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
     ///    split into type and id parts.
     fn from_id_or_uri(id_or_uri: &str) -> Result<Self, IdError>
@@ -272,9 +273,7 @@ pub trait Id: Send + Sync {
 pub trait PlayableId: Id {}
 pub trait PlayContextId: Id {}
 
-/// This macro helps consistently define ID types. It contains a lot of code but
-/// mostly it's just repetitive work that's not of much interest for being
-/// trivial.
+/// This macro helps consistently define ID types.
 ///
 /// * The `$type` parameter indicates what type the ID is made out of (say,
 ///   `Artist`, `Album`...) from the enum `Type`.
@@ -283,9 +282,9 @@ macro_rules! define_idtypes {
     ($($type:ident => $name:ident),+) => {
         $(
             #[doc = concat!(
-                "ID of type [`Type::",
-                stringify!($type),
-                "`]. Refer to the [module-level docs][`crate::idtypes`] for more information.")
+                "ID of type [`Type::", stringify!($type), "`], made up of only \
+                alphanumeric characters. Refer to the [module-level \
+                docs][`crate::idtypes`] for more information.")
             ]
             #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
             pub struct $name(String);
@@ -311,7 +310,17 @@ macro_rules! define_idtypes {
                     $name(id.to_owned())
                 }
             }
+        )+
+    }
+}
 
+/// This macro contains a lot of code but mostly it's just repetitive work to
+/// implement some common traits that's not of much interest for being trivial.
+///
+/// * The `$name` parameter is the identifier of the struct for that type.
+macro_rules! define_impls {
+    ($($name:ident),+) => {
+        $(
             // Deserialization may take either an Id or an URI, so its
             // implementation has to be done manually.
             impl<'de> Deserialize<'de> for $name {
@@ -399,15 +408,63 @@ macro_rules! define_idtypes {
     }
 }
 
+// First declaring the regular IDs. Those with custom behaviour will have to be
+// declared manually later on.
 define_idtypes!(
     Artist => ArtistId,
     Album => AlbumId,
     Track => TrackId,
     Playlist => PlaylistId,
-    User => UserId,
     Show => ShowId,
     Episode => EpisodeId
 );
+
+/// ID of type [`Type::User`]. Refer to the [module-level
+/// docs][`crate::idtypes`] for more information.
+///
+/// Note that the implementation of this specific ID differs from the rest: a
+/// user's ID doesn't necessarily have to be made of alphanumeric characters. It
+/// can also use underscores and other characters, but since Spotify doesn't
+/// specify it explicitly, this just allows any string as an ID.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
+pub struct UserId(String);
+impl Id for UserId {
+    #[inline]
+    fn id(&self) -> &str {
+        &self.0
+    }
+
+    #[inline]
+    fn _type(&self) -> Type {
+        Type::User
+    }
+
+    #[inline]
+    fn _type_static() -> Type
+    where
+        Self: Sized,
+    {
+        Type::User
+    }
+
+    #[inline]
+    unsafe fn from_id_unchecked(id: &str) -> Self {
+        UserId(id.to_owned())
+    }
+
+    /// Parse Spotify id from string slice. Spotify doesn't specify what a User
+    /// ID might look like, so this will allow any kind of value.
+    fn from_id(id: &str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
+        // Safe, we've just checked that the Id is valid.
+        Ok(unsafe { Self::from_id_unchecked(id) })
+    }
+}
+
+// Finally implement some common traits for the ID types.
+define_impls!(ArtistId, AlbumId, TrackId, PlaylistId, UserId, ShowId, EpisodeId);
 
 // Grouping up the IDs into more specific traits
 impl PlayContextId for ArtistId {}

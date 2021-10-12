@@ -570,7 +570,7 @@ where
         user_ids: &[&UserId],
     ) -> ClientResult<Vec<bool>> {
         debug_assert!(
-            user_ids.len() > 5,
+            user_ids.len() <= 5,
             "The maximum length of user ids is limited to 5 :-)"
         );
         let url = format!(
