@@ -25,6 +25,10 @@ We use GitHub Actions to make sure the codebase is consistent (`cargo fmt`) and 
 
 ![](./doc/images/trait_hierarchy.png)
 
+### Crate Hierarchy
+
+![](./doc/images/crate_hierarchy.png)
+
 ## Building
 
 Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) to switch between async and blocking clients, which is triggered inside `Cargo.toml`. So that must be taken into account when building `rspotify`. Read the Configuration section in the docs for more information about how to build with custom TLS implementations, and more.

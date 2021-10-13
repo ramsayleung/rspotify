@@ -1,0 +1,24 @@
+@startuml
+title Crate Hierarchy
+rectangle rspotify-project{
+
+    rectangle client[
+    rspotify
+    ]
+    rectangle {
+        rectangle http[
+        rspotify-http
+        ]
+        rectangle macros[
+        rspotify-macros
+        ]
+        rectangle model[
+        rspotify-model
+        ]
+    }
+}
+client -down-> macros
+client -down-> model
+client -down-> http
+
+@enduml

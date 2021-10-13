@@ -1,58 +1,58 @@
 @startuml
 title Trait Hierarchy
 abstract class BaseClient {
-<color:green> {abstract} &Config get_config()
-<color:green> {abstract} &HttpClient get_http()
-<color:green> {abstract} RwLockReadGuard<Option<Token>> get_token()
-<color:green> {abstract} RwLockWriteGuard<Option<Token>> get_token_mut()
-<color:green> {abstract} &Credentials get_creds()
-<color:green> {abstract} ClientResult<Option<Token>> refetch_token()
-
-ClientResult<()> refresh_token()
-String endpoint_url()
-ClientResult<Headers> auth_headers()
-ClientResult<()> write_token_cache()
-ClientResult<Token> fetch_access_token()
+    <color:green>abstract</color> {abstract} &Config get_config()
+    <color:green>abstract</color> {abstract} &HttpClient get_http()
+    <color:green>abstract</color> {abstract} Arc<Mutex<Option<Token>>> get_token()
+    <color:green>abstract</color> {abstract} &Credentials get_creds()
+    <color:green>abstract</color> {abstract} ClientResult<Option<Token>> refetch_token()
+    ---
+    ClientResult<()> auto_reauth()
+    ClientResult<()> refresh_token()
+    String endpoint_url()
+    ClientResult<Headers> auth_headers()
+    ClientResult<()> write_token_cache()
+    ClientResult<Token> fetch_access_token()
 }
 
 abstract class OAuthClient extends BaseClient{
-    <color:green> {abstract} {abstract} &OAuth get_oauth()
-    <color:green> {abstract} {abstract} ClientResult<()> request_token()
-
-    ClientResult<()> auto_reauth()
+    <color:green>abstract</color> {abstract} &OAuth get_oauth()
+    <color:green>abstract</color> {abstract} ClientResult<()> request_token()
+    ---
     Option<Token> read_token_cache()
 }
 
 class AuthCodeSpotify implements OAuthClient{
-&Config get_config()
-&HttpClient get_http()
-RwLockReadGuard<Option<Token>> get_token()
-RwLockWriteGuard<Option<Token>> get_token_mut()
-&Credentials get_creds()
-ClientResult<Option<Token>> refetch_token()
-
-&OAuth get_oauth()
-ClientResult<()> request_token()
+    &Config get_config()
+    &HttpClient get_http()
+    RwLockReadGuard<Option<Token>> get_token()
+    RwLockWriteGuard<Option<Token>> get_token_mut()
+    &Credentials get_creds()
+    ClientResult<Option<Token>> refetch_token()
+    ---
+    &OAuth get_oauth()
+    ClientResult<()> request_token()
 }
 
 class AuthCodePkceSpotify implements OAuthClient{
     &Config get_config()
-&HttpClient get_http()
-RwLockReadGuard<Option<Token>> get_token()
-RwLockWriteGuard<Option<Token>> get_token_mut()
-&Credentials get_creds()
-ClientResult<Option<Token>> refetch_token()
-
-&OAuth get_oauth()
-ClientResult<()> request_token()
+    &HttpClient get_http()
+    RwLockReadGuard<Option<Token>> get_token()
+    RwLockWriteGuard<Option<Token>> get_token_mut()
+    &Credentials get_creds()
+    ClientResult<Option<Token>> refetch_token()
+    ---
+    &OAuth get_oauth()
+    ClientResult<()> request_token()
 }
 
 class ClientCredsSpotify implements BaseClient{
-&Config get_config()
-&HttpClient get_http()
-RwLockReadGuard<Option<Token>> get_token()
-RwLockWriteGuard<Option<Token>> get_token_mut()
-&Credentials get_creds()
-ClientResult<Option<Token>> refetch_token()
+    &Config get_config()
+    &HttpClient get_http()
+    RwLockReadGuard<Option<Token>> get_token()
+    RwLockWriteGuard<Option<Token>> get_token_mut()
+    &Credentials get_creds()
+    ClientResult<Option<Token>> refetch_token()
+    ---
 }
 @enduml
