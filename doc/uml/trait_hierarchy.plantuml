@@ -53,5 +53,6 @@ class ClientCredsSpotify implements BaseClient{
     RwLockWriteGuard<Option<Token>> get_token_mut()
     &Credentials get_creds()
     ClientResult<Option<Token>> refetch_token()
+    ---
 }
 @enduml
