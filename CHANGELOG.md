@@ -8,17 +8,18 @@ If we missed any change or there's something you'd like to discuss about this ve
 
 This guide should make it easier to upgrade your code, rather than checking out the changelog line by line. The most important changes are:
 
-* Support for **multiple HTTP clients**. Instead of using `rspotify::blocking` for synchronous access, you just need to configure the `ureq-client` feature and its TLS (learn more in the docs).
-* No need for the builder pattern anymore: `Spotify` has been split up into **multiple clients depending on the authentication process** you want to follow. This means that you'll be required to `use rspotify::prelude::*` in order to access the traits with the endpoints.
+* Support for **multiple HTTP clients**. Instead of using `rspotify::blocking` for synchronous access, you just need to configure the `ureq-client` feature and its TLS (learn more in the docs). However, note that this is subject to changes after [#221](https://github.com/ramsayleung/rspotify/issues/221) is fixed.
+* No need for the builder pattern anymore: `Spotify` has been split up into **multiple clients depending on the authentication process** you want to follow. This means that you'll be required to `use rspotify::prelude::*` in order to access the traits with the endpoints, since they're written in a base trait now.
     * [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow): see `ClientCredsSpotify`.
     * [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow): see `AuthCodeSpotify`.
-    * [Authorization Code Flow with Proof Key for Code Exchange (PKCE)](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce): see `AuthCodePkceSpotify`. This is new! You might be interested in using PKCE for your app.
+    * [Authorization Code Flow with Proof Key for Code Exchange (PKCE)](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce): see `AuthCodePkceSpotify`. This is new! You might be interested in using PKCE for your app if you don't want to expose your client secret.
     * [Implicit Grant Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow): unimplemented, as Rspotify has not been tested on a browser yet. If you'd like support for it, let us know in an issue!
-* There's now support for (both sync and async) **automatic pagination** as well! Make sure you upgrade to these after checking out the [`pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_async.rs) and [`pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_sync.rs) examples. You can use the `_manual`-suffixed endpoints for the previous pagination style.
+* There's now support for (both sync and async) **automatic pagination**! Make sure you upgrade to these after checking out the [`pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_async.rs) and [`pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_sync.rs) examples. You can use the `_manual`-suffixed endpoints for the previous pagination style.
 * We've **renamed** a few structs and endpoints. The new names are quite similar, so the Rust compiler should suggest you what to change after an error. The only one you might not notice is the **environmental variables**: they're now `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid collisions with other libraries.
 * We always use **`Option<T>`** for optional parameters now. This means that you might have to add `Some(...)` to some of your parameters. We were using both `Into<Option<T>>` and `Option<T>` but decided that either of these would be best as long as it's *consistent*. `Option<T>` has less magic, so we went for that one.
 * The core library has been split up with **features**. If you need `dotenv` just activate `env-file`, and if you need CLI functionality (`prompt_for_token` and similars), activate `cli`.
 * We use **custom errors** now instead of the `failure` crate.
+* The Spotify clients now have a `Config` struct for configuration. This includes **cached tokens** (saved/loaded automatically in a JSON file), and **refreshing tokens** (reauthenticated automatically when they become expired).
 
 Now to a quick example: here's how you *used to* query the current user saved tracks:
 
@@ -59,7 +60,7 @@ fn main() {
     let url = spotify.get_authorize_url(false).unwrap(); // More flexible, lets us implement PKCE
     spotify.prompt_for_token(&url).unwrap(); // Explicit: the token is obtained by interacting with the user
 
-    let stream = spotify.current_user_saved_tracks();
+    let stream = spotify.current_user_saved_tracks(None);
     println!("Items:");
     for item in stream { // Easy iteration instead of manual pagination
         println!("* {}", item.unwrap().track.name);
