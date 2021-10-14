@@ -49,3 +49,9 @@ ureq-rustls-tls = ["ureq/tls"]
 # Internal features for checking async or sync compilation
 __async = ["async-trait"]
 __sync = ["maybe-async/is_sync"]
+
+[package.metadata.docs.rs]
+# We generate the docs for ureq so that the function signatures of the endpoints
+# don't look gnarly (because of `async-trait`).
+features = ["client-ureq"]
+default-features = false
