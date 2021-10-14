@@ -4,7 +4,7 @@ authors = [
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
 name = "rspotify-http"
-version = "0.10.0"
+version = "0.11.0"
 license = "MIT"
 readme = "README.md"
 description = "HTTP compatibility layer for Rspotify"
