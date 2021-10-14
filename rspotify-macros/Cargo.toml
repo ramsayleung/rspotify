@@ -4,7 +4,7 @@ authors = [
     "Ramsay Leung <ramsayleung@gmail.com>",
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
-version = "0.11.1"
+version = "0.11.2"
 license = "MIT"
 description = "Macros for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
