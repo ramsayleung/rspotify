@@ -6,7 +6,6 @@ authors = [
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
 license = "MIT"
-readme = "README.md"
 description = "Model for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
