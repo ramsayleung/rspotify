@@ -54,4 +54,4 @@ __sync = ["maybe-async/is_sync"]
 # We generate the docs for ureq so that the function signatures of the endpoints
 # don't look gnarly (because of `async-trait`).
 features = ["client-ureq"]
-default-features = false
+no-default-features = true

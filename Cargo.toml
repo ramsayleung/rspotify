@@ -82,7 +82,7 @@ __sync = ["maybe-async/is_sync"]
 # links for `dotenv`. We generate them for ureq so that the function signatures
 # of the endpoints don't look gnarly (because of `async-trait`).
 features = ["cli", "env-file", "client-ureq"]
-default-features = false
+no-default-features = true
 
 [[example]]
 name = "client_creds"
