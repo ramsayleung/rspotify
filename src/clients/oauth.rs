@@ -51,7 +51,7 @@ pub trait OAuthClient: BaseClient {
 
         log::info!("Reading auth token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
-        if !self.get_oauth().scopes.is_subset(&token.scopes) || (token.is_expired() && !allow_expired) {
+        if !self.get_oauth().scopes.is_subset(&token.scopes) || (!allow_expired && token.is_expired()) {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             Ok(None)
