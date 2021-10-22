@@ -90,10 +90,10 @@ impl ClientCredsSpotify {
     /// This will return an error if the token couldn't be read (e.g. it's not
     /// available or the JSON is malformed). It may return `Ok(None)` if:
     ///
-    /// * The read token is expired
+    /// * The read token is expired and `allow_expired` is false
     /// * The cached token is disabled in the config
     #[maybe_async]
-    pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
+    pub async fn read_token_cache(&self, allow_expired: bool) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
             log::info!("Token cache read ignored (not configured)");
             return Ok(None);
@@ -101,7 +101,7 @@ impl ClientCredsSpotify {
 
         log::info!("Reading token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
-        if token.is_expired() {
+        if allow_expired && token.is_expired() {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             Ok(None)
