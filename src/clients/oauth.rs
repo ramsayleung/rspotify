@@ -40,9 +40,22 @@ pub trait OAuthClient: BaseClient {
     /// This will return an error if the token couldn't be read (e.g. it's not
     /// available or the JSON is malformed). It may return `Ok(None)` if:
     ///
-    /// * Its scopes don't match with the current client
-    /// * The cached token is disabled in the config
     /// * The read token is expired and `allow_expired` is false
+    /// * Its scopes don't match with the current client (you will need to
+    ///   re-authenticate to gain access to more scopes)
+    /// * The cached token is disabled in the config
+    ///
+    /// # Note
+    /// This function's implementation differs slightly from the implementation
+    /// in [`ClientCredsSpotify::read_token_cache`]. The boolean parameter
+    /// `allow_expired` allows users to load expired tokens from the cache.
+    /// This functionality can be used to access the refresh token and obtain
+    /// a new, valid token. This option is unavailable in the implementation of
+    /// [`ClientCredsSpotify::read_token_cache`] since the client credentials
+    /// authorization flow does not have a refresh token and instead requires
+    /// the application re-authenticate.
+    ///
+    /// [`ClientCredsSpotify::read_token_cache`]: crate::client_creds::ClientCredsSpotify::read_token_cache
     async fn read_token_cache(&mut self, allow_expired: bool) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
             log::info!("Auth token cache read ignored (not configured)");
@@ -51,7 +64,9 @@ pub trait OAuthClient: BaseClient {
 
         log::info!("Reading auth token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
-        if !self.get_oauth().scopes.is_subset(&token.scopes) || (!allow_expired && token.is_expired()) {
+        if !self.get_oauth().scopes.is_subset(&token.scopes)
+            || (!allow_expired && token.is_expired())
+        {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             Ok(None)
