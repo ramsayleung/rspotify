@@ -129,17 +129,29 @@ pub trait OAuthClient: BaseClient {
     }
 
     /// Opens up the authorization URL in the user's browser so that it can
-    /// authenticate. It also reads from the standard input the redirect URI
+    /// authenticate. It reads from the standard input the redirect URI
     /// in order to obtain the access token information. The resulting access
     /// token will be saved internally once the operation is successful.
     ///
+    /// If the [`Config::token_cached`] setting is enabled for this client,
+    /// and a token exists in the cache, the token will be loaded and the client
+    /// will attempt to automatically refresh the token if it is expired.
+    ///
     /// Note: this method requires the `cli` feature.
+    ///
+    /// [`Config::token_cached`]: crate::Config::token_cached
     #[cfg(feature = "cli")]
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_token_cache().await {
+        match self.read_token_cache(true).await {
             Ok(Some(new_token)) => {
+                let expired = new_token.is_expired();
+
                 *self.get_token().lock().await.unwrap() = Some(new_token);
+
+                if expired {
+                    self.refresh_token()?;
+                }
             }
             // Otherwise following the usual procedure to get the token.
             _ => {
