@@ -135,7 +135,9 @@ pub trait OAuthClient: BaseClient {
     ///
     /// If the [`Config::token_cached`] setting is enabled for this client,
     /// and a token exists in the cache, the token will be loaded and the client
-    /// will attempt to automatically refresh the token if it is expired.
+    /// will attempt to automatically refresh the token if it is expired. If
+    /// the token was unable to be refreshed, the client will then prompt the
+    /// user for the token as normal.
     ///
     /// Note: this method requires the `cli` feature.
     ///
@@ -147,10 +149,24 @@ pub trait OAuthClient: BaseClient {
             Ok(Some(new_token)) => {
                 let expired = new_token.is_expired();
 
+                // Load token into client, regardless of if it is valid
+                // since the client will need its access token if it is invalid
                 *self.get_token().lock().await.unwrap() = Some(new_token);
 
                 if expired {
-                    self.refresh_token()?;
+                    // Ensure that we actually got a token from the refetch
+                    match self.refetch_token()? {
+                        Some(refreshed_token) => {
+                            log::trace!("Successfully refreshed expired token from token cache");
+                            *self.get_token().lock().await.unwrap() = Some(refreshed_token)
+                        },
+                        // If not, prompt the user for it
+                        None => {
+                            log::trace!("Unable to refresh expired token from token cache");
+                            let code = self.get_code_from_user(url)?;
+                            self.request_token(&code).await?;
+                        }
+                    }
                 }
             }
             // Otherwise following the usual procedure to get the token.
