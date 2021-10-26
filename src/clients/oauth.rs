@@ -40,10 +40,23 @@ pub trait OAuthClient: BaseClient {
     /// This will return an error if the token couldn't be read (e.g. it's not
     /// available or the JSON is malformed). It may return `Ok(None)` if:
     ///
-    /// * The read token is expired
-    /// * Its scopes don't match with the current client
+    /// * The read token is expired and `allow_expired` is false
+    /// * Its scopes don't match with the current client (you will need to
+    ///   re-authenticate to gain access to more scopes)
     /// * The cached token is disabled in the config
-    async fn read_token_cache(&mut self) -> ClientResult<Option<Token>> {
+    ///
+    /// # Note
+    /// This function's implementation differs slightly from the implementation
+    /// in [`ClientCredsSpotify::read_token_cache`]. The boolean parameter
+    /// `allow_expired` allows users to load expired tokens from the cache.
+    /// This functionality can be used to access the refresh token and obtain
+    /// a new, valid token. This option is unavailable in the implementation of
+    /// [`ClientCredsSpotify::read_token_cache`] since the client credentials
+    /// authorization flow does not have a refresh token and instead requires
+    /// the application re-authenticate.
+    ///
+    /// [`ClientCredsSpotify::read_token_cache`]: crate::client_creds::ClientCredsSpotify::read_token_cache
+    async fn read_token_cache(&mut self, allow_expired: bool) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
             log::info!("Auth token cache read ignored (not configured)");
             return Ok(None);
@@ -51,7 +64,9 @@ pub trait OAuthClient: BaseClient {
 
         log::info!("Reading auth token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
-        if !self.get_oauth().scopes.is_subset(&token.scopes) || token.is_expired() {
+        if !self.get_oauth().scopes.is_subset(&token.scopes)
+            || (!allow_expired && token.is_expired())
+        {
             // Invalid token, since it doesn't have at least the currently
             // required scopes or it's expired.
             Ok(None)
@@ -114,17 +129,45 @@ pub trait OAuthClient: BaseClient {
     }
 
     /// Opens up the authorization URL in the user's browser so that it can
-    /// authenticate. It also reads from the standard input the redirect URI
+    /// authenticate. It reads from the standard input the redirect URI
     /// in order to obtain the access token information. The resulting access
     /// token will be saved internally once the operation is successful.
     ///
+    /// If the [`Config::token_cached`] setting is enabled for this client,
+    /// and a token exists in the cache, the token will be loaded and the client
+    /// will attempt to automatically refresh the token if it is expired. If
+    /// the token was unable to be refreshed, the client will then prompt the
+    /// user for the token as normal.
+    ///
     /// Note: this method requires the `cli` feature.
+    ///
+    /// [`Config::token_cached`]: crate::Config::token_cached
     #[cfg(feature = "cli")]
     #[maybe_async]
     async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
-        match self.read_token_cache().await {
+        match self.read_token_cache(true).await {
             Ok(Some(new_token)) => {
+                let expired = new_token.is_expired();
+
+                // Load token into client regardless of whether it's expired o
+                // not, since it will be refreshed later anyway.
                 *self.get_token().lock().await.unwrap() = Some(new_token);
+
+                if expired {
+                    // Ensure that we actually got a token from the refetch
+                    match self.refetch_token().await? {
+                        Some(refreshed_token) => {
+                            log::info!("Successfully refreshed expired token from token cache");
+                            *self.get_token().lock().await.unwrap() = Some(refreshed_token)
+                        }
+                        // If not, prompt the user for it
+                        None => {
+                            log::info!("Unable to refresh expired token from token cache");
+                            let code = self.get_code_from_user(url)?;
+                            self.request_token(&code).await?;
+                        }
+                    }
+                }
             }
             // Otherwise following the usual procedure to get the token.
             _ => {

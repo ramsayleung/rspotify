@@ -102,8 +102,7 @@ impl ClientCredsSpotify {
         log::info!("Reading token cache");
         let token = Token::from_cache(&self.get_config().cache_path)?;
         if token.is_expired() {
-            // Invalid token, since it doesn't have at least the currently
-            // required scopes or it's expired.
+            // Invalid token, since it's expired.
             Ok(None)
         } else {
             Ok(Some(token))
