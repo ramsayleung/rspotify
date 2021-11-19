@@ -345,12 +345,7 @@ async fn test_playback() {
 
         // Starting playback of some songs
         client
-            .start_uris_playback(
-                uris,
-                Some(device_id),
-                Some(Offset::for_position(0)),
-                None,
-            )
+            .start_uris_playback(uris, Some(device_id), Some(Offset::for_position(0)), None)
             .await
             .unwrap();
 
