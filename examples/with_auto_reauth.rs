@@ -51,17 +51,15 @@ async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
 async fn expire_token<S: BaseClient>(spotify: &S) {
     let token_mutex = spotify.get_token();
     let mut token = token_mutex.lock().await.unwrap();
-    assert!(token.is_some());
-    token.as_mut().map(|x| {
-        // In a regular case, the token would expire with time. Here we just do
-        // it manually.
-        let now = Utc::now().checked_sub_signed(Duration::seconds(10));
-        x.expires_at = now;
-        x.expires_in = Duration::seconds(0);
-        // We also use a garbage access token to make sure it's actually
-        // refreshed.
-        x.access_token = "garbage".to_owned();
-    });
+    let mut token = token.as_mut().expect("Token can't be empty as this point");
+    // In a regular case, the token would expire with time. Here we just do
+    // it manually.
+    let now = Utc::now().checked_sub_signed(Duration::seconds(10));
+    token.expires_at = now;
+    token.expires_in = Duration::seconds(0);
+    // We also use a garbage access token to make sure it's actually
+    // refreshed.
+    token.access_token = "garbage".to_owned();
 }
 
 async fn with_auth(creds: Credentials, oauth: OAuth, config: Config) {
@@ -112,8 +110,10 @@ async fn main() {
     env_logger::init();
 
     // Enabling automatic token refreshing in the config
-    let mut config = Config::default();
-    config.token_refreshing = true;
+    let config = Config {
+        token_refreshing: true,
+        ..Default::default()
+    };
 
     // The default credentials from the `.env` file will be used by default.
     let creds = Credentials::from_env().unwrap();
