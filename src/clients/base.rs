@@ -243,7 +243,7 @@ where
     /// Parameters:
     /// - track_id - a spotify URI, URL or ID
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-track)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-track)
     async fn track(&self, track_id: &TrackId) -> ClientResult<FullTrack> {
         let url = format!("tracks/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -256,7 +256,7 @@ where
     /// - track_ids - a list of spotify URIs, URLs or IDs
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-tracks)
     async fn tracks<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
@@ -277,7 +277,7 @@ where
     /// Parameters:
     /// - artist_id - an artist ID, URI or URL
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artist)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artist)
     async fn artist(&self, artist_id: &ArtistId) -> ClientResult<FullArtist> {
         let url = format!("artists/{}", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -289,7 +289,7 @@ where
     /// Parameters:
     /// - artist_ids - a list of artist IDs, URIs or URLs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-artists)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-artists)
     async fn artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = &'a ArtistId> + Send + 'a,
@@ -313,7 +313,7 @@ where
     /// See [`Self::artist_albums_manual`] for a manually paginated version of
     /// this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-albums)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-albums)
     fn artist_albums<'a>(
         &'a self,
         artist_id: &'a ArtistId,
@@ -358,7 +358,7 @@ where
     /// - artist_id - the artist ID, URI or URL
     /// - market - limit the response to one particular country.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-top-tracks)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-top-tracks)
     async fn artist_top_tracks(
         &self,
         artist_id: &ArtistId,
@@ -380,7 +380,7 @@ where
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-artists-related-artists)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-related-artists)
     async fn artist_related_artists(&self, artist_id: &ArtistId) -> ClientResult<Vec<FullArtist>> {
         let url = format!("artists/{}/related-artists", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -392,7 +392,7 @@ where
     /// Parameters:
     /// - album_id - the album ID, URI or URL
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-album)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-album)
     async fn album(&self, album_id: &AlbumId) -> ClientResult<FullAlbum> {
         let url = format!("albums/{}", album_id.id());
 
@@ -405,7 +405,7 @@ where
     /// Parameters:
     /// - albums_ids - a list of album IDs, URIs or URLs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-albums)
     async fn albums<'a>(
         &self,
         album_ids: impl IntoIterator<Item = &'a AlbumId> + Send + 'a,
@@ -465,7 +465,7 @@ where
     /// See [`Self::album_track_manual`] for a manually paginated version of
     /// this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-albums-tracks)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-albums-tracks)
     fn album_track<'a>(
         &'a self,
         album_id: &'a AlbumId,
@@ -500,7 +500,7 @@ where
     /// Parameters:
     /// - user - the id of the usr
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-users-profile)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-profile)
     async fn user(&self, user_id: &UserId) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -513,7 +513,7 @@ where
     /// - playlist_id - the id of the playlist
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlist)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlist)
     async fn playlist(
         &self,
         playlist_id: &PlaylistId,
@@ -537,7 +537,7 @@ where
     /// - playlist_id - the id of the playlist
     /// - fields - which fields to return
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
     async fn user_playlist(
         &self,
         user_id: &UserId,
@@ -563,7 +563,7 @@ where
     /// - user_ids - the ids of the users that you want to check to see if they
     ///   follow the playlist. Maximum: 5 ids.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-check-if-user-follows-playlist)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-if-user-follows-playlist)
     async fn playlist_check_follow(
         &self,
         playlist_id: &PlaylistId,
@@ -594,7 +594,7 @@ where
     /// Query Parameters
     /// - market(Optional): An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-show)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-show)
     async fn get_a_show(&self, id: &ShowId, market: Option<&Market>) -> ClientResult<FullShow> {
         let params = build_map! {
             optional "market": market.map(|x| x.as_ref()),
@@ -612,7 +612,7 @@ where
     /// - ids(Required) A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     /// - market(Optional) An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-shows)
     async fn get_several_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
@@ -642,7 +642,7 @@ where
     /// See [`Self::get_shows_episodes_manual`] for a manually paginated version
     /// of this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-shows-episodes)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-shows-episodes)
     fn get_shows_episodes<'a>(
         &'a self,
         id: &'a ShowId,
@@ -685,7 +685,7 @@ where
     /// Query Parameters
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-an-episode)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-episode)
     async fn get_an_episode(
         &self,
         id: &EpisodeId,
@@ -706,7 +706,7 @@ where
     /// - ids: Required. A comma-separated list of the Spotify IDs for the episodes. Maximum: 50 IDs.
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-episodes)
     async fn get_several_episodes<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a EpisodeId> + Send + 'a,
@@ -727,7 +727,7 @@ where
     /// Parameters:
     /// - track - track URI, URL or ID
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-features)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-features)
     async fn track_features(&self, track_id: &TrackId) -> ClientResult<AudioFeatures> {
         let url = format!("audio-features/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -739,7 +739,7 @@ where
     /// Parameters:
     /// - tracks a list of track URIs, URLs or IDs
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-audio-features)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-audio-features)
     async fn tracks_features<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
@@ -760,7 +760,7 @@ where
     /// Parameters:
     /// - track_id - a track URI, URL or ID
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-audio-analysis)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-analysis)
     async fn track_analysis(&self, track_id: &TrackId) -> ClientResult<AudioAnalysis> {
         let url = format!("audio-analysis/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -781,7 +781,7 @@ where
     /// See [`Self::categories_manual`] for a manually paginated version of
     /// this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-categories)
     fn categories<'a>(
         &'a self,
         locale: Option<&'a str>,
@@ -826,7 +826,7 @@ where
     /// See [`Self::category_playlists_manual`] for a manually paginated version
     /// of this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-categories-playlists)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-categories-playlists)
     fn category_playlists<'a>(
         &'a self,
         category_id: &'a str,
@@ -877,7 +877,7 @@ where
     ///   (the first object). Use with limit to get the next set of
     ///   items.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-featured-playlists)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-featured-playlists)
     async fn featured_playlists(
         &self,
         locale: Option<&str>,
@@ -915,7 +915,7 @@ where
     /// See [`Self::new_releases_manual`] for a manually paginated version of
     /// this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-new-releases)
     fn new_releases<'a>(
         &'a self,
         country: Option<&'a Market>,
@@ -961,7 +961,7 @@ where
     ///   in the documentation, these values provide filters and targeting on
     ///   results.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recommendations)
     async fn recommendations<'a>(
         &self,
         attributes: impl IntoIterator<Item = RecommendationsAttribute> + Send + 'a,
@@ -1012,7 +1012,7 @@ where
     /// See [`Self::playlist_items_manual`] for a manually paginated version of
     /// this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-playlists-tracks)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlists-tracks)
     fn playlist_items<'a>(
         &'a self,
         playlist_id: &'a PlaylistId,
@@ -1060,7 +1060,7 @@ where
     /// See [`Self::user_playlists_manual`] for a manually paginated version of
     /// this.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-list-users-playlists)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
     fn user_playlists<'a>(
         &'a self,
         user_id: &'a UserId,
