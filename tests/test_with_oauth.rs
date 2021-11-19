@@ -250,7 +250,7 @@ async fn test_current_user_saved_tracks_add() {
     let all = fetch_all(client.current_user_saved_tracks(None)).await;
     let all = all
         .into_iter()
-        .filter_map(|saved| Some(saved.track.id))
+        .filter_map(|saved| saved.track.id)
         .collect::<Vec<_>>();
     // All the initial tracks should appear
     assert!(tracks_ids.iter().all(|track| all.contains(track)));
@@ -385,13 +385,15 @@ async fn test_playback() {
     // Restore the original playback data
     if let Some(backup) = &backup {
         let uri = backup.item.as_ref().map(|item| item.id());
-        let offset = None;
-        let device = backup.device.id.as_deref();
-        let position = backup.progress.map(|p| p.as_millis() as u32);
-        client
-            .start_uris_playback(uri, device, offset, position)
-            .await
-            .unwrap();
+        if let Some(uri) = uri {
+            let offset = None;
+            let device = backup.device.id.as_deref();
+            let position = backup.progress.map(|p| p.as_millis() as u32);
+            client
+                .start_uris_playback(uri, device, offset, position)
+                .await
+                .unwrap();
+        }
     }
     // Pause the playback by default, unless it was playing before
     if !backup.map(|b| b.is_playing).unwrap_or(false) {
