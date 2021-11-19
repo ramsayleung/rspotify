@@ -283,7 +283,8 @@ fn test_audio_analysis_section() {
         }
         "#;
     let session: AudioAnalysisSection = serde_json::from_str(json_str).unwrap();
-    assert_eq!(session.time_interval.duration, 18.32542);
+    // Comparison of floating point numbers
+    assert!((session.time_interval.duration - 18.32542).abs() < f32::EPSILON);
 }
 
 #[test]
@@ -306,7 +307,8 @@ fn test_audio_analysis_segments() {
             }
             "#;
     let segment: AudioAnalysisSegment = serde_json::from_str(json_str).unwrap();
-    assert_eq!(segment.time_interval.start, 252.15601);
+    // Comparison of floating point numbers
+    assert!((segment.time_interval.start - 252.156).abs() < f32::EPSILON);
 }
 
 #[test]
