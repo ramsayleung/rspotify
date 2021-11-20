@@ -41,7 +41,7 @@ pub struct SimplifiedAlbum {
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
     pub album_type: AlbumType,
-    pub available_markets: Vec<String>,
+    pub available_markets: Option<Vec<String>>,
     pub copyrights: Vec<Copyright>,
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
