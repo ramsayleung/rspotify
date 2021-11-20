@@ -150,7 +150,7 @@ mod test {
         let artist = Some("The Wombats");
         let market: Option<i32> = None;
 
-        let market_str = market.clone().map(|x| x.to_string());
+        let market_str = market.map(|x| x.to_string());
         let with_macro = build_map! {
             // Mandatory (not an `Option<T>`)
             "id": id,

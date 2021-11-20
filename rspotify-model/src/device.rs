@@ -39,6 +39,6 @@ fn test_devices() {
             } ]
         }
 "#;
-    let payload: DevicePayload = serde_json::from_str(&json_str).unwrap();
+    let payload: DevicePayload = serde_json::from_str(json_str).unwrap();
     assert_eq!(payload.devices[0]._type, DeviceType::Computer)
 }

@@ -51,7 +51,7 @@ async fn test_read_token_cache() {
         cache_path: PathBuf::from(".test_read_token_cache.json"),
         ..Default::default()
     };
-    let mut predefined_spotify = ClientCredsSpotify::from_token(tok.clone());
+    let mut predefined_spotify = ClientCredsSpotify::from_token(tok);
     predefined_spotify.config = config.clone();
 
     // write token data to cache_path
