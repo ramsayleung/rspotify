@@ -1,6 +1,7 @@
 ## 0.11.3
 
-* Make `available_markets` optional for `FullAlbum`
+**Breaking changes:**
+- ([#286](https://github.com/ramsayleung/rspotify/pull/286)) Make `available_markets` optional for `FullAlbum`
 
 ## 0.11 (2021.10.14)
 
