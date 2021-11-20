@@ -209,6 +209,9 @@ async fn test_current_user_saved_albums() {
 
     // Making sure the new albums appear
     let all_albums = fetch_all(client.current_user_saved_albums(None)).await;
+    // Can handle albums without available_market
+    let _albums_from_token =
+        fetch_all(client.current_user_saved_albums(Some(&Market::FromToken))).await;
     let all_uris = all_albums
         .into_iter()
         .map(|a| a.album.id)
