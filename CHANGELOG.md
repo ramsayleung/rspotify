@@ -1,3 +1,7 @@
+## 0.11.3
+
+* Make `available_markets` optional for `FullAlbum`
+
 ## 0.11 (2021.10.14)
 
 This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and this shouldn't happen again. From now on we'll work on getting closer to the first stable release. Lots of internal code was rewritten to make Rspotify more flexible, performant and easier to use. Sorry for the inconvenience!
