@@ -25,7 +25,8 @@ pub struct FullTrack {
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: TrackId,
+    /// Note that a track may not have an ID/URI if it's local
+    pub id: Option<TrackId>,
     pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,

@@ -54,11 +54,14 @@ pub enum PlayableItem {
 }
 
 impl PlayableItem {
-    /// Utility to get the ID from either variant in the enum
-    pub fn id(&self) -> &dyn PlayableId {
+    /// Utility to get the ID from either variant in the enum.
+    ///
+    /// Note that if it's a track and if it's local, it may not have an ID, in
+    /// which case this function will return `None`.
+    pub fn id(&self) -> Option<&dyn PlayableId> {
         match self {
-            PlayableItem::Track(t) => &t.id,
-            PlayableItem::Episode(e) => &e.id,
+            PlayableItem::Track(t) => t.id.as_ref().map(|t| t as &dyn PlayableId),
+            PlayableItem::Episode(e) => Some(&e.id),
         }
     }
 }

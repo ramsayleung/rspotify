@@ -96,7 +96,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
 }
 
 #[maybe_async]
-async fn fetch_all<'a, T>(paginator: Paginator<'a, ClientResult<T>>) -> Vec<T> {
+async fn fetch_all<T>(paginator: Paginator<'_, ClientResult<T>>) -> Vec<T> {
     #[cfg(feature = "__async")]
     {
         use futures::stream::TryStreamExt;
@@ -253,7 +253,7 @@ async fn test_current_user_saved_tracks_add() {
     let all = fetch_all(client.current_user_saved_tracks(None)).await;
     let all = all
         .into_iter()
-        .filter_map(|saved| Some(saved.track.id))
+        .filter_map(|saved| saved.track.id)
         .collect::<Vec<_>>();
     // All the initial tracks should appear
     assert!(tracks_ids.iter().all(|track| all.contains(track)));
@@ -348,39 +348,34 @@ async fn test_playback() {
 
         // Starting playback of some songs
         client
-            .start_uris_playback(
-                uris.clone(),
-                Some(&device_id),
-                Some(Offset::for_position(0)),
-                None,
-            )
+            .start_uris_playback(uris, Some(device_id), Some(Offset::for_position(0)), None)
             .await
             .unwrap();
 
         for i in 0..uris.len() - 1 {
-            client.next_track(Some(&device_id)).await.unwrap();
+            client.next_track(Some(device_id)).await.unwrap();
 
             // Also trying to go to the previous track
             if i != 0 {
-                client.previous_track(Some(&device_id)).await.unwrap();
-                client.next_track(Some(&device_id)).await.unwrap();
+                client.previous_track(Some(device_id)).await.unwrap();
+                client.next_track(Some(device_id)).await.unwrap();
             }
 
             // Making sure pause/resume also works
             let playback = client.current_playback(None, None::<&[_]>).await.unwrap();
             if let Some(playback) = playback {
                 if playback.is_playing {
-                    client.pause_playback(Some(&device_id)).await.unwrap();
+                    client.pause_playback(Some(device_id)).await.unwrap();
                     client.resume_playback(None, None).await.unwrap();
                 } else {
                     client.resume_playback(None, None).await.unwrap();
-                    client.pause_playback(Some(&device_id)).await.unwrap();
+                    client.pause_playback(Some(device_id)).await.unwrap();
                 }
             }
         }
 
         client
-            .transfer_playback(&next_device_id, Some(true))
+            .transfer_playback(next_device_id, Some(true))
             .await
             .unwrap();
     }
@@ -388,13 +383,15 @@ async fn test_playback() {
     // Restore the original playback data
     if let Some(backup) = &backup {
         let uri = backup.item.as_ref().map(|item| item.id());
-        let offset = None;
-        let device = backup.device.id.as_deref();
-        let position = backup.progress.map(|p| p.as_millis() as u32);
-        client
-            .start_uris_playback(uri, device, offset, position)
-            .await
-            .unwrap();
+        if let Some(uri) = uri {
+            let offset = None;
+            let device = backup.device.id.as_deref();
+            let position = backup.progress.map(|p| p.as_millis() as u32);
+            client
+                .start_uris_playback(uri, device, offset, position)
+                .await
+                .unwrap();
+        }
     }
     // Pause the playback by default, unless it was playing before
     if !backup.map(|b| b.is_playing).unwrap_or(false) {

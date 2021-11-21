@@ -1,7 +1,8 @@
-## 0.11.3
+## 0.11.3 (unreleased)
 
 **Breaking changes:**
 - ([#286](https://github.com/ramsayleung/rspotify/pull/286)) Make `available_markets` optional for `FullAlbum`
+- ([#282](https://github.com/ramsayleung/rspotify/pull/282)) Make `id` optional for `FullTrack`
 
 ## 0.11 (2021.10.14)
 
