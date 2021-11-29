@@ -8,8 +8,6 @@ use crate::{
 };
 
 /// Copyright object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-copyrightobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Copyright {
     pub text: String,
@@ -18,8 +16,6 @@ pub struct Copyright {
 }
 
 /// Simplified show object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showbase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
     pub available_markets: Vec<String>,
@@ -38,16 +34,12 @@ pub struct SimplifiedShow {
 }
 
 /// SimplifiedShows wrapped by `Vec`
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-shows)
 #[derive(Deserialize)]
 pub struct SeversalSimplifiedShows {
     pub shows: Vec<SimplifiedShow>,
 }
 
 /// Saved show object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedshowobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Show {
     pub added_at: String,
@@ -55,8 +47,6 @@ pub struct Show {
 }
 
 /// Full show object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-showbase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
@@ -76,8 +66,6 @@ pub struct FullShow {
 }
 
 /// Simplified episode object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodebase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedEpisode {
     pub audio_preview_url: Option<String>,
@@ -103,8 +91,6 @@ pub struct SimplifiedEpisode {
 }
 
 /// Full episode object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-episodebase)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullEpisode {
     pub audio_preview_url: Option<String>,
@@ -131,16 +117,12 @@ pub struct FullEpisode {
 }
 
 /// Intermediate episodes feature object wrapped by `Vec`
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-episodes)
 #[derive(Deserialize)]
 pub struct EpisodesPayload {
     pub episodes: Vec<FullEpisode>,
 }
 
 /// Resume point object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-resumepointobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ResumePoint {
     pub fully_played: bool,

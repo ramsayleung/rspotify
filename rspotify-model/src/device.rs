@@ -2,8 +2,6 @@ use crate::DeviceType;
 use serde::{Deserialize, Serialize};
 
 /// Device object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-users-available-devices)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Device {
     pub id: Option<String>,
@@ -17,8 +15,6 @@ pub struct Device {
 }
 
 /// Intermediate device payload object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-a-users-available-devices)
 #[derive(Deserialize)]
 pub struct DevicePayload {
     pub devices: Vec<Device>,

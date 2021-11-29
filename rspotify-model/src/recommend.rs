@@ -6,8 +6,6 @@ use strum::AsRefStr;
 use crate::{RecommendationsSeedType, SimplifiedTrack};
 
 /// Recommendations object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Recommendations {
     pub seeds: Vec<RecommendationsSeed>,
@@ -15,8 +13,6 @@ pub struct Recommendations {
 }
 
 /// Recommendations seed object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-recommendationseedobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RecommendationsSeed {
     #[serde(rename = "afterFilteringSize")]
@@ -32,8 +28,6 @@ pub struct RecommendationsSeed {
 }
 
 /// The attributes for recommendations
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recommendations)
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, AsRefStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]

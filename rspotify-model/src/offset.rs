@@ -1,8 +1,6 @@
 //! Offset object
 
 /// Offset object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/)
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Offset {
     Position(u32),

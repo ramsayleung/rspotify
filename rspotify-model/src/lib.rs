@@ -1,6 +1,6 @@
-//! All Spotify API endpoint response objects.
-//!
-//! [Reference](https://developer.spotify.com/documentation/web-api/reference/#objects-index)
+//! All Spotify API endpoint response objects. Please refer to the endpoints
+//! where they are used for a link to their reference in the Spotify API
+//! documentation.
 
 pub mod album;
 pub mod artist;
@@ -33,8 +33,6 @@ pub use {
 use serde::{Deserialize, Serialize};
 
 /// Followers object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-followersobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Followers {
     // This field will always set to null, as the Web API does not support it at the moment.
@@ -43,9 +41,6 @@ pub struct Followers {
 }
 
 /// A full track object or a full episode object
-///
-/// + [Reference to full track](https://developer.spotify.com/documentation/web-api/reference/#object-trackobject)
-/// + [Reference to full episode](https://developer.spotify.com/documentation/web-api/reference/#object-episodeobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum PlayableItem {

@@ -11,8 +11,6 @@ use crate::{
 };
 
 /// Simplified Album Object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedalbumobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SimplifiedAlbum {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,8 +33,6 @@ pub struct SimplifiedAlbum {
 }
 
 /// Full Album Object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
@@ -57,24 +53,18 @@ pub struct FullAlbum {
 }
 
 /// Intermediate full Albums wrapped by Vec object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-multiple-albums)
 #[derive(Deserialize)]
 pub struct FullAlbums {
     pub albums: Vec<FullAlbum>,
 }
 
 /// Intermediate simplified Albums wrapped by Page object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-new-releases)
 #[derive(Deserialize)]
 pub struct PageSimplifiedAlbums {
     pub albums: Page<SimplifiedAlbum>,
 }
 
 /// Saved Album object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedalbumobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SavedAlbum {
     pub added_at: DateTime<Utc>,
@@ -82,8 +72,6 @@ pub struct SavedAlbum {
 }
 
 /// Album restriction object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-albumrestrictionobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Restriction {
     pub reason: RestrictionReason,

@@ -10,8 +10,6 @@ use crate::{
 };
 
 /// Full track object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-trackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
@@ -41,8 +39,6 @@ pub struct FullTrack {
 }
 
 /// Track link object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-linkedtrackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
@@ -51,8 +47,6 @@ pub struct TrackLink {
 }
 
 /// Intermediate full track wrapped by `Vec`
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-several-tracks)
 #[derive(Deserialize)]
 pub struct FullTracks {
     pub tracks: Vec<FullTrack>,
@@ -62,8 +56,6 @@ pub struct FullTracks {
 ///
 /// `is_playable`, `linked_from` and `restrictions` will only be present when
 /// relinking is applied.
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-simplifiedtrackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
@@ -86,8 +78,6 @@ pub struct SimplifiedTrack {
 }
 
 /// Saved track object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-savedtrackobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SavedTrack {
     pub added_at: DateTime<Utc>,

@@ -7,8 +7,6 @@ use std::collections::HashMap;
 use crate::{Country, Followers, Image, SubscriptionLevel, UserId};
 
 /// Public user object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-publicuserobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PublicUser {
     pub display_name: Option<String>,
@@ -21,8 +19,6 @@ pub struct PublicUser {
 }
 
 /// Private user object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-privateuserobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PrivateUser {
     pub country: Option<Country>,
@@ -38,8 +34,6 @@ pub struct PrivateUser {
 }
 
 /// Explicit content setting object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#object-explicitcontentsettingsobject)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ExplicitContent {
     pub filter_enabled: bool,
