@@ -17,7 +17,7 @@ use std::sync::Arc;
 /// to access or to manage the endpoints related to user private data in
 /// [`OAuthClient`](crate::clients::OAuthClient).
 ///
-/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
+/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/client-credentials/
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs
 #[derive(Clone, Debug, Default)]
 pub struct ClientCredsSpotify {

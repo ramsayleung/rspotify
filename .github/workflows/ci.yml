@@ -48,13 +48,15 @@ jobs:
         run: RUSTDOCFLAGS='-D warnings' cargo doc --features=cli,env-file
 
       - name: Look for Dead Links
+        # We don't enforce deadlinks in the CI because it may print various
+        # false positives, or errors that aren't related to the current PR.
+        continue-on-error: true
         run: |
           cd target
           for crate in doc/rspotify*; do
             echo ">> Checking in $crate"
             cargo deadlinks --check-http --dir "$crate"
           done
-        continue-on-error: true
 
   test:
     name: Test and Lint for each Client

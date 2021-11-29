@@ -56,7 +56,7 @@ use url::Url;
 /// `http://localhost:8888/callback` for example, which will also have the code
 /// appended like so: `http://localhost/?code=...`.
 ///
-/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code.rs
 /// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
 /// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs

@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 /// Spotify access token information
 ///
-/// [Reference](https://developer.spotify.com/documentation/general/guides/authorization-guide/)
+/// [Reference](https://developer.spotify.com/documentation/general/guides/authorization/)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Token {
     /// An access token that can be provided in subsequent calls
@@ -31,7 +31,7 @@ pub struct Token {
     /// A token that can be sent to the Spotify Accounts service
     /// in place of an authorization code
     pub refresh_token: Option<String>,
-    /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/scopes/)
+    /// A list of [scopes](https://developer.spotify.com/documentation/general/guides/authorization/scopes/)
     /// which have been granted for this `access_token`
     ///
     /// You may use the `scopes!` macro in

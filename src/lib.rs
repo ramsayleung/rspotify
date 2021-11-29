@@ -112,14 +112,14 @@
 //! [reqwest-proxies]: https://docs.rs/reqwest/#proxies
 //! [ureq-docs]: https://docs.rs/ureq/
 //! [examples-github]: https://github.com/ramsayleung/rspotify/tree/master/examples
-//! [spotify-main]: https://developer.spotify.com/web-api/
-//! [spotify-auth-flows]: https://developer.spotify.com/documentation/general/guides/authorization-guide
+//! [spotify-main]: https://developer.spotify.com/documentation/web-api/
+//! [spotify-auth-flows]: https://developer.spotify.com/documentation/general/guides/authorization/
 //! [spotify-reference]: https://developer.spotify.com/documentation/web-api/reference/
 //! [spotify-register-app]: https://developer.spotify.com/dashboard/applications
-//! [spotify-client-creds]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
-//! [spotify-auth-code]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
-//! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
-//! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#implicit-grant-flow
+//! [spotify-client-creds]: https://developer.spotify.com/documentation/general/guides/authorization/client-credentials/
+//! [spotify-auth-code]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
+//! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
+//! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant
 
 pub mod auth_code;
 pub mod auth_code_pkce;

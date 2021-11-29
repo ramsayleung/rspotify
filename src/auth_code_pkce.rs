@@ -26,7 +26,7 @@ use url::Url;
 /// There's an [example][example-main] available to learn how to use this
 /// client.
 ///
-/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
+/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code_pkce.rs
 #[derive(Clone, Debug, Default)]
 pub struct AuthCodePkceSpotify {
@@ -175,7 +175,7 @@ impl AuthCodePkceSpotify {
     /// docs][reference] or [PKCE's RFC][rfce] for more information about the
     /// code verifier.
     ///
-    /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce
+    /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
     /// [rfce]: https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
     pub fn get_authorize_url(&mut self, verifier_bytes: Option<usize>) -> ClientResult<String> {
         log::info!("Building auth URL");
