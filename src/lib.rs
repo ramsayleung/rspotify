@@ -112,7 +112,7 @@
 //! [reqwest-proxies]: https://docs.rs/reqwest/#proxies
 //! [ureq-docs]: https://docs.rs/ureq/
 //! [examples-github]: https://github.com/ramsayleung/rspotify/tree/master/examples
-//! [spotify-main]: https://developer.spotify.com/web-api/
+//! [spotify-main]: https://developer.spotify.com/documentation/web-api/
 //! [spotify-auth-flows]: https://developer.spotify.com/documentation/general/guides/authorization/
 //! [spotify-reference]: https://developer.spotify.com/documentation/web-api/reference/
 //! [spotify-register-app]: https://developer.spotify.com/dashboard/applications
