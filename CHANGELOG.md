@@ -1,5 +1,7 @@
 ## 0.11.3 (unreleased)
 
+- ([#281](https://github.com/ramsayleung/rspotify/issues/281)) The documentation website for the Spotify API has been changed, so the links in the `rspotify` crate have been updated. Unfortunately, the object model section has been removed, so we've had to delete most reference links in `rspotify-model`. From now on, you should refer to the endpoints where they are used to see their definition.
+
 **Breaking changes:**
 - ([#286](https://github.com/ramsayleung/rspotify/pull/286)) Make `available_markets` optional for `FullAlbum`
 - ([#282](https://github.com/ramsayleung/rspotify/pull/282)) Make `id` optional for `FullTrack`
