@@ -5,8 +5,6 @@ use serde::{Deserialize, Serialize};
 use crate::{Image, Page};
 
 /// Category object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Category {
     pub href: String,
@@ -16,8 +14,6 @@ pub struct Category {
 }
 
 /// Intermediate categories wrapped by page object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-categories)
 #[derive(Deserialize)]
 pub struct PageCategory {
     pub categories: Page<Category>,

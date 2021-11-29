@@ -12,8 +12,6 @@ use crate::{
 };
 
 /// Context object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Context {
     /// The URI may be of any type, so it's not parsed into a [`crate::Id`]
@@ -25,8 +23,6 @@ pub struct Context {
 }
 
 /// Currently playing object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
@@ -40,7 +36,7 @@ pub struct CurrentlyPlayingContext {
     pub currently_playing_type: CurrentlyPlayingType,
     pub actions: Actions,
 }
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-information-about-the-users-current-playback)
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentPlaybackContext {
     pub device: Device,
@@ -59,8 +55,6 @@ pub struct CurrentPlaybackContext {
 }
 
 /// Actions object
-///
-/// [Reference](https://developer.spotify.com/documentation/web-api/reference/#endpoint-get-recently-played)
 #[derive(Clone, Debug, Serialize, PartialEq, Eq, Default)]
 pub struct Actions {
     pub disallows: Vec<DisallowKey>,
