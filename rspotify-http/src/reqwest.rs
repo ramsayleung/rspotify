@@ -97,7 +97,8 @@ impl ReqwestClient {
     }
 }
 
-#[async_impl]
+#[cfg_attr(target_arch = "wasm32", async_impl(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_impl)]
 impl BaseHttpClient for ReqwestClient {
     type Error = ReqwestError;
 

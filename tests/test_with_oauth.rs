@@ -32,7 +32,8 @@ use chrono::{prelude::*, Duration};
 use maybe_async::maybe_async;
 
 /// Generating a new OAuth client for the requests.
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 pub async fn oauth_client() -> AuthCodeSpotify {
     if let Ok(access_token) = env::var("RSPOTIFY_ACCESS_TOKEN") {
         let tok = Token {
@@ -95,7 +96,8 @@ pub async fn oauth_client() -> AuthCodeSpotify {
     }
 }
 
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 async fn fetch_all<T>(paginator: Paginator<'_, ClientResult<T>>) -> Vec<T> {
     #[cfg(feature = "__async")]
     {
@@ -593,7 +595,8 @@ async fn test_user_follow_playlist() {
     client.playlist_unfollow(&playlist_id).await.unwrap();
 }
 
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     let user = client.me().await.unwrap();
     let name = "A New Playlist";
@@ -631,13 +634,15 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     playlist
 }
 
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: &PlaylistId, num: i32) {
     let fetched_tracks = fetch_all(client.playlist_items(playlist_id, None, None)).await;
     assert_eq!(fetched_tracks.len() as i32, num);
 }
 
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
     // The tracks in the playlist, some of them repeated
     let tracks: [&dyn PlayableId; 4] = [
@@ -710,7 +715,8 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32 - 5).await;
 }
 
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
     let user_ids = [
         &UserId::from_id("possan").unwrap(),
