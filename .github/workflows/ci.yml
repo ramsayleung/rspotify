@@ -91,3 +91,37 @@ jobs:
         with:
           command: test
           args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }}
+          
+  wasm-test:
+    name: Test for wasm build
+    runs-on: ubuntu-latest
+    env:
+      RSPOTIFY_CLIENT_ID : e1dce60f1e274e20861ce5d96142a4d3
+      RSPOTIFY_CLIENT_SECRET : 0e4e03b9be8d465d87fc32857a4b5aa3
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain for wasm
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal  
+          override: true
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --target wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Run wasm-pack test firefox
+        run: wasm-pack test --headless --firefox
+
+      - name: Run wasm-pack test chrome
+        run: wasm-pack test --headless --chrome
+
