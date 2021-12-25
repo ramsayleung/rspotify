@@ -11,7 +11,7 @@ description = "Spotify API wrapper"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
-edition = "2018"
+edition = "2021"
 
 [workspace]
 members = [
