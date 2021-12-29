@@ -95,6 +95,9 @@ pub enum DeviceType {
     Tablet,
     Smartphone,
     Speaker,
+    /// Though undocumented, it has been reported that the Web API returns both
+    /// 'Tv' and 'TV' as the type.
+    #[serde(alias = "TV")]
     Tv,
     Avr,
     Stb,
