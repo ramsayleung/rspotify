@@ -99,6 +99,8 @@ pub enum DeviceType {
     /// 'Tv' and 'TV' as the type.
     #[serde(alias = "TV")]
     Tv,
+    /// Same as above, the Web API returns both 'AVR' and 'Avr' as the type. 
+    #[serde(alias = "AVR")]
     Avr,
     Stb,
     AudioDongle,
