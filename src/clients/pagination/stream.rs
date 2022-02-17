@@ -1,8 +1,8 @@
 //! Asynchronous implementation of automatic pagination requests.
 
-use crate::{model::Page, ClientResult};
+use crate::{model::Page, ClientError, ClientResult};
 
-use std::pin::Pin;
+use std::{fmt::Debug, fmt::Display, pin::Pin};
 
 use futures::{future::Future, stream::Stream};
 
@@ -33,4 +33,23 @@ where
             }
         }
     })
+}
+
+pub async fn write_paginate<'a, Item, Writer: 'a>(
+    writer: Writer,
+    items: Vec<Item>,
+    chunk_size: u32,
+) -> String
+where
+    Writer: Fn(
+        &[Item],
+        u32,
+    ) -> Pin<Box<dyn futures::Future<Output = Result<String, ClientError>> + Send>>,
+    Item: Display + Debug,
+{
+    let mut last_page = String::new();
+    for chunk in items.chunks(chunk_size as usize) {
+        last_page = writer(chunk, chunk_size).await.unwrap();
+    }
+    last_page
 }

@@ -27,4 +27,4 @@ mod stream;
 #[cfg(feature = "__sync")]
 pub use iter::{paginate, Paginator};
 #[cfg(feature = "__async")]
-pub use stream::{paginate, Paginator};
+pub use stream::{paginate, write_paginate, Paginator};

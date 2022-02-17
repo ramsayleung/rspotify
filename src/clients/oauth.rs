@@ -18,6 +18,8 @@ use rspotify_model::idtypes::PlayContextId;
 use serde_json::{json, Map};
 use url::Url;
 
+use super::pagination::write_paginate;
+
 /// This trait implements the methods available strictly to clients with user
 /// authorization, including some parts of the authentication flow that are
 /// shared, and the endpoints.
@@ -300,14 +302,25 @@ pub trait OAuthClient: BaseClient {
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
-        let params = build_json! {
-            "uris": uris,
-            optional "position": position,
-        };
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        let result = self.endpoint_post(&url, &params).await?;
-        convert_result(&result)
+        let chunk_size = 100;
+
+        let last_response = write_paginate(
+            |chunk, position| {
+                let params = build_json! {
+                    "uris": chunk,
+                    optional "position": Some(position),
+                };
+
+                self.endpoint_post(&url, &params)
+            },
+            uris,
+            chunk_size,
+        )
+        .await;
+
+        convert_result(&last_response)
     }
 
     /// Replace all items in a playlist
@@ -318,6 +331,7 @@ pub trait OAuthClient: BaseClient {
     /// - tracks - the list of track ids to add to the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/reorder-or-replace-playlists-tracks)
+    // TODO: Add write pagination
     async fn playlist_replace_items<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -346,6 +360,7 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional playlist's snapshot ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/reorder-or-replace-playlists-tracks)
+    // TODO: Add write-pagination
     async fn playlist_reorder_items(
         &self,
         playlist_id: &PlaylistId,
@@ -374,6 +389,7 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id - optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-tracks-playlist)
+    // TODO: Add write-pagination
     async fn playlist_remove_all_occurrences_of_items<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -428,6 +444,7 @@ pub trait OAuthClient: BaseClient {
     /// - snapshot_id: optional id of the playlist snapshot
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-tracks-playlist)
+    // TODO: Add write-pagination
     async fn playlist_remove_specific_occurrences_of_items<'a>(
         &self,
         playlist_id: &PlaylistId,
@@ -622,6 +639,7 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-tracks-user)
+    // TODO: Add write-pagination
     async fn current_user_saved_tracks_delete<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
@@ -639,6 +657,7 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-tracks)
+    // TODO: Add write-pagination
     async fn current_user_saved_tracks_contains<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
@@ -654,6 +673,7 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/save-tracks-user)
+    // TODO: Add write-pagination
     async fn current_user_saved_tracks_add<'a>(
         &self,
         track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
@@ -787,6 +807,7 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/save-albums-user)
+    // TODO: Add write-pagination
     async fn current_user_saved_albums_add<'a>(
         &self,
         album_ids: impl IntoIterator<Item = &'a AlbumId> + Send + 'a,
@@ -803,6 +824,7 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-albums-user)
+    // TODO: Add write-pagination
     async fn current_user_saved_albums_delete<'a>(
         &self,
         album_ids: impl IntoIterator<Item = &'a AlbumId> + Send + 'a,
@@ -820,6 +842,7 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-albums)
+    // TODO: Add write-pagination
     async fn current_user_saved_albums_contains<'a>(
         &self,
         album_ids: impl IntoIterator<Item = &'a AlbumId> + Send + 'a,
@@ -835,6 +858,7 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/follow-artists-users)
+    // TODO: Add write-pagination
     async fn user_follow_artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = &'a ArtistId> + Send + 'a,
@@ -851,6 +875,7 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/unfollow-artists-users)
+    // TODO: Add write-pagination
     async fn user_unfollow_artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = &'a ArtistId> + Send + 'a,
@@ -868,6 +893,7 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - the ids of the users that you want to
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-current-user-follows)
+    // TODO: Add write-pagination
     async fn user_artist_check_follow<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = &'a ArtistId> + Send + 'a,
@@ -886,6 +912,7 @@ pub trait OAuthClient: BaseClient {
     /// - user_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/follow-artists-users)
+    // TODO: Add write-pagination
     async fn user_follow_users<'a>(
         &self,
         user_ids: impl IntoIterator<Item = &'a UserId> + Send + 'a,
@@ -902,6 +929,7 @@ pub trait OAuthClient: BaseClient {
     /// - user_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/unfollow-artists-users)
+    // TODO: Add write-pagination
     async fn user_unfollow_users<'a>(
         &self,
         user_ids: impl IntoIterator<Item = &'a UserId> + Send + 'a,
@@ -1236,6 +1264,7 @@ pub trait OAuthClient: BaseClient {
     ///   be added to the user’s library.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/save-shows-user)
+    // TODO: Add write-pagination
     async fn save_shows<'a>(
         &self,
         show_ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
@@ -1289,6 +1318,7 @@ pub trait OAuthClient: BaseClient {
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-shows)
+    // TODO: Add write-pagination
     async fn check_users_saved_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
@@ -1309,6 +1339,7 @@ pub trait OAuthClient: BaseClient {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-shows-user)
+    // TODO: Add write-pagination
     async fn remove_users_saved_shows<'a>(
         &self,
         show_ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
