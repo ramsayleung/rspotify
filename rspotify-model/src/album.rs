@@ -30,8 +30,6 @@ pub struct SimplifiedAlbum {
     pub release_date_precision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restriction>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub label: Option<String>
 }
 
 /// Full Album Object
@@ -52,6 +50,7 @@ pub struct FullAlbum {
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub tracks: Page<SimplifiedTrack>,
+    pub label: Option<String>
 }
 
 /// Intermediate full Albums wrapped by Vec object
