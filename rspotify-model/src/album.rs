@@ -50,6 +50,8 @@ pub struct FullAlbum {
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub tracks: Page<SimplifiedTrack>,
+    /// Not documented in official Spotify docs, however most albums do contain this field
+    pub label: Option<String>,
 }
 
 /// Intermediate full Albums wrapped by Vec object
