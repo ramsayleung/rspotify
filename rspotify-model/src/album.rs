@@ -30,6 +30,8 @@ pub struct SimplifiedAlbum {
     pub release_date_precision: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restriction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>
 }
 
 /// Full Album Object
