@@ -217,9 +217,7 @@ async fn test_current_user_saved_albums() {
         .map(|a| a.album.id)
         .collect::<Vec<_>>();
     assert!(
-        album_ids
-            .iter()
-            .all(|item| all_uris.contains(&(*item).to_owned())),
+        album_ids.iter().all(|item| all_uris.contains(item)),
         "couldn't find the new saved albums"
     );
 
