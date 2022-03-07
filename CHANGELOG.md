@@ -2,6 +2,7 @@
 
 - ([#295](https://github.com/ramsayleung/rspotify/pull/295)) The `Tv` variant in `DeviceType` is actually case insensitive.
 - ([#296](https://github.com/ramsayleung/rspotify/pull/296)) The `Avr` variant in `DeviceType` is actually case insensitive.
+- ([#302](https://github.com/ramsayleung/rspotify/pull/302)) Added undocumented `label` field to `FullAlbum`.
 
 ## 0.11.3 (2021.11.29)
 
