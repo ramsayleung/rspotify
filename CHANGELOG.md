@@ -2,6 +2,7 @@
 
 - ([#295](https://github.com/ramsayleung/rspotify/pull/295)) The `Tv` variant in `DeviceType` is actually case insensitive.
 - ([#296](https://github.com/ramsayleung/rspotify/pull/296)) The `Avr` variant in `DeviceType` is actually case insensitive.
+- ([#303](https://github.com/ramsayleung/rspotify/pull/303)) The `cursors` field in `CursorBasedPage` is now optional.
 
 ## 0.11.3 (2021.11.29)
 
