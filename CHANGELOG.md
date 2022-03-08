@@ -4,6 +4,9 @@
 - ([#296](https://github.com/ramsayleung/rspotify/pull/296)) The `Avr` variant in `DeviceType` is actually case insensitive.
 - ([#302](https://github.com/ramsayleung/rspotify/pull/302)) Added undocumented `label` field to `FullAlbum`.
 
+**Breaking changes:**
+- ([#303](https://github.com/ramsayleung/rspotify/pull/303)) The `cursors` field in `CursorBasedPage` is now optional.
+
 ## 0.11.3 (2021.11.29)
 
 - ([#281](https://github.com/ramsayleung/rspotify/issues/281)) The documentation website for the Spotify API has been changed, so the links in the `rspotify` crate have been updated. Unfortunately, the object model section has been removed, so we've had to delete most reference links in `rspotify-model`. From now on, you should refer to the endpoints where they are used to see their definition.

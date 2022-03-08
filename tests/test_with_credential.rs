@@ -164,7 +164,7 @@ async fn test_fake_playlist() {
         .await
         .playlist(&playlist_id, None, None)
         .await;
-    assert!(!playlist.is_ok());
+    assert!(playlist.is_err());
 }
 
 mod test_pagination {
