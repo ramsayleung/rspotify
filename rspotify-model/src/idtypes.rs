@@ -270,9 +270,6 @@ pub trait Id: Send + Sync {
     }
 }
 
-pub trait PlayableId: Id {}
-pub trait PlayContextId: Id {}
-
 /// This macro helps consistently define ID types.
 ///
 /// * The `$type` parameter indicates what type the ID is made out of (say,
@@ -474,12 +471,16 @@ impl Id for UserId {
 define_impls!(ArtistId, AlbumId, TrackId, PlaylistId, UserId, ShowId, EpisodeId);
 
 // Grouping up the IDs into more specific traits
-impl PlayContextId for ArtistId {}
-impl PlayContextId for AlbumId {}
-impl PlayContextId for PlaylistId {}
-impl PlayContextId for ShowId {}
-impl PlayableId for TrackId {}
-impl PlayableId for EpisodeId {}
+pub enum PlayContext {
+    Artist(ArtistId),
+    Album(AlbumId),
+    Playlist(PlaylistId),
+    Show(ShowId),
+}
+pub enum Playable {
+    Track(TrackId),
+    Episode(EpisodeId),
+}
 
 #[cfg(test)]
 mod test {
@@ -565,27 +566,27 @@ mod test {
 
     #[test]
     fn test_multiple_types() {
-        fn endpoint(_ids: impl IntoIterator<Item = Box<dyn PlayableId>>) {}
+        fn endpoint(_ids: impl IntoIterator<Item = Playable>) {}
 
-        let tracks: [Box<dyn PlayableId>; 4] = [
-            Box::new(TrackId::from_id(ID).unwrap()),
-            Box::new(TrackId::from_id(ID).unwrap()),
-            Box::new(EpisodeId::from_id(ID).unwrap()),
-            Box::new(EpisodeId::from_id(ID).unwrap()),
+        let tracks: Vec<Playable> = vec![
+            Playable::Track(TrackId::from_id(ID).unwrap()),
+            Playable::Track(TrackId::from_id(ID).unwrap()),
+            Playable::Episode(EpisodeId::from_id(ID).unwrap()),
+            Playable::Episode(EpisodeId::from_id(ID).unwrap()),
         ];
         endpoint(tracks);
     }
 
     #[test]
     fn test_unknown_at_compile_time() {
-        fn endpoint1(input: &str, is_episode: bool) -> Box<dyn PlayableId> {
+        fn endpoint1(input: &str, is_episode: bool) -> Playable {
             if is_episode {
-                Box::new(EpisodeId::from_id(input).unwrap())
+                Playable::Episode(EpisodeId::from_id(input).unwrap())
             } else {
-                Box::new(TrackId::from_id(input).unwrap())
+                Playable::Track(TrackId::from_id(input).unwrap())
             }
         }
-        fn endpoint2(_id: &[Box<dyn PlayableId>]) {}
+        fn endpoint2(_id: &[Playable]) {}
 
         let id = endpoint1(ID, false);
         endpoint2(&[id]);

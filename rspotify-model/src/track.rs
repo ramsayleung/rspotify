@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
+    custom_serde::duration_ms, Playable, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
 };
 
 /// Full track object
@@ -90,6 +90,6 @@ pub struct SavedTrack {
 /// PlayableId` instead of `Box<dyn PlayableId>` to avoid the unnecessary
 /// allocation. Same goes for the positions slice instead of vector.
 pub struct ItemPositions<'a> {
-    pub id: &'a dyn PlayableId,
+    pub id: Playable,
     pub positions: &'a [u32],
 }
