@@ -638,11 +638,11 @@ async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: &PlaylistId, nu
 #[maybe_async]
 async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
     // The tracks in the playlist, some of them repeated
-    let tracks: [&dyn PlayableId; 4] = [
-        &TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap(),
-        &TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap(),
-        &EpisodeId::from_uri("spotify/episode/381XrGKkcdNkLwfsQ4Mh5y").unwrap(),
-        &EpisodeId::from_uri("spotify/episode/6O63eWrfWPvN41CsSyDXve").unwrap(),
+    let tracks = vec![
+        Playable::Track(TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap()),
+        Playable::Track(TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap()),
+        Playable::Episode(EpisodeId::from_uri("spotify/episode/381XrGKkcdNkLwfsQ4Mh5y").unwrap()),
+        Playable::Episode(EpisodeId::from_uri("spotify/episode/6O63eWrfWPvN41CsSyDXve").unwrap()),
     ];
 
     // Firstly adding some tracks
@@ -661,14 +661,14 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     check_num_tracks(client, &playlist.id, tracks.len() as i32).await;
 
     // Replacing the tracks
-    let replaced_tracks: [&dyn PlayableId; 7] = [
-        &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-        &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-        &TrackId::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
-        &EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
-        &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
-        &EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
-        &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
+    let replaced_tracks = vec![
+        Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
+        Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
+        Playable::Track(TrackId::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap()),
+        Playable::Episode(EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()),
+        Playable::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
+        Playable::Episode(EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap()),
+        Playable::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
     ];
     client
         .playlist_replace_items(&playlist.id, replaced_tracks)
@@ -696,9 +696,9 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32 - 3).await;
 
     // Removes all occurrences of two tracks
-    let to_remove: [&dyn PlayableId; 2] = [
-        &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-        &EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+    let to_remove: Vec![PlayableId] = [
+        Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
+        Playable::Episode(EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()),
     ];
     client
         .playlist_remove_all_occurrences_of_items(&playlist.id, to_remove, None)

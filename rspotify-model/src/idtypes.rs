@@ -482,6 +482,26 @@ pub enum Playable {
     Episode(EpisodeId),
 }
 
+impl Playable {
+    pub fn uri(&self) -> String {
+        match self {
+            Playable::Track(t) => t.uri(),
+            Playable::Episode(e) => e.uri(),
+        }
+    }
+}
+
+impl PlayContext {
+    pub fn uri(&self) -> String {
+        match self {
+            PlayContext::Album(x) => x.uri(),
+            PlayContext::Artist(x) => x.uri(),
+            PlayContext::Playlist(x) => x.uri(),
+            PlayContext::Show(x) => x.uri(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
