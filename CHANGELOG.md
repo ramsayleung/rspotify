@@ -1,4 +1,4 @@
-## 0.11.4 (unreleased)
+## 0.11.4 (2022.03.08)
 
 - ([#295](https://github.com/ramsayleung/rspotify/pull/295)) The `Tv` variant in `DeviceType` is actually case insensitive.
 - ([#296](https://github.com/ramsayleung/rspotify/pull/296)) The `Avr` variant in `DeviceType` is actually case insensitive.
