@@ -471,12 +471,14 @@ impl Id for UserId {
 define_impls!(ArtistId, AlbumId, TrackId, PlaylistId, UserId, ShowId, EpisodeId);
 
 // Grouping up the IDs into more specific traits
+#[derive(Clone)]
 pub enum PlayContext {
     Artist(ArtistId),
     Album(AlbumId),
     Playlist(PlaylistId),
     Show(ShowId),
 }
+#[derive(Clone)]
 pub enum Playable {
     Track(TrackId),
     Episode(EpisodeId),

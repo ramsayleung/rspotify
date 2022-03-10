@@ -323,10 +323,10 @@ async fn test_new_releases_with_from_token() {
 #[ignore]
 async fn test_playback() {
     let client = oauth_client().await;
-    let uris: [&dyn PlayableId; 3] = [
-        &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
-        &TrackId::from_uri("spotify:track:2DzSjFQKetFhkFCuDWhioi").unwrap(),
-        &EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
+    let uris = [
+        Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
+        Playable::Track(TrackId::from_uri("spotify:track:2DzSjFQKetFhkFCuDWhioi").unwrap()),
+        Playable::Episode(EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()),
     ];
     let devices = client.device().await.unwrap();
 
@@ -346,7 +346,12 @@ async fn test_playback() {
 
         // Starting playback of some songs
         client
-            .start_uris_playback(uris, Some(device_id), Some(Offset::for_position(0)), None)
+            .start_uris_playback(
+                uris.to_vec(),
+                Some(device_id),
+                Some(Offset::for_position(0)),
+                None,
+            )
             .await
             .unwrap();
 
@@ -638,7 +643,7 @@ async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: &PlaylistId, nu
 #[maybe_async]
 async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist) {
     // The tracks in the playlist, some of them repeated
-    let tracks = vec![
+    let tracks = [
         Playable::Track(TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap()),
         Playable::Track(TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap()),
         Playable::Episode(EpisodeId::from_uri("spotify/episode/381XrGKkcdNkLwfsQ4Mh5y").unwrap()),
@@ -647,7 +652,7 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // Firstly adding some tracks
     client
-        .playlist_add_items(&playlist.id, tracks, None)
+        .playlist_add_items(&playlist.id, tracks.to_vec(), None)
         .await
         .unwrap();
     check_num_tracks(client, &playlist.id, tracks.len() as i32).await;
@@ -661,7 +666,7 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     check_num_tracks(client, &playlist.id, tracks.len() as i32).await;
 
     // Replacing the tracks
-    let replaced_tracks = vec![
+    let replaced_tracks = [
         Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
         Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
         Playable::Track(TrackId::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap()),
@@ -671,7 +676,7 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         Playable::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
     ];
     client
-        .playlist_replace_items(&playlist.id, replaced_tracks)
+        .playlist_replace_items(&playlist.id, replaced_tracks.to_vec())
         .await
         .unwrap();
     // Making sure the number of tracks is updated
@@ -680,11 +685,11 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     // Removes a few specific tracks
     let tracks = [
         ItemPositions {
-            id: &TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+            id: Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
             positions: &[0],
         },
         ItemPositions {
-            id: &TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
+            id: Playable::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
             positions: &[4, 6],
         },
     ];
@@ -696,7 +701,7 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     check_num_tracks(client, &playlist.id, replaced_tracks.len() as i32 - 3).await;
 
     // Removes all occurrences of two tracks
-    let to_remove: Vec![PlayableId] = [
+    let to_remove = vec![
         Playable::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
         Playable::Episode(EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()),
     ];
@@ -763,7 +768,8 @@ async fn test_volume() {
 async fn test_add_queue() {
     // NOTE: unfortunately it's impossible to revert this test
 
-    let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
+    let birdy_uri =
+        Playable::Track(TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap());
     oauth_client()
         .await
         .add_item_to_queue(&birdy_uri, None)
