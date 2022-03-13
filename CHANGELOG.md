@@ -1,3 +1,8 @@
+## 0.11.5 (unreleased)
+
+**Breaking changes**:
+- ([#306](https://github.com/ramsayleung/rspotify/pull/306)) The `collection` variant has been added to `Type`
+
 ## 0.11.4 (2022.03.08)
 
 - ([#295](https://github.com/ramsayleung/rspotify/pull/295)) The `Tv` variant in `DeviceType` is actually case insensitive.

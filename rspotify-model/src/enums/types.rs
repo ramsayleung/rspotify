@@ -38,6 +38,7 @@ pub enum Type {
     User,
     Show,
     Episode,
+    Collection,
 }
 
 /// Additional typs: `track`, `episode`
