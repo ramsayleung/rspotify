@@ -1,4 +1,4 @@
-## 0.11.5 (unreleased)
+## 0.11.5 (2022.03.28)
 
 **Breaking changes**:
 - ([#306](https://github.com/ramsayleung/rspotify/pull/306)) The `collection` variant has been added to `Type`
