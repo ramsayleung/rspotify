@@ -342,6 +342,15 @@ macro_rules! define_impls {
                         }
 
                         #[inline]
+                        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+                        where
+                            E: serde::de::Error,
+                        {
+                            $name::from_id_or_uri(value)
+                            .map_err(serde::de::Error::custom)
+                        }
+
+                        #[inline]
                         fn visit_newtype_struct<A>(
                             self,
                             deserializer: A,
@@ -349,9 +358,7 @@ macro_rules! define_impls {
                         where
                             A: serde::Deserializer<'de>,
                         {
-                            let field = <&str>::deserialize(deserializer)?;
-                            $name::from_id_or_uri(field)
-                                .map_err(serde::de::Error::custom)
+                            deserializer.deserialize_str(self)
                         }
 
                         #[inline]
