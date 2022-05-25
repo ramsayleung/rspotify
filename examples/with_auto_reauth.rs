@@ -68,6 +68,7 @@ async fn with_auth(creds: Credentials, oauth: OAuth, config: Config) {
     println!(">>> Session one, obtaining refresh token and running some requests:");
     let mut spotify = AuthCodeSpotify::with_config(creds.clone(), oauth, config.clone());
     let url = spotify.get_authorize_url(false).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify
         .prompt_for_token(&url)
         .await
@@ -115,7 +116,8 @@ async fn main() {
         ..Default::default()
     };
 
-    // The default credentials from the `.env` file will be used by default.
+    // May require the `env-file` feature enabled if the environment variables
+    // aren't configured manually.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
 
