@@ -86,7 +86,7 @@ no-default-features = true
 
 [[example]]
 name = "client_creds"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "client-reqwest"]
 path = "examples/client_creds.rs"
 
 [[example]]
@@ -126,7 +126,7 @@ path = "examples/ureq/me.rs"
 
 [[example]]
 name = "search"
-required-features = ["env-file", "cli", "client-ureq"]
+required-features = ["env-file", "client-ureq"]
 path = "examples/ureq/search.rs"
             
 [[example]]
@@ -136,12 +136,12 @@ path = "examples/ureq/seek_track.rs"
 
 [[example]]
 name = "threading"
-required-features = ["env-file", "cli", "client-ureq"]
+required-features = ["env-file", "client-ureq"]
 path = "examples/ureq/threading.rs"
 
 [[example]]
 name = "tasks"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "client-reqwest"]
 path = "examples/tasks.rs"
 
 [[example]]

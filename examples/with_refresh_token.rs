@@ -53,7 +53,8 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // The default credentials from the `.env` file will be used by default.
+    // May require the `env-file` feature enabled if the environment variables
+    // aren't configured manually.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
     let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
@@ -62,6 +63,7 @@ async fn main() {
     // refresh token. We can also do some requests here.
     println!(">>> Session one, obtaining refresh token and running some requests:");
     let url = spotify.get_authorize_url(false).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify
         .prompt_for_token(&url)
         .await

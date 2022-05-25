@@ -7,6 +7,8 @@ use tokio::{sync::mpsc, task};
 
 #[tokio::main]
 async fn main() {
+    // May require the `env-file` feature enabled if the environment variables
+    // aren't configured manually.
     let creds = Credentials::from_env().unwrap();
 
     let mut spotify = ClientCredsSpotify::new(creds);

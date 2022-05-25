@@ -5,7 +5,8 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // Set RSPOTIFY_CLIENT_ID in an .env file or export it manually:
+    // Set RSPOTIFY_CLIENT_ID and RSPOTIFY_CLIENT_SECRET in an .env file (after
+    // enabling the `env-file` feature) or export them manually:
     //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     //
@@ -33,6 +34,7 @@ async fn main() {
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(None).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests
