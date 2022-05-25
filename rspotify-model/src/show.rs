@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::{
-    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId,
+    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeIdBuf, Image, Page, ShowIdBuf,
 };
 
 /// Copyright object
@@ -24,7 +24,7 @@ pub struct SimplifiedShow {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: ShowId,
+    pub id: ShowIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: Option<bool>,
     pub languages: Vec<String>,
@@ -56,7 +56,7 @@ pub struct FullShow {
     pub episodes: Page<SimplifiedEpisode>,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: ShowId,
+    pub id: ShowIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: Option<bool>,
     pub languages: Vec<String>,
@@ -75,7 +75,7 @@ pub struct SimplifiedEpisode {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: EpisodeId,
+    pub id: EpisodeIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,
@@ -100,7 +100,7 @@ pub struct FullEpisode {
     pub explicit: bool,
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: EpisodeId,
+    pub id: EpisodeIdBuf,
     pub images: Vec<Image>,
     pub is_externally_hosted: bool,
     pub is_playable: bool,

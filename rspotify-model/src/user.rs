@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{Country, Followers, Image, SubscriptionLevel, UserId};
+use crate::{Country, Followers, Image, SubscriptionLevel, UserIdBuf};
 
 /// Public user object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -13,7 +13,7 @@ pub struct PublicUser {
     pub external_urls: HashMap<String, String>,
     pub followers: Option<Followers>,
     pub href: String,
-    pub id: UserId,
+    pub id: UserIdBuf,
     #[serde(default = "Vec::new")]
     pub images: Vec<Image>,
 }
@@ -28,7 +28,7 @@ pub struct PrivateUser {
     pub explicit_content: Option<ExplicitContent>,
     pub followers: Option<Followers>,
     pub href: String,
-    pub id: UserId,
+    pub id: UserIdBuf,
     pub images: Option<Vec<Image>>,
     pub product: Option<SubscriptionLevel>,
 }

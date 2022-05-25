@@ -14,7 +14,7 @@ use crate::{
 use std::{collections::HashMap, time};
 
 use maybe_async::maybe_async;
-use rspotify_model::idtypes::{PlayContext, Playable};
+use rspotify_model::idtypes::{PlayContextId, PlayableId};
 use serde_json::{json, Map};
 use url::Url;
 
@@ -296,7 +296,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_add_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        items: impl IntoIterator<Item = Playable> + Send + 'a,
+        items: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
@@ -321,7 +321,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_replace_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        items: impl IntoIterator<Item = Playable> + Send + 'a,
+        items: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = build_json! {
@@ -377,7 +377,7 @@ pub trait OAuthClient: BaseClient {
     async fn playlist_remove_all_occurrences_of_items<'a>(
         &self,
         playlist_id: &PlaylistId,
-        track_ids: impl IntoIterator<Item = Playable> + Send + 'a,
+        track_ids: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let tracks = track_ids
@@ -1027,7 +1027,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/start-a-users-playback)
     async fn start_context_playback(
         &self,
-        context_uri: PlayContext,
+        context_uri: PlayContextId<'_>,
         device_id: Option<&str>,
         offset: Option<Offset>,
         position_ms: Option<time::Duration>,
@@ -1059,7 +1059,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/start-a-users-playback)
     async fn start_uris_playback<'a>(
         &self,
-        uris: impl IntoIterator<Item = Playable> + Send + 'a,
+        uris: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset>,
         position_ms: Option<u32>,
@@ -1220,7 +1220,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/add-to-queue)
     async fn add_item_to_queue(
         &self,
-        item: &Playable,
+        item: PlayableId<'_>,
         device_id: Option<&str>,
     ) -> ClientResult<()> {
         let url = append_device_id(&format!("me/player/queue?uri={}", item.uri()), device_id);

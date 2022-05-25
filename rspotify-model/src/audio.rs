@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use crate::{
     custom_serde::{duration_ms, modality},
-    Modality, TrackId,
+    Modality, TrackIdBuf,
 };
 
 /// Audio Feature Object
@@ -18,7 +18,7 @@ pub struct AudioFeatures {
     #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub energy: f32,
-    pub id: TrackId,
+    pub id: TrackIdBuf,
     pub instrumentalness: f32,
     pub key: i32,
     pub liveness: f32,

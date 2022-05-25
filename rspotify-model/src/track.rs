@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
 
 use crate::{
-    custom_serde::duration_ms, Playable, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
+    custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist,
+    TrackIdBuf,
 };
 
 /// Full track object
@@ -24,7 +25,7 @@ pub struct FullTrack {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
     /// Note that a track may not have an ID/URI if it's local
-    pub id: Option<TrackId>,
+    pub id: Option<TrackIdBuf>,
     pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,
@@ -43,7 +44,7 @@ pub struct FullTrack {
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: TrackId,
+    pub id: TrackIdBuf,
 }
 
 /// Intermediate full track wrapped by `Vec`
@@ -67,7 +68,7 @@ pub struct SimplifiedTrack {
     pub external_urls: HashMap<String, String>,
     #[serde(default)]
     pub href: Option<String>,
-    pub id: Option<TrackId>,
+    pub id: Option<TrackIdBuf>,
     pub is_local: bool,
     pub is_playable: Option<bool>,
     pub linked_from: Option<TrackLink>,
@@ -86,10 +87,10 @@ pub struct SavedTrack {
 
 /// Track id with specific positions track in a playlist
 ///
-/// This is a short-lived struct for endpoint parameters, so it uses `&dyn
-/// PlayableId` instead of `Box<dyn PlayableId>` to avoid the unnecessary
-/// allocation. Same goes for the positions slice instead of vector.
+/// This is a short-lived struct for endpoint parameters, so it uses `&'a
+/// PlayableId` instead of `PlayableIdBuf` to avoid the unnecessary allocation.
+/// Same goes for the positions slice instead of vector.
 pub struct ItemPositions<'a> {
-    pub id: Playable,
+    pub id: PlayableId<'a>,
     pub positions: &'a [u32],
 }
