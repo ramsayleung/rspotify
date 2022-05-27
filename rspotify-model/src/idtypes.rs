@@ -128,7 +128,7 @@ pub enum IdError {
 /// Unfortunately, since `where Self: Sized` has to be enforced, IDs cannot be
 /// simply a `str` internally because these aren't sized. Thus, IDs will have the
 /// slight overhead of having to use an owned type like `String`.
-pub trait Id {
+pub trait Id<'a> {
     /// The type of the ID.
     const TYPE: Type;
 
@@ -145,7 +145,9 @@ pub trait Id {
     ///
     /// The string passed to this method must be made out of valid characters
     /// only; otherwise undefined behaviour may occur.
-    unsafe fn from_id_unchecked(id: &str) -> &Self;
+    unsafe fn from_id_unchecked(id: &'a str) -> Self
+    where
+        Self: Sized;
 
     /// Spotify object URI in a well-known format: `spotify:type:id`
     ///
@@ -171,7 +173,10 @@ pub trait Id {
     /// # Errors:
     ///
     /// - `IdError::InvalidId` - if `id` contains invalid characters.
-    fn from_id(id: &str) -> Result<&Self, IdError> {
+    fn from_id(id: &'a str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
         if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
             // Safe, we've just checked that the Id is valid.
             Ok(unsafe { Self::from_id_unchecked(id) })
@@ -199,7 +204,10 @@ pub trait Id {
     /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
     /// - `IdError::InvalidFormat` - if it can't be splitted into type and
     ///    id parts.
-    fn from_uri(uri: &str) -> Result<&Self, IdError> {
+    fn from_uri(uri: &'a str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
         let mut chars = uri
             .strip_prefix("spotify")
             .ok_or(IdError::InvalidPrefix)?
@@ -248,7 +256,10 @@ pub trait Id {
     ///    characters),
     /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
     ///    split into type and id parts.
-    fn from_id_or_uri(id_or_uri: &str) -> Result<&Self, IdError> {
+    fn from_id_or_uri(id_or_uri: &'a str) -> Result<Self, IdError>
+    where
+        Self: Sized,
+    {
         match Self::from_uri(id_or_uri) {
             Ok(id) => Ok(id),
             Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
@@ -269,22 +280,31 @@ pub trait Id {
 /// * The `$name` parameter is the identifier of the struct for that type.
 macro_rules! define_idtypes {
     ($($type:ident => {
-        borrowed: $borrowed:ident,
-        owned: $owned:ident,
+        name: $name:ident,
         validity: $validity:expr
     }),+) => {
         $(
             #[doc = concat!(
-                "Borrowed ID of type [`Type::", stringify!($type), "`]. Its \
+                "ID of type [`Type::", stringify!($type), "`]. Its \
                 implementation of `id_is_valid` is defined by the closure `",
                 stringify!($validity), "`.\nRefer to the [module-level \
                 docs][`crate::idtypes`] for more information. "
             )]
             #[repr(transparent)]
-            #[derive(Debug, PartialEq, Eq, Serialize, Hash)]
-            pub struct $borrowed(str);
+            #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
+            pub struct $name<'a>(::std::borrow::Cow<'a, str>);
 
-            impl Id for $borrowed {
+            impl<'a> $name<'a> {
+                pub fn into_static(self) -> $name<'static> {
+                    $name(self.0.to_string().into())
+                }
+
+                pub fn clone_static(&self) -> $name<'static> {
+                    $name(self.0.to_string().into())
+                }
+            }
+
+            impl<'a> Id<'a> for $name<'a> {
                 const TYPE: Type = Type::$type;
 
                 #[inline]
@@ -300,30 +320,14 @@ macro_rules! define_idtypes {
                 }
 
                 #[inline]
-                unsafe fn from_id_unchecked(id: &str) -> &Self {
-                    // SAFETY: this is okay because Ids are transparent over
-                    // their inner type, a `str`. It would be equivalent to a
-                    // `transmute`. See:
-                    // https://doc.rust-lang.org/nomicon/casts.html
-                    &*(id as *const str as *const Self)
+                unsafe fn from_id_unchecked(id: &'a str) -> Self {
+                    Self(std::borrow::Cow::Borrowed(id))
                 }
             }
 
-            #[doc = concat!(
-                "Owned ID of type [`Type::", stringify!($type), "`], made up \
-                of only alphanumeric characters. Note that we don't really \
-                need to change the contents of the URI string, so we can use a \
-                `Box<str>` instead of a `String` for its owned variant. Not \
-                only does this make it easier to implement and use, but also \
-                it reduces its size (on my machine it's 16 bytes vs 24 bytes). \
-                Refer to the [module-level docs][`crate::idtypes`] for more \
-                information."
-            )]
-            pub type $owned = Box<$borrowed>;
-
             // Deserialization may take either an Id or an URI, so its
             // implementation has to be done manually.
-            impl<'de> Deserialize<'de> for $owned {
+            impl<'de> Deserialize<'de> for $name<'static> {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                 where
                     D: serde::Deserializer<'de>,
@@ -331,7 +335,7 @@ macro_rules! define_idtypes {
                     struct IdVisitor;
 
                     impl<'de> serde::de::Visitor<'de> for IdVisitor {
-                        type Value = $owned;
+                        type Value = $name<'static>;
 
                         fn expecting(
                             &self, formatter: &mut std::fmt::Formatter<'_>
@@ -346,8 +350,8 @@ macro_rules! define_idtypes {
                         where
                             E: serde::de::Error,
                         {
-                            $borrowed::from_id_or_uri(value)
-                                .map(ToOwned::to_owned)
+                            $name::from_id_or_uri(value)
+                                .map($name::into_static)
                                 .map_err(serde::de::Error::custom)
                         }
 
@@ -372,8 +376,8 @@ macro_rules! define_idtypes {
                         {
                             let field = seq.next_element()?
                                 .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
-                            $borrowed::from_id_or_uri(field)
-                                .map(ToOwned::to_owned)
+                            $name::from_id_or_uri(field)
+                                .map($name::into_static)
                                 .map_err(serde::de::Error::custom)
                         }
                     }
@@ -383,7 +387,7 @@ macro_rules! define_idtypes {
             }
 
             /// Cheap conversion to `str`
-            impl AsRef<str> for $borrowed {
+            impl AsRef<str> for $name<'_> {
                 fn as_ref(&self) -> &str {
                     self.id()
                 }
@@ -391,53 +395,16 @@ macro_rules! define_idtypes {
 
             /// `Id`s may be borrowed as `str` the same way `Box<T>` may be
             /// borrowed as `T` or `String` as `str`
-            impl std::borrow::Borrow<str> for $borrowed {
+            impl std::borrow::Borrow<str> for $name<'_> {
                 fn borrow(&self) -> &str {
                     self.id()
                 }
             }
 
             /// Displaying the ID shows its URI
-            impl std::fmt::Display for $borrowed {
+            impl std::fmt::Display for $name<'_> {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.uri())
-                }
-            }
-
-            impl std::borrow::ToOwned for $borrowed {
-                type Owned = $owned;
-
-                fn to_owned(&self) -> Self::Owned {
-                    todo!()
-                }
-            }
-
-            /// `Box<str>` implements clone, but that doesn't cover `Box<T>`
-            /// where `T` is a newtype for `str`. Thus, this manually delegates
-            /// `Clone` for `Box<Id>` to the implementation for `Box<str>`.
-            impl Clone for $owned {
-                fn clone(&self) -> $owned {
-                    // SAFETY: this is okay because Ids are transparent over
-                    // their inner type, a `str`. See:
-                    // https://doc.rust-lang.org/stable/nomicon/transmutes.html
-                    let id: &Box<str> = unsafe { std::mem::transmute(self) };
-
-                    // Calling `Box<str>::clone`, which is implemented
-                    let id = id.clone();
-
-                    // SAFETY: same as above, but in the inverse direction.
-                    unsafe { std::mem::transmute(id) }
-                }
-            }
-
-            /// Exactly the same thing in `Clone` happens with `Default`.
-            impl Default for $owned {
-                fn default() -> $owned {
-                    // Calling `Box<str>::default`, which is implemented
-                    let id: Box<str> = Default::default();
-
-                    // SAFETY: same as in `Clone`.
-                    unsafe { std::mem::transmute(id) }
                 }
             }
         )+
@@ -448,105 +415,71 @@ macro_rules! define_idtypes {
 // declared manually later on.
 define_idtypes!(
     Artist => {
-        borrowed: ArtistId,
-        owned: ArtistIdBuf,
+        name: ArtistId,
         validity: |id| id.chars().all(|ch| ch.is_ascii_alphanumeric())
     },
     Album => {
-        borrowed: AlbumId,
-        owned: AlbumIdBuf,
+        name: AlbumId,
         validity: |id| id.chars().all(|ch| ch.is_ascii_alphanumeric())
     },
     Track => {
-        borrowed: TrackId,
-        owned: TrackIdBuf,
+        name: TrackId,
         validity: |id| id.chars().all(|ch| ch.is_ascii_alphanumeric())
     },
     Playlist => {
-        borrowed: PlaylistId,
-        owned: PlaylistIdBuf,
+        name: PlaylistId,
         validity: |id| id.chars().all(|ch| ch.is_ascii_alphanumeric())
     },
     Show => {
-        borrowed: ShowId,
-        owned: ShowIdBuf,
+        name: ShowId,
         validity: |id| id.chars().all(|ch| ch.is_ascii_alphanumeric())
     },
     Episode => {
-        borrowed: EpisodeId,
-        owned: EpisodeIdBuf,
+        name: EpisodeId,
         validity: |id| id.chars().all(|ch| ch.is_ascii_alphanumeric())
     },
     User => {
-        borrowed: UserId,
-        owned: UserIdBuf,
+        name: UserId,
         validity: |_| true
     }
 );
 
+// TODO: replace with `enum_dispatch`?
 macro_rules! define_idgroups {
-    ($(pub enum ($borrowed:ident, $owned:ident) {
+    ($(pub enum $name:ident {
         $(
-            $variant_name:ident => ($variant_borrowed:ident, $variant_owned:ident)
+            $variant_name:ident($variant_type:ident)
         ),+
+        $(,)?
     }),+) => {
         $(
-            pub enum $borrowed<'a> {
+            pub enum $name<'a> {
                 $(
-                    $variant_name(&'a $variant_borrowed),
+                    $variant_name($variant_type<'a>),
                 )+
             }
 
-            pub enum $owned {
-                $(
-                    $variant_name($variant_owned),
-                )+
-            }
-
-
-            impl<'a> $borrowed<'a> {
+            // TODO: turn into `impl Id`?
+            // TODO: also implement `into_owned` and etc
+            impl<'a> $name<'a> {
                 pub fn uri(&self) -> String {
                     match self {
                         $(
-                            $borrowed::$variant_name(x) => x.uri(),
+                            $name::$variant_name(x) => x.uri(),
                         )+
                     }
                 }
                 pub fn url(&self) -> String {
                     match self {
                         $(
-                            $borrowed::$variant_name(x) => x.url(),
+                            $name::$variant_name(x) => x.url(),
                         )+
                     }
                 }
                 pub const fn _type(&self) -> Type {
                     match self {
                         $(
-                            $borrowed::$variant_name(_) => $variant_borrowed::TYPE,
-                        )+
-                    }
-                }
-            }
-
-            impl $owned {
-                pub fn uri(&self) -> String {
-                    match self {
-                        $(
-                            $owned::$variant_name(x) => x.uri(),
-                        )+
-                    }
-                }
-                pub fn url(&self) -> String {
-                    match self {
-                        $(
-                            $owned::$variant_name(x) => x.url(),
-                        )+
-                    }
-                }
-                pub const fn _type(&self) -> Type {
-                    match self {
-                        $(
-                            $owned::$variant_name(_) => $variant_borrowed::TYPE,
+                            $name::$variant_name(_) => $variant_type::TYPE,
                         )+
                     }
                 }
@@ -557,15 +490,15 @@ macro_rules! define_idgroups {
 
 // Grouping up the IDs into more specific traits
 define_idgroups!(
-    pub enum (PlayContextId, PlayContextIdBuf) {
-        Artist => (ArtistId, ArtistIdBuf),
-        Album => (AlbumId, AlbumIdBuf),
-        Playlist => (PlaylistId, PlaylistIdBuf),
-        Show => (ShowId, ShowIdBuf)
+    pub enum PlayContextId {
+        Artist(ArtistId),
+        Album(AlbumId),
+        Playlist(PlaylistId),
+        Show(ShowId),
     },
-    pub enum (PlayableId, PlayableIdBuf) {
-        Track => (TrackId, TrackIdBuf),
-        Episode => (EpisodeId, EpisodeIdBuf)
+    pub enum PlayableId {
+        Track(TrackId),
+        Episode(EpisodeId),
     }
 );
 

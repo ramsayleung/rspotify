@@ -285,9 +285,25 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
         .collect()
 }
 
+// TODO: is it possible to take a `IntoIterator<Item = T>` instead of a
+// `IntoIterator<Item = &'a>`? Now we have `Id<'a>` instead of `&'a T`, so
+// technically `IntoIterator<Item = &'a T>` is the same as `IntoIterator<Item =
+// T<'a>>`. Otherwise, this function is taking a double reference, and requires
+// more boilerplate.
+//
+// However, this seems to be impossible because then the function would own the
+// Ids, and then we can't call `Id::id`.
+//
+// Hack: turning this into a macro (best if avoided).
 #[inline]
-pub(in crate) fn join_ids<'a, T: Id + 'a + ?Sized>(ids: impl IntoIterator<Item = &'a T>) -> String {
-    ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
+pub(in crate) fn join_ids<'a, T: Id<'a> + 'a>(ids: impl IntoIterator<Item = T>) -> String {
+    // Nope
+    // ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
+
+    // Nope
+    // ids.into_iter().map(|x| x.id()).collect::<Vec<_>>().join(",")
+
+    todo!()
 }
 
 #[inline]

@@ -53,10 +53,11 @@ impl PlayableItem {
     ///
     /// Note that if it's a track and if it's local, it may not have an ID, in
     /// which case this function will return `None`.
-    pub fn id(&self) -> Option<PlayableId<'_>> {
+    pub fn id(&self) -> Option<PlayableId<'static>> {
         match self {
-            PlayableItem::Track(t) => t.id.as_ref().map(|id| PlayableId::Track(id)),
-            PlayableItem::Episode(e) => Some(PlayableId::Episode(&e.id)),
+            // TODO: can we avoid `clone` here and return `PlayableId<'_>`?
+            PlayableItem::Track(t) => t.id.clone().map(PlayableId::Track),
+            PlayableItem::Episode(e) => Some(PlayableId::Episode(e.id.clone())),
         }
     }
 }
