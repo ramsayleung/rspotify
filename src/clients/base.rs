@@ -1026,14 +1026,14 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlists-tracks)
     fn playlist_items<'a>(
         &'a self,
-        playlist_id: PlaylistId<'a>,
+        playlist_id: &'a PlaylistId<'_>,
         fields: Option<&'a str>,
         market: Option<&'a Market>,
     ) -> Paginator<'_, ClientResult<PlaylistItem>> {
         paginate(
             move |limit, offset| {
                 self.playlist_items_manual(
-                    playlist_id.clone(),
+                    playlist_id.as_borrowed(),
                     fields,
                     market,
                     Some(limit),

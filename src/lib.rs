@@ -297,13 +297,13 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
 // Hack: turning this into a macro (best if avoided).
 #[inline]
 pub(in crate) fn join_ids<'a, T: Id<'a> + 'a>(ids: impl IntoIterator<Item = T>) -> String {
-    // Nope
-    // ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
-
-    // Nope
-    // ids.into_iter().map(|x| x.id()).collect::<Vec<_>>().join(",")
-
-    todo!()
+    let mut ids = ids.into_iter();
+    let mut joined = if let Some(first) = ids.next() { String::from(first.id()) } else { return String::new() };
+    for id in ids {
+        joined.push_str(",");
+        joined.push_str(id.id());
+    }
+    joined
 }
 
 #[inline]

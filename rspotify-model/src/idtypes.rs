@@ -177,7 +177,7 @@ pub trait Id<'a> {
     where
         Self: Sized,
     {
-        if id.chars().all(|ch| ch.is_ascii_alphanumeric()) {
+        if Self::id_is_valid(id) {
             // Safe, we've just checked that the Id is valid.
             Ok(unsafe { Self::from_id_unchecked(id) })
         } else {
