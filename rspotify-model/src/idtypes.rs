@@ -401,6 +401,12 @@ macro_rules! define_idtypes {
                 }
             }
 
+            impl<'a> $name<'a> {
+                pub fn as_borrowed(&'a self) -> $name<'a> {
+                    Self(std::borrow::Cow::Borrowed(self.0.as_ref()))
+                }
+            }
+
             /// Displaying the ID shows its URI
             impl std::fmt::Display for $name<'_> {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -480,6 +486,14 @@ macro_rules! define_idgroups {
                     match self {
                         $(
                             $name::$variant_name(_) => $variant_type::TYPE,
+                        )+
+                    }
+                }
+
+                pub fn as_borrowed(&'a self) -> Self {
+                    match self {
+                        $(
+                            $name::$variant_name(x) => $name::$variant_name(x.as_borrowed()),
                         )+
                     }
                 }
