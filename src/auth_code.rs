@@ -123,7 +123,7 @@ impl OAuthClient for AuthCodeSpotify {
 
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
-    async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+    async fn request_token(&self, code: &str) -> ClientResult<()> {
         log::info!("Requesting Auth Code token");
 
         let scopes = join_scopes(&self.oauth.scopes);
