@@ -88,7 +88,7 @@ impl OAuthClient for AuthCodePkceSpotify {
     /// Note that the code verifier must be set at this point, either manually
     /// or with [`Self::get_authorize_url`]. Otherwise, this function will
     /// panic.
-    async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+    async fn request_token(&self, code: &str) -> ClientResult<()> {
         log::info!("Requesting PKCE Auth Code token");
 
         let verifier = self.verifier.as_ref().expect(

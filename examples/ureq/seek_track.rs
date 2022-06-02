@@ -9,7 +9,7 @@ fn main() {
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-read-playback-state")).unwrap();
 
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();

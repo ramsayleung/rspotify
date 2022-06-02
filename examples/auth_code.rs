@@ -35,7 +35,7 @@ async fn main() {
     // ```
     let oauth = OAuth::from_env(scopes!("user-read-currently-playing")).unwrap();
 
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();

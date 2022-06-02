@@ -33,7 +33,7 @@ pub trait OAuthClient: BaseClient {
 
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
-    async fn request_token(&mut self, code: &str) -> ClientResult<()>;
+    async fn request_token(&self, code: &str) -> ClientResult<()>;
 
     /// Tries to read the cache file's token.
     ///
@@ -56,7 +56,7 @@ pub trait OAuthClient: BaseClient {
     /// the application re-authenticate.
     ///
     /// [`ClientCredsSpotify::read_token_cache`]: crate::client_creds::ClientCredsSpotify::read_token_cache
-    async fn read_token_cache(&mut self, allow_expired: bool) -> ClientResult<Option<Token>> {
+    async fn read_token_cache(&self, allow_expired: bool) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
             log::info!("Auth token cache read ignored (not configured)");
             return Ok(None);
@@ -144,7 +144,7 @@ pub trait OAuthClient: BaseClient {
     /// [`Config::token_cached`]: crate::Config::token_cached
     #[cfg(feature = "cli")]
     #[maybe_async]
-    async fn prompt_for_token(&mut self, url: &str) -> ClientResult<()> {
+    async fn prompt_for_token(&self, url: &str) -> ClientResult<()> {
         match self.read_token_cache(true).await {
             Ok(Some(new_token)) => {
                 let expired = new_token.is_expired();
