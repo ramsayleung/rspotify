@@ -15,6 +15,11 @@
 //! * [`Type::Show`] => [`ShowId`]
 //! * [`Type::Episode`] => [`EpisodeId`]
 //!
+//! These types are just wrappers for [`Cow<str>`], so their usage should be
+//! quite similar overall.
+//!
+//! [`Cow<str>`]: [`std::borrow::Cow`]
+//!
 //! ## Examples
 //!
 //! If an endpoint requires a `TrackId`, you may pass it as:
@@ -22,10 +27,10 @@
 //! ```
 //! use rspotify_model::{Id, TrackId};
 //!
-//! fn pause_track(id: &TrackId) { /* ... */ }
+//! fn pause_track(id: TrackId<'_>) { /* ... */ }
 //!
 //! let id = TrackId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
-//! pause_track(&id);
+//! pause_track(id);
 //! ```
 //!
 //! Notice how this way it's type safe; the following example would fail at
@@ -34,10 +39,10 @@
 //! ```compile_fail
 //! use rspotify_model::{Id, TrackId, EpisodeId};
 //!
-//! fn pause_track(id: &TrackId) { /* ... */ }
+//! fn pause_track(id: TrackId<'_>) { /* ... */ }
 //!
 //! let id = EpisodeId::from_id("4iV5W9uYEdYUVa79Axb7Rh").unwrap();
-//! pause_track(&id);
+//! pause_track(id);
 //! ```
 //!
 //! And this would panic because it's a `TrackId` but its URI string specifies
@@ -46,10 +51,10 @@
 //! ```should_panic
 //! use rspotify_model::{Id, TrackId};
 //!
-//! fn pause_track(id: &TrackId) { /* ... */ }
+//! fn pause_track(id: TrackId<'_>) { /* ... */ }
 //!
 //! let id = TrackId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
-//! pause_track(&id);
+//! pause_track(id);
 //! ```
 //!
 //! A more complex example where an endpoint takes a vector of IDs of different
@@ -58,9 +63,9 @@
 //! ```
 //! use rspotify_model::{Id, TrackId, EpisodeId, PlayableId};
 //!
-//! fn track(id: &TrackId) { /* ... */ }
-//! fn episode(id: &EpisodeId) { /* ... */ }
-//! fn add_to_queue(id: &[&dyn PlayableId]) { /* ... */ }
+//! fn track(id: TrackId<'_>) { /* ... */ }
+//! fn episode(id: EpisodeId<'_>) { /* ... */ }
+//! fn add_to_queue(id: &[PlayableId<'_>]) { /* ... */ }
 //!
 //! let tracks = &[
 //!     TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
@@ -72,20 +77,20 @@
 //! ];
 //!
 //! // First we get some info about the tracks and episodes
-//! let track_info = tracks.iter().map(|id| track(id)).collect::<Vec<_>>();
-//! let ep_info = episodes.iter().map(|id| episode(id)).collect::<Vec<_>>();
+//! let track_info = tracks.iter().map(|id| track(id.as_ref())).collect::<Vec<_>>();
+//! let ep_info = episodes.iter().map(|id| episode(id.as_ref())).collect::<Vec<_>>();
 //! println!("Track info: {:?}", track_info);
 //! println!("Episode info: {:?}", ep_info);
 //!
 //! // And then we add both the tracks and episodes to the queue
 //! let playable = tracks
 //!     .iter()
-//!     .map(|id| id as &dyn PlayableId)
+//!     .map(PlayableId)
 //!     .chain(
-//!         episodes.iter().map(|id| id as &dyn PlayableId)
+//!         episodes.iter().map(PlayableId)
 //!     )
-//!     .collect::<Vec<&dyn PlayableId>>();
-//! add_to_queue(&playable);
+//!     .collect::<Vec<PlayableId>>();
+//! add_to_queue(playable);
 //! ```
 
 use serde::{Deserialize, Serialize};
@@ -114,20 +119,10 @@ pub enum IdError {
     InvalidId,
 }
 
-/// The main interface for an ID.
+/// The main interface for an ID. See the [`module level documentation`] for
+/// more information.
 ///
-/// # Implementation note
-///
-/// Note that for IDs to be useful their trait must be object-safe. Otherwise,
-/// it wouldn't be possible to use `Vec<Box<dyn Id>>` to take multiple kinds of
-/// IDs or just `Box<dyn Id>` in case the type wasn't known at compile time.
-/// This is why this trait includes both [`Self::_type`] and
-/// [`Self::_type_static`], and why all of the static methods use `where Self:
-/// Sized`.
-///
-/// Unfortunately, since `where Self: Sized` has to be enforced, IDs cannot be
-/// simply a `str` internally because these aren't sized. Thus, IDs will have the
-/// slight overhead of having to use an owned type like `String`.
+/// [`module level documentation`]: [`crate::idtypes`]
 pub trait Id<'a> {
     /// The type of the ID.
     const TYPE: Type;
