@@ -66,7 +66,7 @@ async fn with_auth(creds: Credentials, oauth: OAuth, config: Config) {
     // In the first session of the application we authenticate and obtain the
     // refresh token.
     println!(">>> Session one, obtaining refresh token and running some requests:");
-    let mut spotify = AuthCodeSpotify::with_config(creds.clone(), oauth, config.clone());
+    let spotify = AuthCodeSpotify::with_config(creds.clone(), oauth, config.clone());
     let url = spotify.get_authorize_url(false).unwrap();
     // This function requires the `cli` feature enabled.
     spotify
@@ -91,7 +91,7 @@ async fn with_auth(creds: Credentials, oauth: OAuth, config: Config) {
 async fn with_client_credentials(creds: Credentials, config: Config) {
     // Same with client-credential based spotify client
     println!(">>> New Session one from ClientCredsSpotify, obtaining token and doing things");
-    let mut spotify = ClientCredsSpotify::with_config(creds, config);
+    let spotify = ClientCredsSpotify::with_config(creds, config);
     spotify.request_token().await.unwrap();
 
     // We can now perform requests

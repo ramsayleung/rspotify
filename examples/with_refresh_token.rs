@@ -57,7 +57,7 @@ async fn main() {
     // aren't configured manually.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
-    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
+    let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
 
     // In the first session of the application we authenticate and obtain the
     // refresh token. We can also do some requests here.

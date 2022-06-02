@@ -103,7 +103,7 @@ fn init_spotify(cookies: &Cookies) -> AuthCodeSpotify {
 
 #[get("/callback?<code>")]
 fn callback(cookies: Cookies, code: String) -> AppResponse {
-    let mut spotify = init_spotify(&cookies);
+    let spotify = init_spotify(&cookies);
 
     match spotify.request_token(&code) {
         Ok(_) => {
@@ -163,7 +163,7 @@ fn sign_out(cookies: Cookies) -> AppResponse {
 
 #[get("/playlists")]
 fn playlist(cookies: Cookies) -> AppResponse {
-    let mut spotify = init_spotify(&cookies);
+    let spotify = init_spotify(&cookies);
     if !spotify.config.cache_path.exists() {
         return AppResponse::Redirect(Redirect::to("/"));
     }
@@ -184,7 +184,7 @@ fn playlist(cookies: Cookies) -> AppResponse {
 
 #[get("/me")]
 fn me(cookies: Cookies) -> AppResponse {
-    let mut spotify = init_spotify(&cookies);
+    let spotify = init_spotify(&cookies);
     if !spotify.config.cache_path.exists() {
         return AppResponse::Redirect(Redirect::to("/"));
     }
