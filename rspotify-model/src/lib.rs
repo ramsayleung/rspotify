@@ -55,8 +55,8 @@ impl PlayableItem {
     /// which case this function will return `None`.
     pub fn id(&self) -> Option<PlayableId<'_>> {
         match self {
-            PlayableItem::Track(t) => t.id.as_ref().map(|t| PlayableId::Track(t.as_borrowed())),
-            PlayableItem::Episode(e) => Some(PlayableId::Episode(e.id.as_borrowed())),
+            PlayableItem::Track(t) => t.id.as_ref().map(|t| PlayableId::Track(t.as_ref())),
+            PlayableItem::Episode(e) => Some(PlayableId::Episode(e.id.as_ref())),
         }
     }
 }

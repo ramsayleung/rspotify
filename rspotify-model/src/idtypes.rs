@@ -402,7 +402,7 @@ macro_rules! define_idtypes {
             }
 
             impl<'a> $name<'a> {
-                pub fn as_borrowed(&'a self) -> $name<'a> {
+                pub fn as_ref(&'a self) -> $name<'a> {
                     Self(std::borrow::Cow::Borrowed(self.0.as_ref()))
                 }
             }
@@ -490,10 +490,10 @@ macro_rules! define_idgroups {
                     }
                 }
 
-                pub fn as_borrowed(&'a self) -> Self {
+                pub fn as_ref(&'a self) -> Self {
                     match self {
                         $(
-                            $name::$variant_name(x) => $name::$variant_name(x.as_borrowed()),
+                            $name::$variant_name(x) => $name::$variant_name(x.as_ref()),
                         )+
                     }
                 }

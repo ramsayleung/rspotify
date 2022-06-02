@@ -1033,7 +1033,7 @@ where
         paginate(
             move |limit, offset| {
                 self.playlist_items_manual(
-                    playlist_id.as_borrowed(),
+                    playlist_id.as_ref(),
                     fields,
                     market,
                     Some(limit),

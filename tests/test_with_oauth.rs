@@ -203,7 +203,7 @@ async fn test_current_user_saved_albums() {
 
     // First adding the albums
     client
-        .current_user_saved_albums_add(album_ids.iter().map(AlbumId::as_borrowed))
+        .current_user_saved_albums_add(album_ids.iter().map(AlbumId::as_ref))
         .await
         .unwrap();
 
@@ -237,12 +237,12 @@ async fn test_current_user_saved_tracks_add() {
         TrackId::from_uri("spotify:track:1301WleyT98MSxVHPZCA6M").unwrap(),
     ];
     client
-        .current_user_saved_tracks_add(tracks_ids.iter().map(TrackId::as_borrowed))
+        .current_user_saved_tracks_add(tracks_ids.iter().map(TrackId::as_ref))
         .await
         .unwrap();
 
     let contains = client
-        .current_user_saved_tracks_contains(tracks_ids.iter().map(TrackId::as_borrowed))
+        .current_user_saved_tracks_contains(tracks_ids.iter().map(TrackId::as_ref))
         .await
         .unwrap();
     // Every track should be saved
@@ -347,7 +347,7 @@ async fn test_playback() {
         // Starting playback of some songs
         client
             .start_uris_playback(
-                uris.iter().map(PlayableId::as_borrowed),
+                uris.iter().map(PlayableId::as_ref),
                 Some(device_id),
                 Some(Offset::for_position(0)),
                 None,
@@ -565,7 +565,7 @@ async fn test_user_follow_artist() {
         ArtistId::from_id("08td7MxkoHQkXnWAYD8d6Q").unwrap(),
     ];
 
-    client.user_follow_artists(artists.iter().map(ArtistId::as_borrowed)).await.unwrap();
+    client.user_follow_artists(artists.iter().map(ArtistId::as_ref)).await.unwrap();
     client.user_unfollow_artists(artists).await.unwrap();
 }
 
@@ -578,7 +578,7 @@ async fn test_user_follow_users() {
         UserId::from_id("john").unwrap(),
     ];
 
-    client.user_follow_users(users.iter().map(UserId::as_borrowed)).await.unwrap();
+    client.user_follow_users(users.iter().map(UserId::as_ref)).await.unwrap();
     client.user_unfollow_users(users).await.unwrap();
 }
 
@@ -589,7 +589,7 @@ async fn test_user_follow_playlist() {
     let playlist_id = PlaylistId::from_id("2v3iNvBX8Ay1Gt2uXtUKUT").unwrap();
 
     client
-        .playlist_follow(playlist_id.as_borrowed(), Some(true))
+        .playlist_follow(playlist_id.as_ref(), Some(true))
         .await
         .unwrap();
 
@@ -603,13 +603,13 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
 
     // First creating the base playlist over which the tests will be ran
     let playlist = client
-        .user_playlist_create(user.id.as_borrowed(), name, Some(false), None, None)
+        .user_playlist_create(user.id.as_ref(), name, Some(false), None, None)
         .await
         .unwrap();
 
     // Making sure that the playlist has been added to the user's profile
     let fetched_playlist = client
-        .user_playlist(user.id.as_borrowed(), Some(playlist.id.as_borrowed()), None)
+        .user_playlist(user.id.as_ref(), Some(playlist.id.as_ref()), None)
         .await
         .unwrap();
     assert_eq!(playlist.id, fetched_playlist.id);
@@ -622,7 +622,7 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
     let description = "A random description";
     client
         .playlist_change_detail(
-            playlist.id.as_borrowed(),
+            playlist.id.as_ref(),
             Some(name),
             Some(true),
             Some(description),
@@ -636,7 +636,7 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
 
 #[maybe_async]
 async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: PlaylistId<'_>, num: i32) {
-    let fetched_tracks = fetch_all(client.playlist_items(&playlist_id.as_borrowed(), None, None)).await;
+    let fetched_tracks = fetch_all(client.playlist_items(&playlist_id.as_ref(), None, None)).await;
     assert_eq!(fetched_tracks.len() as i32, num);
 }
 
@@ -652,18 +652,18 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // Firstly adding some tracks
     client
-        .playlist_add_items(playlist.id.as_borrowed(), tracks.iter().map(PlayableId::as_borrowed), None)
+        .playlist_add_items(playlist.id.as_ref(), tracks.iter().map(PlayableId::as_ref), None)
         .await
         .unwrap();
-    check_num_tracks(client, playlist.id.as_borrowed(), tracks.len() as i32).await;
+    check_num_tracks(client, playlist.id.as_ref(), tracks.len() as i32).await;
 
     // Reordering some tracks
     client
-        .playlist_reorder_items(playlist.id.as_borrowed(), Some(0), Some(3), Some(2), None)
+        .playlist_reorder_items(playlist.id.as_ref(), Some(0), Some(3), Some(2), None)
         .await
         .unwrap();
     // Making sure the number of tracks is the same
-    check_num_tracks(client, playlist.id.as_borrowed(), tracks.len() as i32).await;
+    check_num_tracks(client, playlist.id.as_ref(), tracks.len() as i32).await;
 
     // Replacing the tracks
     let replaced_tracks = [
@@ -676,11 +676,11 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         PlayableId::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
     ];
     client
-        .playlist_replace_items(playlist.id.as_borrowed(), replaced_tracks.iter().map(|t| t.as_borrowed()))
+        .playlist_replace_items(playlist.id.as_ref(), replaced_tracks.iter().map(|t| t.as_ref()))
         .await
         .unwrap();
     // Making sure the number of tracks is updated
-    check_num_tracks(client, playlist.id.as_borrowed(), replaced_tracks.len() as i32).await;
+    check_num_tracks(client, playlist.id.as_ref(), replaced_tracks.len() as i32).await;
 
     // Removes a few specific tracks
     let tracks = [
@@ -694,11 +694,11 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         },
     ];
     client
-        .playlist_remove_specific_occurrences_of_items(playlist.id.as_borrowed(), tracks, None)
+        .playlist_remove_specific_occurrences_of_items(playlist.id.as_ref(), tracks, None)
         .await
         .unwrap();
     // Making sure three tracks were removed
-    check_num_tracks(client, playlist.id.as_borrowed(), replaced_tracks.len() as i32 - 3).await;
+    check_num_tracks(client, playlist.id.as_ref(), replaced_tracks.len() as i32 - 3).await;
 
     // Removes all occurrences of two tracks
     let to_remove = vec![
@@ -706,11 +706,11 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         PlayableId::Episode(EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap()),
     ];
     client
-        .playlist_remove_all_occurrences_of_items(playlist.id.as_borrowed(), to_remove, None)
+        .playlist_remove_all_occurrences_of_items(playlist.id.as_ref(), to_remove, None)
         .await
         .unwrap();
     // Making sure two more tracks were removed
-    check_num_tracks(client, playlist.id.as_borrowed(), replaced_tracks.len() as i32 - 5).await;
+    check_num_tracks(client, playlist.id.as_ref(), replaced_tracks.len() as i32 - 5).await;
 }
 
 #[maybe_async]
@@ -722,13 +722,13 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // It's a new playlist, so it shouldn't have any followers
     let following = client
-        .playlist_check_follow(playlist.id.as_borrowed(), &user_ids)
+        .playlist_check_follow(playlist.id.as_ref(), &user_ids)
         .await
         .unwrap();
     assert_eq!(following, vec![false, false]);
 
     // Finally unfollowing the playlist in order to clean it up
-    client.playlist_unfollow(playlist.id.as_borrowed()).await.unwrap();
+    client.playlist_unfollow(playlist.id.as_ref()).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
