@@ -67,11 +67,11 @@
 //! fn episode(id: EpisodeId<'_>) { /* ... */ }
 //! fn add_to_queue(id: &[PlayableId<'_>]) { /* ... */ }
 //!
-//! let tracks = &[
+//! let tracks = [
 //!     TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
 //!     TrackId::from_uri("spotify:track:5iKndSu1XI74U2OZePzP8L").unwrap(),
 //! ];
-//! let episodes = &[
+//! let episodes = [
 //!     EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
 //!     EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
 //! ];
@@ -84,13 +84,13 @@
 //!
 //! // And then we add both the tracks and episodes to the queue
 //! let playable = tracks
-//!     .iter()
-//!     .map(PlayableId)
+//!     .into_iter()
+//!     .map(|t| t.as_ref().into())
 //!     .chain(
-//!         episodes.iter().map(PlayableId)
+//!         episodes.into_iter().map(|e| e.as_ref().into())
 //!     )
 //!     .collect::<Vec<PlayableId>>();
-//! add_to_queue(playable);
+//! add_to_queue(&playable);
 //! ```
 
 use enum_dispatch::enum_dispatch;
@@ -108,15 +108,15 @@ use crate::Type;
 /// See also [`Id`](crate::idtypes::Id) for details.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Display, Error)]
 pub enum IdError {
-    /// Spotify URI prefix is not `spotify:` or `spotify/`
+    /// Spotify URI prefix is not `spotify:` or `spotify/`.
     InvalidPrefix,
-    /// Spotify URI can't be split into type and id parts
-    /// (e.g. it has invalid separator)
+    /// Spotify URI can't be split into type and id parts (e.g., it has invalid
+    /// separator).
     InvalidFormat,
     /// Spotify URI has invalid type name, or id has invalid type in a given
-    /// context (e.g. a method expects a track id, but artist id is provided)
+    /// context (e.g. a method expects a track id, but artist id is provided).
     InvalidType,
-    /// Spotify id is invalid (empty or contains invalid characters)
+    /// Spotify id is invalid (empty or contains invalid characters).
     InvalidId,
 }
 
@@ -249,7 +249,7 @@ macro_rules! define_idtypes {
                 /// # Errors:
                 ///
                 /// - `IdError::InvalidId` - if `id` contains invalid characters.
-                fn from_id(id: &'a str) -> Result<Self, IdError> {
+                pub fn from_id(id: &'a str) -> Result<Self, IdError> {
                     if Self::id_is_valid(id) {
                         // Safe, we've just checked that the Id is valid.
                         Ok(unsafe { Self::from_id_unchecked(id) })
