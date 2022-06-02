@@ -93,6 +93,7 @@
 //! add_to_queue(playable);
 //! ```
 
+use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use strum::Display;
 use thiserror::Error;
@@ -123,143 +124,59 @@ pub enum IdError {
 /// more information.
 ///
 /// [`module level documentation`]: [`crate::idtypes`]
+#[enum_dispatch]
 pub trait Id<'a> {
-    /// The type of the ID.
-    const TYPE: Type;
-
-    /// Spotify object Id (guaranteed to be valid for that type)
+    /// Returns the inner Spotify object Id, which is guaranteed to be valid for
+    /// its type.
     fn id(&self) -> &str;
 
-    /// Only returns `true` in case the given string is valid according to that
-    /// specific Id (e.g., some may require alphanumeric characters only).
-    fn id_is_valid(id: &str) -> bool;
+    /// The type of the ID, as a function.
+    fn _type(&self) -> Type;
 
-    /// Initialize the Id without checking its validity.
-    ///
-    /// # Safety
-    ///
-    /// The string passed to this method must be made out of valid characters
-    /// only; otherwise undefined behaviour may occur.
-    unsafe fn from_id_unchecked(id: &'a str) -> Self
-    where
-        Self: Sized;
-
-    /// Spotify object URI in a well-known format: `spotify:type:id`
+    /// Returns a Spotify object URI in a well-known format: `spotify:type:id`.
     ///
     /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
     /// `spotify:track:4y4VO05kYgUTo2bzbox1an`.
     fn uri(&self) -> String {
-        format!("spotify:{}:{}", Self::TYPE, self.id())
+        format!("spotify:{}:{}", self._type(), self.id())
     }
 
-    /// Full Spotify object URL, can be opened in a browser
+    /// Returns a full Spotify object URL that can be opened in a browser.
     ///
     /// Examples: `https://open.spotify.com/track/4y4VO05kYgUTo2bzbox1an`,
     /// `https://open.spotify.com/artist/2QI8e2Vwgg9KXOz2zjcrkI`.
     fn url(&self) -> String {
-        format!("https://open.spotify.com/{}/{}", Self::TYPE, self.id())
+        format!("https://open.spotify.com/{}/{}", self._type(), self.id())
     }
+}
 
-    /// Parse Spotify Id from string slice.
-    ///
-    /// A valid Spotify object id must be a non-empty string with valid
-    /// characters.
-    ///
-    /// # Errors:
-    ///
-    /// - `IdError::InvalidId` - if `id` contains invalid characters.
-    fn from_id(id: &'a str) -> Result<Self, IdError>
-    where
-        Self: Sized,
-    {
-        if Self::id_is_valid(id) {
-            // Safe, we've just checked that the Id is valid.
-            Ok(unsafe { Self::from_id_unchecked(id) })
-        } else {
-            Err(IdError::InvalidId)
-        }
-    }
+/// A lower level function to parse a URI into both its type and its actual Id.
+/// Note that this function doesn't check the validity of the returned Id, e.g.,
+/// if that it's alphanumeric; that should be done in `Id::from_id`.
+///
+/// This is only useful for advanced cases, such as implementing your own Id
+/// type.
+pub fn parse_uri(uri: &str) -> Result<(Type, &str), IdError> {
+    let mut chars = uri
+        .strip_prefix("spotify")
+        .ok_or(IdError::InvalidPrefix)?
+        .chars();
+    let sep = match chars.next() {
+        Some(ch) if ch == '/' || ch == ':' => ch,
+        _ => return Err(IdError::InvalidPrefix),
+    };
+    let rest = chars.as_str();
 
-    /// Parse Spotify URI from string slice
-    ///
-    /// Spotify URI must be in one of the following formats:
-    /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
-    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
-    /// `show`, or `episode`, and `{id}` is a non-empty valid string.
-    ///
-    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
-    /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
-    ///
-    /// # Errors:
-    ///
-    /// - `IdError::InvalidPrefix` - if `uri` is not started with `spotify:`
-    ///    or `spotify/`,
-    /// - `IdError::InvalidType` - if type part of an `uri` is not a valid
-    ///    Spotify type `T`,
-    /// - `IdError::InvalidId` - if id part of an `uri` is not a valid id,
-    /// - `IdError::InvalidFormat` - if it can't be splitted into type and
-    ///    id parts.
-    fn from_uri(uri: &'a str) -> Result<Self, IdError>
-    where
-        Self: Sized,
-    {
-        let mut chars = uri
-            .strip_prefix("spotify")
-            .ok_or(IdError::InvalidPrefix)?
-            .chars();
-        let sep = match chars.next() {
-            Some(ch) if ch == '/' || ch == ':' => ch,
-            _ => return Err(IdError::InvalidPrefix),
-        };
-        let rest = chars.as_str();
+    let (tpe, id) = rest
+        .rfind(sep)
+        .map(|mid| rest.split_at(mid))
+        .ok_or(IdError::InvalidFormat)?;
 
-        let (tpe, id) = rest
-            .rfind(sep)
-            .map(|mid| rest.split_at(mid))
-            .ok_or(IdError::InvalidFormat)?;
-
-        // Note that in case the type isn't known at compile time, any type will
-        // be accepted.
-        match tpe.parse::<Type>() {
-            Ok(tpe) if tpe == Self::TYPE => Self::from_id(&id[1..]),
-            _ => Err(IdError::InvalidType),
-        }
-    }
-
-    /// Parse Spotify id or URI from string slice
-    ///
-    /// Spotify URI must be in one of the following formats:
-    /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
-    /// Where `{type}` is one of `artist`, `album`, `track`, `playlist`, `user`,
-    /// `show`, or `episode`, and `{id}` is a non-empty valid string. The URI
-    /// must be match with the ID's type (`Id::TYPE`), otherwise
-    /// `IdError::InvalidType` error is returned.
-    ///
-    /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
-    /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
-    ///
-    /// If input string is not a valid Spotify URI (it's not started with
-    /// `spotify:` or `spotify/`), it must be a valid Spotify object ID,
-    /// i.e. a non-empty valid string.
-    ///
-    /// # Errors:
-    ///
-    /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and it's type part
-    ///    is not equal to `T`,
-    /// - `IdError::InvalidId` - either if `id_or_uri` is an URI with invalid id
-    ///    part, or it's an invalid id (id is invalid if it contains valid
-    ///    characters),
-    /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and it can't be
-    ///    split into type and id parts.
-    fn from_id_or_uri(id_or_uri: &'a str) -> Result<Self, IdError>
-    where
-        Self: Sized,
-    {
-        match Self::from_uri(id_or_uri) {
-            Ok(id) => Ok(id),
-            Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
-            Err(error) => Err(error),
-        }
+    // Note that in case the type isn't known at compile time,
+    // any type will be accepted.
+    match tpe.parse::<Type>() {
+        Ok(tpe) => Ok((tpe, &id[1..])),
+        _ => Err(IdError::InvalidType),
     }
 }
 
@@ -299,24 +216,129 @@ macro_rules! define_idtypes {
                 }
             }
 
-            impl<'a> Id<'a> for $name<'a> {
+            impl<'a> $name<'a> {
+                /// The type of the Id, as a constant.
                 const TYPE: Type = Type::$type;
 
+                /// Only returns `true` in case the given string is valid
+                /// according to that specific Id (e.g., some may require
+                /// alphanumeric characters only).
+                #[inline]
+                pub fn id_is_valid(id: &str) -> bool {
+                    // TODO: make prettier?
+                    const VALID_FN: fn(&str) -> bool = $validity;
+                    VALID_FN(id)
+                }
+
+                /// Initialize the Id without checking its validity.
+                ///
+                /// # Safety
+                ///
+                /// The string passed to this method must be made out of valid
+                /// characters only; otherwise undefined behaviour may occur.
+                #[inline]
+                pub unsafe fn from_id_unchecked(id: &'a str) -> Self {
+                    Self(std::borrow::Cow::Borrowed(id))
+                }
+
+                /// Parse Spotify Id from string slice.
+                ///
+                /// A valid Spotify object id must be a non-empty string with
+                /// valid characters.
+                ///
+                /// # Errors:
+                ///
+                /// - `IdError::InvalidId` - if `id` contains invalid characters.
+                fn from_id(id: &'a str) -> Result<Self, IdError> {
+                    if Self::id_is_valid(id) {
+                        // Safe, we've just checked that the Id is valid.
+                        Ok(unsafe { Self::from_id_unchecked(id) })
+                    } else {
+                        Err(IdError::InvalidId)
+                    }
+                }
+
+                /// Parse Spotify URI from string slice
+                ///
+                /// Spotify URI must be in one of the following formats:
+                /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
+                /// Where `{type}` is one of `artist`, `album`, `track`,
+                /// `playlist`, `user`, `show`, or `episode`, and `{id}` is a
+                /// non-empty valid string.
+                ///
+                /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
+                /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
+                ///
+                /// # Errors:
+                ///
+                /// - `IdError::InvalidPrefix` - if `uri` is not started with
+                ///   `spotify:` or `spotify/`,
+                /// - `IdError::InvalidType` - if type part of an `uri` is not a
+                ///   valid Spotify type `T`,
+                /// - `IdError::InvalidId` - if id part of an `uri` is not a
+                ///   valid id,
+                /// - `IdError::InvalidFormat` - if it can't be splitted into
+                ///   type and id parts.
+                pub fn from_uri(uri: &'a str) -> Result<Self, IdError> {
+                    let (tpe, id) = parse_uri(uri)?;
+                    if tpe == Type::$type {
+                        Self::from_id(id)
+                    } else {
+                        Err(IdError::InvalidType)
+                    }
+                }
+
+                /// Parse Spotify id or URI from string slice
+                ///
+                /// Spotify URI must be in one of the following formats:
+                /// `spotify:{type}:{id}` or `spotify/{type}/{id}`.
+                /// Where `{type}` is one of `artist`, `album`, `track`,
+                /// `playlist`, `user`, `show`, or `episode`, and `{id}` is a
+                /// non-empty valid string. The URI must be match with the ID's
+                /// type (`Id::TYPE`), otherwise `IdError::InvalidType` error is
+                /// returned.
+                ///
+                /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
+                /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
+                ///
+                /// If input string is not a valid Spotify URI (it's not started
+                /// with `spotify:` or `spotify/`), it must be a valid Spotify
+                /// object ID, i.e. a non-empty valid string.
+                ///
+                /// # Errors:
+                ///
+                /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and
+                ///   it's type part is not equal to `T`,
+                /// - `IdError::InvalidId` - either if `id_or_uri` is an URI
+                ///   with invalid id part, or it's an invalid id (id is invalid
+                ///   if it contains valid characters),
+                /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and
+                ///   it can't be split into type and id parts.
+                pub fn from_id_or_uri(id_or_uri: &'a str) -> Result<Self, IdError> {
+                    match Self::from_uri(id_or_uri) {
+                        Ok(id) => Ok(id),
+                        Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
+                        Err(error) => Err(error),
+                    }
+                }
+
+                // TODO: better explanation?
+                /// Useful to keep using an Id without having to clone it.
+                #[inline]
+                pub fn as_ref(&'a self) -> $name<'a> {
+                    Self(std::borrow::Cow::Borrowed(self.0.as_ref()))
+                }
+            }
+
+            impl<'a> Id<'a> for $name<'a> {
                 #[inline]
                 fn id(&self) -> &str {
                     &self.0
                 }
 
                 #[inline]
-                fn id_is_valid(id: &str) -> bool {
-                    // TODO: make prettier?
-                    const VALID_FN: fn(&str) -> bool = $validity;
-                    VALID_FN(id)
-                }
-
-                #[inline]
-                unsafe fn from_id_unchecked(id: &'a str) -> Self {
-                    Self(std::borrow::Cow::Borrowed(id))
+                fn _type(&self) -> Type {
+                    Self::TYPE
                 }
             }
 
@@ -381,24 +403,11 @@ macro_rules! define_idtypes {
                 }
             }
 
-            /// Cheap conversion to `str`
-            impl AsRef<str> for $name<'_> {
-                fn as_ref(&self) -> &str {
-                    self.id()
-                }
-            }
-
             /// `Id`s may be borrowed as `str` the same way `Box<T>` may be
             /// borrowed as `T` or `String` as `str`
             impl std::borrow::Borrow<str> for $name<'_> {
                 fn borrow(&self) -> &str {
                     self.id()
-                }
-            }
-
-            impl<'a> $name<'a> {
-                pub fn as_ref(&'a self) -> $name<'a> {
-                    Self(std::borrow::Cow::Borrowed(self.0.as_ref()))
                 }
             }
 
@@ -445,71 +454,44 @@ define_idtypes!(
     }
 );
 
-// TODO: replace with `enum_dispatch`?
-macro_rules! define_idgroups {
-    ($(pub enum $name:ident {
-        $(
-            $variant_name:ident($variant_type:ident)
-        ),+
-        $(,)?
-    }),+) => {
-        $(
-            pub enum $name<'a> {
-                $(
-                    $variant_name($variant_type<'a>),
-                )+
-            }
-
-            // TODO: turn into `impl Id`?
-            // TODO: also implement `into_owned` and etc
-            impl<'a> $name<'a> {
-                pub fn uri(&self) -> String {
-                    match self {
-                        $(
-                            $name::$variant_name(x) => x.uri(),
-                        )+
-                    }
-                }
-                pub fn url(&self) -> String {
-                    match self {
-                        $(
-                            $name::$variant_name(x) => x.url(),
-                        )+
-                    }
-                }
-                pub const fn _type(&self) -> Type {
-                    match self {
-                        $(
-                            $name::$variant_name(_) => $variant_type::TYPE,
-                        )+
-                    }
-                }
-
-                pub fn as_ref(&'a self) -> Self {
-                    match self {
-                        $(
-                            $name::$variant_name(x) => $name::$variant_name(x.as_ref()),
-                        )+
-                    }
-                }
-            }
-        )+
+// Grouping up the IDs into more specific traits with the help of
+// `enum_dispatch`, which is not only easier to use than `dyn`, but also more
+// efficient.
+#[enum_dispatch(Id)]
+pub enum PlayContextId<'a> {
+    Artist(ArtistId<'a>),
+    Album(AlbumId<'a>),
+    Playlist(PlaylistId<'a>),
+    Show(ShowId<'a>),
+}
+// These don't work with `enum_dispatch`, unfortunately.
+impl<'a> PlayContextId<'a> {
+    #[inline]
+    pub fn as_ref(&'a self) -> PlayContextId<'a> {
+        match self {
+            PlayContextId::Artist(x) => PlayContextId::Artist(x.as_ref()),
+            PlayContextId::Album(x) => PlayContextId::Album(x.as_ref()),
+            PlayContextId::Playlist(x) => PlayContextId::Playlist(x.as_ref()),
+            PlayContextId::Show(x) => PlayContextId::Show(x.as_ref()),
+        }
     }
 }
 
-// Grouping up the IDs into more specific traits
-define_idgroups!(
-    pub enum PlayContextId {
-        Artist(ArtistId),
-        Album(AlbumId),
-        Playlist(PlaylistId),
-        Show(ShowId),
-    },
-    pub enum PlayableId {
-        Track(TrackId),
-        Episode(EpisodeId),
+#[enum_dispatch(Id)]
+pub enum PlayableId<'a> {
+    Track(TrackId<'a>),
+    Episode(EpisodeId<'a>),
+}
+// These don't work with `enum_dispatch`, unfortunately.
+impl<'a> PlayableId<'a> {
+    #[inline]
+    pub fn as_ref(&'a self) -> PlayableId<'a> {
+        match self {
+            PlayableId::Track(x) => PlayableId::Track(x.as_ref()),
+            PlayableId::Episode(x) => PlayableId::Episode(x.as_ref()),
+        }
     }
-);
+}
 
 #[cfg(test)]
 mod test {
