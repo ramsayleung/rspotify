@@ -1,12 +1,15 @@
 [package]
 name = "webapp"
 version = "0.1.0"
-authors = ["Ramsay <ramsayleung@gmail.com>"]
+authors = [
+    "Ramsay Leung <ramsayleung@gmail.com>",
+    "Mario Ortiz Manero <marioortizmanero@gmail.com>"
+]
 edition = "2018"
 
 [dependencies]
-rocket = "0.4.5"
-rocket_contrib = { version = "0.4.5", features = ["tera_templates"] }
-getrandom = "0.2.0"
+rocket = "0.4.10"
+rocket_contrib = { version = "0.4.10", features = ["tera_templates"] }
+getrandom = "0.2.6"
 # Rocket is synchronous, so this uses the `ureq` client
 rspotify = { path = "../..", features = ["client-ureq", "ureq-rustls-tls"], default-features = false }
