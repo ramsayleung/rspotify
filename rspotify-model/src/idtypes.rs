@@ -99,8 +99,7 @@ use serde::{Deserialize, Serialize};
 use strum::Display;
 use thiserror::Error;
 
-use std::fmt::Debug;
-use std::hash::Hash;
+use std::{borrow::Cow, fmt::Debug, hash::Hash};
 
 use crate::Type;
 
@@ -202,7 +201,7 @@ macro_rules! define_idtypes {
             )]
             #[repr(transparent)]
             #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
-            pub struct $name<'a>(::std::borrow::Cow<'a, str>);
+            pub struct $name<'a>(Cow<'a, str>);
 
             impl<'a> $name<'a> {
                 /// The type of the ID, as a constant.
@@ -222,8 +221,11 @@ macro_rules! define_idtypes {
                 ///
                 /// The string passed to this method must be made out of valid
                 /// characters only; otherwise undefined behaviour may occur.
-                pub unsafe fn from_id_unchecked(id: &'a str) -> Self {
-                    Self(std::borrow::Cow::Borrowed(id))
+                pub unsafe fn from_id_unchecked<S>(id: S) -> Self
+                    where
+                        S: Into<Cow<'a, str>>
+                {
+                    Self(id.into())
                 }
 
                 /// Parse Spotify ID from string slice.
@@ -234,8 +236,12 @@ macro_rules! define_idtypes {
                 /// # Errors:
                 ///
                 /// - `IdError::InvalidId` - if `id` contains invalid characters.
-                pub fn from_id(id: &'a str) -> Result<Self, IdError> {
-                    if Self::id_is_valid(id) {
+                pub fn from_id<S>(id: S) -> Result<Self, IdError>
+                    where
+                        S: Into<Cow<'a, str>>
+                {
+                    let id = id.into();
+                    if Self::id_is_valid(&id) {
                         // Safe, we've just checked that the ID is valid.
                         Ok(unsafe { Self::from_id_unchecked(id) })
                     } else {
@@ -264,8 +270,12 @@ macro_rules! define_idtypes {
                 ///   valid id,
                 /// - `IdError::InvalidFormat` - if it can't be splitted into
                 ///   type and id parts.
-                pub fn from_uri(uri: &'a str) -> Result<Self, IdError> {
-                    let (tpe, id) = parse_uri(uri)?;
+                pub fn from_uri<S>(uri: S) -> Result<Self, IdError>
+                    where
+                        S: Into<Cow<'a, str>>
+                {
+                    let uri = uri.into();
+                    let (tpe, id) = parse_uri(&uri)?;
                     if tpe == Type::$type {
                         Self::from_id(id)
                     } else {
@@ -299,8 +309,12 @@ macro_rules! define_idtypes {
                 ///   if it contains valid characters),
                 /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and
                 ///   it can't be split into type and id parts.
-                pub fn from_id_or_uri(id_or_uri: &'a str) -> Result<Self, IdError> {
-                    match Self::from_uri(id_or_uri) {
+                pub fn from_id_or_uri<S>(id_or_uri: S) -> Result<Self, IdError>
+                    where
+                        S: Into<Cow<'a, str>>
+                {
+                    let id_or_uri = id_or_uri.into();
+                    match Self::from_uri(id_or_uri.clone()) {
                         Ok(id) => Ok(id),
                         Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
                         Err(error) => Err(error),
@@ -311,7 +325,7 @@ macro_rules! define_idtypes {
                 /// reference. Useful to use an ID multiple times without having
                 /// to clone it.
                 pub fn as_ref(&'a self) -> $name<'a> {
-                    Self(std::borrow::Cow::Borrowed(self.0.as_ref()))
+                    Self(Cow::Borrowed(self.0.as_ref()))
                 }
 
                 /// An ID is a `Cow` after all, so this will switch to the its
@@ -383,7 +397,7 @@ macro_rules! define_idtypes {
                         where
                             A: serde::de::SeqAccess<'de>,
                         {
-                            let field = seq.next_element()?
+                            let field: &str = seq.next_element()?
                                 .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
                             $name::from_id_or_uri(field)
                                 .map($name::into_static)
@@ -489,7 +503,7 @@ impl<'a> PlayableId<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::error::Error;
+    use std::{borrow::Cow, error::Error};
 
     // Valid values:
     const ID: &str = "4iV5W9uYEdYUVa79Axb7Rh";
@@ -531,7 +545,7 @@ mod test {
     fn test_id_or_uri_and_deserialize() {
         fn test_any<F, E>(check: F)
         where
-            F: Fn(&str) -> Result<&TrackId, E>,
+            F: Fn(&str) -> Result<TrackId<'_>, E>,
             E: Error,
         {
             // In this case we also check that the contents are the ID and not
@@ -570,29 +584,41 @@ mod test {
 
     #[test]
     fn test_multiple_types() {
-        fn endpoint(_ids: impl IntoIterator<Item = Playable>) {}
+        fn endpoint<'a>(_ids: impl IntoIterator<Item = PlayableId<'a>>) {}
 
-        let tracks: Vec<Playable> = vec![
-            Playable::Track(TrackId::from_id(ID).unwrap()),
-            Playable::Track(TrackId::from_id(ID).unwrap()),
-            Playable::Episode(EpisodeId::from_id(ID).unwrap()),
-            Playable::Episode(EpisodeId::from_id(ID).unwrap()),
+        let tracks: Vec<PlayableId> = vec![
+            PlayableId::Track(TrackId::from_id(ID).unwrap()),
+            PlayableId::Track(TrackId::from_id(ID).unwrap()),
+            PlayableId::Episode(EpisodeId::from_id(ID).unwrap()),
+            PlayableId::Episode(EpisodeId::from_id(ID).unwrap()),
         ];
         endpoint(tracks);
     }
 
     #[test]
     fn test_unknown_at_compile_time() {
-        fn endpoint1(input: &str, is_episode: bool) -> Playable {
+        fn endpoint1(input: &str, is_episode: bool) -> PlayableId<'_> {
             if is_episode {
-                Playable::Episode(EpisodeId::from_id(input).unwrap())
+                PlayableId::Episode(EpisodeId::from_id(input).unwrap())
             } else {
-                Playable::Track(TrackId::from_id(input).unwrap())
+                PlayableId::Track(TrackId::from_id(input).unwrap())
             }
         }
-        fn endpoint2(_id: &[Playable]) {}
+        fn endpoint2(_id: &[PlayableId]) {}
 
         let id = endpoint1(ID, false);
         endpoint2(&[id]);
+    }
+
+    #[test]
+    fn test_constructor() {
+        // With `&str`
+        let _ = EpisodeId::from_id(ID).unwrap();
+        // With `String`
+        let _ = EpisodeId::from_id(ID.to_string()).unwrap();
+        // With borrowed `Cow<str>`
+        let _ = EpisodeId::from_id(Cow::Borrowed(ID)).unwrap();
+        // With owned `Cow<str>`
+        let _ = EpisodeId::from_id(Cow::Owned(ID.to_string())).unwrap();
     }
 }
