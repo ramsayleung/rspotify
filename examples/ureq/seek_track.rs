@@ -17,7 +17,7 @@ fn main() {
     spotify.prompt_for_token(&url).unwrap();
 
     match spotify.seek_track(25000, None) {
-        Ok(_) => println!("change to previous playback successful"),
-        Err(_) => eprintln!("change to previous playback failed"),
+        Ok(_) => println!("Change to previous playback successful"),
+        Err(_) => eprintln!("Change to previous playback failed"),
     }
 }

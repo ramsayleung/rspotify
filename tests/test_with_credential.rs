@@ -1,5 +1,5 @@
 use rspotify::{
-    model::{AlbumId, AlbumType, ArtistId, Country, Id, Market, PlaylistId, TrackId, UserId},
+    model::{AlbumId, AlbumType, ArtistId, Country, Market, PlaylistId, TrackId, UserId},
     prelude::*,
     ClientCredsSpotify, Credentials,
 };

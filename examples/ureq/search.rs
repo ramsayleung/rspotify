@@ -19,8 +19,8 @@ fn main() {
     let album_query = "album:arrival artist:abba";
     let result = spotify.search(album_query, &SearchType::Album, None, None, Some(10), None);
     match result {
-        Ok(album) => println!("searched album:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched album: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let artist_query = "tania bowra";
@@ -33,8 +33,8 @@ fn main() {
         None,
     );
     match result {
-        Ok(album) => println!("searched artist:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched artist: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let playlist_query = "\"doom metal\"";
@@ -47,8 +47,8 @@ fn main() {
         None,
     );
     match result {
-        Ok(album) => println!("searched playlist:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched playlist: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let track_query = "abba";
@@ -61,15 +61,15 @@ fn main() {
         None,
     );
     match result {
-        Ok(album) => println!("searched track:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched track: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let show_query = "love";
     let result = spotify.search(show_query, &SearchType::Show, None, None, Some(10), None);
     match result {
-        Ok(show) => println!("searched show:{:?}", show),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(show) => println!("Searched show: {show:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let episode_query = "love";
@@ -82,7 +82,7 @@ fn main() {
         None,
     );
     match result {
-        Ok(episode) => println!("searched episode:{:?}", episode),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(episode) => println!("Searched episode: {episode:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 }

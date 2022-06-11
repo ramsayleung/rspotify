@@ -49,5 +49,5 @@ async fn main() {
         .current_playing(Some(&market), Some(&additional_types))
         .await;
 
-    println!("Response: {:?}", artists);
+    println!("Response: {artists:?}");
 }
