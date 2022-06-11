@@ -565,7 +565,10 @@ async fn test_user_follow_artist() {
         ArtistId::from_id("08td7MxkoHQkXnWAYD8d6Q").unwrap(),
     ];
 
-    client.user_follow_artists(artists.iter().map(ArtistId::as_ref)).await.unwrap();
+    client
+        .user_follow_artists(artists.iter().map(ArtistId::as_ref))
+        .await
+        .unwrap();
     client.user_unfollow_artists(artists).await.unwrap();
 }
 
@@ -578,7 +581,10 @@ async fn test_user_follow_users() {
         UserId::from_id("john").unwrap(),
     ];
 
-    client.user_follow_users(users.iter().map(UserId::as_ref)).await.unwrap();
+    client
+        .user_follow_users(users.iter().map(UserId::as_ref))
+        .await
+        .unwrap();
     client.user_unfollow_users(users).await.unwrap();
 }
 
@@ -652,7 +658,11 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
 
     // Firstly adding some tracks
     client
-        .playlist_add_items(playlist.id.as_ref(), tracks.iter().map(PlayableId::as_ref), None)
+        .playlist_add_items(
+            playlist.id.as_ref(),
+            tracks.iter().map(PlayableId::as_ref),
+            None,
+        )
         .await
         .unwrap();
     check_num_tracks(client, playlist.id.as_ref(), tracks.len() as i32).await;
@@ -676,7 +686,10 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         PlayableId::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
     ];
     client
-        .playlist_replace_items(playlist.id.as_ref(), replaced_tracks.iter().map(|t| t.as_ref()))
+        .playlist_replace_items(
+            playlist.id.as_ref(),
+            replaced_tracks.iter().map(|t| t.as_ref()),
+        )
         .await
         .unwrap();
     // Making sure the number of tracks is updated
@@ -685,11 +698,15 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
     // Removes a few specific tracks
     let tracks = [
         ItemPositions {
-            id: PlayableId::Track(TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap()),
+            id: PlayableId::Track(
+                TrackId::from_uri("spotify:track:4iV5W9uYEdYUVa79Axb7Rh").unwrap(),
+            ),
             positions: &[0],
         },
         ItemPositions {
-            id: PlayableId::Track(TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap()),
+            id: PlayableId::Track(
+                TrackId::from_uri("spotify:track:5m2en2ndANCPembKOYr1xL").unwrap(),
+            ),
             positions: &[4, 6],
         },
     ];
@@ -698,7 +715,12 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         .await
         .unwrap();
     // Making sure three tracks were removed
-    check_num_tracks(client, playlist.id.as_ref(), replaced_tracks.len() as i32 - 3).await;
+    check_num_tracks(
+        client,
+        playlist.id.as_ref(),
+        replaced_tracks.len() as i32 - 3,
+    )
+    .await;
 
     // Removes all occurrences of two tracks
     let to_remove = vec![
@@ -710,7 +732,12 @@ async fn check_playlist_tracks(client: &AuthCodeSpotify, playlist: &FullPlaylist
         .await
         .unwrap();
     // Making sure two more tracks were removed
-    check_num_tracks(client, playlist.id.as_ref(), replaced_tracks.len() as i32 - 5).await;
+    check_num_tracks(
+        client,
+        playlist.id.as_ref(),
+        replaced_tracks.len() as i32 - 5,
+    )
+    .await;
 }
 
 #[maybe_async]
@@ -728,7 +755,10 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
     assert_eq!(following, vec![false, false]);
 
     // Finally unfollowing the playlist in order to clean it up
-    client.playlist_unfollow(playlist.id.as_ref()).await.unwrap();
+    client
+        .playlist_unfollow(playlist.id.as_ref())
+        .await
+        .unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]

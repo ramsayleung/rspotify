@@ -184,14 +184,10 @@ pub fn parse_uri(uri: &str) -> Result<(Type, &str), IdError> {
 
 /// This macro helps consistently define ID types.
 ///
-/// * The `$type` parameter indicates what type the ID is made out of (say,
-///   `Artist`, `Album`...) from the enum `Type`.
-/// * The `$name` parameter is the identifier of the struct for that type.
-///
-/// This macro contains a lot of code but mostly it's just repetitive work to
-/// implement some common traits that's not of much interest for being trivial.
-///
-/// * The `$name` parameter is the identifier of the struct for that type.
+/// * The `$type` parameter indicates what variant in `Type` the ID is for (say,
+///   `Artist`, or `Album`).
+/// * The `$name` parameter is the identifier of the struct.
+/// * The `$validity` parameter is the implementation of `is_id_valid`.
 macro_rules! define_idtypes {
     ($($type:ident => {
         name: $name:ident,
@@ -212,24 +208,10 @@ macro_rules! define_idtypes {
                 /// The type of the ID, as a constant.
                 const TYPE: Type = Type::$type;
 
-                /// An ID is a `Cow` after all, so this will switch to the its
-                /// owned version, which has a `'static` lifetime.
-                pub fn into_static(self) -> $name<'static> {
-                    $name(self.0.to_string().into())
-                }
-
-                /// Similar to [`Self::into_static`], but without consuming the
-                /// original ID.
-                pub fn clone_static(&self) -> $name<'static> {
-                    $name(self.0.to_string().into())
-                }
-
                 /// Only returns `true` in case the given string is valid
                 /// according to that specific ID (e.g., some may require
                 /// alphanumeric characters only).
-                #[inline]
                 pub fn id_is_valid(id: &str) -> bool {
-                    // TODO: make prettier?
                     const VALID_FN: fn(&str) -> bool = $validity;
                     VALID_FN(id)
                 }
@@ -240,7 +222,6 @@ macro_rules! define_idtypes {
                 ///
                 /// The string passed to this method must be made out of valid
                 /// characters only; otherwise undefined behaviour may occur.
-                #[inline]
                 pub unsafe fn from_id_unchecked(id: &'a str) -> Self {
                     Self(std::borrow::Cow::Borrowed(id))
                 }
@@ -326,21 +307,31 @@ macro_rules! define_idtypes {
                     }
                 }
 
-                // TODO: better explanation?
-                /// Useful to keep using an ID without having to clone it.
-                #[inline]
+                /// This creates an ID with the underlying `&str` variant from a
+                /// reference. Useful to use an ID multiple times without having
+                /// to clone it.
                 pub fn as_ref(&'a self) -> $name<'a> {
                     Self(std::borrow::Cow::Borrowed(self.0.as_ref()))
+                }
+
+                /// An ID is a `Cow` after all, so this will switch to the its
+                /// owned version, which has a `'static` lifetime.
+                pub fn into_static(self) -> $name<'static> {
+                    $name(self.0.into_owned().into())
+                }
+
+                /// Similar to [`Self::into_static`], but without consuming the
+                /// original ID.
+                pub fn clone_static(&self) -> $name<'static> {
+                    $name(self.0.clone().into_owned().into())
                 }
             }
 
             impl<'a> Id<'a> for $name<'a> {
-                #[inline]
                 fn id(&self) -> &str {
                     &self.0
                 }
 
-                #[inline]
                 fn _type(&self) -> Type {
                     Self::TYPE
                 }
@@ -366,7 +357,6 @@ macro_rules! define_idtypes {
                             formatter.write_str(msg)
                         }
 
-                        #[inline]
                         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
                         where
                             E: serde::de::Error,
@@ -376,7 +366,6 @@ macro_rules! define_idtypes {
                                 .map_err(serde::de::Error::custom)
                         }
 
-                        #[inline]
                         fn visit_newtype_struct<A>(
                             self,
                             deserializer: A,
@@ -387,7 +376,6 @@ macro_rules! define_idtypes {
                             deserializer.deserialize_str(self)
                         }
 
-                        #[inline]
                         fn visit_seq<A>(
                             self,
                             mut seq: A,
@@ -471,7 +459,6 @@ pub enum PlayContextId<'a> {
 }
 // These don't work with `enum_dispatch`, unfortunately.
 impl<'a> PlayContextId<'a> {
-    #[inline]
     pub fn as_ref(&'a self) -> PlayContextId<'a> {
         match self {
             PlayContextId::Artist(x) => PlayContextId::Artist(x.as_ref()),
@@ -491,7 +478,6 @@ pub enum PlayableId<'a> {
 }
 // These don't work with `enum_dispatch`, unfortunately.
 impl<'a> PlayableId<'a> {
-    #[inline]
     pub fn as_ref(&'a self) -> PlayableId<'a> {
         match self {
             PlayableId::Track(x) => PlayableId::Track(x.as_ref()),

@@ -160,10 +160,7 @@ async fn test_existing_playlist() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_fake_playlist() {
     let playlist_id = PlaylistId::from_id("fakeid").unwrap();
-    let playlist = creds_client()
-        .await
-        .playlist(playlist_id, None, None)
-        .await;
+    let playlist = creds_client().await.playlist(playlist_id, None, None).await;
     assert!(playlist.is_err());
 }
 
