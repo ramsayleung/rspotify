@@ -432,7 +432,7 @@ where
         q: &str,
         _type: &SearchType,
         market: Option<&Market>,
-        include_external: Option<&IncludeExternal>,
+        include_external: Option<IncludeExternal>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<SearchResult> {
@@ -442,7 +442,7 @@ where
             ("q", Some(q)),
             ("type", Some(_type.as_ref())),
             ("market", market.map(|x| x.as_ref())),
-            ("include_external", include_external.map(|x| x.as_ref())),
+            ("include_external", include_external.as_ref().map(|x| x.as_ref())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -860,7 +860,7 @@ where
         &self,
         locale: Option<&str>,
         country: Option<&Market>,
-        timestamp: Option<&chrono::DateTime<chrono::Utc>>,
+        timestamp: Option<chrono::DateTime<chrono::Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<FeaturedPlaylists> {

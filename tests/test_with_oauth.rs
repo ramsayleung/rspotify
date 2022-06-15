@@ -267,7 +267,7 @@ async fn test_current_user_saved_tracks_add() {
 async fn test_current_user_top_artists() {
     oauth_client()
         .await
-        .current_user_top_artists_manual(Some(&TimeRange::ShortTerm), Some(10), Some(0))
+        .current_user_top_artists_manual(Some(TimeRange::ShortTerm), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -277,7 +277,7 @@ async fn test_current_user_top_artists() {
 async fn test_current_user_top_tracks() {
     oauth_client()
         .await
-        .current_user_top_tracks_manual(Some(&TimeRange::ShortTerm), Some(10), Some(0))
+        .current_user_top_tracks_manual(Some(TimeRange::ShortTerm), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -288,7 +288,7 @@ async fn test_featured_playlists() {
     let now: DateTime<Utc> = Utc::now();
     oauth_client()
         .await
-        .featured_playlists(None, None, Some(&now), Some(10), Some(0))
+        .featured_playlists(None, None, Some(now), Some(10), Some(0))
         .await
         .unwrap();
 }

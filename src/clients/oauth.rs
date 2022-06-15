@@ -668,9 +668,9 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-top-artists-and-tracks)
-    fn current_user_top_artists<'a>(
-        &'a self,
-        time_range: Option<&'a TimeRange>,
+    fn current_user_top_artists(
+        &self,
+        time_range: Option<TimeRange>,
     ) -> Paginator<'_, ClientResult<FullArtist>> {
         paginate(
             move |limit, offset| {
@@ -683,14 +683,14 @@ pub trait OAuthClient: BaseClient {
     /// The manually paginated version of [`Self::current_user_top_artists`].
     async fn current_user_top_artists_manual(
         &self,
-        time_range: Option<&TimeRange>,
+        time_range: Option<TimeRange>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("time_range", time_range.map(|x| x.as_ref())),
+            ("time_range", time_range.as_ref().map(|x| x.as_ref())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -710,9 +710,9 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-top-artists-and-tracks)
-    fn current_user_top_tracks<'a>(
-        &'a self,
-        time_range: Option<&'a TimeRange>,
+    fn current_user_top_tracks(
+        &self,
+        time_range: Option<TimeRange>,
     ) -> Paginator<'_, ClientResult<FullTrack>> {
         paginate(
             move |limit, offset| {
@@ -725,14 +725,14 @@ pub trait OAuthClient: BaseClient {
     /// The manually paginated version of [`Self::current_user_top_tracks`].
     async fn current_user_top_tracks_manual(
         &self,
-        time_range: Option<&TimeRange>,
+        time_range: Option<TimeRange>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<FullTrack>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("time_range", time_range.map(|x| x.as_ref())),
+            ("time_range", time_range.as_ref().map(|x| x.as_ref())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
