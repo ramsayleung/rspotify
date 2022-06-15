@@ -209,9 +209,6 @@ pub enum ClientError {
     #[error("cli error: {0}")]
     Cli(String),
 
-    #[error("cache file error: {0}")]
-    CacheFile(String),
-
     #[error("error updating token cache: {0}")]
     UpdateTokenCache(#[from] model::WriteTokenCacheError),
 }
