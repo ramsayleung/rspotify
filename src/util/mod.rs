@@ -16,13 +16,13 @@ pub(crate) fn build_map<'key, 'value, const N: usize>(
     map
 }
 
-pub(crate) fn json_builder() -> JsonBuilder {
-    JsonBuilder(serde_json::Map::new())
-}
-
 pub(crate) struct JsonBuilder(serde_json::Map<String, serde_json::Value>);
 
 impl JsonBuilder {
+    pub(crate) fn new() -> Self {
+        Self(serde_json::Map::new())
+    }
+
     pub(crate) fn field(mut self, name: &str, value: impl Serialize) -> Self {
         self.0
             .insert(name.to_owned(), serde_json::to_value(value).unwrap());
