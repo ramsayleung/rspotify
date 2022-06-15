@@ -6,9 +6,8 @@ use crate::{
     },
     http::Query,
     join_ids,
-    macros::build_json,
     model::*,
-    util::build_map,
+    util::{build_map, json_builder},
     ClientResult, OAuth, Token,
 };
 
@@ -229,12 +228,12 @@ pub trait OAuthClient: BaseClient {
         collaborative: Option<bool>,
         description: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
-        let params = build_json! {
-            "name": name,
-            optional "public": public,
-            optional "collaborative": collaborative,
-            optional "description": description,
-        };
+        let params = json_builder()
+            .field("name", name)
+            .optional_field("public", public)
+            .optional_field("collaborative", collaborative)
+            .optional_field("description", description)
+            .build();
 
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.endpoint_post(&url, &params).await?;
@@ -259,12 +258,12 @@ pub trait OAuthClient: BaseClient {
         description: Option<&str>,
         collaborative: Option<bool>,
     ) -> ClientResult<String> {
-        let params = build_json! {
-            optional "name": name,
-            optional "public": public,
-            optional "collaborative": collaborative,
-            optional "description": description,
-        };
+        let params = json_builder()
+            .optional_field("name", name)
+            .optional_field("public", public)
+            .optional_field("collaborative", collaborative)
+            .optional_field("description", description)
+            .build();
 
         let url = format!("playlists/{}", playlist_id.id());
         self.endpoint_put(&url, &params).await
@@ -298,10 +297,10 @@ pub trait OAuthClient: BaseClient {
         position: Option<i32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
-        let params = build_json! {
-            "uris": uris,
-            optional "position": position,
-        };
+        let params = json_builder()
+            .field("uris", uris)
+            .optional_field("position", position)
+            .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_post(&url, &params).await?;
@@ -322,9 +321,7 @@ pub trait OAuthClient: BaseClient {
         items: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
     ) -> ClientResult<()> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
-        let params = build_json! {
-            "uris": uris
-        };
+        let params = json_builder().field("uris", uris).build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         self.endpoint_put(&url, &params).await?;
@@ -352,12 +349,12 @@ pub trait OAuthClient: BaseClient {
         range_length: Option<u32>,
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
-        let params = build_json! {
-            optional "range_start": range_start,
-            optional "insert_before": insert_before,
-            optional "range_length": range_length,
-            optional "snapshot_id": snapshot_id,
-        };
+        let params = json_builder()
+            .optional_field("range_start", range_start)
+            .optional_field("insert_before", insert_before)
+            .optional_field("range_length", range_length)
+            .optional_field("snapshot_id", snapshot_id)
+            .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_put(&url, &params).await?;
@@ -387,10 +384,10 @@ pub trait OAuthClient: BaseClient {
             })
             .collect::<Vec<_>>();
 
-        let params = build_json! {
-            "tracks": tracks,
-            optional "snapshot_id": snapshot_id,
-        };
+        let params = json_builder()
+            .field("tracks", tracks)
+            .optional_field("snapshot_id", snapshot_id)
+            .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_delete(&url, &params).await?;
@@ -442,10 +439,10 @@ pub trait OAuthClient: BaseClient {
             })
             .collect::<Vec<_>>();
 
-        let params = build_json! {
-            "tracks": tracks,
-            optional "snapshot_id": snapshot_id,
-        };
+        let params = json_builder()
+            .field("tracks", tracks)
+            .optional_field("snapshot_id", snapshot_id)
+            .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_delete(&url, &params).await?;
@@ -465,9 +462,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<()> {
         let url = format!("playlists/{}/followers", playlist_id.id());
 
-        let params = build_json! {
-            optional "public": public,
-        };
+        let params = json_builder().optional_field("public", public).build();
 
         self.endpoint_put(&url, &params).await?;
 
@@ -997,10 +992,10 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/transfer-a-users-playback)
     async fn transfer_playback(&self, device_id: &str, play: Option<bool>) -> ClientResult<()> {
-        let params = build_json! {
-            "device_ids": [device_id],
-            optional "play": play,
-        };
+        let params = json_builder()
+            .field("device_ids", [device_id])
+            .optional_field("play", play)
+            .build();
 
         self.endpoint_put("me/player", &params).await?;
         Ok(())
@@ -1028,15 +1023,17 @@ pub trait OAuthClient: BaseClient {
         offset: Option<Offset>,
         position_ms: Option<time::Duration>,
     ) -> ClientResult<()> {
-        let params = build_json! {
-            "context_uri": context_uri.uri(),
-            optional "offset": offset.map(|x| match x {
-                Offset::Position(position) => json!({ "position": position }),
-                Offset::Uri(uri) => json!({ "uri": uri }),
-            }),
-            optional "position_ms": position_ms,
-
-        };
+        let params = json_builder()
+            .field("context_uri", context_uri.uri())
+            .optional_field(
+                "offset",
+                offset.map(|x| match x {
+                    Offset::Position(position) => json!({ "position": position }),
+                    Offset::Uri(uri) => json!({ "uri": uri }),
+                }),
+            )
+            .optional_field("position_ms", position_ms)
+            .build();
 
         let url = append_device_id("me/player/play", device_id);
         self.endpoint_put(&url, &params).await?;
@@ -1060,14 +1057,20 @@ pub trait OAuthClient: BaseClient {
         offset: Option<crate::model::Offset>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
-        let params = build_json! {
-            "uris": uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>(),
-            optional "position_ms": position_ms,
-            optional "offset": offset.map(|x| match x {
-                Offset::Position(position) => json!({ "position": position }),
-                Offset::Uri(uri) => json!({ "uri": uri }),
-            }),
-        };
+        let params = json_builder()
+            .field(
+                "uris",
+                uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>(),
+            )
+            .optional_field("position_ms", position_ms)
+            .optional_field(
+                "offset",
+                offset.map(|x| match x {
+                    Offset::Position(position) => json!({ "position": position }),
+                    Offset::Uri(uri) => json!({ "uri": uri }),
+                }),
+            )
+            .build();
 
         let url = append_device_id("me/player/play", device_id);
         self.endpoint_put(&url, &params).await?;
@@ -1100,9 +1103,9 @@ pub trait OAuthClient: BaseClient {
         device_id: Option<&str>,
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
-        let params = build_json! {
-            optional "position_ms": position_ms,
-        };
+        let params = json_builder()
+            .optional_field("position_ms", position_ms)
+            .build();
 
         let url = append_device_id("me/player/play", device_id);
         self.endpoint_put(&url, &params).await?;
@@ -1306,9 +1309,9 @@ pub trait OAuthClient: BaseClient {
         country: Option<&Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
-        let params = build_json! {
-            optional "country": country.map(|x| x.as_ref())
-        };
+        let params = json_builder()
+            .optional_field("country", country.map(|x| x.as_ref()))
+            .build();
         self.endpoint_delete(&url, &params).await?;
 
         Ok(())
