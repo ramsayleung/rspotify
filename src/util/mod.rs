@@ -23,15 +23,15 @@ impl JsonBuilder {
         Self(serde_json::Map::new())
     }
 
-    pub(crate) fn field(mut self, name: &str, value: impl Serialize) -> Self {
+    pub(crate) fn required(mut self, name: &str, value: impl Serialize) -> Self {
         self.0
             .insert(name.to_owned(), serde_json::to_value(value).unwrap());
         self
     }
 
-    pub(crate) fn optional_field(self, name: &str, value: Option<impl Serialize>) -> Self {
+    pub(crate) fn optional(self, name: &str, value: Option<impl Serialize>) -> Self {
         if let Some(value) = value {
-            self.field(name, value)
+            self.required(name, value)
         } else {
             self
         }

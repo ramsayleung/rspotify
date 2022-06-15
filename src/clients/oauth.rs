@@ -229,10 +229,10 @@ pub trait OAuthClient: BaseClient {
         description: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
         let params = JsonBuilder::new()
-            .field("name", name)
-            .optional_field("public", public)
-            .optional_field("collaborative", collaborative)
-            .optional_field("description", description)
+            .required("name", name)
+            .optional("public", public)
+            .optional("collaborative", collaborative)
+            .optional("description", description)
             .build();
 
         let url = format!("users/{}/playlists", user_id.id());
@@ -259,10 +259,10 @@ pub trait OAuthClient: BaseClient {
         collaborative: Option<bool>,
     ) -> ClientResult<String> {
         let params = JsonBuilder::new()
-            .optional_field("name", name)
-            .optional_field("public", public)
-            .optional_field("collaborative", collaborative)
-            .optional_field("description", description)
+            .optional("name", name)
+            .optional("public", public)
+            .optional("collaborative", collaborative)
+            .optional("description", description)
             .build();
 
         let url = format!("playlists/{}", playlist_id.id());
@@ -298,8 +298,8 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = JsonBuilder::new()
-            .field("uris", uris)
-            .optional_field("position", position)
+            .required("uris", uris)
+            .optional("position", position)
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -321,7 +321,7 @@ pub trait OAuthClient: BaseClient {
         items: impl IntoIterator<Item = &'a dyn PlayableId> + Send + 'a,
     ) -> ClientResult<()> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
-        let params = JsonBuilder::new().field("uris", uris).build();
+        let params = JsonBuilder::new().required("uris", uris).build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         self.endpoint_put(&url, &params).await?;
@@ -350,10 +350,10 @@ pub trait OAuthClient: BaseClient {
         snapshot_id: Option<&str>,
     ) -> ClientResult<PlaylistResult> {
         let params = JsonBuilder::new()
-            .optional_field("range_start", range_start)
-            .optional_field("insert_before", insert_before)
-            .optional_field("range_length", range_length)
-            .optional_field("snapshot_id", snapshot_id)
+            .optional("range_start", range_start)
+            .optional("insert_before", insert_before)
+            .optional("range_length", range_length)
+            .optional("snapshot_id", snapshot_id)
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -385,8 +385,8 @@ pub trait OAuthClient: BaseClient {
             .collect::<Vec<_>>();
 
         let params = JsonBuilder::new()
-            .field("tracks", tracks)
-            .optional_field("snapshot_id", snapshot_id)
+            .required("tracks", tracks)
+            .optional("snapshot_id", snapshot_id)
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -440,8 +440,8 @@ pub trait OAuthClient: BaseClient {
             .collect::<Vec<_>>();
 
         let params = JsonBuilder::new()
-            .field("tracks", tracks)
-            .optional_field("snapshot_id", snapshot_id)
+            .required("tracks", tracks)
+            .optional("snapshot_id", snapshot_id)
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -462,7 +462,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<()> {
         let url = format!("playlists/{}/followers", playlist_id.id());
 
-        let params = JsonBuilder::new().optional_field("public", public).build();
+        let params = JsonBuilder::new().optional("public", public).build();
 
         self.endpoint_put(&url, &params).await?;
 
@@ -993,8 +993,8 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/transfer-a-users-playback)
     async fn transfer_playback(&self, device_id: &str, play: Option<bool>) -> ClientResult<()> {
         let params = JsonBuilder::new()
-            .field("device_ids", [device_id])
-            .optional_field("play", play)
+            .required("device_ids", [device_id])
+            .optional("play", play)
             .build();
 
         self.endpoint_put("me/player", &params).await?;
@@ -1024,15 +1024,15 @@ pub trait OAuthClient: BaseClient {
         position_ms: Option<time::Duration>,
     ) -> ClientResult<()> {
         let params = JsonBuilder::new()
-            .field("context_uri", context_uri.uri())
-            .optional_field(
+            .required("context_uri", context_uri.uri())
+            .optional(
                 "offset",
                 offset.map(|x| match x {
                     Offset::Position(position) => json!({ "position": position }),
                     Offset::Uri(uri) => json!({ "uri": uri }),
                 }),
             )
-            .optional_field("position_ms", position_ms)
+            .optional("position_ms", position_ms)
             .build();
 
         let url = append_device_id("me/player/play", device_id);
@@ -1058,12 +1058,12 @@ pub trait OAuthClient: BaseClient {
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = JsonBuilder::new()
-            .field(
+            .required(
                 "uris",
                 uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>(),
             )
-            .optional_field("position_ms", position_ms)
-            .optional_field(
+            .optional("position_ms", position_ms)
+            .optional(
                 "offset",
                 offset.map(|x| match x {
                     Offset::Position(position) => json!({ "position": position }),
@@ -1104,7 +1104,7 @@ pub trait OAuthClient: BaseClient {
         position_ms: Option<u32>,
     ) -> ClientResult<()> {
         let params = JsonBuilder::new()
-            .optional_field("position_ms", position_ms)
+            .optional("position_ms", position_ms)
             .build();
 
         let url = append_device_id("me/player/play", device_id);
@@ -1310,7 +1310,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
         let params = JsonBuilder::new()
-            .optional_field("country", country.map(|x| x.as_ref()))
+            .optional("country", country.map(|x| x.as_ref()))
             .build();
         self.endpoint_delete(&url, &params).await?;
 
