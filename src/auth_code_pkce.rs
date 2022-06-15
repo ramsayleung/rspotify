@@ -1,9 +1,11 @@
 use crate::{
     alphabets, auth_urls,
-    clients::{mutex::Mutex, BaseClient, OAuthClient},
+    clients::{BaseClient, OAuthClient},
     generate_random_string,
     http::{Form, HttpClient},
-    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params,
+    sync::Mutex,
+    ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;

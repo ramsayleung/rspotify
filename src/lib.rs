@@ -125,6 +125,7 @@ mod auth_code;
 mod auth_code_pkce;
 mod client_creds;
 pub mod clients;
+pub mod sync;
 
 // Subcrate re-exports
 pub use rspotify_http as http;
