@@ -65,8 +65,9 @@ impl Token {
 
     /// Saves the token information into its cache file.
     pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> Result<(), WriteTokenCacheError> {
-        // `serde_json::to_vec` only errors if our `Serialize` implementation fails, which it
-        // shouldn’t, or we try to serialize a map with non-string keys, which we don’t.
+        // `serde_json::to_vec` only errors if our `Serialize` implementation
+        // fails, which it shouldn’t, or we try to serialize a map with
+        // non-string keys, which we don’t.
         let json = serde_json::to_vec(&self).unwrap();
 
         write_file(path.as_ref(), &*json).map_err(|inner| WriteTokenCacheError { inner })?;
@@ -125,8 +126,8 @@ fn read_file(path: &Path) -> Result<Vec<u8>, ReadFileError> {
 #[derive(Debug, Error)]
 #[error("failed to read file {}", path.display())]
 pub struct ReadFileError {
-    // Intentionally not exposed to allow future API evolution, e.g. moving this to a enum variants
-    // `Open(io::Error)` and `Read(io::Error)`
+    // Intentionally not exposed to allow future API evolution, e.g., moving
+    // this to a enum variants `Open(io::Error)` and `Read(io::Error)`
     #[source]
     inner: io::Error,
     path: Box<Path>,
@@ -141,8 +142,8 @@ impl ReadFileError {
 
     /// Consumes this error type, returning the underlying inner I/O error.
     ///
-    /// It is not recommended to use this method just to unify error types, as you will lose
-    /// valuable information in the error message.
+    /// It is not recommended to use this method just to unify error types, as
+    /// you will lose valuable information in the error message.
     #[must_use]
     pub fn into_io(self) -> io::Error {
         self.inner
@@ -166,8 +167,8 @@ fn write_file(path: &Path, bytes: &[u8]) -> Result<(), WriteFileError> {
 #[derive(Debug, Error)]
 #[error("failed to write file {}", path.display())]
 pub struct WriteFileError {
-    // Intentionally not exposed to allow future API evolution, e.g. moving this to an enum variant
-    // `Open(io::Error)` and `Write(io::Error)`
+    // Intentionally not exposed to allow future API evolution, e.g., moving
+    // this to an enum variant `Open(io::Error)` and `Write(io::Error)`
     #[source]
     inner: io::Error,
     path: Box<Path>,
@@ -182,8 +183,8 @@ impl WriteFileError {
 
     /// Consumes this error type, returning the underlying inner I/O error.
     ///
-    /// It is not recommended to use this method just to unify error types, as you will lose
-    /// valuable information in the error message.
+    /// It is not recommended to use this method just to unify error types, as
+    /// you will lose valuable information in the error message.
     #[must_use]
     pub fn into_io(self) -> io::Error {
         self.inner
