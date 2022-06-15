@@ -4,12 +4,12 @@
 #[cfg(feature = "__async")]
 mod futures;
 #[cfg(feature = "__sync")]
-mod sync;
+mod blocking;
 
 #[cfg(feature = "__async")]
 use self::futures as imp;
 #[cfg(feature = "__sync")]
-use self::sync as imp;
+use self::blocking as imp;
 
 /// A type alias for either an asynchronous mutex or [`std::sync::Mutex`], depending on whether
 /// this library is compiled in asynchronous or synchronous mode.
