@@ -39,57 +39,6 @@ macro_rules! count_items {
     ($($item:expr),*) => {<[()]>::len(&[$($crate::replace_expr!($item ())),*])};
 }
 
-/// This macro and [`build_json`] help make the endpoints as concise as possible
-/// and boilerplate-free, which is specially important when initializing the
-/// parameters of the query. In the case of `build_map` this will construct a
-/// `HashMap<&str, &str>`, and `build_json` will initialize a
-/// `HashMap<String, serde_json::Value>`.
-///
-/// The syntax is the following:
-///
-///   [optional] "key": value
-///
-/// For an example, refer to the `test::test_build_map` function in this module,
-/// or the real usages in Rspotify's client.
-///
-/// The `key` and `value` parameters are what's to be inserted in the HashMap.
-/// If `optional` is used, the value will only be inserted if it's a
-/// `Some(...)`.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! internal_build_map {
-    (/* required */, $map:ident, $key:expr, $val:expr) => {
-        $map.insert($key, $val);
-    };
-    (optional, $map:ident, $key:expr, $val:expr) => {
-        if let Some(val) = $val {
-            $map.insert($key, val);
-        }
-    };
-}
-#[doc(hidden)]
-#[macro_export]
-macro_rules! build_map {
-    (
-        $(
-            $( $kind:ident )? $key:literal : $val:expr
-        ),+ $(,)?
-    ) => {{
-        let mut params = ::std::collections::HashMap::<&str, &str>::with_capacity(
-            $crate::count_items!($( $key ),*)
-        );
-        $(
-            $crate::internal_build_map!(
-                $( $kind )?,
-                params,
-                $key,
-                $val
-            );
-        )+
-        params
-    }};
-}
-
 /// Refer to the [`build_map`] documentation; this is the same but for JSON
 /// maps.
 #[doc(hidden)]
@@ -129,9 +78,8 @@ macro_rules! build_json {
 
 #[cfg(test)]
 mod test {
-    use crate::{build_json, build_map, scopes};
+    use crate::{build_json, scopes};
     use serde_json::{json, Map, Value};
-    use std::collections::HashMap;
 
     #[test]
     fn test_hashset() {
@@ -141,36 +89,6 @@ mod test {
         assert!(scopes.contains("world"));
         assert!(scopes.contains("foo"));
         assert!(scopes.contains("bar"));
-    }
-
-    #[test]
-    fn test_build_map() {
-        // Passed as parameters, for example.
-        let id = "Pink Lemonade";
-        let artist = Some("The Wombats");
-        let market: Option<i32> = None;
-
-        let market_str = market.map(|x| x.to_string());
-        let with_macro = build_map! {
-            // Mandatory (not an `Option<T>`)
-            "id": id,
-            // Can be used directly
-            optional "artist": artist,
-            // `Modality` needs to be converted to &str
-            optional "market": market_str.as_deref(),
-        };
-
-        let mut manually = HashMap::<&str, &str>::with_capacity(3);
-        manually.insert("id", id);
-        let market_str = market.map(|x| x.to_string());
-        if let Some(val) = artist {
-            manually.insert("artist", val);
-        }
-        if let Some(val) = market_str.as_deref() {
-            manually.insert("market", val);
-        }
-
-        assert_eq!(with_macro, manually);
     }
 
     #[test]

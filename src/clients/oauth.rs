@@ -6,8 +6,9 @@ use crate::{
     },
     http::Query,
     join_ids,
-    macros::{build_json, build_map},
+    macros::build_json,
     model::*,
+    util::build_map,
     ClientResult, OAuth, Token,
 };
 
@@ -204,10 +205,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
         let result = self.endpoint_get("me/playlists", &params).await?;
         convert_result(&result)
@@ -540,11 +538,11 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Page<SavedAlbum>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("market", market.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self.endpoint_get("me/albums", &params).await?;
         convert_result(&result)
@@ -583,11 +581,11 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Page<SavedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("market", market.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self.endpoint_get("me/tracks", &params).await?;
         convert_result(&result)
@@ -606,11 +604,11 @@ pub trait OAuthClient: BaseClient {
         limit: Option<u32>,
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
-        let params = build_map! {
-            "type": Type::Artist.as_ref(),
-            optional "after": after,
-            optional "limit": limit.as_deref(),
-        };
+        let params = build_map([
+            ("type", Some(Type::Artist.as_ref())),
+            ("after", after),
+            ("limit", limit.as_deref()),
+        ]);
 
         let result = self.endpoint_get("me/following", &params).await?;
         convert_result::<CursorPageFullArtists>(&result).map(|x| x.artists)
@@ -696,11 +694,11 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Page<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "time_range": time_range.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("time_range", time_range.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self.endpoint_get("me/top/artists", &params).await?;
         convert_result(&result)
@@ -738,11 +736,11 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Page<FullTrack>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "time_range": time_range.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("time_range", time_range.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self.endpoint_get("me/top/tracks", &params).await?;
         convert_result(&result)
@@ -762,9 +760,7 @@ pub trait OAuthClient: BaseClient {
         time_limit: Option<TimeLimits>,
     ) -> ClientResult<CursorBasedPage<PlayHistory>> {
         let limit = limit.map(|x| x.to_string());
-        let mut params = build_map! {
-            optional "limit": limit.as_deref(),
-        };
+        let mut params = build_map([("limit", limit.as_deref())]);
 
         let time_limit = match time_limit {
             Some(TimeLimits::Before(y)) => Some(("before", y.timestamp_millis().to_string())),
@@ -942,10 +938,10 @@ pub trait OAuthClient: BaseClient {
                 .collect::<Vec<_>>()
                 .join(",")
         });
-        let params = build_map! {
-            optional "country": country.map(|x| x.as_ref()),
-            optional "additional_types": additional_types.as_deref(),
-        };
+        let params = build_map([
+            ("country", country.map(|x| x.as_ref())),
+            ("additional_types", additional_types.as_deref()),
+        ]);
 
         let result = self.endpoint_get("me/player", &params).await?;
         if result.is_empty() {
@@ -975,10 +971,10 @@ pub trait OAuthClient: BaseClient {
                 .collect::<Vec<_>>()
                 .join(",")
         });
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-            optional "additional_types": additional_types.as_ref(),
-        };
+        let params = build_map([
+            ("market", market.map(|x| x.as_ref())),
+            ("additional_types", additional_types.as_deref()),
+        ]);
 
         let result = self
             .endpoint_get("me/player/currently-playing", &params)
@@ -1274,10 +1270,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Page<Show>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "limit": limit.as_ref(),
-            optional "offset": offset.as_ref(),
-        };
+        let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
         let result = self.endpoint_get("me/shows", &params).await?;
         convert_result(&result)
@@ -1294,9 +1287,7 @@ pub trait OAuthClient: BaseClient {
         ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
         let ids = join_ids(ids);
-        let params = build_map! {
-            "ids": &ids,
-        };
+        let params = build_map([("ids", Some(&ids))]);
         let result = self.endpoint_get("me/shows/contains", &params).await?;
         convert_result(&result)
     }

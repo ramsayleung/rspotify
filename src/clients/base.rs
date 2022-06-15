@@ -6,9 +6,9 @@ use crate::{
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     join_ids,
-    macros::build_map,
     model::*,
     sync::Mutex,
+    util::build_map,
     ClientResult, Config, Credentials, Token,
 };
 
@@ -263,9 +263,7 @@ where
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-        };
+        let params = build_map([("market", market.map(|x| x.as_ref()))]);
 
         let url = format!("tracks/?ids={}", ids);
         let result = self.endpoint_get(&url, &params).await?;
@@ -339,12 +337,12 @@ where
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "album_type": album_type.map(|x| x.as_ref()),
-            optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("album_type", album_type.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let url = format!("artists/{}/albums", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -364,9 +362,7 @@ where
         artist_id: &ArtistId,
         market: &Market,
     ) -> ClientResult<Vec<FullTrack>> {
-        let params = build_map! {
-            "market": market.as_ref()
-        };
+        let params = build_map([("market", Some(market.as_ref()))]);
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -442,14 +438,14 @@ where
     ) -> ClientResult<SearchResult> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            "q": q,
-            "type": _type.as_ref(),
-            optional "market": market.map(|x| x.as_ref()),
-            optional "include_external": include_external.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("q", Some(q)),
+            ("type", Some(_type.as_ref())),
+            ("market", market.map(|x| x.as_ref())),
+            ("include_external", include_external.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self.endpoint_get("search", &params).await?;
         convert_result(&result)
@@ -485,10 +481,7 @@ where
     ) -> ClientResult<Page<SimplifiedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
         let url = format!("albums/{}/tracks", album_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -520,10 +513,7 @@ where
         fields: Option<&str>,
         market: Option<&Market>,
     ) -> ClientResult<FullPlaylist> {
-        let params = build_map! {
-            optional "fields": fields,
-            optional "market": market.map(|x| x.as_ref()),
-        };
+        let params = build_map([("fields", fields), ("market", market.map(|x| x.as_ref()))]);
 
         let url = format!("playlists/{}", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -544,9 +534,7 @@ where
         playlist_id: Option<&PlaylistId>,
         fields: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
-        let params = build_map! {
-            optional "fields": fields,
-        };
+        let params = build_map([("fields", fields)]);
 
         let url = match playlist_id {
             Some(playlist_id) => format!("users/{}/playlists/{}", user_id.id(), playlist_id.id()),
@@ -596,9 +584,7 @@ where
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-show)
     async fn get_a_show(&self, id: &ShowId, market: Option<&Market>) -> ClientResult<FullShow> {
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-        };
+        let params = build_map([("market", market.map(|x| x.as_ref()))]);
 
         let url = format!("shows/{}", id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -619,10 +605,7 @@ where
         market: Option<&Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
-        let params = build_map! {
-            "ids": &ids,
-            optional "market": market.map(|x| x.as_ref()),
-        };
+        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.as_ref()))]);
 
         let result = self.endpoint_get("shows", &params).await?;
         convert_result::<SeversalSimplifiedShows>(&result).map(|x| x.shows)
@@ -666,11 +649,11 @@ where
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_ref(),
-            optional "offset": offset.as_ref(),
-        };
+        let params = build_map([
+            ("market", market.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let url = format!("shows/{}/episodes", id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -692,9 +675,7 @@ where
         market: Option<&Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
-        let params = build_map! {
-            optional "market": market.map(|x| x.as_ref()),
-        };
+        let params = build_map([("market", market.map(|x| x.as_ref()))]);
 
         let result = self.endpoint_get(&url, &params).await?;
         convert_result(&result)
@@ -713,10 +694,7 @@ where
         market: Option<&Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
-        let params = build_map! {
-            "ids": &ids,
-            optional "market": market.map(|x| x.as_ref()),
-        };
+        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.as_ref()))]);
 
         let result = self.endpoint_get("episodes", &params).await?;
         convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
@@ -803,12 +781,12 @@ where
     ) -> ClientResult<Page<Category>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "locale": locale,
-            optional "country": country.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("locale", locale),
+            ("country", country.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
         let result = self.endpoint_get("browse/categories", &params).await?;
         convert_result::<PageCategory>(&result).map(|x| x.categories)
     }
@@ -850,11 +828,11 @@ where
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "country": country.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("country", country.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let url = format!("browse/categories/{}/playlists", category_id);
         let result = self.endpoint_get(&url, &params).await?;
@@ -889,13 +867,13 @@ where
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let timestamp = timestamp.map(|x| x.to_rfc3339());
-        let params = build_map! {
-            optional "locale": locale,
-            optional "country": country.map(|x| x.as_ref()),
-            optional "timestamp": timestamp.as_deref(),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("locale", locale),
+            ("country", country.map(|x| x.as_ref())),
+            ("timestamp", timestamp.as_deref()),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self
             .endpoint_get("browse/featured-playlists", &params)
@@ -935,11 +913,11 @@ where
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let params = build_map! {
-            optional "country": country.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("country", country.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let result = self.endpoint_get("browse/new-releases", &params).await?;
         convert_result::<PageSimplifiedAlbums>(&result).map(|x| x.albums)
@@ -975,13 +953,13 @@ where
         let seed_genres = seed_genres.map(|x| x.into_iter().collect::<Vec<_>>().join(","));
         let seed_tracks = seed_tracks.map(join_ids);
         let limit = limit.map(|x| x.to_string());
-        let mut params = build_map! {
-            optional "seed_artists": seed_artists.as_deref(),
-            optional "seed_genres": seed_genres.as_deref(),
-            optional "seed_tracks": seed_tracks.as_deref(),
-            optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-        };
+        let mut params = build_map([
+            ("seed_artists", seed_artists.as_deref()),
+            ("seed_genres", seed_genres.as_deref()),
+            ("seed_tracks", seed_tracks.as_deref()),
+            ("market", market.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+        ]);
 
         // First converting the attributes into owned `String`s
         let owned_attributes = attributes
@@ -1038,12 +1016,12 @@ where
     ) -> ClientResult<Page<PlaylistItem>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "fields": fields,
-            optional "market": market.map(|x| x.as_ref()),
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([
+            ("fields", fields),
+            ("market", market.map(|x| x.as_ref())),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -1080,10 +1058,7 @@ where
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map! {
-            optional "limit": limit.as_deref(),
-            optional "offset": offset.as_deref(),
-        };
+        let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.endpoint_get(&url, &params).await?;
