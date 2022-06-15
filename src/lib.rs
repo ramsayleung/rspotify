@@ -212,8 +212,8 @@ pub enum ClientError {
     #[error("cache file error: {0}")]
     CacheFile(String),
 
-    #[error("model error: {0}")]
-    Model(#[from] model::ModelError),
+    #[error("error updating token cache: {0}")]
+    UpdateTokenCache(#[from] model::WriteTokenCacheError),
 }
 
 // The conversion has to be done manually because it's in a `Box<T>`

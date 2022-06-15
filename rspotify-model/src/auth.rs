@@ -1,14 +1,11 @@
 //! All objects related to the auth flows defined by Spotify API
 
-use crate::{
-    custom_serde::{duration_second, space_separated_scopes},
-    ModelResult,
-};
+use crate::custom_serde::{duration_second, space_separated_scopes};
 
 use std::{
     collections::{HashMap, HashSet},
-    fs,
-    io::{Read, Write},
+    fmt::{self, Display, Formatter},
+    fs, io,
     path::Path,
 };
 
@@ -56,22 +53,22 @@ impl Default for Token {
 
 impl Token {
     /// Tries to initialize the token from a cache file.
-    pub fn from_cache<T: AsRef<Path>>(path: T) -> ModelResult<Self> {
-        let mut file = fs::File::open(path)?;
-        let mut tok_str = String::new();
-        file.read_to_string(&mut tok_str)?;
-        let tok = serde_json::from_str::<Token>(&tok_str)?;
+    pub fn from_cache<T: AsRef<Path>>(path: T) -> Result<Self, ReadTokenCacheError> {
+        let json = read_file(path.as_ref()).map_err(ReadTokenCacheError::Reading)?;
+
+        let tok =
+            serde_json::from_slice::<Token>(&*json).map_err(ReadTokenCacheError::Deserializing)?;
 
         Ok(tok)
     }
 
     /// Saves the token information into its cache file.
-    pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> ModelResult<()> {
-        let token_info = serde_json::to_string(&self)?;
+    pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> Result<(), WriteTokenCacheError> {
+        // `serde_json::to_vec` only errors if our `Serialize` implementation fails, which it
+        // shouldn’t, or we try to serialize a map with non-string keys, which we don’t.
+        let json = serde_json::to_vec(&self).unwrap();
 
-        let mut file = fs::OpenOptions::new().write(true).create(true).open(path)?;
-        file.set_len(0)?;
-        file.write_all(token_info.as_bytes())?;
+        write_file(path.as_ref(), &*json).map_err(|inner| WriteTokenCacheError { inner })?;
 
         Ok(())
     }
@@ -92,6 +89,153 @@ impl Token {
         let mut headers = HashMap::new();
         headers.insert(auth, value);
         headers
+    }
+}
+
+/// An error reading a cached [`Token`].
+#[derive(Debug)]
+pub enum ReadTokenCacheError {
+    /// There was an error reading the cache file into memory.
+    Reading(ReadFileError),
+
+    /// There was an error deserializing the contents of the cache file.
+    Deserializing(serde_json::Error),
+}
+
+impl Display for ReadTokenCacheError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str("failed to read token from cache")
+    }
+}
+
+impl std::error::Error for ReadTokenCacheError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(match self {
+            Self::Reading(e) => e,
+            Self::Deserializing(e) => e,
+        })
+    }
+}
+
+/// An error writing a [`Token`] to its cache.
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct WriteTokenCacheError {
+    /// The underlying error in writing the [`Token`] file cache.
+    pub inner: WriteFileError,
+}
+
+impl Display for WriteTokenCacheError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str("failed to write token to cache")
+    }
+}
+
+impl std::error::Error for WriteTokenCacheError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.inner)
+    }
+}
+
+fn read_file(path: &Path) -> Result<Vec<u8>, ReadFileError> {
+    fs::read(path).map_err(|inner| ReadFileError {
+        inner,
+        path: Box::from(path),
+    })
+}
+
+/// An error reading a file.
+#[derive(Debug)]
+pub struct ReadFileError {
+    // Intentionally not exposed to allow future API evolution, e.g. moving this to a enum variants
+    // `Open(io::Error)` and `Read(io::Error)`
+    inner: io::Error,
+    path: Box<Path>,
+}
+
+impl ReadFileError {
+    /// Returns a shared reference to the underlying I/O that caused this.
+    #[must_use]
+    pub fn io(&self) -> &io::Error {
+        &self.inner
+    }
+
+    /// Consumes this error type, returning the underlying inner I/O error.
+    ///
+    /// It is not recommended to use this method just to unify error types, as you will lose
+    /// valuable information in the error message.
+    #[must_use]
+    pub fn into_io(self) -> io::Error {
+        self.inner
+    }
+
+    /// Returns a shared reference to the path that could not be read.
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        &*self.path
+    }
+}
+
+impl Display for ReadFileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "failed to read file {}", self.path.display())
+    }
+}
+
+impl std::error::Error for ReadFileError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(self.io())
+    }
+}
+
+fn write_file(path: &Path, bytes: &[u8]) -> Result<(), WriteFileError> {
+    fs::write(path, bytes).map_err(|inner| WriteFileError {
+        inner,
+        path: Box::from(path),
+    })
+}
+
+/// An error writing a file.
+#[derive(Debug)]
+pub struct WriteFileError {
+    // Intentionally not exposed to allow future API evolution, e.g. moving this to an enum variant
+    // `Open(io::Error)` and `Write(io::Error)`
+    inner: io::Error,
+    path: Box<Path>,
+}
+
+impl WriteFileError {
+    /// Returns a shared reference to the underlying I/O that caused this.
+    #[must_use]
+    pub fn io(&self) -> &io::Error {
+        &self.inner
+    }
+
+    /// Consumes this error type, returning the underlying inner I/O error.
+    ///
+    /// It is not recommended to use this method just to unify error types, as you will lose
+    /// valuable information in the error message.
+    #[must_use]
+    pub fn into_io(self) -> io::Error {
+        self.inner
+    }
+
+    /// Returns a shared reference to the path that could not be written to.
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        &*self.path
+    }
+}
+
+impl Display for WriteFileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "failed to write file {}", self.path.display())
+    }
+}
+
+impl std::error::Error for WriteFileError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(self.io())
     }
 }
 

@@ -56,7 +56,10 @@ pub trait OAuthClient: BaseClient {
     /// the application re-authenticate.
     ///
     /// [`ClientCredsSpotify::read_token_cache`]: crate::client_creds::ClientCredsSpotify::read_token_cache
-    async fn read_token_cache(&self, allow_expired: bool) -> ClientResult<Option<Token>> {
+    async fn read_token_cache(
+        &self,
+        allow_expired: bool,
+    ) -> Result<Option<Token>, ReadTokenCacheError> {
         if !self.get_config().token_cached {
             log::info!("Auth token cache read ignored (not configured)");
             return Ok(None);

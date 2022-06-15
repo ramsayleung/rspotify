@@ -1,6 +1,7 @@
 use crate::{
     clients::{mutex::Mutex, BaseClient},
     http::{Form, HttpClient},
+    model::ReadTokenCacheError,
     params, ClientResult, Config, Credentials, Token,
 };
 
@@ -93,7 +94,7 @@ impl ClientCredsSpotify {
     /// * The read token is expired
     /// * The cached token is disabled in the config
     #[maybe_async]
-    pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
+    pub async fn read_token_cache(&self) -> Result<Option<Token>, ReadTokenCacheError> {
         if !self.get_config().token_cached {
             log::info!("Token cache read ignored (not configured)");
             return Ok(None);
