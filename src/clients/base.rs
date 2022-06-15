@@ -442,7 +442,10 @@ where
             ("q", Some(q)),
             ("type", Some(_type.as_ref())),
             ("market", market.map(|x| x.as_ref())),
-            ("include_external", include_external.as_ref().map(|x| x.as_ref())),
+            (
+                "include_external",
+                include_external.as_ref().map(|x| x.as_ref()),
+            ),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
