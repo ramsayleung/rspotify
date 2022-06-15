@@ -1,5 +1,8 @@
 ## Unreleased
 
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) All enums now implement `Into<&'static str>` as well as `AsRef<str>`
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
+
 **Breaking changes**:
 - ([#325](https://github.com/ramsayleung/rspotify/pull/325)) The `auth_code`, `auth_code_pkce`, `client_creds`, `clients::base` and `clients::oauth` modules have been removed from the public API; you should access the same types from their parent modules instead
 - ([#326](https://github.com/ramsayleung/rspotify/pull/326)) The `rspotify::clients::mutex` module has been renamed to `rspotify::sync`
