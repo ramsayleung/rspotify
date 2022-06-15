@@ -3,6 +3,9 @@
 **Breaking changes**:
 - ([#325](https://github.com/ramsayleung/rspotify/pull/325)) The `auth_code`, `auth_code_pkce`, `client_creds`, `clients::base` and `clients::oauth` modules have been removed from the public API; you should access the same types from their parent modules instead
 - ([#326](https://github.com/ramsayleung/rspotify/pull/326)) The `rspotify::clients::mutex` module has been renamed to `rspotify::sync`
+- ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `search` now accepts `Option<IncludeExternal>` instead of `Option<&IncludeExternal>`
+- ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `featured_playlists` now accepts `Option<chrono::DateTime<chrono::Utc>>` instead of `Option<&chrono::DateTime<chrono::Utc>>`
+- ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `current_user_top_artists[_manual]` and `current_user_top_tracks[_manual]` now accept `Option<TimeRange>` instead of `Option<&TimeRange>`
 
 ## 0.11.5 (2022.03.28)
 
