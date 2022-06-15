@@ -121,10 +121,11 @@
 //! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
 //! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant
 
-pub mod auth_code;
-pub mod auth_code_pkce;
-pub mod client_creds;
+mod auth_code;
+mod auth_code_pkce;
+mod client_creds;
 pub mod clients;
+pub mod sync;
 
 // Subcrate re-exports
 pub use rspotify_http as http;

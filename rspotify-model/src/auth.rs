@@ -4,7 +4,6 @@ use crate::custom_serde::{duration_second, space_separated_scopes};
 
 use std::{
     collections::{HashMap, HashSet},
-    fmt::{self, Display, Formatter},
     fs, io,
     path::Path,
 };

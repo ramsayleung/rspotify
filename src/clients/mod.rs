@@ -1,6 +1,5 @@
-pub mod base;
-pub mod mutex;
-pub mod oauth;
+mod base;
+mod oauth;
 pub mod pagination;
 
 pub use base::BaseClient;

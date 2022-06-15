@@ -2,13 +2,13 @@ use crate::{
     auth_urls,
     clients::{
         convert_result,
-        mutex::Mutex,
         pagination::{paginate, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     join_ids,
     macros::build_map,
     model::*,
+    sync::Mutex,
     ClientResult, Config, Credentials, Token,
 };
 
@@ -436,7 +436,7 @@ where
         q: &str,
         _type: &SearchType,
         market: Option<&Market>,
-        include_external: Option<&IncludeExternal>,
+        include_external: Option<IncludeExternal>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<SearchResult> {
@@ -446,7 +446,7 @@ where
             "q": q,
             "type": _type.as_ref(),
             optional "market": market.map(|x| x.as_ref()),
-            optional "include_external": include_external.map(|x| x.as_ref()),
+            optional "include_external": include_external.as_ref().map(|x| x.as_ref()),
             optional "limit": limit.as_deref(),
             optional "offset": offset.as_deref(),
         };
@@ -882,7 +882,7 @@ where
         &self,
         locale: Option<&str>,
         country: Option<&Market>,
-        timestamp: Option<&chrono::DateTime<chrono::Utc>>,
+        timestamp: Option<chrono::DateTime<chrono::Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<FeaturedPlaylists> {

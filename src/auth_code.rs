@@ -1,8 +1,10 @@
 use crate::{
     auth_urls,
-    clients::{mutex::Mutex, BaseClient, OAuthClient},
+    clients::{BaseClient, OAuthClient},
     http::{Form, HttpClient},
-    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params,
+    sync::Mutex,
+    ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
