@@ -2,13 +2,13 @@ use crate::{
     auth_urls,
     clients::{
         convert_result,
-        mutex::Mutex,
         pagination::{paginate, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     join_ids,
     macros::build_map,
     model::*,
+    sync::Mutex,
     ClientResult, Config, Credentials, Token,
 };
 

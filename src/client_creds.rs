@@ -1,7 +1,9 @@
 use crate::{
-    clients::{mutex::Mutex, BaseClient},
+    clients::BaseClient,
     http::{Form, HttpClient},
-    params, ClientResult, Config, Credentials, Token,
+    params,
+    sync::Mutex,
+    ClientResult, Config, Credentials, Token,
 };
 
 use maybe_async::maybe_async;
