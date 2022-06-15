@@ -11,6 +11,7 @@ use std::{
 
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 /// Spotify access token information
 ///
@@ -93,48 +94,24 @@ impl Token {
 }
 
 /// An error reading a cached [`Token`].
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[error("failed to read token from cache")]
 pub enum ReadTokenCacheError {
     /// There was an error reading the cache file into memory.
-    Reading(ReadFileError),
+    Reading(#[source] ReadFileError),
 
     /// There was an error deserializing the contents of the cache file.
-    Deserializing(serde_json::Error),
-}
-
-impl Display for ReadTokenCacheError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_str("failed to read token from cache")
-    }
-}
-
-impl std::error::Error for ReadTokenCacheError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(match self {
-            Self::Reading(e) => e,
-            Self::Deserializing(e) => e,
-        })
-    }
+    Deserializing(#[source] serde_json::Error),
 }
 
 /// An error writing a [`Token`] to its cache.
-#[derive(Debug)]
+#[derive(Debug, Error)]
 #[non_exhaustive]
+#[error("failed to write token to cache")]
 pub struct WriteTokenCacheError {
     /// The underlying error in writing the [`Token`] file cache.
+    #[source]
     pub inner: WriteFileError,
-}
-
-impl Display for WriteTokenCacheError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_str("failed to write token to cache")
-    }
-}
-
-impl std::error::Error for WriteTokenCacheError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.inner)
-    }
 }
 
 fn read_file(path: &Path) -> Result<Vec<u8>, ReadFileError> {
@@ -145,10 +122,12 @@ fn read_file(path: &Path) -> Result<Vec<u8>, ReadFileError> {
 }
 
 /// An error reading a file.
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[error("failed to read file {}", path.display())]
 pub struct ReadFileError {
     // Intentionally not exposed to allow future API evolution, e.g. moving this to a enum variants
     // `Open(io::Error)` and `Read(io::Error)`
+    #[source]
     inner: io::Error,
     path: Box<Path>,
 }
@@ -176,18 +155,6 @@ impl ReadFileError {
     }
 }
 
-impl Display for ReadFileError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "failed to read file {}", self.path.display())
-    }
-}
-
-impl std::error::Error for ReadFileError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(self.io())
-    }
-}
-
 fn write_file(path: &Path, bytes: &[u8]) -> Result<(), WriteFileError> {
     fs::write(path, bytes).map_err(|inner| WriteFileError {
         inner,
@@ -196,10 +163,12 @@ fn write_file(path: &Path, bytes: &[u8]) -> Result<(), WriteFileError> {
 }
 
 /// An error writing a file.
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[error("failed to write file {}", path.display())]
 pub struct WriteFileError {
     // Intentionally not exposed to allow future API evolution, e.g. moving this to an enum variant
     // `Open(io::Error)` and `Write(io::Error)`
+    #[source]
     inner: io::Error,
     path: Box<Path>,
 }
@@ -224,18 +193,6 @@ impl WriteFileError {
     #[must_use]
     pub fn path(&self) -> &Path {
         &*self.path
-    }
-}
-
-impl Display for WriteFileError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "failed to write file {}", self.path.display())
-    }
-}
-
-impl std::error::Error for WriteFileError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(self.io())
     }
 }
 
