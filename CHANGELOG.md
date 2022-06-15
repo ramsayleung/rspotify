@@ -1,3 +1,8 @@
+## Unreleased
+
+**Breaking changes**:
+- ([#327](https://github.com/ramsayleung/rspotify/pull/327)) `ModelError` has been replaced with the more precise error types `ReadTokenCacheError` and `WriteTokenCacheError`
+
 ## 0.11.5 (2022.03.28)
 
 **Breaking changes**:
