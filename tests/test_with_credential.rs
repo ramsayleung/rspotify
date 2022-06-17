@@ -190,7 +190,7 @@ mod test_pagination {
         let album = AlbumId::from_uri(ALBUM).unwrap();
 
         let names = client
-            .album_track(&album)
+            .album_track(album)
             .map(|track| track.unwrap().name)
             .collect::<Vec<_>>();
 
