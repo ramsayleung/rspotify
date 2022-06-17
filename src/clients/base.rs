@@ -316,19 +316,13 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-albums)
     fn artist_albums<'a>(
         &'a self,
-        artist_id: ArtistId<'a>,
+        artist_id: &'a ArtistId<'_>,
         album_type: Option<&'a AlbumType>,
         market: Option<&'a Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedAlbum>> {
         paginate(
             move |limit, offset| {
-                self.artist_albums_manual(
-                    artist_id.clone(),
-                    album_type,
-                    market,
-                    Some(limit),
-                    Some(offset),
-                )
+                self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
         )
@@ -337,7 +331,7 @@ where
     /// The manually paginated version of [`Self::artist_albums`].
     async fn artist_albums_manual(
         &self,
-        artist_id: ArtistId<'_>,
+        artist_id: &ArtistId<'_>,
         album_type: Option<&AlbumType>,
         market: Option<&Market>,
         limit: Option<u32>,
@@ -477,12 +471,10 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-albums-tracks)
     fn album_track<'a>(
         &'a self,
-        album_id: AlbumId<'a>,
+        album_id: &'a AlbumId<'_>,
     ) -> Paginator<'_, ClientResult<SimplifiedTrack>> {
         paginate(
-            move |limit, offset| {
-                self.album_track_manual(album_id.clone(), Some(limit), Some(offset))
-            },
+            move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         )
     }
@@ -490,7 +482,7 @@ where
     /// The manually paginated version of [`Self::album_track`].
     async fn album_track_manual(
         &self,
-        album_id: AlbumId<'_>,
+        album_id: &AlbumId<'_>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedTrack>> {
@@ -656,12 +648,12 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-shows-episodes)
     fn get_shows_episodes<'a>(
         &'a self,
-        id: ShowId<'a>,
+        id: &'a ShowId<'_>,
         market: Option<&'a Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedEpisode>> {
         paginate(
             move |limit, offset| {
-                self.get_shows_episodes_manual(id.clone(), market, Some(limit), Some(offset))
+                self.get_shows_episodes_manual(id, market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
         )
@@ -670,7 +662,7 @@ where
     /// The manually paginated version of [`Self::get_shows_episodes`].
     async fn get_shows_episodes_manual(
         &self,
-        id: ShowId<'_>,
+        id: &ShowId<'_>,
         market: Option<&Market>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -1080,12 +1072,10 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
     fn user_playlists<'a>(
         &'a self,
-        user_id: UserId<'a>,
+        user_id: &'a UserId<'_>,
     ) -> Paginator<'_, ClientResult<SimplifiedPlaylist>> {
         paginate(
-            move |limit, offset| {
-                self.user_playlists_manual(user_id.clone(), Some(limit), Some(offset))
-            },
+            move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
             self.get_config().pagination_chunks,
         )
     }
@@ -1093,7 +1083,7 @@ where
     /// The manually paginated version of [`Self::user_playlists`].
     async fn user_playlists_manual(
         &self,
-        user_id: UserId<'_>,
+        user_id: &UserId<'_>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
