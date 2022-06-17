@@ -233,7 +233,7 @@ macro_rules! define_idtypes {
                 /// A valid Spotify object id must be a non-empty string with
                 /// valid characters.
                 ///
-                /// # Errors:
+                /// # Errors
                 ///
                 /// - `IdError::InvalidId` - if `id` contains invalid characters.
                 pub fn from_id<S>(id: S) -> Result<Self, IdError>
@@ -260,7 +260,7 @@ macro_rules! define_idtypes {
                 /// Examples: `spotify:album:6IcGNaXFRf5Y1jc7QsE9O2`,
                 /// `spotify/track/4y4VO05kYgUTo2bzbox1an`.
                 ///
-                /// # Errors:
+                /// # Errors
                 ///
                 /// - `IdError::InvalidPrefix` - if `uri` is not started with
                 ///   `spotify:` or `spotify/`,
@@ -270,11 +270,16 @@ macro_rules! define_idtypes {
                 ///   valid id,
                 /// - `IdError::InvalidFormat` - if it can't be splitted into
                 ///   type and id parts.
-                pub fn from_uri<S>(uri: S) -> Result<Self, IdError>
-                    where
-                        S: Into<Cow<'a, str>>
-                {
-                    let uri = uri.into();
+                ///
+                /// # Implementation details
+                ///
+                /// Unlike [`Self::from_id`], this method takes a `&str` rather
+                /// than an `Into<Cow<str>>`. This is because the inner `Cow` in
+                /// the ID would reference a slice from the given `&str` (i.e.,
+                /// taking the ID out of the URI). The parameter wouldn't live
+                /// long enough when using `Into<Cow<str>>`, so the only
+                /// sensible choice is to just use a `&str`.
+                pub fn from_uri(uri: &'a str) -> Result<Self, IdError> {
                     let (tpe, id) = parse_uri(&uri)?;
                     if tpe == Type::$type {
                         Self::from_id(id)
@@ -300,7 +305,7 @@ macro_rules! define_idtypes {
                 /// with `spotify:` or `spotify/`), it must be a valid Spotify
                 /// object ID, i.e. a non-empty valid string.
                 ///
-                /// # Errors:
+                /// # Errors
                 ///
                 /// - `IdError::InvalidType` - if `id_or_uri` is an URI, and
                 ///   it's type part is not equal to `T`,
@@ -309,12 +314,18 @@ macro_rules! define_idtypes {
                 ///   if it contains valid characters),
                 /// - `IdError::InvalidFormat` - if `id_or_uri` is an URI, and
                 ///   it can't be split into type and id parts.
-                pub fn from_id_or_uri<S>(id_or_uri: S) -> Result<Self, IdError>
-                    where
-                        S: Into<Cow<'a, str>>
-                {
+                ///
+                /// # Implementation details
+                ///
+                /// Unlike [`Self::from_id`], this method takes a `&str` rather
+                /// than an `Into<Cow<str>>`. This is because the inner `Cow` in
+                /// the ID would reference a slice from the given `&str` (i.e.,
+                /// taking the ID out of the URI). The parameter wouldn't live
+                /// long enough when using `Into<Cow<str>>`, so the only
+                /// sensible choice is to just use a `&str`.
+                pub fn from_id_or_uri(id_or_uri: &'a str) -> Result<Self, IdError> {
                     let id_or_uri = id_or_uri.into();
-                    match Self::from_uri(id_or_uri.clone()) {
+                    match Self::from_uri(id_or_uri) {
                         Ok(id) => Ok(id),
                         Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
                         Err(error) => Err(error),
