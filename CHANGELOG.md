@@ -1,5 +1,8 @@
 ## Unreleased
 
+**Bugfixes**:
+- ([#332](https://github.com/ramsayleung/rspotify/pull/332)) Fix typo in `RestrictionReason` enum values
+
 **Breaking changes**:
 - ([#325](https://github.com/ramsayleung/rspotify/pull/325)) The `auth_code`, `auth_code_pkce`, `client_creds`, `clients::base` and `clients::oauth` modules have been removed from the public API; you should access the same types from their parent modules instead
 - ([#326](https://github.com/ramsayleung/rspotify/pull/326)) The `rspotify::clients::mutex` module has been renamed to `rspotify::sync`
@@ -170,7 +173,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + `Page`
   + `PlayHistory`
   + `PlayableItem`
-  + `PlayingItem` 
+  + `PlayingItem`
   + `PlaylistItem`
   + `PlaylistResult`
   + `PrivateUser`
@@ -222,28 +225,28 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 - ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Model objects like `FullTrack` or `AudioFeatures` have had their `_type` and `uri` fields removed. These can be accessed instead with the `id` field: `id._type()` or `id.uri()`.
 - ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id>`:
-	- `albums`
-	- `artists`
-	- `check_users_saved_shows`
-	- `get_several_episodes`
-	- `remove_users_saved_shows`
-	- `save_shows`
+    - `albums`
+    - `artists`
+    - `check_users_saved_shows`
+    - `get_several_episodes`
+    - `remove_users_saved_shows`
+    - `save_shows`
   + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id>`:
-	- `audios_features`
-	- `current_user_saved_albums_add`
-	- `current_user_saved_albums_contains`
-	- `current_user_saved_albums_delete`
-	- `current_user_saved_tracks_add`
-	- `current_user_saved_tracks_contains`
-	- `current_user_saved_tracks_delete`
-	- `user_artist_check_follow`
-	- `user_follow_artists`
-	- `user_follow_users`
-	- `user_playlist_add_tracks`
-	- `user_playlist_remove_all_occurrences_of_tracks`
-	- `user_playlist_replace_tracks`
-	- `user_unfollow_artists`
-	- `user_unfollow_users`
+    - `audios_features`
+    - `current_user_saved_albums_add`
+    - `current_user_saved_albums_contains`
+    - `current_user_saved_albums_delete`
+    - `current_user_saved_tracks_add`
+    - `current_user_saved_tracks_contains`
+    - `current_user_saved_tracks_delete`
+    - `user_artist_check_follow`
+    - `user_follow_artists`
+    - `user_follow_users`
+    - `user_playlist_add_tracks`
+    - `user_playlist_remove_all_occurrences_of_tracks`
+    - `user_playlist_replace_tracks`
+    - `user_unfollow_artists`
+    - `user_unfollow_users`
   + The endpoints which changes parameter from `String` to `&Id`:
         - `get_a_show`
         - `get_an_episode`
@@ -435,7 +438,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 
 - add debug and clone derives to spotify client and credentials
 - Change state field for authorization URL to have default
-- Fix show_dialog field to be checked before setting true 
+- Fix show_dialog field to be checked before setting true
 _ Fix typo in show_dialog
 
 ## 0.1.0 (2018/02/20)
