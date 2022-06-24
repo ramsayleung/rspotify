@@ -72,8 +72,8 @@ async fn test_artists_albums() {
         .await
         .artist_albums_manual(
             &birdy_uri,
-            Some(&AlbumType::Album),
-            Some(&Market::Country(Country::UnitedStates)),
+            Some(AlbumType::Album),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -95,7 +95,7 @@ async fn test_artist_top_tracks() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
         .await
-        .artist_top_tracks(&birdy_uri, &Market::Country(Country::UnitedStates))
+        .artist_top_tracks(&birdy_uri, Market::Country(Country::UnitedStates))
         .await
         .unwrap();
 }

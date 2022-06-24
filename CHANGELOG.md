@@ -12,6 +12,8 @@
 - ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `search` now accepts `Option<IncludeExternal>` instead of `Option<&IncludeExternal>`
 - ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `featured_playlists` now accepts `Option<chrono::DateTime<chrono::Utc>>` instead of `Option<&chrono::DateTime<chrono::Utc>>`
 - ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `current_user_top_artists[_manual]` and `current_user_top_tracks[_manual]` now accept `Option<TimeRange>` instead of `Option<&TimeRange>`
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) Enums no longer implement `AsRef<str>`
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Option<&Market>` parameters have been changed to `Option<Market>`
 
 ## 0.11.5 (2022.03.28)
 

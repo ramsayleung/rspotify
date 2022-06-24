@@ -517,10 +517,10 @@ pub trait OAuthClient: BaseClient {
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-albums)
-    fn current_user_saved_albums<'a>(
-        &'a self,
-        market: Option<&'a Market>,
-    ) -> Paginator<'a, ClientResult<SavedAlbum>> {
+    fn current_user_saved_albums(
+        &self,
+        market: Option<Market>,
+    ) -> Paginator<'_, ClientResult<SavedAlbum>> {
         paginate(
             move |limit, offset| {
                 self.current_user_saved_albums_manual(market, Some(limit), Some(offset))
@@ -532,14 +532,14 @@ pub trait OAuthClient: BaseClient {
     /// The manually paginated version of [`Self::current_user_saved_albums`].
     async fn current_user_saved_albums_manual(
         &self,
-        market: Option<&Market>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SavedAlbum>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("market", market.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -560,10 +560,10 @@ pub trait OAuthClient: BaseClient {
     /// version of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-saved-tracks)
-    fn current_user_saved_tracks<'a>(
-        &'a self,
-        market: Option<&'a Market>,
-    ) -> Paginator<'a, ClientResult<SavedTrack>> {
+    fn current_user_saved_tracks(
+        &self,
+        market: Option<Market>,
+    ) -> Paginator<'_, ClientResult<SavedTrack>> {
         paginate(
             move |limit, offset| {
                 self.current_user_saved_tracks_manual(market, Some(limit), Some(offset))
@@ -575,14 +575,14 @@ pub trait OAuthClient: BaseClient {
     /// The manually paginated version of [`Self::current_user_saved_tracks`].
     async fn current_user_saved_tracks_manual(
         &self,
-        market: Option<&Market>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SavedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("market", market.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -605,7 +605,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<CursorBasedPage<FullArtist>> {
         let limit = limit.map(|s| s.to_string());
         let params = build_map([
-            ("type", Some(Type::Artist.as_ref())),
+            ("type", Some(Type::Artist.into())),
             ("after", after),
             ("limit", limit.as_deref()),
         ]);
@@ -695,7 +695,7 @@ pub trait OAuthClient: BaseClient {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("time_range", time_range.as_ref().map(|x| x.as_ref())),
+            ("time_range", time_range.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -737,7 +737,7 @@ pub trait OAuthClient: BaseClient {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("time_range", time_range.as_ref().map(|x| x.as_ref())),
+            ("time_range", time_range.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -929,17 +929,17 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-information-about-the-users-current-playback)
     async fn current_playback<'a>(
         &self,
-        country: Option<&Market>,
+        country: Option<Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
-                .map(|x| x.as_ref())
-                .collect::<Vec<_>>()
+                .map(|x| x.into())
+                .collect::<Vec<&'static str>>()
                 .join(",")
         });
         let params = build_map([
-            ("country", country.map(|x| x.as_ref())),
+            ("country", country.map(|x| x.into())),
             ("additional_types", additional_types.as_deref()),
         ]);
 
@@ -961,18 +961,18 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played)
     async fn current_playing<'a>(
-        &self,
-        market: Option<&'a Market>,
+        &'a self,
+        market: Option<Market>,
         additional_types: Option<impl IntoIterator<Item = &'a AdditionalType> + Send + 'a>,
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
-                .map(|x| x.as_ref())
-                .collect::<Vec<_>>()
+                .map(|x| x.into())
+                .collect::<Vec<&'static str>>()
                 .join(",")
         });
         let params = build_map([
-            ("market", market.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.into())),
             ("additional_types", additional_types.as_deref()),
         ]);
 
@@ -1160,9 +1160,9 @@ pub trait OAuthClient: BaseClient {
     /// - device_id - device target for playback
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/set-repeat-mode-on-users-playback)
-    async fn repeat(&self, state: &RepeatState, device_id: Option<&str>) -> ClientResult<()> {
+    async fn repeat(&self, state: RepeatState, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id(
-            &format!("me/player/repeat?state={}", state.as_ref()),
+            &format!("me/player/repeat?state={}", <&str>::from(state)),
             device_id,
         );
         self.endpoint_put(&url, &json!({})).await?;
@@ -1303,11 +1303,11 @@ pub trait OAuthClient: BaseClient {
     async fn remove_users_saved_shows<'a>(
         &self,
         show_ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
-        country: Option<&Market>,
+        country: Option<Market>,
     ) -> ClientResult<()> {
         let url = format!("me/shows?ids={}", join_ids(show_ids));
         let params = build_json! {
-            optional "country": country.map(|x| x.as_ref())
+            optional "country": country.map(<&str>::from)
         };
         self.endpoint_delete(&url, &params).await?;
 

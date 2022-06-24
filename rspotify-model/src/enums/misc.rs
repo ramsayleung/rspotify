@@ -1,15 +1,13 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, IntoStaticStr};
+use strum::IntoStaticStr;
 
 use super::Country;
 
 /// Disallows object: `interrupting_playback`, `pausing`, `resuming`, `seeking`,
 /// `skipping_next`, `skipping_prev`, `toggling_repeat_context`,
 /// `toggling_shuffle`, `toggling_repeat_track`, `transferring_playback`.
-#[derive(
-    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, AsRefStr, IntoStaticStr,
-)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum DisallowKey {
@@ -26,7 +24,7 @@ pub enum DisallowKey {
 }
 
 /// Time range: `long-term`, `medium-term`, `short-term`.
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr, IntoStaticStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum TimeRange {
@@ -36,7 +34,7 @@ pub enum TimeRange {
 }
 
 /// Repeat state: `track`, `context` or `off`.
-#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, AsRefStr, IntoStaticStr)]
+#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RepeatState {
@@ -46,7 +44,7 @@ pub enum RepeatState {
 }
 
 /// Type for include_external: `audio`.
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr, IntoStaticStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum IncludeExternal {
@@ -54,7 +52,7 @@ pub enum IncludeExternal {
 }
 
 /// Date precision: `year`, `month`, `day`.
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr, IntoStaticStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum DatePrecision {
@@ -64,7 +62,7 @@ pub enum DatePrecision {
 }
 
 /// The reason for the restriction: `market`, `product`, `explicit`
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr, IntoStaticStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RestrictionReason {
@@ -77,7 +75,7 @@ pub enum RestrictionReason {
 ///
 /// This field will contain a 0 for `minor`, a 1 for `major` or a -1 for `no
 /// result`
-#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, AsRefStr, IntoStaticStr)]
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
 pub enum Modality {
     Minor = 0,
     Major = 1,
@@ -91,12 +89,6 @@ pub enum Modality {
 pub enum Market {
     Country(Country),
     FromToken,
-}
-
-impl AsRef<str> for Market {
-    fn as_ref(&self) -> &str {
-        (*self).into()
-    }
 }
 
 impl From<Market> for &'static str {
