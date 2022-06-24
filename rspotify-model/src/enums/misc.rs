@@ -70,7 +70,7 @@ pub enum DatePrecision {
 pub enum RestrictionReason {
     Market,
     Product,
-    Explict,
+    Explicit,
 }
 
 /// Indicates the modality (major or minor) of a track.
