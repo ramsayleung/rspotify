@@ -46,7 +46,7 @@ async fn main() {
     let market = Market::Country(Country::Spain);
     let additional_types = [AdditionalType::Episode];
     let artists = spotify
-        .current_playing(Some(&market), Some(&additional_types))
+        .current_playing(Some(market), Some(&additional_types))
         .await;
 
     println!("Response: {:?}", artists);
