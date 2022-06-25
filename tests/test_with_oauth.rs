@@ -117,7 +117,7 @@ async fn test_categories() {
         .await
         .categories_manual(
             None,
-            Some(&Market::Country(Country::UnitedStates)),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -132,7 +132,7 @@ async fn test_category_playlists() {
         .await
         .category_playlists_manual(
             "pop",
-            Some(&Market::Country(Country::UnitedStates)),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -211,7 +211,7 @@ async fn test_current_user_saved_albums() {
     let all_albums = fetch_all(client.current_user_saved_albums(None)).await;
     // Can handle albums without available_market
     let _albums_from_token =
-        fetch_all(client.current_user_saved_albums(Some(&Market::FromToken))).await;
+        fetch_all(client.current_user_saved_albums(Some(Market::FromToken))).await;
     let all_uris = all_albums
         .into_iter()
         .map(|a| a.album.id)
@@ -304,7 +304,7 @@ async fn test_me() {
 async fn test_new_releases() {
     oauth_client()
         .await
-        .new_releases_manual(Some(&Market::Country(Country::Sweden)), Some(10), Some(0))
+        .new_releases_manual(Some(Market::Country(Country::Sweden)), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -314,7 +314,7 @@ async fn test_new_releases() {
 async fn test_new_releases_with_from_token() {
     oauth_client()
         .await
-        .new_releases_manual(Some(&Market::FromToken), Some(10), Some(0))
+        .new_releases_manual(Some(Market::FromToken), Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -414,7 +414,7 @@ async fn test_recommendations() {
             Some(seed_artists),
             None::<Vec<&str>>,
             Some(seed_tracks),
-            Some(&Market::Country(Country::UnitedStates)),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
         )
         .await
@@ -429,10 +429,10 @@ async fn test_repeat() {
     // Saving the previous state to restore it later
     let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
 
-    client.repeat(&RepeatState::Off, None).await.unwrap();
+    client.repeat(RepeatState::Off, None).await.unwrap();
 
     if let Some(backup) = backup {
-        client.repeat(&backup.repeat_state, None).await.unwrap()
+        client.repeat(backup.repeat_state, None).await.unwrap()
     }
 }
 
@@ -442,7 +442,7 @@ async fn test_search_album() {
     let query = "album:arrival artist:abba";
     oauth_client()
         .await
-        .search(query, &SearchType::Album, None, None, Some(10), Some(0))
+        .search(query, SearchType::Album, None, None, Some(10), Some(0))
         .await
         .unwrap();
 }
@@ -455,8 +455,8 @@ async fn test_search_artist() {
         .await
         .search(
             query,
-            &SearchType::Artist,
-            Some(&Market::Country(Country::UnitedStates)),
+            SearchType::Artist,
+            Some(Market::Country(Country::UnitedStates)),
             None,
             Some(10),
             Some(0),
@@ -473,8 +473,8 @@ async fn test_search_playlist() {
         .await
         .search(
             query,
-            &SearchType::Playlist,
-            Some(&Market::Country(Country::UnitedStates)),
+            SearchType::Playlist,
+            Some(Market::Country(Country::UnitedStates)),
             None,
             Some(10),
             Some(0),
@@ -491,8 +491,8 @@ async fn test_search_track() {
         .await
         .search(
             query,
-            &SearchType::Track,
-            Some(&Market::Country(Country::UnitedStates)),
+            SearchType::Track,
+            Some(Market::Country(Country::UnitedStates)),
             None,
             Some(10),
             Some(0),
@@ -509,7 +509,7 @@ async fn test_search_show() {
     let query = "99% invisible";
     oauth_client()
         .await
-        .search(query, &SearchType::Show, None, None, None, Some(0))
+        .search(query, SearchType::Show, None, None, None, Some(0))
         .await
         .unwrap();
 }
