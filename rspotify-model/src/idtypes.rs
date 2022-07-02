@@ -186,7 +186,7 @@ pub fn parse_uri(uri: &str) -> Result<(Type, &str), IdError> {
 /// * The `$type` parameter indicates what variant in `Type` the ID is for (say,
 ///   `Artist`, or `Album`).
 /// * The `$name` parameter is the identifier of the struct.
-/// * The `$validity` parameter is the implementation of `is_id_valid`.
+/// * The `$validity` parameter is the implementation of `id_is_valid`.
 macro_rules! define_idtypes {
     ($($type:ident => {
         name: $name:ident,
