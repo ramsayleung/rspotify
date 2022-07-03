@@ -7,6 +7,8 @@ pub use oauth::OAuthClient;
 
 use crate::ClientResult;
 
+use std::fmt::Write as _;
+
 use serde::Deserialize;
 
 /// Converts a JSON response from Spotify into its model.
@@ -17,11 +19,11 @@ pub(in crate) fn convert_result<'a, T: Deserialize<'a>>(input: &'a str) -> Clien
 /// Append device ID to an API path.
 pub(in crate) fn append_device_id(path: &str, device_id: Option<&str>) -> String {
     let mut new_path = path.to_string();
-    if let Some(_device_id) = device_id {
+    if let Some(device_id) = device_id {
         if path.contains('?') {
-            new_path.push_str(&format!("&device_id={}", _device_id));
+            let _ = write!(new_path, "&device_id={device_id}");
         } else {
-            new_path.push_str(&format!("?device_id={}", _device_id));
+            let _ = write!(new_path, "?device_id={device_id}");
         }
     }
     new_path
