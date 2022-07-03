@@ -265,7 +265,7 @@ where
         let ids = join_ids(track_ids);
         let params = build_map([("market", market.map(|x| x.into()))]);
 
-        let url = format!("tracks/?ids={}", ids);
+        let url = format!("tracks/?ids={ids}");
         let result = self.endpoint_get(&url, &params).await?;
         convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
@@ -293,7 +293,7 @@ where
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
-        let url = format!("artists/?ids={}", ids);
+        let url = format!("artists/?ids={ids}");
         let result = self.endpoint_get(&url, &Query::new()).await?;
 
         convert_result::<FullArtists>(&result).map(|x| x.artists)
@@ -410,7 +410,7 @@ where
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
-        let url = format!("albums/?ids={}", ids);
+        let url = format!("albums/?ids={ids}");
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
@@ -837,7 +837,7 @@ where
             ("offset", offset.as_deref()),
         ]);
 
-        let url = format!("browse/categories/{}/playlists", category_id);
+        let url = format!("browse/categories/{category_id}/playlists");
         let result = self.endpoint_get(&url, &params).await?;
         convert_result::<CategoryPlaylists>(&result).map(|x| x.playlists)
     }

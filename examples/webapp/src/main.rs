@@ -149,7 +149,7 @@ fn index(mut cookies: Cookies) -> AppResponse {
             AppResponse::Template(Template::render("index", context.clone()))
         }
         Err(err) => {
-            context.insert("err_msg", format!("Failed for {}!", err));
+            context.insert("err_msg", format!("Failed for {err}!"));
             AppResponse::Template(Template::render("error", context))
         }
     }

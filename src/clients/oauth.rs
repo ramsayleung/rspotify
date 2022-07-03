@@ -1145,7 +1145,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/seek-to-position-in-currently-playing-track)
     async fn seek_track(&self, position_ms: u32, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id(
-            &format!("me/player/seek?position_ms={}", position_ms),
+            &format!("me/player/seek?position_ms={position_ms}"),
             device_id,
         );
         self.endpoint_put(&url, &json!({})).await?;
@@ -1183,7 +1183,7 @@ pub trait OAuthClient: BaseClient {
             "volume must be between 0 and 100, inclusive"
         );
         let url = append_device_id(
-            &format!("me/player/volume?volume_percent={}", volume_percent),
+            &format!("me/player/volume?volume_percent={volume_percent}"),
             device_id,
         );
         self.endpoint_put(&url, &json!({})).await?;
@@ -1199,7 +1199,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/toggle-shuffle-for-users-playback)
     async fn shuffle(&self, state: bool, device_id: Option<&str>) -> ClientResult<()> {
-        let url = append_device_id(&format!("me/player/shuffle?state={}", state), device_id);
+        let url = append_device_id(&format!("me/player/shuffle?state={state}"), device_id);
         self.endpoint_put(&url, &json!({})).await?;
 
         Ok(())

@@ -579,7 +579,7 @@ mod test {
         // Easily testing both ways to obtain an ID
         test_any(|s| TrackId::from_id_or_uri(s));
         test_any(|s| {
-            let json = format!("\"{}\"", s);
+            let json = format!("\"{s}\"");
             serde_json::from_str::<'_, TrackId>(&json)
         });
     }
@@ -587,7 +587,7 @@ mod test {
     /// Serializing should return the Id within it, not the URI.
     #[test]
     fn test_serialize() {
-        let json_expected = format!("\"{}\"", ID);
+        let json_expected = format!("\"{ID}\"");
         let track = TrackId::from_uri(URI).unwrap();
         let json = serde_json::to_string(&track).unwrap();
         assert_eq!(json, json_expected);
