@@ -342,13 +342,13 @@ macro_rules! define_idtypes {
                 /// An ID is a `Cow` after all, so this will switch to the its
                 /// owned version, which has a `'static` lifetime.
                 pub fn into_static(self) -> $name<'static> {
-                    $name(self.0.into_owned().into())
+                    $name(Cow::Owned(self.0.into_owned()))
                 }
 
                 /// Similar to [`Self::into_static`], but without consuming the
                 /// original ID.
                 pub fn clone_static(&self) -> $name<'static> {
-                    $name(self.0.clone().into_owned().into())
+                    $name(Cow::Owned(self.0.clone().into_owned()))
                 }
             }
 
@@ -631,5 +631,25 @@ mod test {
         let _ = EpisodeId::from_id(Cow::Borrowed(ID)).unwrap();
         // With owned `Cow<str>`
         let _ = EpisodeId::from_id(Cow::Owned(ID.to_string())).unwrap();
+    }
+
+    #[test]
+    fn test_owned() {
+        // We check it twice to make sure cloning statically also works.
+        fn check_static(_: EpisodeId<'static>) {}
+
+        // With lifetime smaller than static because it's a locally owned
+        // variable.
+        let local_id = String::from(ID);
+
+        // With `&str`: should be converted
+        let id: EpisodeId<'_> = EpisodeId::from_id(local_id.as_str()).unwrap();
+        check_static(id.clone_static());
+        check_static(id.into_static());
+
+        // With `String`: already static
+        let id = EpisodeId::from_id(local_id.clone()).unwrap();
+        check_static(id.clone());
+        check_static(id);
     }
 }
