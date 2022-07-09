@@ -1,16 +1,8 @@
 //! All Spotify API endpoint response objects. Please refer to the endpoints
 //! where they are used for a link to their reference in the Spotify API
 //! documentation.
-#![warn(
-    clippy::all,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::cargo,
-)]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::module_name_repetitions
-)]
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(clippy::module_name_repetitions, clippy::module_name_repetitions)]
 pub mod album;
 pub mod artist;
 pub mod audio;
