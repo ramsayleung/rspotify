@@ -5,6 +5,17 @@ use crate::{model::Page, ClientError, ClientResult};
 /// Alias for `Iterator<Item = T>`, since sync mode is enabled.
 pub type Paginator<'a, T> = Box<dyn Iterator<Item = T> + 'a>;
 
+pub fn paginate_with_ctx<'a, Ctx: 'a, T: 'a, Request: 'a>(
+    ctx: Ctx,
+    req: Request,
+    page_size: u32,
+) -> Paginator<'a, ClientResult<T>>
+where
+    Request: Fn(&Ctx, u32, u32) -> ClientResult<Page<T>>,
+{
+    paginate(move |limit, offset| req(&ctx, limit, offset), page_size)
+}
+
 /// This is used to handle paginated requests automatically.
 pub fn paginate<'a, T: 'a, Request: 'a>(
     req: Request,

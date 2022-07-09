@@ -44,7 +44,7 @@ async fn test_album_tracks() {
     let birdy_uri = AlbumId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
     creds_client()
         .await
-        .album_track_manual(&birdy_uri, Some(2), None)
+        .album_track_manual(birdy_uri, Some(2), None)
         .await
         .unwrap();
 }
@@ -71,7 +71,7 @@ async fn test_artists_albums() {
     creds_client()
         .await
         .artist_albums_manual(
-            &birdy_uri,
+            birdy_uri,
             Some(AlbumType::Album),
             Some(Market::Country(Country::UnitedStates)),
             Some(10),
@@ -190,7 +190,7 @@ mod test_pagination {
         let album = AlbumId::from_uri(ALBUM).unwrap();
 
         let names = client
-            .album_track(&album)
+            .album_track(album)
             .map(|track| track.unwrap().name)
             .collect::<Vec<_>>();
 
@@ -208,7 +208,7 @@ mod test_pagination {
         let album = AlbumId::from_uri(ALBUM).unwrap();
 
         let names = client
-            .album_track(&album)
+            .album_track(album)
             .map(|track| track.unwrap().name)
             .collect::<Vec<_>>()
             .await;
