@@ -5,9 +5,6 @@
 // This way only the compile error below gets shown instead of a whole list of
 // confusing errors..
 
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
-#![allow(clippy::module_name_repetitions, clippy::module_name_repetitions, clippy::cast_possible_truncation)]
-
 #[cfg(feature = "client-reqwest")]
 #[cfg(not(all(feature = "client-reqwest", feature = "client-ureq")))]
 mod reqwest;

@@ -152,8 +152,9 @@ impl OAuthClient for AuthCodeSpotify {
 impl AuthCodeSpotify {
     /// Builds a new [`AuthCodeSpotify`] given a pair of client credentials and
     /// OAuth information.
+    #[must_use]
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        AuthCodeSpotify {
+        Self {
             creds,
             oauth,
             ..Default::default()
@@ -163,8 +164,9 @@ impl AuthCodeSpotify {
     /// Build a new [`AuthCodeSpotify`] from an already generated token. Note
     /// that once the token expires this will fail to make requests, as the
     /// client credentials aren't known.
+    #[must_use]
     pub fn from_token(token: Token) -> Self {
-        AuthCodeSpotify {
+        Self {
             token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
@@ -172,8 +174,9 @@ impl AuthCodeSpotify {
 
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
+    #[must_use]
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        AuthCodeSpotify {
+        Self {
             creds,
             oauth,
             config,

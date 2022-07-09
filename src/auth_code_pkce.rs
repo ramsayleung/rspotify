@@ -59,6 +59,7 @@ impl BaseClient for AuthCodePkceSpotify {
     fn get_config(&self) -> &Config {
         &self.config
     }
+
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
         match self.token.lock().await.unwrap().as_ref() {
             Some(Token {
@@ -116,8 +117,9 @@ impl OAuthClient for AuthCodePkceSpotify {
 impl AuthCodePkceSpotify {
     /// Builds a new [`AuthCodePkceSpotify`] given a pair of client credentials
     /// and OAuth information.
+    #[must_use]
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        AuthCodePkceSpotify {
+        Self {
             creds,
             oauth,
             ..Default::default()
@@ -127,8 +129,9 @@ impl AuthCodePkceSpotify {
     /// Build a new [`AuthCodePkceSpotify`] from an already generated token.
     /// Note that once the token expires this will fail to make requests, as the
     /// client credentials aren't known.
+    #[must_use]
     pub fn from_token(token: Token) -> Self {
-        AuthCodePkceSpotify {
+        Self {
             token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
@@ -136,8 +139,9 @@ impl AuthCodePkceSpotify {
 
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
+    #[must_use]
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        AuthCodePkceSpotify {
+        Self {
             creds,
             oauth,
             config,
@@ -146,7 +150,7 @@ impl AuthCodePkceSpotify {
     }
 
     /// Generate the verifier code and the challenge code.
-    fn generate_codes(&self, verifier_bytes: usize) -> (String, String) {
+    fn generate_codes(verifier_bytes: usize) -> (String, String) {
         log::info!("Generating PKCE codes");
 
         debug_assert!(verifier_bytes >= 43);
@@ -184,7 +188,7 @@ impl AuthCodePkceSpotify {
 
         let scopes = join_scopes(&self.oauth.scopes);
         let verifier_bytes = verifier_bytes.unwrap_or(43);
-        let (verifier, challenge) = self.generate_codes(verifier_bytes);
+        let (verifier, challenge) = Self::generate_codes(verifier_bytes);
         // The verifier will be needed later when requesting the token
         self.verifier = Some(verifier);
 

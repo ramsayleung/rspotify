@@ -75,3 +75,57 @@ pub enum RecommendationsAttribute {
     MaxValence(f32),
     TargetValence(f32),
 }
+
+impl RecommendationsAttribute {
+    /// Obtains the value of the enum as a String, which may be helpful when
+    /// serializing it.
+    #[must_use]
+    pub fn value_string(&self) -> String {
+        use RecommendationsAttribute::*;
+
+        match self {
+            MinAcousticness(x)
+            | MaxAcousticness(x)
+            | TargetAcousticness(x)
+            | MinDanceability(x)
+            | MaxDanceability(x)
+            | TargetDanceability(x)
+            | MinEnergy(x)
+            | MaxEnergy(x)
+            | TargetEnergy(x)
+            | MinInstrumentalness(x)
+            | MaxInstrumentalness(x)
+            | TargetInstrumentalness(x)
+            | MinLiveness(x)
+            | MaxLiveness(x)
+            | TargetLiveness(x)
+            | MinLoudness(x)
+            | MaxLoudness(x)
+            | TargetLoudness(x)
+            | MinTempo(x)
+            | MaxTempo(x)
+            | TargetTempo(x)
+            | MinSpeechiness(x)
+            | MaxSpeechiness(x)
+            | TargetSpeechiness(x)
+            | MinValence(x)
+            | MaxValence(x)
+            | TargetValence(x) => x.to_string(),
+            MinDurationMs(x)
+            | MaxDurationMs(x)
+            | TargetDurationMs(x)
+            | MinPopularity(x)
+            | MaxPopularity(x)
+            | TargetPopularity(x)
+            | MinTimeSignature(x)
+            | MaxTimeSignature(x)
+            | TargetTimeSignature(x)
+            | MinMode(x)
+            | MaxMode(x)
+            | TargetMode(x)
+            | MinKey(x)
+            | MaxKey(x)
+            | TargetKey(x) => x.to_string(),
+        }
+    }
+}

@@ -60,8 +60,9 @@ impl BaseClient for ClientCredsSpotify {
 impl ClientCredsSpotify {
     /// Builds a new [`ClientCredsSpotify`] given a pair of client credentials
     /// and OAuth information.
+    #[must_use]
     pub fn new(creds: Credentials) -> Self {
-        ClientCredsSpotify {
+        Self {
             creds,
             ..Default::default()
         }
@@ -70,8 +71,9 @@ impl ClientCredsSpotify {
     /// Build a new [`ClientCredsSpotify`] from an already generated token. Note
     /// that once the token expires this will fail to make requests,
     /// as the client credentials aren't known.
+    #[must_use]
     pub fn from_token(token: Token) -> Self {
-        ClientCredsSpotify {
+        Self {
             token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
@@ -79,8 +81,9 @@ impl ClientCredsSpotify {
 
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
+    #[must_use]
     pub fn with_config(creds: Credentials, config: Config) -> Self {
-        ClientCredsSpotify {
+        Self {
             config,
             creds,
             ..Default::default()

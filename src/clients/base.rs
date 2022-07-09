@@ -64,8 +64,7 @@ where
             .await
             .unwrap()
             .as_ref()
-            .map(Token::is_expired)
-            .unwrap_or(false);
+            .map_or(false, Token::is_expired);
 
         if should_reauth {
             self.refresh_token().await
@@ -263,7 +262,7 @@ where
         market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
-        let params = build_map([("market", market.map(|x| x.into()))]);
+        let params = build_map([("market", market.map(Into::into))]);
 
         let url = format!("tracks/?ids={ids}");
         let result = self.endpoint_get(&url, &params).await?;
@@ -338,8 +337,8 @@ where
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("album_type", album_type.map(|x| x.into())),
-            ("market", market.map(|x| x.into())),
+            ("album_type", album_type.map(Into::into)),
+            ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -444,8 +443,8 @@ where
         let params = build_map([
             ("q", Some(q)),
             ("type", Some(_type.into())),
-            ("market", market.map(|x| x.into())),
-            ("include_external", include_external.map(|x| x.into())),
+            ("market", market.map(Into::into)),
+            ("include_external", include_external.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -516,7 +515,7 @@ where
         fields: Option<&str>,
         market: Option<Market>,
     ) -> ClientResult<FullPlaylist> {
-        let params = build_map([("fields", fields), ("market", market.map(|x| x.into()))]);
+        let params = build_map([("fields", fields), ("market", market.map(Into::into))]);
 
         let url = format!("playlists/{}", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -567,11 +566,7 @@ where
         let url = format!(
             "playlists/{}/followers/contains?ids={}",
             playlist_id.id(),
-            user_ids
-                .iter()
-                .map(|id| id.id())
-                .collect::<Vec<_>>()
-                .join(","),
+            user_ids.iter().map(Id::id).collect::<Vec<_>>().join(","),
         );
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
@@ -587,7 +582,7 @@ where
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-show)
     async fn get_a_show(&self, id: ShowId<'_>, market: Option<Market>) -> ClientResult<FullShow> {
-        let params = build_map([("market", market.map(|x| x.into()))]);
+        let params = build_map([("market", market.map(Into::into))]);
 
         let url = format!("shows/{}", id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -608,7 +603,7 @@ where
         market: Option<Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
-        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.into()))]);
+        let params = build_map([("ids", Some(&ids)), ("market", market.map(Into::into))]);
 
         let result = self.endpoint_get("shows", &params).await?;
         convert_result::<SeversalSimplifiedShows>(&result).map(|x| x.shows)
@@ -653,7 +648,7 @@ where
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("market", market.map(|x| x.into())),
+            ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -678,7 +673,7 @@ where
         market: Option<Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
-        let params = build_map([("market", market.map(|x| x.into()))]);
+        let params = build_map([("market", market.map(Into::into))]);
 
         let result = self.endpoint_get(&url, &params).await?;
         convert_result(&result)
@@ -697,7 +692,7 @@ where
         market: Option<Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
-        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.into()))]);
+        let params = build_map([("ids", Some(&ids)), ("market", market.map(Into::into))]);
 
         let result = self.endpoint_get("episodes", &params).await?;
         convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
@@ -786,7 +781,7 @@ where
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
             ("locale", locale),
-            ("country", country.map(|x| x.into())),
+            ("country", country.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -832,7 +827,7 @@ where
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("country", country.map(|x| x.into())),
+            ("country", country.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -872,7 +867,7 @@ where
         let timestamp = timestamp.map(|x| x.to_rfc3339());
         let params = build_map([
             ("locale", locale),
-            ("country", country.map(|x| x.into())),
+            ("country", country.map(Into::into)),
             ("timestamp", timestamp.as_deref()),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
@@ -917,7 +912,7 @@ where
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("country", country.map(|x| x.into())),
+            ("country", country.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -960,7 +955,7 @@ where
             ("seed_artists", seed_artists.as_deref()),
             ("seed_genres", seed_genres.as_deref()),
             ("seed_tracks", seed_tracks.as_deref()),
-            ("market", market.map(|x| x.into())),
+            ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
         ]);
 
@@ -1027,7 +1022,7 @@ where
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
             ("fields", fields),
-            ("market", market.map(|x| x.into())),
+            ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
