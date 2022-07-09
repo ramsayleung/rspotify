@@ -6,7 +6,9 @@
 - ([#332](https://github.com/ramsayleung/rspotify/pull/332)) Fix typo in `RestrictionReason` enum values
 
 **Breaking changes**:
-- ([#305](https://github.com/ramsayleung/rspotify/pull/305)) The `Id` types have been refactored to maximize usability. Instead of focusing on having an object-safe trait and using `dyn`, we now have enums to group up the IDs. This is based on how [`enum_dispatch`](https://docs.rs/enum_dispatch) works, and it's not only easier to use, but also faster. It makes it possible to have borrowed IDs again, so we've chosen to use `Cow` internally for flexibility. Check out the docs for more information!
+- ([#305](https://github.com/ramsayleung/rspotify/pull/305)) The `Id` types have been refactored to maximize usability. Instead of focusing on having an object-safe trait and using `dyn Id`, we now have enums to group up the IDs. This is based on how [`enum_dispatch`](https://docs.rs/enum_dispatch) works, and it's not only easier to use, but also more efficient. It makes it possible to have borrowed IDs again, so we've chosen to use `Cow` internally for flexibility. Check out the docs for more information!
+
+  Please let us know if there is anything that could be improved. Unfortunately, this breaks many methods in `BaseClient` and `OAuthClient`, but the errors should occur at compile-time only.
 - ([#325](https://github.com/ramsayleung/rspotify/pull/325)) The `auth_code`, `auth_code_pkce`, `client_creds`, `clients::base` and `clients::oauth` modules have been removed from the public API; you should access the same types from their parent modules instead
 - ([#326](https://github.com/ramsayleung/rspotify/pull/326)) The `rspotify::clients::mutex` module has been renamed to `rspotify::sync`
 - ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `search` now accepts `Option<IncludeExternal>` instead of `Option<&IncludeExternal>`
