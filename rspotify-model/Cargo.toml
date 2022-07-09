@@ -10,6 +10,7 @@ description = "Model for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api", "rspotify"]
+categories = ["api-bindings", "multimedia::audio"]
 edition = "2018"
 readme = "../README.md"
 

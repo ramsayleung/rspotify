@@ -44,7 +44,7 @@ pub struct Token {
 
 impl Default for Token {
     fn default() -> Self {
-        Token {
+        Self {
             access_token: String::new(),
             expires_in: Duration::seconds(0),
             expires_at: Some(Utc::now()),
@@ -60,7 +60,7 @@ impl Token {
         let mut file = fs::File::open(path)?;
         let mut tok_str = String::new();
         file.read_to_string(&mut tok_str)?;
-        let tok = serde_json::from_str::<Token>(&tok_str)?;
+        let tok = serde_json::from_str(&tok_str)?;
 
         Ok(tok)
     }
@@ -78,6 +78,7 @@ impl Token {
 
     /// Check if the token is expired. It includes a margin of 10 seconds (which
     /// is how much a request would take in the worst case scenario).
+    #[must_use]
     pub fn is_expired(&self) -> bool {
         self.expires_at.map_or(true, |expiration| {
             Utc::now() + Duration::seconds(10) >= expiration
@@ -85,6 +86,7 @@ impl Token {
     }
 
     /// Generates an HTTP token authorization header with proper formatting
+    #[must_use]
     pub fn auth_headers(&self) -> HashMap<String, String> {
         let auth = "authorization".to_owned();
         let value = format!("Bearer {}", self.access_token);

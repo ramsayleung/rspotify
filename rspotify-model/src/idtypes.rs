@@ -210,6 +210,7 @@ macro_rules! define_idtypes {
                 /// Only returns `true` in case the given string is valid
                 /// according to that specific ID (e.g., some may require
                 /// alphanumeric characters only).
+                #[must_use]
                 pub fn id_is_valid(id: &str) -> bool {
                     const VALID_FN: fn(&str) -> bool = $validity;
                     VALID_FN(id)
@@ -334,18 +335,21 @@ macro_rules! define_idtypes {
                 /// This creates an ID with the underlying `&str` variant from a
                 /// reference. Useful to use an ID multiple times without having
                 /// to clone it.
+                #[must_use]
                 pub fn as_ref(&'a self) -> Self {
                     Self(Cow::Borrowed(self.0.as_ref()))
                 }
 
                 /// An ID is a `Cow` after all, so this will switch to the its
                 /// owned version, which has a `'static` lifetime.
+                #[must_use]
                 pub fn into_static(self) -> $name<'static> {
                     $name(Cow::Owned(self.0.into_owned()))
                 }
 
                 /// Similar to [`Self::into_static`], but without consuming the
                 /// original ID.
+                #[must_use]
                 pub fn clone_static(&self) -> $name<'static> {
                     $name(Cow::Owned(self.0.clone().into_owned()))
                 }
@@ -483,6 +487,7 @@ pub enum PlayContextId<'a> {
 }
 // These don't work with `enum_dispatch`, unfortunately.
 impl<'a> PlayContextId<'a> {
+    #[must_use]
     pub fn as_ref(&'a self) -> Self {
         match self {
             PlayContextId::Artist(x) => PlayContextId::Artist(x.as_ref()),
@@ -492,6 +497,7 @@ impl<'a> PlayContextId<'a> {
         }
     }
 
+    #[must_use]
     pub fn into_static(self) -> PlayContextId<'static> {
         match self {
             PlayContextId::Artist(x) => PlayContextId::Artist(x.into_static()),
@@ -501,6 +507,7 @@ impl<'a> PlayContextId<'a> {
         }
     }
 
+    #[must_use]
     pub fn clone_static(&'a self) -> PlayContextId<'static> {
         match self {
             PlayContextId::Artist(x) => PlayContextId::Artist(x.clone_static()),
@@ -520,6 +527,7 @@ pub enum PlayableId<'a> {
 }
 // These don't work with `enum_dispatch`, unfortunately.
 impl<'a> PlayableId<'a> {
+    #[must_use]
     pub fn as_ref(&'a self) -> Self {
         match self {
             PlayableId::Track(x) => PlayableId::Track(x.as_ref()),
@@ -527,6 +535,7 @@ impl<'a> PlayableId<'a> {
         }
     }
 
+    #[must_use]
     pub fn into_static(self) -> PlayableId<'static> {
         match self {
             PlayableId::Track(x) => PlayableId::Track(x.into_static()),
@@ -534,6 +543,7 @@ impl<'a> PlayableId<'a> {
         }
     }
 
+    #[must_use]
     pub fn clone_static(&'a self) -> PlayableId<'static> {
         match self {
             PlayableId::Track(x) => PlayableId::Track(x.clone_static()),

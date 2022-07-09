@@ -11,6 +11,7 @@ description = "Spotify API wrapper"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
+categories = ["api-bindings", "multimedia::audio"]
 edition = "2018"
 
 [workspace]
