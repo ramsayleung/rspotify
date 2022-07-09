@@ -349,7 +349,7 @@ async fn test_playback() {
             .start_uris_playback(
                 uris.iter().map(PlayableId::as_ref),
                 Some(device_id),
-                Some(Offset::for_position(0)),
+                Some(Offset::Position(0)),
                 None,
             )
             .await
