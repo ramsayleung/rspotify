@@ -126,7 +126,7 @@ pub enum IdError {
 ///
 /// [module level documentation]: [`crate::idtypes`]
 #[enum_dispatch]
-pub trait Id<'a> {
+pub trait Id {
     /// Returns the inner Spotify object ID, which is guaranteed to be valid for
     /// its type.
     fn id(&self) -> &str;
@@ -324,7 +324,6 @@ macro_rules! define_idtypes {
                 /// long enough when using `Into<Cow<str>>`, so the only
                 /// sensible choice is to just use a `&str`.
                 pub fn from_id_or_uri(id_or_uri: &'a str) -> Result<Self, IdError> {
-                    let id_or_uri = id_or_uri.into();
                     match Self::from_uri(id_or_uri) {
                         Ok(id) => Ok(id),
                         Err(IdError::InvalidPrefix) => Self::from_id(id_or_uri),
@@ -335,7 +334,7 @@ macro_rules! define_idtypes {
                 /// This creates an ID with the underlying `&str` variant from a
                 /// reference. Useful to use an ID multiple times without having
                 /// to clone it.
-                pub fn as_ref(&'a self) -> $name<'a> {
+                pub fn as_ref(&'a self) -> Self {
                     Self(Cow::Borrowed(self.0.as_ref()))
                 }
 
@@ -352,7 +351,7 @@ macro_rules! define_idtypes {
                 }
             }
 
-            impl<'a> Id<'a> for $name<'a> {
+            impl Id for $name<'_> {
                 fn id(&self) -> &str {
                     &self.0
                 }
@@ -484,12 +483,30 @@ pub enum PlayContextId<'a> {
 }
 // These don't work with `enum_dispatch`, unfortunately.
 impl<'a> PlayContextId<'a> {
-    pub fn as_ref(&'a self) -> PlayContextId<'a> {
+    pub fn as_ref(&'a self) -> Self {
         match self {
             PlayContextId::Artist(x) => PlayContextId::Artist(x.as_ref()),
             PlayContextId::Album(x) => PlayContextId::Album(x.as_ref()),
             PlayContextId::Playlist(x) => PlayContextId::Playlist(x.as_ref()),
             PlayContextId::Show(x) => PlayContextId::Show(x.as_ref()),
+        }
+    }
+
+    pub fn into_static(self) -> PlayContextId<'static> {
+        match self {
+            PlayContextId::Artist(x) => PlayContextId::Artist(x.into_static()),
+            PlayContextId::Album(x) => PlayContextId::Album(x.into_static()),
+            PlayContextId::Playlist(x) => PlayContextId::Playlist(x.into_static()),
+            PlayContextId::Show(x) => PlayContextId::Show(x.into_static()),
+        }
+    }
+
+    pub fn clone_static(&'a self) -> PlayContextId<'static> {
+        match self {
+            PlayContextId::Artist(x) => PlayContextId::Artist(x.clone_static()),
+            PlayContextId::Album(x) => PlayContextId::Album(x.clone_static()),
+            PlayContextId::Playlist(x) => PlayContextId::Playlist(x.clone_static()),
+            PlayContextId::Show(x) => PlayContextId::Show(x.clone_static()),
         }
     }
 }
@@ -503,10 +520,24 @@ pub enum PlayableId<'a> {
 }
 // These don't work with `enum_dispatch`, unfortunately.
 impl<'a> PlayableId<'a> {
-    pub fn as_ref(&'a self) -> PlayableId<'a> {
+    pub fn as_ref(&'a self) -> Self {
         match self {
             PlayableId::Track(x) => PlayableId::Track(x.as_ref()),
             PlayableId::Episode(x) => PlayableId::Episode(x.as_ref()),
+        }
+    }
+
+    pub fn into_static(self) -> PlayableId<'static> {
+        match self {
+            PlayableId::Track(x) => PlayableId::Track(x.into_static()),
+            PlayableId::Episode(x) => PlayableId::Episode(x.into_static()),
+        }
+    }
+
+    pub fn clone_static(&'a self) -> PlayableId<'static> {
+        match self {
+            PlayableId::Track(x) => PlayableId::Track(x.clone_static()),
+            PlayableId::Episode(x) => PlayableId::Episode(x.clone_static()),
         }
     }
 }
