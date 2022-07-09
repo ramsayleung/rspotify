@@ -33,7 +33,7 @@ pub struct SimplifiedShow {
     pub publisher: String,
 }
 
-/// [`SimplifiedShows`] wrapped by [`Vec`]
+/// [`SimplifiedShow`] wrapped by [`Vec`]
 #[derive(Deserialize)]
 pub struct SeversalSimplifiedShows {
     pub shows: Vec<SimplifiedShow>,
