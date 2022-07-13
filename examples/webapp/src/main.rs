@@ -14,13 +14,13 @@ use rocket::response::Redirect;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
-use rspotify::{scopes, AuthCodeSpotify, OAuth, Credentials, Config, prelude::*, Token};
+use rspotify::{prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token};
 
-use std::fs;
 use std::{
     collections::HashMap,
-    env,
+    env, fs,
     path::PathBuf,
+    sync::{Arc, Mutex},
 };
 
 #[derive(Debug, Responder)]
@@ -95,7 +95,7 @@ fn init_spotify(cookies: &Cookies) -> AuthCodeSpotify {
     // Replacing client_id and client_secret with yours.
     let creds = Credentials::new(
         "e1dce60f1e274e20861ce5d96142a4d3",
-        "0e4e03b9be8d465d87fc32857a4b5aa3"
+        "0e4e03b9be8d465d87fc32857a4b5aa3",
     );
 
     AuthCodeSpotify::with_config(creds, oauth, config)
@@ -149,7 +149,7 @@ fn index(mut cookies: Cookies) -> AppResponse {
             AppResponse::Template(Template::render("index", context.clone()))
         }
         Err(err) => {
-            context.insert("err_msg", format!("Failed for {}!", err));
+            context.insert("err_msg", format!("Failed for {err}!"));
             AppResponse::Template(Template::render("error", context))
         }
     }
@@ -168,9 +168,10 @@ fn playlist(cookies: Cookies) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let token = spotify.read_token_cache().unwrap();
-    spotify.token = Some(token);
-    let playlists = spotify.current_user_playlists()
+    let token = spotify.read_token_cache(false).unwrap();
+    spotify.token = Arc::new(Mutex::new(token));
+    let playlists = spotify
+        .current_user_playlists()
         .take(50)
         .filter_map(Result::ok)
         .collect::<Vec<_>>();
@@ -189,7 +190,7 @@ fn me(cookies: Cookies) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    spotify.token = Some(spotify.read_token_cache().unwrap());
+    spotify.token = Arc::new(Mutex::new(spotify.read_token_cache(false).unwrap()));
     match spotify.me() {
         Ok(user_info) => AppResponse::Json(json!(user_info)),
         Err(_) => AppResponse::Redirect(Redirect::to("/")),

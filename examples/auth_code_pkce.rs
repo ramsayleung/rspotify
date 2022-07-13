@@ -39,7 +39,7 @@ async fn main() {
 
     // Running the requests
     let history = spotify.current_playback(None, None::<Vec<_>>).await;
-    println!("Response: {:?}", history);
+    println!("Response: {history:?}");
 
     // Token refreshing works as well, but only with the one generated in the
     // previous request (they actually expire, unlike the regular code auth
@@ -51,5 +51,5 @@ async fn main() {
 
     // Running the requests again
     let history = spotify.current_playback(None, None::<Vec<_>>).await;
-    println!("Response after refreshing token: {:?}", history);
+    println!("Response after refreshing token: {history:?}");
 }

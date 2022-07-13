@@ -21,15 +21,16 @@ use rspotify::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: AuthCodeSpotify) {
     let artists = [
-        &ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
-        &ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
-        &ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
+        ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
+    let num_artists = artists.len();
     spotify
-        .user_follow_artists(artists)
+        .user_follow_artists(artists.iter().map(|a| a.as_ref()))
         .await
         .expect("couldn't follow artists");
-    println!("Followed {} artists successfully.", artists.len());
+    println!("Followed {num_artists} artists successfully.");
 
     // Printing the followed artists
     let followed = spotify
@@ -45,7 +46,7 @@ async fn do_things(spotify: AuthCodeSpotify) {
         .user_unfollow_artists(artists)
         .await
         .expect("couldn't unfollow artists");
-    println!("Unfollowed {} artists successfully.", artists.len());
+    println!("Unfollowed {num_artists} artists successfully.");
 }
 
 #[tokio::main]

@@ -287,8 +287,9 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
 }
 
 #[inline]
-pub(in crate) fn join_ids<'a, T: Id + 'a + ?Sized>(ids: impl IntoIterator<Item = &'a T>) -> String {
-    ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
+pub(in crate) fn join_ids<'a, T: Id + 'a>(ids: impl IntoIterator<Item = T>) -> String {
+    let ids = ids.into_iter().collect::<Vec<_>>();
+    ids.iter().map(Id::id).collect::<Vec<_>>().join(",")
 }
 
 #[inline]

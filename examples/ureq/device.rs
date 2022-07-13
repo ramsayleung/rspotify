@@ -18,5 +18,5 @@ fn main() {
 
     let devices = spotify.device();
 
-    println!("Request: {:?}", devices);
+    println!("Request: {devices:?}");
 }

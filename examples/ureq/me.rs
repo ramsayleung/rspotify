@@ -17,5 +17,5 @@ fn main() {
     spotify.prompt_for_token(&url).unwrap();
 
     let user = spotify.me();
-    println!("Request: {:?}", user);
+    println!("Request: {user:?}");
 }
