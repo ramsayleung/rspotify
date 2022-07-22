@@ -1,4 +1,4 @@
-//! Rspotify is a wrapper for the [Spotify Web API][spotify-main], inspired by
+//! RSpotify is a wrapper for the [Spotify Web API][spotify-main], inspired by
 //! [spotipy][spotipy-github]. It includes support for all the [authorization
 //! flows][spotify-auth-flows], and helper methods for [all available
 //! endpoints][spotify-reference].
@@ -7,7 +7,7 @@
 //!
 //! ### HTTP Client
 //!
-//! By default, Rspotify uses the [reqwest][reqwest-docs] asynchronous HTTP
+//! By default, RSpotify uses the [reqwest][reqwest-docs] asynchronous HTTP
 //! client with its default TLS, but you can customize both the HTTP client and
 //! the TLS with the following features:
 //!
@@ -23,7 +23,7 @@
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
 //! have to disable the default features and enable whichever you want. For
-//! example, this would compile Rspotify with `reqwest` and the native TLS:
+//! example, this would compile RSpotify with `reqwest` and the native TLS:
 //!
 //! ```toml
 //! [dependencies]
@@ -34,7 +34,7 @@
 //! }
 //! ```
 //!
-//! [`maybe_async`] internally enables Rspotify to  use both synchronous and
+//! [`maybe_async`] internally enables RSpotify to  use both synchronous and
 //! asynchronous HTTP clients. You can also use `ureq`, a synchronous client,
 //! like so:
 //!
@@ -55,7 +55,7 @@
 //!
 //! ### Environmental variables
 //!
-//! Rspotify supports the [`dotenv`] crate, which allows you to save credentials
+//! RSpotify supports the [`dotenv`] crate, which allows you to save credentials
 //! in a `.env` file. These will then be automatically available as
 //! environmental values when using methods like [`Credentials::from_env`].
 //!
@@ -66,7 +66,7 @@
 //!
 //! ### CLI utilities
 //!
-//! Rspotify includes basic support for Cli apps to obtain access tokens by
+//! RSpotify includes basic support for Cli apps to obtain access tokens by
 //! prompting the user, after enabling the `cli` feature. See the
 //! [Authorization](#authorization) section for more information.
 //!
@@ -81,7 +81,7 @@
 //! explanation of the different authorization flows
 //! available][spotify-auth-flows].
 //!
-//! Rspotify has a different client for each of the available authentication
+//! RSpotify has a different client for each of the available authentication
 //! flows. They may implement the endpoints in
 //! [`BaseClient`](crate::clients::BaseClient) or
 //! [`OAuthClient`](crate::clients::OAuthClient) according to what kind of
@@ -92,7 +92,7 @@
 //! * [Authorization Code Flow][spotify-auth-code]: see [`AuthCodeSpotify`].
 //! * [Authorization Code Flow with Proof Key for Code Exchange
 //!   (PKCE)][spotify-auth-code-pkce]: see [`AuthCodePkceSpotify`].
-//! * [Implicit Grant Flow][spotify-implicit-grant]: unimplemented, as Rspotify
+//! * [Implicit Grant Flow][spotify-implicit-grant]: unimplemented, as RSpotify
 //!   has not been tested on a browser yet. If you'd like support for it, let us
 //!   know in an issue!
 //!

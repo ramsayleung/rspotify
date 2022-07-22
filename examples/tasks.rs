@@ -1,4 +1,4 @@
-//! This example showcases how the Rspotify client can be used to perform
+//! This example showcases how the RSpotify client can be used to perform
 //! multithreaded requests as well.
 
 use rspotify::{model::AlbumId, prelude::*, ClientCredsSpotify, Credentials};
