@@ -229,6 +229,12 @@ pub trait OAuthClient: BaseClient {
         collaborative: Option<bool>,
         description: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
+        debug_assert!(
+            !(collaborative.unwrap_or(false) && public.unwrap_or(false)),
+            "To create a collaborative playlist you must also set public to \
+            false. See the reference for more information."
+        );
+
         let params = build_json! {
             "name": name,
             optional "public": public,
