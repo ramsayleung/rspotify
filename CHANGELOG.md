@@ -6,6 +6,7 @@
 - ([#332](https://github.com/ramsayleung/rspotify/pull/332)) Fix typo in `RestrictionReason` enum values
 
 **Breaking changes**:
+- ([#336](https://github.com/ramsayleung/rspotify/pull/336)) `Offset::for_position` and `Offset::for_uri` have been removed, as they were unnecessary. Use `Offset::Position` and `Offset::Uri` instead, respectively.
 - ([#305](https://github.com/ramsayleung/rspotify/pull/305)) The `Id` types have been refactored to maximize usability. Instead of focusing on having an object-safe trait and using `dyn Id`, we now have enums to group up the IDs. This is based on how [`enum_dispatch`](https://docs.rs/enum_dispatch) works, and it's not only easier to use, but also more efficient. It makes it possible to have borrowed IDs again, so we've chosen to use `Cow` internally for flexibility. Check out the docs for more information!
 
   Please let us know if there is anything that could be improved. Unfortunately, this breaks many methods in `BaseClient` and `OAuthClient`, but the errors should occur at compile-time only.
