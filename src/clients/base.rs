@@ -429,7 +429,7 @@ where
     ///   include_external=audio is specified the response will include any
     ///   relevant audio content that is hosted externally.  
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
     async fn search(
         &self,
         q: &str,
