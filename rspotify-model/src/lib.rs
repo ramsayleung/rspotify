@@ -53,10 +53,11 @@ impl PlayableItem {
     ///
     /// Note that if it's a track and if it's local, it may not have an ID, in
     /// which case this function will return `None`.
-    pub fn id(&self) -> Option<&dyn PlayableId> {
+    #[must_use]
+    pub fn id(&self) -> Option<PlayableId<'_>> {
         match self {
-            PlayableItem::Track(t) => t.id.as_ref().map(|t| t as &dyn PlayableId),
-            PlayableItem::Episode(e) => Some(&e.id),
+            PlayableItem::Track(t) => t.id.as_ref().map(|t| PlayableId::Track(t.as_ref())),
+            PlayableItem::Episode(e) => Some(PlayableId::Episode(e.id.as_ref())),
         }
     }
 }

@@ -3,11 +3,11 @@
 [![Crates.io](https://img.shields.io/crates/v/rspotify.svg)](https://crates.io/crates/rspotify)
 [![Docs](https://docs.rs/rspotify/badge.svg)](https://docs.rs/crate/rspotify/)
 
-# Rspotify
+# RSpotify
 
-Rspotify is a wrapper for the [Spotify Web API](https://developer.spotify.com/documentation/web-api/), inspired by [spotipy](https://github.com/plamere/spotipy). It includes support for all the [authorization flows](https://developer.spotify.com/documentation/general/guides/authorization/), and helper functions for [all endpoints](https://developer.spotify.com/documentation/web-api/reference/).
+RSpotify is a wrapper for the [Spotify Web API](https://developer.spotify.com/documentation/web-api/), inspired by [spotipy](https://github.com/plamere/spotipy). It includes support for all the [authorization flows](https://developer.spotify.com/documentation/general/guides/authorization/), and helper functions for [all endpoints](https://developer.spotify.com/documentation/web-api/reference/).
 
-To learn how to use Rspotify, please refer to the [documentation](https://docs.rs/crate/rspotify/). There are some [examples that may be useful](./examples) as well.
+To learn how to use RSpotify, please refer to the [documentation](https://docs.rs/crate/rspotify/). There are some [examples that may be useful](./examples) as well.
 
 ## Changelog
 
@@ -31,7 +31,7 @@ We use GitHub Actions to make sure the codebase is consistent (`cargo fmt`) and 
 
 ## Building
 
-Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) to switch between async and blocking clients, which is triggered inside `Cargo.toml`. So that must be taken into account when building `rspotify`. Read the Configuration section in the docs for more information about how to build with custom TLS implementations, and more.
+RSpotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) to switch between async and blocking clients, which is triggered inside `Cargo.toml`. So that must be taken into account when building `rspotify`. Read the Configuration section in the docs for more information about how to build with custom TLS implementations, and more.
 
 `client-reqwest` is used by default. It should be as easy as
 
@@ -39,7 +39,7 @@ Rspotify uses [`maybe_async`](https://docs.rs/maybe-async/0.2.0/maybe_async/) to
 $ cargo build
 ```
 
-`client-ureq` is also available as the `blocking` interface, which compiles Rspotify with [`ureq`](https://docs.rs/ureq/) (a TLS has to be specified as well):
+`client-ureq` is also available as the `blocking` interface, which compiles RSpotify with [`ureq`](https://docs.rs/ureq/) (a TLS has to be specified as well):
 
 ```sh
 $ cargo build --no-default-features --features client-ureq,ureq-rustls-tls

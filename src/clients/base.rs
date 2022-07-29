@@ -97,7 +97,7 @@ where
             .await
             .expect("Failed to acquire lock")
             .as_ref()
-            .expect("Rspotify not authenticated")
+            .expect("RSpotify not authenticated")
             .auth_headers()
     }
 
@@ -244,7 +244,7 @@ where
     /// - track_id - a spotify URI, URL or ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-track)
-    async fn track(&self, track_id: &TrackId) -> ClientResult<FullTrack> {
+    async fn track(&self, track_id: TrackId<'_>) -> ClientResult<FullTrack> {
         let url = format!("tracks/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
@@ -259,13 +259,13 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-tracks)
     async fn tracks<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
-        market: Option<&Market>,
+        track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
+        market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
         let ids = join_ids(track_ids);
-        let params = build_map([("market", market.map(|x| x.as_ref()))]);
+        let params = build_map([("market", market.map(|x| x.into()))]);
 
-        let url = format!("tracks/?ids={}", ids);
+        let url = format!("tracks/?ids={ids}");
         let result = self.endpoint_get(&url, &params).await?;
         convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
@@ -276,7 +276,7 @@ where
     /// - artist_id - an artist ID, URI or URL
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artist)
-    async fn artist(&self, artist_id: &ArtistId) -> ClientResult<FullArtist> {
+    async fn artist(&self, artist_id: ArtistId<'_>) -> ClientResult<FullArtist> {
         let url = format!("artists/{}", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
@@ -290,10 +290,10 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-artists)
     async fn artists<'a>(
         &self,
-        artist_ids: impl IntoIterator<Item = &'a ArtistId> + Send + 'a,
+        artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
-        let url = format!("artists/?ids={}", ids);
+        let url = format!("artists/?ids={ids}");
         let result = self.endpoint_get(&url, &Query::new()).await?;
 
         convert_result::<FullArtists>(&result).map(|x| x.artists)
@@ -314,9 +314,9 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-albums)
     fn artist_albums<'a>(
         &'a self,
-        artist_id: &'a ArtistId,
-        album_type: Option<&'a AlbumType>,
-        market: Option<&'a Market>,
+        artist_id: &'a ArtistId<'_>,
+        album_type: Option<AlbumType>,
+        market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedAlbum>> {
         paginate(
             move |limit, offset| {
@@ -329,17 +329,17 @@ where
     /// The manually paginated version of [`Self::artist_albums`].
     async fn artist_albums_manual(
         &self,
-        artist_id: &ArtistId,
-        album_type: Option<&AlbumType>,
-        market: Option<&Market>,
+        artist_id: &ArtistId<'_>,
+        album_type: Option<AlbumType>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("album_type", album_type.map(|x| x.as_ref())),
-            ("market", market.map(|x| x.as_ref())),
+            ("album_type", album_type.map(|x| x.into())),
+            ("market", market.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -359,10 +359,10 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-top-tracks)
     async fn artist_top_tracks(
         &self,
-        artist_id: &ArtistId,
-        market: &Market,
+        artist_id: ArtistId<'_>,
+        market: Market,
     ) -> ClientResult<Vec<FullTrack>> {
-        let params = build_map([("market", Some(market.as_ref()))]);
+        let params = build_map([("market", Some(market.into()))]);
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -377,7 +377,10 @@ where
     /// - artist_id - the artist ID, URI or URL
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-related-artists)
-    async fn artist_related_artists(&self, artist_id: &ArtistId) -> ClientResult<Vec<FullArtist>> {
+    async fn artist_related_artists(
+        &self,
+        artist_id: ArtistId<'_>,
+    ) -> ClientResult<Vec<FullArtist>> {
         let url = format!("artists/{}/related-artists", artist_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result::<FullArtists>(&result).map(|x| x.artists)
@@ -389,7 +392,7 @@ where
     /// - album_id - the album ID, URI or URL
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-album)
-    async fn album(&self, album_id: &AlbumId) -> ClientResult<FullAlbum> {
+    async fn album(&self, album_id: AlbumId<'_>) -> ClientResult<FullAlbum> {
         let url = format!("albums/{}", album_id.id());
 
         let result = self.endpoint_get(&url, &Query::new()).await?;
@@ -404,10 +407,10 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-albums)
     async fn albums<'a>(
         &self,
-        album_ids: impl IntoIterator<Item = &'a AlbumId> + Send + 'a,
+        album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
-        let url = format!("albums/?ids={}", ids);
+        let url = format!("albums/?ids={ids}");
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
@@ -426,12 +429,12 @@ where
     ///   include_external=audio is specified the response will include any
     ///   relevant audio content that is hosted externally.  
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#category-search)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
     async fn search(
         &self,
         q: &str,
-        _type: &SearchType,
-        market: Option<&Market>,
+        _type: SearchType,
+        market: Option<Market>,
         include_external: Option<IncludeExternal>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -440,12 +443,9 @@ where
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
             ("q", Some(q)),
-            ("type", Some(_type.as_ref())),
-            ("market", market.map(|x| x.as_ref())),
-            (
-                "include_external",
-                include_external.as_ref().map(|x| x.as_ref()),
-            ),
+            ("type", Some(_type.into())),
+            ("market", market.map(|x| x.into())),
+            ("include_external", include_external.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -467,7 +467,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-albums-tracks)
     fn album_track<'a>(
         &'a self,
-        album_id: &'a AlbumId,
+        album_id: &'a AlbumId<'_>,
     ) -> Paginator<'_, ClientResult<SimplifiedTrack>> {
         paginate(
             move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
@@ -478,7 +478,7 @@ where
     /// The manually paginated version of [`Self::album_track`].
     async fn album_track_manual(
         &self,
-        album_id: &AlbumId,
+        album_id: &AlbumId<'_>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedTrack>> {
@@ -497,7 +497,7 @@ where
     /// - user - the id of the usr
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-profile)
-    async fn user(&self, user_id: &UserId) -> ClientResult<PublicUser> {
+    async fn user(&self, user_id: UserId<'_>) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
@@ -512,11 +512,11 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlist)
     async fn playlist(
         &self,
-        playlist_id: &PlaylistId,
+        playlist_id: PlaylistId<'_>,
         fields: Option<&str>,
-        market: Option<&Market>,
+        market: Option<Market>,
     ) -> ClientResult<FullPlaylist> {
-        let params = build_map([("fields", fields), ("market", market.map(|x| x.as_ref()))]);
+        let params = build_map([("fields", fields), ("market", market.map(|x| x.into()))]);
 
         let url = format!("playlists/{}", playlist_id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -533,8 +533,8 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
     async fn user_playlist(
         &self,
-        user_id: &UserId,
-        playlist_id: Option<&PlaylistId>,
+        user_id: UserId<'_>,
+        playlist_id: Option<PlaylistId<'_>>,
         fields: Option<&str>,
     ) -> ClientResult<FullPlaylist> {
         let params = build_map([("fields", fields)]);
@@ -557,8 +557,8 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-if-user-follows-playlist)
     async fn playlist_check_follow(
         &self,
-        playlist_id: &PlaylistId,
-        user_ids: &[&UserId],
+        playlist_id: PlaylistId<'_>,
+        user_ids: &[UserId<'_>],
     ) -> ClientResult<Vec<bool>> {
         debug_assert!(
             user_ids.len() <= 5,
@@ -586,8 +586,8 @@ where
     /// - market(Optional): An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-show)
-    async fn get_a_show(&self, id: &ShowId, market: Option<&Market>) -> ClientResult<FullShow> {
-        let params = build_map([("market", market.map(|x| x.as_ref()))]);
+    async fn get_a_show(&self, id: ShowId<'_>, market: Option<Market>) -> ClientResult<FullShow> {
+        let params = build_map([("market", market.map(|x| x.into()))]);
 
         let url = format!("shows/{}", id.id());
         let result = self.endpoint_get(&url, &params).await?;
@@ -604,11 +604,11 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-shows)
     async fn get_several_shows<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a ShowId> + Send + 'a,
-        market: Option<&Market>,
+        ids: impl IntoIterator<Item = ShowId<'a>> + Send + 'a,
+        market: Option<Market>,
     ) -> ClientResult<Vec<SimplifiedShow>> {
         let ids = join_ids(ids);
-        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.as_ref()))]);
+        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.into()))]);
 
         let result = self.endpoint_get("shows", &params).await?;
         convert_result::<SeversalSimplifiedShows>(&result).map(|x| x.shows)
@@ -631,8 +631,8 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-shows-episodes)
     fn get_shows_episodes<'a>(
         &'a self,
-        id: &'a ShowId,
-        market: Option<&'a Market>,
+        id: &'a ShowId<'_>,
+        market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedEpisode>> {
         paginate(
             move |limit, offset| {
@@ -645,15 +645,15 @@ where
     /// The manually paginated version of [`Self::get_shows_episodes`].
     async fn get_shows_episodes_manual(
         &self,
-        id: &ShowId,
-        market: Option<&Market>,
+        id: &ShowId<'_>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedEpisode>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("market", market.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -674,11 +674,11 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-episode)
     async fn get_an_episode(
         &self,
-        id: &EpisodeId,
-        market: Option<&Market>,
+        id: EpisodeId<'_>,
+        market: Option<Market>,
     ) -> ClientResult<FullEpisode> {
         let url = format!("episodes/{}", id.id());
-        let params = build_map([("market", market.map(|x| x.as_ref()))]);
+        let params = build_map([("market", market.map(|x| x.into()))]);
 
         let result = self.endpoint_get(&url, &params).await?;
         convert_result(&result)
@@ -693,11 +693,11 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-episodes)
     async fn get_several_episodes<'a>(
         &self,
-        ids: impl IntoIterator<Item = &'a EpisodeId> + Send + 'a,
-        market: Option<&Market>,
+        ids: impl IntoIterator<Item = EpisodeId<'a>> + Send + 'a,
+        market: Option<Market>,
     ) -> ClientResult<Vec<FullEpisode>> {
         let ids = join_ids(ids);
-        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.as_ref()))]);
+        let params = build_map([("ids", Some(&ids)), ("market", market.map(|x| x.into()))]);
 
         let result = self.endpoint_get("episodes", &params).await?;
         convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
@@ -709,7 +709,7 @@ where
     /// - track - track URI, URL or ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-features)
-    async fn track_features(&self, track_id: &TrackId) -> ClientResult<AudioFeatures> {
+    async fn track_features(&self, track_id: TrackId<'_>) -> ClientResult<AudioFeatures> {
         let url = format!("audio-features/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
@@ -723,7 +723,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-audio-features)
     async fn tracks_features<'a>(
         &self,
-        track_ids: impl IntoIterator<Item = &'a TrackId> + Send + 'a,
+        track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let url = format!("audio-features/?ids={}", join_ids(track_ids));
 
@@ -742,7 +742,7 @@ where
     /// - track_id - a track URI, URL or ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-analysis)
-    async fn track_analysis(&self, track_id: &TrackId) -> ClientResult<AudioAnalysis> {
+    async fn track_analysis(&self, track_id: TrackId<'_>) -> ClientResult<AudioAnalysis> {
         let url = format!("audio-analysis/{}", track_id.id());
         let result = self.endpoint_get(&url, &Query::new()).await?;
         convert_result(&result)
@@ -766,7 +766,7 @@ where
     fn categories<'a>(
         &'a self,
         locale: Option<&'a str>,
-        country: Option<&'a Market>,
+        country: Option<Market>,
     ) -> Paginator<'_, ClientResult<Category>> {
         paginate(
             move |limit, offset| self.categories_manual(locale, country, Some(limit), Some(offset)),
@@ -778,7 +778,7 @@ where
     async fn categories_manual(
         &self,
         locale: Option<&str>,
-        country: Option<&Market>,
+        country: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<Category>> {
@@ -786,7 +786,7 @@ where
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
             ("locale", locale),
-            ("country", country.map(|x| x.as_ref())),
+            ("country", country.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -811,7 +811,7 @@ where
     fn category_playlists<'a>(
         &'a self,
         category_id: &'a str,
-        country: Option<&'a Market>,
+        country: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedPlaylist>> {
         paginate(
             move |limit, offset| {
@@ -825,19 +825,19 @@ where
     async fn category_playlists_manual(
         &self,
         category_id: &str,
-        country: Option<&Market>,
+        country: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("country", country.map(|x| x.as_ref())),
+            ("country", country.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
 
-        let url = format!("browse/categories/{}/playlists", category_id);
+        let url = format!("browse/categories/{category_id}/playlists");
         let result = self.endpoint_get(&url, &params).await?;
         convert_result::<CategoryPlaylists>(&result).map(|x| x.playlists)
     }
@@ -862,7 +862,7 @@ where
     async fn featured_playlists(
         &self,
         locale: Option<&str>,
-        country: Option<&Market>,
+        country: Option<Market>,
         timestamp: Option<chrono::DateTime<chrono::Utc>>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -872,7 +872,7 @@ where
         let timestamp = timestamp.map(|x| x.to_rfc3339());
         let params = build_map([
             ("locale", locale),
-            ("country", country.map(|x| x.as_ref())),
+            ("country", country.map(|x| x.into())),
             ("timestamp", timestamp.as_deref()),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
@@ -897,9 +897,9 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-new-releases)
-    fn new_releases<'a>(
-        &'a self,
-        country: Option<&'a Market>,
+    fn new_releases(
+        &self,
+        country: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedAlbum>> {
         paginate(
             move |limit, offset| self.new_releases_manual(country, Some(limit), Some(offset)),
@@ -910,14 +910,14 @@ where
     /// The manually paginated version of [`Self::new_releases`].
     async fn new_releases_manual(
         &self,
-        country: Option<&Market>,
+        country: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("country", country.map(|x| x.as_ref())),
+            ("country", country.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -946,10 +946,10 @@ where
     async fn recommendations<'a>(
         &self,
         attributes: impl IntoIterator<Item = RecommendationsAttribute> + Send + 'a,
-        seed_artists: Option<impl IntoIterator<Item = &'a ArtistId> + Send + 'a>,
+        seed_artists: Option<impl IntoIterator<Item = ArtistId<'a>> + Send + 'a>,
         seed_genres: Option<impl IntoIterator<Item = &'a str> + Send + 'a>,
-        seed_tracks: Option<impl IntoIterator<Item = &'a TrackId> + Send + 'a>,
-        market: Option<&Market>,
+        seed_tracks: Option<impl IntoIterator<Item = TrackId<'a>> + Send + 'a>,
+        market: Option<Market>,
         limit: Option<u32>,
     ) -> ClientResult<Recommendations> {
         let seed_artists = seed_artists.map(join_ids);
@@ -960,14 +960,14 @@ where
             ("seed_artists", seed_artists.as_deref()),
             ("seed_genres", seed_genres.as_deref()),
             ("seed_tracks", seed_tracks.as_deref()),
-            ("market", market.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.into())),
             ("limit", limit.as_deref()),
         ]);
 
         // First converting the attributes into owned `String`s
         let owned_attributes = attributes
             .into_iter()
-            .map(|attr| (attr.as_ref().to_owned(), attr.value_string()))
+            .map(|attr| (<&str>::from(attr).to_owned(), attr.value_string()))
             .collect::<HashMap<_, _>>();
         // Afterwards converting the values into `&str`s; otherwise they
         // wouldn't live long enough
@@ -996,13 +996,19 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlists-tracks)
     fn playlist_items<'a>(
         &'a self,
-        playlist_id: &'a PlaylistId,
+        playlist_id: &'a PlaylistId<'_>,
         fields: Option<&'a str>,
-        market: Option<&'a Market>,
+        market: Option<Market>,
     ) -> Paginator<'_, ClientResult<PlaylistItem>> {
         paginate(
             move |limit, offset| {
-                self.playlist_items_manual(playlist_id, fields, market, Some(limit), Some(offset))
+                self.playlist_items_manual(
+                    playlist_id.as_ref(),
+                    fields,
+                    market,
+                    Some(limit),
+                    Some(offset),
+                )
             },
             self.get_config().pagination_chunks,
         )
@@ -1011,9 +1017,9 @@ where
     /// The manually paginated version of [`Self::playlist_items`].
     async fn playlist_items_manual(
         &self,
-        playlist_id: &PlaylistId,
+        playlist_id: PlaylistId<'_>,
         fields: Option<&str>,
-        market: Option<&Market>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<PlaylistItem>> {
@@ -1021,7 +1027,7 @@ where
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
             ("fields", fields),
-            ("market", market.map(|x| x.as_ref())),
+            ("market", market.map(|x| x.into())),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -1044,7 +1050,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
     fn user_playlists<'a>(
         &'a self,
-        user_id: &'a UserId,
+        user_id: &'a UserId<'_>,
     ) -> Paginator<'_, ClientResult<SimplifiedPlaylist>> {
         paginate(
             move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
@@ -1055,7 +1061,7 @@ where
     /// The manually paginated version of [`Self::user_playlists`].
     async fn user_playlists_manual(
         &self,
-        user_id: &UserId,
+        user_id: &UserId<'_>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {

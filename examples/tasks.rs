@@ -1,4 +1,4 @@
-//! This example showcases how the Rspotify client can be used to perform
+//! This example showcases how the RSpotify client can be used to perform
 //! multithreaded requests as well.
 
 use rspotify::{model::AlbumId, prelude::*, ClientCredsSpotify, Credentials};
@@ -28,7 +28,7 @@ async fn main() {
         let spotify = Arc::clone(&spotify);
         let wr = wr.clone();
         let handle = task::spawn(async move {
-            let albums = spotify.album(&id).await.unwrap();
+            let albums = spotify.album(id).await.unwrap();
             wr.send(albums).unwrap();
         });
 

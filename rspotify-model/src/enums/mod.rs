@@ -1,4 +1,4 @@
-//! All Enums for Rspotify's model types
+//! All Enums for RSpotify's model types
 
 pub mod country;
 pub mod misc;

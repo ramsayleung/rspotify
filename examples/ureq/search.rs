@@ -17,72 +17,72 @@ fn main() {
     spotify.request_token().unwrap();
 
     let album_query = "album:arrival artist:abba";
-    let result = spotify.search(album_query, &SearchType::Album, None, None, Some(10), None);
+    let result = spotify.search(album_query, SearchType::Album, None, None, Some(10), None);
     match result {
-        Ok(album) => println!("searched album:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched album: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let artist_query = "tania bowra";
     let result = spotify.search(
         artist_query,
-        &SearchType::Artist,
-        Some(&Market::Country(Country::UnitedStates)),
+        SearchType::Artist,
+        Some(Market::Country(Country::UnitedStates)),
         None,
         Some(10),
         None,
     );
     match result {
-        Ok(album) => println!("searched artist:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched artist: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let playlist_query = "\"doom metal\"";
     let result = spotify.search(
         playlist_query,
-        &SearchType::Playlist,
-        Some(&Market::Country(Country::UnitedStates)),
+        SearchType::Playlist,
+        Some(Market::Country(Country::UnitedStates)),
         None,
         Some(10),
         None,
     );
     match result {
-        Ok(album) => println!("searched playlist:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched playlist: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let track_query = "abba";
     let result = spotify.search(
         track_query,
-        &SearchType::Track,
-        Some(&Market::Country(Country::UnitedStates)),
+        SearchType::Track,
+        Some(Market::Country(Country::UnitedStates)),
         None,
         Some(10),
         None,
     );
     match result {
-        Ok(album) => println!("searched track:{:?}", album),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(album) => println!("Searched track: {album:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let show_query = "love";
-    let result = spotify.search(show_query, &SearchType::Show, None, None, Some(10), None);
+    let result = spotify.search(show_query, SearchType::Show, None, None, Some(10), None);
     match result {
-        Ok(show) => println!("searched show:{:?}", show),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(show) => println!("Searched show: {show:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 
     let episode_query = "love";
     let result = spotify.search(
         episode_query,
-        &SearchType::Episode,
+        SearchType::Episode,
         None,
         None,
         Some(10),
         None,
     );
     match result {
-        Ok(episode) => println!("searched episode:{:?}", episode),
-        Err(err) => println!("search error!{:?}", err),
+        Ok(episode) => println!("Searched episode: {episode:?}"),
+        Err(err) => println!("Search error! {err:?}"),
     }
 }

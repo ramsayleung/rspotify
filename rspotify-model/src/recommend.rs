@@ -1,7 +1,7 @@
 //! All objects related to recommendation
 
 use serde::{Deserialize, Serialize};
-use strum::AsRefStr;
+use strum::IntoStaticStr;
 
 use crate::{RecommendationsSeedType, SimplifiedTrack};
 
@@ -28,7 +28,7 @@ pub struct RecommendationsSeed {
 }
 
 /// The attributes for recommendations
-#[derive(Clone, Copy, Debug, Serialize, PartialEq, AsRefStr)]
+#[derive(Clone, Copy, Debug, Serialize, PartialEq, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RecommendationsAttribute {
