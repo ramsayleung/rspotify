@@ -218,7 +218,8 @@ pub trait OAuthClient: BaseClient {
     /// - name - the name of the playlist
     /// - public - is the created playlist public
     /// - description - the description of the playlist
-    /// - collaborative - if the playlist will be collaborative
+    /// - collaborative - if the playlist will be collaborative. Note:
+    /// to create a collaborative playlist you must also set public to false
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/create-playlist)
     async fn user_playlist_create(
