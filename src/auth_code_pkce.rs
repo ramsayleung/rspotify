@@ -204,7 +204,8 @@ impl AuthCodePkceSpotify {
         payload.insert(params::STATE, &self.oauth.state);
         payload.insert(params::SCOPE, &scopes);
 
-        let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
+        let request_url = format!("{}/{}", self.config.auth_base_url, auth_urls::AUTHORIZE);
+        let parsed = Url::parse_with_params(&request_url, payload)?;
         Ok(parsed.into())
     }
 }

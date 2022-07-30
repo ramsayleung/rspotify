@@ -202,7 +202,8 @@ impl AuthCodeSpotify {
             payload.insert(params::SHOW_DIALOG, "true");
         }
 
-        let parsed = Url::parse_with_params(auth_urls::AUTHORIZE, payload)?;
+        let request_url = format!("{}/{}", self.config.auth_base_url, auth_urls::AUTHORIZE);
+        let parsed = Url::parse_with_params(&request_url, payload)?;
         Ok(parsed.into())
     }
 }

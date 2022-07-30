@@ -185,8 +185,8 @@ pub(crate) mod alphabets {
 }
 
 pub(crate) mod auth_urls {
-    pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
-    pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
+    pub const AUTHORIZE: &str = "authorize";
+    pub const TOKEN: &str = "api/token";
 }
 
 /// Possible errors returned from the `rspotify` client.
@@ -227,7 +227,8 @@ impl From<HttpError> for ClientError {
 
 pub type ClientResult<T> = Result<T, ClientError>;
 
-pub const DEFAULT_API_PREFIX: &str = "https://api.spotify.com/v1/";
+pub const DEFAULT_API_BASE_URL: &str = "https://api.spotify.com/v1/";
+pub const DEFAULT_AUTH_BASE_URL: &str = "https://accounts.spotify.com/";
 pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
 pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
 
@@ -235,7 +236,10 @@ pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
 #[derive(Debug, Clone)]
 pub struct Config {
     /// The Spotify API prefix, [`DEFAULT_API_PREFIX`] by default.
-    pub prefix: String,
+    pub api_base_url: &'static str,
+
+    /// The Spotify Authentication prefix, [`DEFAULT_AUTH_PREFIX`] by default.
+    pub auth_base_url: &'static str,
 
     /// The cache file path, in case it's used. By default it's
     /// [`DEFAULT_CACHE_PATH`]
@@ -263,7 +267,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            prefix: String::from(DEFAULT_API_PREFIX),
+            api_base_url: DEFAULT_API_BASE_URL,
+            auth_base_url: DEFAULT_AUTH_BASE_URL,
             cache_path: PathBuf::from(DEFAULT_CACHE_PATH),
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
             token_cached: false,

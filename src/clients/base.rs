@@ -42,7 +42,7 @@ where
         if url.starts_with("http") {
             url.to_string()
         } else {
-            self.get_config().prefix.clone() + url
+            self.get_config().api_base_url.clone() + url
         }
     }
 
@@ -230,7 +230,8 @@ where
         payload: &Form<'_>,
         headers: Option<&Headers>,
     ) -> ClientResult<Token> {
-        let response = self.post_form(auth_urls::TOKEN, headers, payload).await?;
+        let request_url = format!("{}/{}", self.get_config().auth_base_url, auth_urls::TOKEN);
+        let response = self.post_form(&request_url, headers, payload).await?;
 
         let mut tok = serde_json::from_str::<Token>(&response)?;
         tok.expires_at = Utc::now().checked_add_signed(tok.expires_in);
