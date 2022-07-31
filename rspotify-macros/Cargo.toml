@@ -4,12 +4,13 @@ authors = [
     "Ramsay Leung <ramsayleung@gmail.com>",
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
-version = "0.11.3"
+version = "0.11.5"
 license = "MIT"
 description = "Macros for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api", "rspotify"]
+categories = ["api-bindings", "multimedia::audio"]
 edition = "2018"
 readme = "../README.md"
 

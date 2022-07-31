@@ -11,7 +11,7 @@ use crate::{ArtistId, CursorBasedPage, Followers, Image};
 pub struct SimplifiedArtist {
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
-    pub id: Option<ArtistId>,
+    pub id: Option<ArtistId<'static>>,
     pub name: String,
 }
 
@@ -22,7 +22,7 @@ pub struct FullArtist {
     pub followers: Followers,
     pub genres: Vec<String>,
     pub href: String,
-    pub id: ArtistId,
+    pub id: ArtistId<'static>,
     pub images: Vec<Image>,
     pub name: String,
     pub popularity: u32,

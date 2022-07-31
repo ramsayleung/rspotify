@@ -18,7 +18,7 @@ pub struct AudioFeatures {
     #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub energy: f32,
-    pub id: TrackId,
+    pub id: TrackId<'static>,
     pub instrumentalness: f32,
     pub key: i32,
     pub liveness: f32,

@@ -104,7 +104,7 @@ impl BaseHttpClient for UreqClient {
         let request = ureq::get(url);
         let sender = |mut req: Request| {
             for (key, val) in payload.iter() {
-                req = req.query(key, val)
+                req = req.query(key, val);
             }
             req.call()
         };

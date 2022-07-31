@@ -1,8 +1,10 @@
 use crate::{
     auth_urls,
-    clients::{mutex::Mutex, BaseClient, OAuthClient},
+    clients::{BaseClient, OAuthClient},
     http::{Form, HttpClient},
-    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params,
+    sync::Mutex,
+    ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
@@ -123,7 +125,7 @@ impl OAuthClient for AuthCodeSpotify {
 
     /// Obtains a user access token given a code, as part of the OAuth
     /// authentication. The access token will be saved internally.
-    async fn request_token(&mut self, code: &str) -> ClientResult<()> {
+    async fn request_token(&self, code: &str) -> ClientResult<()> {
         log::info!("Requesting Auth Code token");
 
         let scopes = join_scopes(&self.oauth.scopes);
@@ -150,8 +152,9 @@ impl OAuthClient for AuthCodeSpotify {
 impl AuthCodeSpotify {
     /// Builds a new [`AuthCodeSpotify`] given a pair of client credentials and
     /// OAuth information.
+    #[must_use]
     pub fn new(creds: Credentials, oauth: OAuth) -> Self {
-        AuthCodeSpotify {
+        Self {
             creds,
             oauth,
             ..Default::default()
@@ -161,8 +164,9 @@ impl AuthCodeSpotify {
     /// Build a new [`AuthCodeSpotify`] from an already generated token. Note
     /// that once the token expires this will fail to make requests, as the
     /// client credentials aren't known.
+    #[must_use]
     pub fn from_token(token: Token) -> Self {
-        AuthCodeSpotify {
+        Self {
             token: Arc::new(Mutex::new(Some(token))),
             ..Default::default()
         }
@@ -170,8 +174,9 @@ impl AuthCodeSpotify {
 
     /// Same as [`Self::new`] but with an extra parameter to configure the
     /// client.
+    #[must_use]
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
-        AuthCodeSpotify {
+        Self {
             creds,
             oauth,
             config,

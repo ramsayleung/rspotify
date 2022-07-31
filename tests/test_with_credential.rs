@@ -1,5 +1,5 @@
 use rspotify::{
-    model::{AlbumId, AlbumType, ArtistId, Country, Id, Market, PlaylistId, TrackId, UserId},
+    model::{AlbumId, AlbumType, ArtistId, Country, Market, PlaylistId, TrackId, UserId},
     prelude::*,
     ClientCredsSpotify, Credentials,
 };
@@ -18,7 +18,7 @@ pub async fn creds_client() -> ClientCredsSpotify {
         )
     });
 
-    let mut spotify = ClientCredsSpotify::new(creds);
+    let spotify = ClientCredsSpotify::new(creds);
     spotify.request_token().await.unwrap();
     spotify
 }
@@ -26,15 +26,15 @@ pub async fn creds_client() -> ClientCredsSpotify {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_album() {
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
-    creds_client().await.album(&birdy_uri).await.unwrap();
+    creds_client().await.album(birdy_uri).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_albums() {
     let track_uris = [
-        &AlbumId::from_uri("spotify:album:41MnTivkwTO3UUJ8DrqEJJ").unwrap(),
-        &AlbumId::from_uri("spotify:album:6JWc4iAiJ9FjyK0B59ABb4").unwrap(),
-        &AlbumId::from_uri("spotify:album:6UXCm6bOO4gFlDQZV5yL37").unwrap(),
+        AlbumId::from_uri("spotify:album:41MnTivkwTO3UUJ8DrqEJJ").unwrap(),
+        AlbumId::from_uri("spotify:album:6JWc4iAiJ9FjyK0B59ABb4").unwrap(),
+        AlbumId::from_uri("spotify:album:6UXCm6bOO4gFlDQZV5yL37").unwrap(),
     ];
     creds_client().await.albums(track_uris).await.unwrap();
 }
@@ -54,7 +54,7 @@ async fn test_artist_related_artists() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:43ZHCT0cAZBISjO8DG9PnE").unwrap();
     creds_client()
         .await
-        .artist_related_artists(&birdy_uri)
+        .artist_related_artists(birdy_uri)
         .await
         .unwrap();
 }
@@ -62,7 +62,7 @@ async fn test_artist_related_artists() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_artist() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
-    creds_client().await.artist(&birdy_uri).await.unwrap();
+    creds_client().await.artist(birdy_uri).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -72,8 +72,8 @@ async fn test_artists_albums() {
         .await
         .artist_albums_manual(
             &birdy_uri,
-            Some(&AlbumType::Album),
-            Some(&Market::Country(Country::UnitedStates)),
+            Some(AlbumType::Album),
+            Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
         )
@@ -84,8 +84,8 @@ async fn test_artists_albums() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_artists() {
     let artist_uris = [
-        &ArtistId::from_uri("spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy").unwrap(),
-        &ArtistId::from_uri("spotify:artist:3dBVyJ7JuOMt4GE9607Qin").unwrap(),
+        ArtistId::from_uri("spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy").unwrap(),
+        ArtistId::from_uri("spotify:artist:3dBVyJ7JuOMt4GE9607Qin").unwrap(),
     ];
     creds_client().await.artists(artist_uris).await.unwrap();
 }
@@ -95,7 +95,7 @@ async fn test_artist_top_tracks() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
         .await
-        .artist_top_tracks(&birdy_uri, &Market::Country(Country::UnitedStates))
+        .artist_top_tracks(birdy_uri, Market::Country(Country::UnitedStates))
         .await
         .unwrap();
 }
@@ -103,13 +103,13 @@ async fn test_artist_top_tracks() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_audio_analysis() {
     let track = TrackId::from_id("06AKEBrKUckW0KREUWRnvT").unwrap();
-    creds_client().await.track_analysis(&track).await.unwrap();
+    creds_client().await.track_analysis(track).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_audio_features() {
     let track = TrackId::from_uri("spotify:track:06AKEBrKUckW0KREUWRnvT").unwrap();
-    creds_client().await.track_features(&track).await.unwrap();
+    creds_client().await.track_features(track).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -121,7 +121,7 @@ async fn test_audios_features() {
     tracks_ids.push(track_id2);
     creds_client()
         .await
-        .tracks_features(&tracks_ids)
+        .tracks_features(tracks_ids)
         .await
         .unwrap();
 }
@@ -129,20 +129,20 @@ async fn test_audios_features() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_user() {
     let birdy_uri = UserId::from_id("tuggareutangranser").unwrap();
-    creds_client().await.user(&birdy_uri).await.unwrap();
+    creds_client().await.user(birdy_uri).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_track() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
-    creds_client().await.track(&birdy_uri).await.unwrap();
+    creds_client().await.track(birdy_uri).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_tracks() {
     let track_uris = [
-        &TrackId::from_uri("spotify:track:3n3Ppam7vgaVa1iaRUc9Lp").unwrap(),
-        &TrackId::from_uri("spotify:track:3twNvmDtFQtAd5gMKedhLD").unwrap(),
+        TrackId::from_uri("spotify:track:3n3Ppam7vgaVa1iaRUc9Lp").unwrap(),
+        TrackId::from_uri("spotify:track:3twNvmDtFQtAd5gMKedhLD").unwrap(),
     ];
     creds_client().await.tracks(track_uris, None).await.unwrap();
 }
@@ -152,7 +152,7 @@ async fn test_existing_playlist() {
     let playlist_id = PlaylistId::from_id("37i9dQZF1DZ06evO45P0Eo").unwrap();
     creds_client()
         .await
-        .playlist(&playlist_id, None, None)
+        .playlist(playlist_id, None, None)
         .await
         .unwrap();
 }
@@ -160,11 +160,8 @@ async fn test_existing_playlist() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_fake_playlist() {
     let playlist_id = PlaylistId::from_id("fakeid").unwrap();
-    let playlist = creds_client()
-        .await
-        .playlist(&playlist_id, None, None)
-        .await;
-    assert!(!playlist.is_ok());
+    let playlist = creds_client().await.playlist(playlist_id, None, None).await;
+    assert!(playlist.is_err());
 }
 
 mod test_pagination {

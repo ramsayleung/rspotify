@@ -1,6 +1,6 @@
 [package]
 name = "rspotify-model"
-version = "0.11.3"
+version = "0.11.5"
 authors = [
     "Ramsay Leung <ramsayleung@gmail.com>",
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
@@ -10,13 +10,14 @@ description = "Model for Rspotify"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api", "rspotify"]
+categories = ["api-bindings", "multimedia::audio"]
 edition = "2018"
 readme = "../README.md"
 
 [dependencies]
 chrono = { version = "0.4.19", features = ["serde", "rustc-serialize"] }
+enum_dispatch = "0.3.8"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.67"
-strum = { version = "0.23.0", features = ["derive"] }
+strum = { version = "0.24.0", features = ["derive"] }
 thiserror = "1.0.29"
-

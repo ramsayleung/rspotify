@@ -70,7 +70,7 @@ impl<'de> Deserialize<'de> for Actions {
             pub disallows: HashMap<DisallowKey, bool>,
         }
         let orignal_actions = OriginalActions::deserialize(deserializer)?;
-        Ok(Actions {
+        Ok(Self {
             disallows: orignal_actions
                 .disallows
                 .into_iter()

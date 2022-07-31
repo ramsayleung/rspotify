@@ -13,7 +13,7 @@ pub struct PublicUser {
     pub external_urls: HashMap<String, String>,
     pub followers: Option<Followers>,
     pub href: String,
-    pub id: UserId,
+    pub id: UserId<'static>,
     #[serde(default = "Vec::new")]
     pub images: Vec<Image>,
 }
@@ -28,7 +28,7 @@ pub struct PrivateUser {
     pub explicit_content: Option<ExplicitContent>,
     pub followers: Option<Followers>,
     pub href: String,
-    pub id: UserId,
+    pub id: UserId<'static>,
     pub images: Option<Vec<Image>>,
     pub product: Option<SubscriptionLevel>,
 }

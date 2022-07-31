@@ -67,7 +67,7 @@ pub mod millisecond_timestamp {
             E: de::Error,
         {
             let second = (v - v % 1000) / 1000;
-            let nanosecond = ((v % 1000) * 1000000) as u32;
+            let nanosecond = ((v % 1000) * 1_000_000) as u32;
             // The maximum value of i64 is large enough to hold milliseconds,
             // so it would be safe to convert it i64.
             let dt = DateTime::<Utc>::from_utc(
@@ -86,7 +86,7 @@ pub mod millisecond_timestamp {
         d.deserialize_u64(DateTimeVisitor)
     }
 
-    /// Serialize DateTime<Utc> to Unix millisecond timestamp
+    /// Serialize `DateTime<Utc>` to Unix millisecond timestamp
     pub fn serialize<S>(x: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -217,7 +217,7 @@ pub mod space_separated_scopes {
         D: de::Deserializer<'de>,
     {
         let scopes: &str = Deserialize::deserialize(d)?;
-        Ok(scopes.split_whitespace().map(|x| x.to_owned()).collect())
+        Ok(scopes.split_whitespace().map(ToOwned::to_owned).collect())
     }
 
     pub fn serialize<S>(scopes: &HashSet<String>, s: S) -> Result<S::Ok, S::Error>

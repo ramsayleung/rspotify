@@ -12,8 +12,8 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // The credentials must be available in the environment. Enable
-    // `env-file` in order to read them from an `.env` file.
+    // The credentials must be available in the environment. Enable the
+    // `env-file` feature in order to read them from an `.env` file.
     let creds = Credentials::from_env().unwrap();
 
     // Using every possible scope
@@ -38,9 +38,10 @@ async fn main() {
     );
     let oauth = OAuth::from_env(scopes).unwrap();
 
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds, oauth);
 
     let url = spotify.get_authorize_url(false).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify.prompt_for_token(&url).await.unwrap();
 
     let token = spotify.token.lock().await.unwrap();

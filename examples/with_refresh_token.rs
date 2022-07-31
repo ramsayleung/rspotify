@@ -21,15 +21,16 @@ use rspotify::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials
 // followed artists, and then unfollow the artists.
 async fn do_things(spotify: AuthCodeSpotify) {
     let artists = [
-        &ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
-        &ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
-        &ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
+        ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
+    let num_artists = artists.len();
     spotify
-        .user_follow_artists(artists)
+        .user_follow_artists(artists.iter().map(|a| a.as_ref()))
         .await
         .expect("couldn't follow artists");
-    println!("Followed {} artists successfully.", artists.len());
+    println!("Followed {num_artists} artists successfully.");
 
     // Printing the followed artists
     let followed = spotify
@@ -45,7 +46,7 @@ async fn do_things(spotify: AuthCodeSpotify) {
         .user_unfollow_artists(artists)
         .await
         .expect("couldn't unfollow artists");
-    println!("Unfollowed {} artists successfully.", artists.len());
+    println!("Unfollowed {num_artists} artists successfully.");
 }
 
 #[tokio::main]
@@ -53,26 +54,32 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // The default credentials from the `.env` file will be used by default.
+    // May require the `env-file` feature enabled if the environment variables
+    // aren't configured manually.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
-    let mut spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
+    let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
 
     // In the first session of the application we authenticate and obtain the
     // refresh token. We can also do some requests here.
     println!(">>> Session one, obtaining refresh token and running some requests:");
     let url = spotify.get_authorize_url(false).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify
         .prompt_for_token(&url)
         .await
         .expect("couldn't authenticate successfully");
+    // Token refreshing works as well, but should with the one generated in the
+    // previous request
+    let prev_token = spotify.get_token().lock().await.unwrap().clone();
     do_things(spotify).await;
 
     // At a different time, the refresh token can be used to refresh an access
     // token directly and run requests:
     println!(">>> Session two, running some requests:");
     let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
-    // No `prompt_for_user_token_without_cache` needed.
+    *spotify.token.lock().await.unwrap() = prev_token.clone();
+    // No `prompt_for_user_token` needed.
     spotify
         .refresh_token()
         .await
@@ -83,6 +90,7 @@ async fn main() {
     // refresh token that was obtained at the beginning.
     println!(">>> Session three, running some requests:");
     let spotify = AuthCodeSpotify::new(creds, oauth);
+    *spotify.token.lock().await.unwrap() = prev_token;
     spotify
         .refresh_token()
         .await

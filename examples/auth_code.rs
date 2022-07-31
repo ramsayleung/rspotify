@@ -9,8 +9,8 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // Set RSPOTIFY_CLIENT_ID and RSPOTIFY_CLIENT_SECRET in an .env file or
-    // export them manually:
+    // Set RSPOTIFY_CLIENT_ID and RSPOTIFY_CLIENT_SECRET in an .env file (after
+    // enabling the `env-file` feature) or export them manually:
     //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     // export RSPOTIFY_CLIENT_SECRET="secret"
@@ -35,18 +35,19 @@ async fn main() {
     // ```
     let oauth = OAuth::from_env(scopes!("user-read-currently-playing")).unwrap();
 
-    let mut spotify = AuthCodeSpotify::new(creds, oauth);
+    let spotify = AuthCodeSpotify::new(creds, oauth);
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(false).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests
     let market = Market::Country(Country::Spain);
     let additional_types = [AdditionalType::Episode];
     let artists = spotify
-        .current_playing(Some(&market), Some(&additional_types))
+        .current_playing(Some(market), Some(&additional_types))
         .await;
 
-    println!("Response: {:?}", artists);
+    println!("Response: {artists:?}");
 }

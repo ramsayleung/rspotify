@@ -1,3 +1,37 @@
+## Unreleased
+
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
+
+**Bugfixes**:
+- ([#332](https://github.com/ramsayleung/rspotify/pull/332)) Fix typo in `RestrictionReason` enum values
+
+**Breaking changes**:
+- ([#336](https://github.com/ramsayleung/rspotify/pull/336)) `Offset::for_position` and `Offset::for_uri` have been removed, as they were unnecessary. Use `Offset::Position` and `Offset::Uri` instead, respectively.
+- ([#305](https://github.com/ramsayleung/rspotify/pull/305)) The `Id` types have been refactored to maximize usability. Instead of focusing on having an object-safe trait and using `dyn Id`, we now have enums to group up the IDs. This is based on how [`enum_dispatch`](https://docs.rs/enum_dispatch) works, and it's not only easier to use, but also more efficient. It makes it possible to have borrowed IDs again, so we've chosen to use `Cow` internally for flexibility. Check out the docs for more information!
+
+  Please let us know if there is anything that could be improved. Unfortunately, this breaks many methods in `BaseClient` and `OAuthClient`, but the errors should occur at compile-time only.
+- ([#325](https://github.com/ramsayleung/rspotify/pull/325)) The `auth_code`, `auth_code_pkce`, `client_creds`, `clients::base` and `clients::oauth` modules have been removed from the public API; you should access the same types from their parent modules instead
+- ([#326](https://github.com/ramsayleung/rspotify/pull/326)) The `rspotify::clients::mutex` module has been renamed to `rspotify::sync`
+- ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `search` now accepts `Option<IncludeExternal>` instead of `Option<&IncludeExternal>`
+- ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `featured_playlists` now accepts `Option<chrono::DateTime<chrono::Utc>>` instead of `Option<&chrono::DateTime<chrono::Utc>>`
+- ([#330](https://github.com/ramsayleung/rspotify/pull/330)) `current_user_top_artists[_manual]` and `current_user_top_tracks[_manual]` now accept `Option<TimeRange>` instead of `Option<&TimeRange>`
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) All enums now implement `Into<&'static str>` instead of `AsRef<str>`
+- ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Option<&Market>` parameters have been changed to `Option<Market>`
+
+## 0.11.5 (2022.03.28)
+
+**Breaking changes**:
+- ([#306](https://github.com/ramsayleung/rspotify/pull/306)) The `collection` variant has been added to `Type`
+
+## 0.11.4 (2022.03.08)
+
+- ([#295](https://github.com/ramsayleung/rspotify/pull/295)) The `Tv` variant in `DeviceType` is actually case insensitive.
+- ([#296](https://github.com/ramsayleung/rspotify/pull/296)) The `Avr` variant in `DeviceType` is actually case insensitive.
+- ([#302](https://github.com/ramsayleung/rspotify/pull/302)) Added undocumented `label` field to `FullAlbum`.
+
+**Breaking changes:**
+- ([#303](https://github.com/ramsayleung/rspotify/pull/303)) The `cursors` field in `CursorBasedPage` is now optional.
+
 ## 0.11.3 (2021.11.29)
 
 - ([#281](https://github.com/ramsayleung/rspotify/issues/281)) The documentation website for the Spotify API has been changed, so the links in the `rspotify` crate have been updated. Unfortunately, the object model section has been removed, so we've had to delete most reference links in `rspotify-model`. From now on, you should refer to the endpoints where they are used to see their definition.
@@ -8,7 +42,7 @@
 
 ## 0.11 (2021.10.14)
 
-This release contains *lots* of breaking changes. These were necessary to continue Rspotify's development, and this shouldn't happen again. From now on we'll work on getting closer to the first stable release. Lots of internal code was rewritten to make Rspotify more flexible, performant and easier to use. Sorry for the inconvenience!
+This release contains *lots* of breaking changes. These were necessary to continue RSpotify's development, and this shouldn't happen again. From now on we'll work on getting closer to the first stable release. Lots of internal code was rewritten to make RSpotify more flexible, performant and easier to use. Sorry for the inconvenience!
 
 If we missed any change or there's something you'd like to discuss about this version, please open a new issue and let us know.
 
@@ -21,7 +55,7 @@ This guide should make it easier to upgrade your code, rather than checking out 
     * [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization/client-credentials/): see `ClientCredsSpotify`.
     * [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization/code-flow): see `AuthCodeSpotify`.
     * [Authorization Code Flow with Proof Key for Code Exchange (PKCE)](https://developer.spotify.com/documentation/general/guides/authorization/code-flow): see `AuthCodePkceSpotify`. This is new! You might be interested in using PKCE for your app if you don't want to expose your client secret.
-    * [Implicit Grant Flow](https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant): unimplemented, as Rspotify has not been tested on a browser yet. If you'd like support for it, let us know in an issue!
+    * [Implicit Grant Flow](https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant): unimplemented, as RSpotify has not been tested on a browser yet. If you'd like support for it, let us know in an issue!
 * There's now support for (both sync and async) **automatic pagination**! Make sure you upgrade to these after checking out the [`pagination_async.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_async.rs) and [`pagination_sync.rs`](https://github.com/ramsayleung/rspotify/blob/auth-rewrite-part4/examples/pagination_sync.rs) examples. You can use the `_manual`-suffixed endpoints for the previous pagination style.
 * We've **renamed** a few structs and endpoints. The new names are quite similar, so the Rust compiler should suggest you what to change after an error. The only one you might not notice is the **environmental variables**: they're now `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid collisions with other libraries.
 * We always use **`Option<T>`** for optional parameters now. This means that you might have to add `Some(...)` to some of your parameters. We were using both `Into<Option<T>>` and `Option<T>` but decided that either of these would be best as long as it's *consistent*. `Option<T>` has less magic, so we went for that one.
@@ -98,14 +132,14 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 
 ### Full changelog
 
-- Rewritten documentation in hopes that it's easier to get started with Rspotify.
+- Rewritten documentation in hopes that it's easier to get started with RSpotify.
 - Reduced the number of examples. Instead of having an example for each endpoint, which is repetitive and unhelpful for newcomers, some real-life examples are now included. If you'd like to add your own example, please do! ([#113](https://github.com/ramsayleung/rspotify/pull/113))
-- Rspotify now uses macros internally to make the endpoints as concise as possible and nice to read.
+- RSpotify now uses macros internally to make the endpoints as concise as possible and nice to read.
 - Add `add_item_to_queue` endpoint.
 - Add `category_playlists` endpoint ([#153](https://github.com/ramsayleung/rspotify/pull/153)).
 - Add `resume_playback` endpoint.
 - Fix race condition when using a single client from multiple threads ([#114](https://github.com/ramsayleung/rspotify/pull/114)).
-- Rspotify should now be considerably lighter and less bloated ([discussion in #108](https://github.com/ramsayleung/rspotify/issues/108)):
+- RSpotify should now be considerably lighter and less bloated ([discussion in #108](https://github.com/ramsayleung/rspotify/issues/108)):
   + Remove unused dependencies: `base64`, `env_logger`, `random`, `url`.
   + Remove `itertools` dependency by using the standard library.
   + Remove `rand` in place of `getrandom` to [reduce total dependencies and compile times](https://github.com/ramsayleung/rspotify/issues/108#issuecomment-673587185).
@@ -147,7 +181,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + `Page`
   + `PlayHistory`
   + `PlayableItem`
-  + `PlayingItem` 
+  + `PlayingItem`
   + `PlaylistItem`
   + `PlaylistResult`
   + `PrivateUser`
@@ -179,48 +213,48 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   + Fix broken model links refering to Spotify documentation
 - ([#188](https://github.com/ramsayleung/rspotify/pull/188)) Replace html links with intra-documentation links
 - ([#189](https://github.com/ramsayleung/rspotify/pull/189)) Add `scopes!` macro to generate scopes for `Token` from string literal
-- Rspotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
+- RSpotify has now been split up into independent crates, so that it can be used without the client. See `rspotify-macros` and `rspotify-model`.
 - ([#128](https://github.com/ramsayleung/rspotify/pull/128)) Reexport `model` module to allow user to write `rspotify::model::FullAlbum` instead of  `rspotify::model::album::FullAlbum`.
 - ([#246](https://github.com/ramsayleung/rspotify/pull/246)) Add support for PKCE, see `AuthCodePkceSpotify`.
 - ([#257](https://github.com/ramsayleung/rspotify/pull/257)) `parse_response_code` now checks that the state is the same in the request and in the callback.
 
 **Breaking changes:**
-- ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Rspotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.
+- ([#202](https://github.com/ramsayleung/rspotify/pull/202)) RSpotify now consistently uses `Option<T>` for optional parameters. Those generic over `Into<Option<T>>` have been changed, which makes calling endpoints a bit ugiler but more consistent and simpler.
 - `SpotifyClientCredentials` has been renamed to `Credentials` ([#129](https://github.com/ramsayleung/rspotify/pull/129)), and its members `client_id` and `client_secret` to `id` and `secret`, respectively.
 - `TokenInfo` has been renamed to `Token`. It no longer has the `token_type` member, as it's always `Bearer` for now ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - `SpotifyOAuth` has been renamed to `OAuth`. It only contains the necessary parameters for OAuth authorization instead of repeating the items from `Credentials` and `Spotify`, so `client_id`, `client_secret` and `cache_path` are no longer in `OAuth` ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - `TokenBuilder` and `OAuthBuilder` will only read from environment variables when `from_env` is used, instead of `default`.
 - `dotenv` support is now optional. You can enable it with the `env-file` feature to have the same behavior as before ([#108](https://github.com/ramsayleung/rspotify/issues/108)). It may be used with `from_env` as well.
 - Renamed environmental variables to `RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET` and `RSPOTIFY_REDIRECT_URI` to avoid name collisions with other libraries that use OAuth2 ([#118](https://github.com/ramsayleung/rspotify/issues/118)).
-- The `blocking` module has been removed, since Rspotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
+- The `blocking` module has been removed, since RSpotify is able to use multiple HTTP clients now. `reqwest` and `ureq` are currently supported, meaning that you can still use blocking code by enabling the `client-ureq` feature and a TLS like `ureq-rustls-tls`. Read the docs for more information ([#129](https://github.com/ramsayleung/rspotify/pull/129)).
 - The `Spotify` client has been split up by authorization flows (`ClientCredsSpotify`, `AuthCodeSpotify`, `AuthCodePkceSpotify`), which allows us to remove the builder pattern. The authentication process has been rewritten. ([#216](https://github.com/ramsayleung/rspotify/pull/216)).
 - Fix typo in `user_playlist_remove_specific_occurrenes_of_tracks`, now it's `user_playlist_remove_specific_occurrences_of_tracks`.
 - ([#123](https://github.com/ramsayleung/rspotify/pull/123)) All fallible calls in the client return a `ClientError` rather than using `failure`.
 - ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Model objects like `FullTrack` or `AudioFeatures` have had their `_type` and `uri` fields removed. These can be accessed instead with the `id` field: `id._type()` or `id.uri()`.
 - ([#244](https://github.com/ramsayleung/rspotify/pull/244)) Endpoints taking `Vec<String>/&[String]` as parameter have changed to `impl IntoIterator<Item = &Id>`.
   + The endpoints which changes parameter from `Vec<String>` to `impl IntoIterator<Item = &Id>`:
-	- `albums`
-	- `artists`
-	- `check_users_saved_shows`
-	- `get_several_episodes`
-	- `remove_users_saved_shows`
-	- `save_shows`
+    - `albums`
+    - `artists`
+    - `check_users_saved_shows`
+    - `get_several_episodes`
+    - `remove_users_saved_shows`
+    - `save_shows`
   + The endpoints which changes parameter from `&[String]` to `impl IntoIterator<Item = &Id>`:
-	- `audios_features`
-	- `current_user_saved_albums_add`
-	- `current_user_saved_albums_contains`
-	- `current_user_saved_albums_delete`
-	- `current_user_saved_tracks_add`
-	- `current_user_saved_tracks_contains`
-	- `current_user_saved_tracks_delete`
-	- `user_artist_check_follow`
-	- `user_follow_artists`
-	- `user_follow_users`
-	- `user_playlist_add_tracks`
-	- `user_playlist_remove_all_occurrences_of_tracks`
-	- `user_playlist_replace_tracks`
-	- `user_unfollow_artists`
-	- `user_unfollow_users`
+    - `audios_features`
+    - `current_user_saved_albums_add`
+    - `current_user_saved_albums_contains`
+    - `current_user_saved_albums_delete`
+    - `current_user_saved_tracks_add`
+    - `current_user_saved_tracks_contains`
+    - `current_user_saved_tracks_delete`
+    - `user_artist_check_follow`
+    - `user_follow_artists`
+    - `user_follow_users`
+    - `user_playlist_add_tracks`
+    - `user_playlist_remove_all_occurrences_of_tracks`
+    - `user_playlist_replace_tracks`
+    - `user_unfollow_artists`
+    - `user_unfollow_users`
   + The endpoints which changes parameter from `String` to `&Id`:
         - `get_a_show`
         - `get_an_episode`
@@ -300,7 +334,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
   As a side effect, some methods now take references instead of values (so that they can be used multiple times when querying), and the parameters have been reordered so that the `limit` and `offset` are consistently the last two.
 
   The pagination chunk size can be configured with the `Spotify::pagination_chunks` field, which is set to 50 items by default.
-- No default values are set from Rspotify now, they will be left to the Spotify API.
+- No default values are set from RSpotify now, they will be left to the Spotify API.
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Add a `collaborative` parameter to `user_playlist_create`.
 - ([#202](https://github.com/ramsayleung/rspotify/pull/202)) Add a `uris` parameter to `playlist_reorder_tracks`.
 - ([#206](https://github.com/ramsayleung/rspotify/pull/206)) Update the endpoint signatures to pass parameters by reference, affected endpoint list:
@@ -412,7 +446,7 @@ More in the [`examples` directory](https://github.com/ramsayleung/rspotify/tree/
 
 - add debug and clone derives to spotify client and credentials
 - Change state field for authorization URL to have default
-- Fix show_dialog field to be checked before setting true 
+- Fix show_dialog field to be checked before setting true
 _ Fix typo in show_dialog
 
 ## 0.1.0 (2018/02/20)

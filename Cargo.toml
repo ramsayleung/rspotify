@@ -4,13 +4,14 @@ authors = [
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
 name = "rspotify"
-version = "0.11.3"
+version = "0.11.5"
 license = "MIT"
 readme = "README.md"
 description = "Spotify API wrapper"
 homepage = "https://github.com/ramsayleung/rspotify"
 repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api"]
+categories = ["api-bindings", "multimedia::audio"]
 edition = "2021"
 rust-version = "1.56"
 
@@ -25,9 +26,9 @@ exclude = [
 ]
 
 [dependencies]
-rspotify-macros = { path = "rspotify-macros", version = "0.11.3" }
-rspotify-model = { path = "rspotify-model", version = "0.11.3" }
-rspotify-http = { path = "rspotify-http", version = "0.11.3", default-features = false }
+rspotify-macros = { path = "rspotify-macros", version = "0.11.5" }
+rspotify-model = { path = "rspotify-model", version = "0.11.5" }
+rspotify-http = { path = "rspotify-http", version = "0.11.5", default-features = false }
 
 async-stream = { version = "0.3.2", optional = true }
 async-trait = { version = "0.1.51", optional = true }
@@ -43,7 +44,7 @@ serde_json = "1.0.67"
 sha2 = "0.10.0"
 thiserror = "1.0.29"
 url = "2.2.2"
-webbrowser = { version = "0.5.5", optional = true }
+webbrowser = { version = "0.7.0", optional = true }
 
 [dev-dependencies]
 env_logger = { version = "0.9.0", default-features = false }
@@ -84,7 +85,7 @@ no-default-features = true
 
 [[example]]
 name = "client_creds"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "client-reqwest"]
 path = "examples/client_creds.rs"
 
 [[example]]
@@ -124,7 +125,7 @@ path = "examples/ureq/me.rs"
 
 [[example]]
 name = "search"
-required-features = ["env-file", "cli", "client-ureq"]
+required-features = ["env-file", "client-ureq"]
 path = "examples/ureq/search.rs"
             
 [[example]]
@@ -134,12 +135,12 @@ path = "examples/ureq/seek_track.rs"
 
 [[example]]
 name = "threading"
-required-features = ["env-file", "cli", "client-ureq"]
+required-features = ["env-file", "client-ureq"]
 path = "examples/ureq/threading.rs"
 
 [[example]]
 name = "tasks"
-required-features = ["env-file", "cli", "client-reqwest"]
+required-features = ["env-file", "client-reqwest"]
 path = "examples/tasks.rs"
 
 [[example]]

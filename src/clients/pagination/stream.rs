@@ -10,14 +10,11 @@ use futures::{future::Future, stream::Stream};
 pub type Paginator<'a, T> = Pin<Box<dyn Stream<Item = T> + 'a>>;
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<'a, T: 'a, Fut, Request: 'a>(
-    req: Request,
-    page_size: u32,
-) -> Paginator<'a, ClientResult<T>>
+pub fn paginate<'a, T, Fut, Request>(req: Request, page_size: u32) -> Paginator<'a, ClientResult<T>>
 where
-    T: Unpin,
+    T: 'a + Unpin,
     Fut: Future<Output = ClientResult<Page<T>>>,
-    Request: Fn(u32, u32) -> Fut,
+    Request: 'a + Fn(u32, u32) -> Fut,
 {
     use async_stream::stream;
     let mut offset = 0;

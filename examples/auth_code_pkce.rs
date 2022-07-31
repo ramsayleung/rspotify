@@ -5,7 +5,8 @@ async fn main() {
     // You can use any logger for debugging.
     env_logger::init();
 
-    // Set RSPOTIFY_CLIENT_ID in an .env file or export it manually:
+    // Set RSPOTIFY_CLIENT_ID and RSPOTIFY_CLIENT_SECRET in an .env file (after
+    // enabling the `env-file` feature) or export them manually:
     //
     // export RSPOTIFY_CLIENT_ID="your client_id"
     //
@@ -33,11 +34,12 @@ async fn main() {
 
     // Obtaining the access token
     let url = spotify.get_authorize_url(None).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify.prompt_for_token(&url).await.unwrap();
 
     // Running the requests
     let history = spotify.current_playback(None, None::<Vec<_>>).await;
-    println!("Response: {:?}", history);
+    println!("Response: {history:?}");
 
     // Token refreshing works as well, but only with the one generated in the
     // previous request (they actually expire, unlike the regular code auth
@@ -49,5 +51,5 @@ async fn main() {
 
     // Running the requests again
     let history = spotify.current_playback(None, None::<Vec<_>>).await;
-    println!("Response after refreshing token: {:?}", history);
+    println!("Response after refreshing token: {history:?}");
 }

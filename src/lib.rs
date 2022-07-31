@@ -1,4 +1,4 @@
-//! Rspotify is a wrapper for the [Spotify Web API][spotify-main], inspired by
+//! RSpotify is a wrapper for the [Spotify Web API][spotify-main], inspired by
 //! [spotipy][spotipy-github]. It includes support for all the [authorization
 //! flows][spotify-auth-flows], and helper methods for [all available
 //! endpoints][spotify-reference].
@@ -7,7 +7,7 @@
 //!
 //! ### HTTP Client
 //!
-//! By default, Rspotify uses the [reqwest][reqwest-docs] asynchronous HTTP
+//! By default, RSpotify uses the [reqwest][reqwest-docs] asynchronous HTTP
 //! client with its default TLS, but you can customize both the HTTP client and
 //! the TLS with the following features:
 //!
@@ -23,7 +23,7 @@
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
 //! have to disable the default features and enable whichever you want. For
-//! example, this would compile Rspotify with `reqwest` and the native TLS:
+//! example, this would compile RSpotify with `reqwest` and the native TLS:
 //!
 //! ```toml
 //! [dependencies]
@@ -34,7 +34,7 @@
 //! }
 //! ```
 //!
-//! [`maybe_async`] internally enables Rspotify to  use both synchronous and
+//! [`maybe_async`] internally enables RSpotify to  use both synchronous and
 //! asynchronous HTTP clients. You can also use `ureq`, a synchronous client,
 //! like so:
 //!
@@ -55,7 +55,7 @@
 //!
 //! ### Environmental variables
 //!
-//! Rspotify supports the [`dotenv`] crate, which allows you to save credentials
+//! RSpotify supports the [`dotenv`] crate, which allows you to save credentials
 //! in a `.env` file. These will then be automatically available as
 //! environmental values when using methods like [`Credentials::from_env`].
 //!
@@ -66,7 +66,7 @@
 //!
 //! ### CLI utilities
 //!
-//! Rspotify includes basic support for Cli apps to obtain access tokens by
+//! RSpotify includes basic support for Cli apps to obtain access tokens by
 //! prompting the user, after enabling the `cli` feature. See the
 //! [Authorization](#authorization) section for more information.
 //!
@@ -81,7 +81,7 @@
 //! explanation of the different authorization flows
 //! available][spotify-auth-flows].
 //!
-//! Rspotify has a different client for each of the available authentication
+//! RSpotify has a different client for each of the available authentication
 //! flows. They may implement the endpoints in
 //! [`BaseClient`](crate::clients::BaseClient) or
 //! [`OAuthClient`](crate::clients::OAuthClient) according to what kind of
@@ -92,7 +92,7 @@
 //! * [Authorization Code Flow][spotify-auth-code]: see [`AuthCodeSpotify`].
 //! * [Authorization Code Flow with Proof Key for Code Exchange
 //!   (PKCE)][spotify-auth-code-pkce]: see [`AuthCodePkceSpotify`].
-//! * [Implicit Grant Flow][spotify-implicit-grant]: unimplemented, as Rspotify
+//! * [Implicit Grant Flow][spotify-implicit-grant]: unimplemented, as RSpotify
 //!   has not been tested on a browser yet. If you'd like support for it, let us
 //!   know in an issue!
 //!
@@ -121,10 +121,12 @@
 //! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
 //! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant
 
-pub mod auth_code;
-pub mod auth_code_pkce;
-pub mod client_creds;
+mod auth_code;
+mod auth_code_pkce;
+mod client_creds;
 pub mod clients;
+pub mod sync;
+mod util;
 
 // Subcrate re-exports
 pub use rspotify_http as http;
@@ -177,7 +179,7 @@ pub(in crate) mod params {
 /// Common alphabets for random number generation and similars
 pub(in crate) mod alphabets {
     pub const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    /// From https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+    /// From <https://datatracker.ietf.org/doc/html/rfc7636#section-4.1>
     pub const PKCE_CODE_VERIFIER: &[u8] =
         b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 }
@@ -219,7 +221,7 @@ pub enum ClientError {
 // The conversion has to be done manually because it's in a `Box<T>`
 impl From<HttpError> for ClientError {
     fn from(err: HttpError) -> Self {
-        ClientError::Http(Box::new(err))
+        Self::Http(Box::new(err))
     }
 }
 
@@ -260,7 +262,7 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config {
+        Self {
             prefix: String::from(DEFAULT_API_PREFIX),
             cache_path: PathBuf::from(DEFAULT_CACHE_PATH),
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
@@ -285,8 +287,9 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
 }
 
 #[inline]
-pub(in crate) fn join_ids<'a, T: Id + 'a + ?Sized>(ids: impl IntoIterator<Item = &'a T>) -> String {
-    ids.into_iter().map(Id::id).collect::<Vec<_>>().join(",")
+pub(in crate) fn join_ids<'a, T: Id + 'a>(ids: impl IntoIterator<Item = T>) -> String {
+    let ids = ids.into_iter().collect::<Vec<_>>();
+    ids.iter().map(Id::id).collect::<Vec<_>>().join(",")
 }
 
 #[inline]
@@ -308,16 +311,18 @@ pub struct Credentials {
 
 impl Credentials {
     /// Initialization with both the client ID and the client secret
+    #[must_use]
     pub fn new(id: &str, secret: &str) -> Self {
-        Credentials {
+        Self {
             id: id.to_owned(),
             secret: Some(secret.to_owned()),
         }
     }
 
     /// Initialization with just the client ID
+    #[must_use]
     pub fn new_pkce(id: &str) -> Self {
-        Credentials {
+        Self {
             id: id.to_owned(),
             secret: None,
         }
@@ -327,13 +332,14 @@ impl Credentials {
     /// `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`. You can optionally
     /// activate the `env-file` feature in order to read these variables from
     /// a `.env` file.
+    #[must_use]
     pub fn from_env() -> Option<Self> {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
         }
 
-        Some(Credentials {
+        Some(Self {
             id: env::var("RSPOTIFY_CLIENT_ID").ok()?,
             secret: env::var("RSPOTIFY_CLIENT_SECRET").ok(),
         })
@@ -342,6 +348,7 @@ impl Credentials {
     /// Generates an HTTP basic authorization header with proper formatting
     ///
     /// This will only work when the client secret is set to `Option::Some`.
+    #[must_use]
     pub fn auth_headers(&self) -> Option<HashMap<String, String>> {
         let auth = "authorization".to_owned();
         let value = format!("{}:{}", self.id, self.secret.as_ref()?);
@@ -367,7 +374,7 @@ pub struct OAuth {
 
 impl Default for OAuth {
     fn default() -> Self {
-        OAuth {
+        Self {
             redirect_uri: String::new(),
             state: generate_random_string(16, alphabets::ALPHANUM),
             scopes: HashSet::new(),
@@ -380,13 +387,14 @@ impl OAuth {
     /// Parses the credentials from the environment variable
     /// `RSPOTIFY_REDIRECT_URI`. You can optionally activate the `env-file`
     /// feature in order to read these variables from a `.env` file.
+    #[must_use]
     pub fn from_env(scopes: HashSet<String>) -> Option<Self> {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
         }
 
-        Some(OAuth {
+        Some(Self {
             scopes,
             redirect_uri: env::var("RSPOTIFY_REDIRECT_URI").ok()?,
             ..Default::default()

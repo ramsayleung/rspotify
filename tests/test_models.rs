@@ -1,6 +1,22 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use rspotify::model::*;
+use serde::de::DeserializeOwned;
 use std::time::Duration;
+
+#[track_caller]
+fn deserialize<T>(data: impl AsRef<str>) -> T
+where
+    T: DeserializeOwned + PartialEq + std::fmt::Debug,
+{
+    println!("from_str");
+    let value = serde_json::from_str(data.as_ref()).unwrap();
+
+    // Also deserialize the string as an std::io::Reader to ensure we aren't making any assumptions about borrowing input
+    println!("from_reader");
+    let _: T = serde_json::from_reader(data.as_ref().as_bytes()).unwrap();
+
+    value
+}
 
 #[test]
 fn test_simplified_track() {
@@ -34,7 +50,7 @@ fn test_simplified_track() {
   }
 
 "#;
-    let track: SimplifiedTrack = serde_json::from_str(json_str).unwrap();
+    let track: SimplifiedTrack = deserialize(json_str);
     let duration = Duration::from_millis(276773);
     assert_eq!(track.duration, duration);
 }
@@ -64,7 +80,7 @@ fn test_public_user() {
             "uri": "spotify:user:wizzler_with_underscores"
         }
         "#;
-    let user: PublicUser = serde_json::from_str(json_str).unwrap();
+    let user: PublicUser = deserialize(json_str);
     // This also makes sure user IDs can have other characters, such as
     // underscores.
     assert_eq!(
@@ -99,7 +115,7 @@ fn test_private_user() {
             "uri": "spotify:user:waq5aexykhm6nlv0cnwdieng0"
           } 
         "#;
-    let private_user: PrivateUser = serde_json::from_str(json_str).unwrap();
+    let private_user: PrivateUser = deserialize(json_str);
     assert_eq!(private_user.country.unwrap(), Country::UnitedStates);
 }
 
@@ -132,7 +148,7 @@ fn test_full_artist() {
             "uri": "spotify:artist:0OdUWJ0sBjDrqHygGUXeCF"
         }
         "#;
-    let full_artist: FullArtist = serde_json::from_str(json_str).unwrap();
+    let full_artist: FullArtist = deserialize(json_str);
     assert_eq!(full_artist.name, "Band of Horses");
     assert_eq!(full_artist.followers.total, 833247);
 }
@@ -174,7 +190,7 @@ fn test_simplified_episode() {
             "uri": "spotify:episode:3brfPv3PaUhspkm1T9ZVl8"
         }
         "#;
-    let simplified_episode: SimplifiedEpisode = serde_json::from_str(json_str).unwrap();
+    let simplified_episode: SimplifiedEpisode = deserialize(json_str);
     assert_eq!(
         simplified_episode.release_date_precision,
         DatePrecision::Day
@@ -245,7 +261,7 @@ fn test_full_episode() {
         "uri": "spotify:episode:512ojhOuo1ktJprKbVcKyQ"
     }
         "#;
-    let full_episode: FullEpisode = serde_json::from_str(json_str).unwrap();
+    let full_episode: FullEpisode = deserialize(json_str);
     assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
     let duration = Duration::from_millis(1502795);
     assert_eq!(full_episode.duration, duration);
@@ -260,7 +276,7 @@ fn test_copyright() {
 	} ]
 
 "#;
-    let copyrights: Vec<Copyright> = serde_json::from_str(json_str).unwrap();
+    let copyrights: Vec<Copyright> = deserialize(json_str);
     assert_eq!(copyrights[0]._type, CopyrightType::Performance);
 }
 
@@ -282,7 +298,7 @@ fn test_audio_analysis_section() {
             "time_signature_confidence": 1
         }
         "#;
-    let session: AudioAnalysisSection = serde_json::from_str(json_str).unwrap();
+    let session: AudioAnalysisSection = deserialize(json_str);
     // Comparison of floating point numbers
     assert!((session.time_interval.duration - 18.32542).abs() < f32::EPSILON);
 }
@@ -306,7 +322,7 @@ fn test_audio_analysis_segments() {
             ]
             }
             "#;
-    let segment: AudioAnalysisSegment = serde_json::from_str(json_str).unwrap();
+    let segment: AudioAnalysisSegment = deserialize(json_str);
     // Comparison of floating point numbers
     assert!((segment.time_interval.start - 252.156).abs() < f32::EPSILON);
 }
@@ -320,7 +336,7 @@ fn test_actions() {
             }
         }
         "#;
-    let actions: Actions = serde_json::from_str(json_str).unwrap();
+    let actions: Actions = deserialize(json_str);
     assert_eq!(actions.disallows[0], DisallowKey::Resuming);
 }
 
@@ -336,7 +352,7 @@ fn test_recommendations_seed() {
             "type": "ARTIST"
         }        
         "#;
-    let seed: RecommendationsSeed = serde_json::from_str(json_str).unwrap();
+    let seed: RecommendationsSeed = deserialize(json_str);
     assert_eq!(seed._type, RecommendationsSeedType::Artist);
 }
 
@@ -469,7 +485,7 @@ fn test_full_playlist() {
             "uri": "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n"
         }
         "#.replace("json_str_images", json_str_images).replace("json_str_simplified_artists", json_str_simplified_artists);
-    let full_playlist: FullPlaylist = serde_json::from_str(&json_str).unwrap();
+    let full_playlist: FullPlaylist = deserialize(&json_str);
     assert_eq!(
         full_playlist.id.uri(),
         "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
@@ -501,7 +517,7 @@ fn test_audio_features() {
         "type" : "audio_features"
     }
     "#;
-    let audio_features: AudioFeatures = serde_json::from_str(json).unwrap();
+    let audio_features: AudioFeatures = deserialize(json);
     let duration = Duration::from_millis(255349);
     assert_eq!(audio_features.duration, duration);
 }
@@ -580,7 +596,7 @@ fn test_full_track() {
   "uri": "spotify:track:11dFghVXANMlKmJXsNCbNl"
 }
     "#;
-    let full_track: FullTrack = serde_json::from_str(json).unwrap();
+    let full_track: FullTrack = deserialize(json);
     let duration = Duration::from_millis(207959);
     assert_eq!(full_track.duration, duration);
 }
@@ -593,7 +609,7 @@ fn test_resume_point() {
         "resume_position_ms": 423432
     }   
     "#;
-    let resume_point: ResumePoint = serde_json::from_str(json).unwrap();
+    let resume_point: ResumePoint = deserialize(json);
     let duration = Duration::from_millis(423432);
     assert_eq!(resume_point.resume_position, duration);
 }
@@ -606,7 +622,7 @@ fn test_resume_point_negative() {
         "resume_position_ms": -1000
     }
     "#;
-    let resume_point: ResumePoint = serde_json::from_str(json).unwrap();
+    let resume_point: ResumePoint = deserialize(json);
     let duration = Duration::default();
     assert_eq!(resume_point.resume_position, duration);
 }
@@ -711,7 +727,7 @@ fn test_currently_playing_context() {
   "is_playing": true
 }
     "#;
-    let currently_playing_context: CurrentlyPlayingContext = serde_json::from_str(json).unwrap();
+    let currently_playing_context: CurrentlyPlayingContext = deserialize(json);
     let timestamp = 1607769168429;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
@@ -826,7 +842,7 @@ fn test_current_playback_context() {
   "is_playing": true
 }
     "#;
-    let current_playback_context: CurrentPlaybackContext = serde_json::from_str(json).unwrap();
+    let current_playback_context: CurrentPlaybackContext = deserialize(json);
     let timestamp = 1607774342714;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
@@ -870,7 +886,7 @@ fn test_audio_analysis_track() {
     "rhythm_version": 1
   }
   "#;
-    let audio_analysis_track: AudioAnalysisTrack = serde_json::from_str(json).unwrap();
+    let audio_analysis_track: AudioAnalysisTrack = deserialize(json);
     assert_eq!(audio_analysis_track.mode, Modality::Minor);
 }
 
@@ -914,7 +930,7 @@ fn test_simplified_playlist() {
     "uri": "spotify:playlist:37i9dQZF1DX8mBRYewE6or"
   } 
   "#;
-    let simplified_playlist: SimplifiedPlaylist = serde_json::from_str(json).unwrap();
+    let simplified_playlist: SimplifiedPlaylist = deserialize(json);
     assert_eq!(
         simplified_playlist.tracks.href,
         "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks"

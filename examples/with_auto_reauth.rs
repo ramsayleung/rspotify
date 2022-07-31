@@ -14,15 +14,16 @@ use rspotify::{
 // followed artists, and then unfollow the artists.
 async fn auth_code_do_things(spotify: &AuthCodeSpotify) {
     let artists = [
-        &ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
-        &ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
-        &ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
+        ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
     ];
+    let num_artists = artists.len();
     spotify
-        .user_follow_artists(artists)
+        .user_follow_artists(artists.iter().map(|a| a.as_ref()))
         .await
         .expect("couldn't follow artists");
-    println!("Followed {} artists successfully.", artists.len());
+    println!("Followed {num_artists} artists successfully.");
 
     // Printing the followed artists
     let followed = spotify
@@ -38,13 +39,13 @@ async fn auth_code_do_things(spotify: &AuthCodeSpotify) {
         .user_unfollow_artists(artists)
         .await
         .expect("couldn't unfollow artists");
-    println!("Unfollowed {} artists successfully.", artists.len());
+    println!("Unfollowed {num_artists} artists successfully.");
 }
 
 async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
     // Running the requests
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
-    let albums = spotify.album(&birdy_uri).await;
+    let albums = spotify.album(birdy_uri).await;
     println!("Get albums: {}", albums.unwrap().id);
 }
 
@@ -66,8 +67,9 @@ async fn with_auth(creds: Credentials, oauth: OAuth, config: Config) {
     // In the first session of the application we authenticate and obtain the
     // refresh token.
     println!(">>> Session one, obtaining refresh token and running some requests:");
-    let mut spotify = AuthCodeSpotify::with_config(creds.clone(), oauth, config.clone());
+    let spotify = AuthCodeSpotify::with_config(creds.clone(), oauth, config.clone());
     let url = spotify.get_authorize_url(false).unwrap();
+    // This function requires the `cli` feature enabled.
     spotify
         .prompt_for_token(&url)
         .await
@@ -90,7 +92,7 @@ async fn with_auth(creds: Credentials, oauth: OAuth, config: Config) {
 async fn with_client_credentials(creds: Credentials, config: Config) {
     // Same with client-credential based spotify client
     println!(">>> New Session one from ClientCredsSpotify, obtaining token and doing things");
-    let mut spotify = ClientCredsSpotify::with_config(creds, config);
+    let spotify = ClientCredsSpotify::with_config(creds, config);
     spotify.request_token().await.unwrap();
 
     // We can now perform requests
@@ -115,7 +117,8 @@ async fn main() {
         ..Default::default()
     };
 
-    // The default credentials from the `.env` file will be used by default.
+    // May require the `env-file` feature enabled if the environment variables
+    // aren't configured manually.
     let creds = Credentials::from_env().unwrap();
     let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
 
