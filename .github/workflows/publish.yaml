@@ -7,7 +7,7 @@ name: Publish Crate
 
 jobs:
   publish:
-    name: Deploy a new version of Rspotify to crate.io
+    name: Deploy a new version of RSpotify to crate.io
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
