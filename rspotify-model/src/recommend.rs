@@ -79,52 +79,53 @@ pub enum RecommendationsAttribute {
 impl RecommendationsAttribute {
     /// Obtains the value of the enum as a String, which may be helpful when
     /// serializing it.
+    #[must_use]
     pub fn value_string(&self) -> String {
         use RecommendationsAttribute::*;
 
         match self {
-            MinAcousticness(x) => x.to_string(),
-            MaxAcousticness(x) => x.to_string(),
-            TargetAcousticness(x) => x.to_string(),
-            MinDanceability(x) => x.to_string(),
-            MaxDanceability(x) => x.to_string(),
-            TargetDanceability(x) => x.to_string(),
-            MinDurationMs(x) => x.to_string(),
-            MaxDurationMs(x) => x.to_string(),
-            TargetDurationMs(x) => x.to_string(),
-            MinEnergy(x) => x.to_string(),
-            MaxEnergy(x) => x.to_string(),
-            TargetEnergy(x) => x.to_string(),
-            MinInstrumentalness(x) => x.to_string(),
-            MaxInstrumentalness(x) => x.to_string(),
-            TargetInstrumentalness(x) => x.to_string(),
-            MinKey(x) => x.to_string(),
-            MaxKey(x) => x.to_string(),
-            TargetKey(x) => x.to_string(),
-            MinLiveness(x) => x.to_string(),
-            MaxLiveness(x) => x.to_string(),
-            TargetLiveness(x) => x.to_string(),
-            MinLoudness(x) => x.to_string(),
-            MaxLoudness(x) => x.to_string(),
-            TargetLoudness(x) => x.to_string(),
-            MinMode(x) => x.to_string(),
-            MaxMode(x) => x.to_string(),
-            TargetMode(x) => x.to_string(),
-            MinPopularity(x) => x.to_string(),
-            MaxPopularity(x) => x.to_string(),
-            TargetPopularity(x) => x.to_string(),
-            MinSpeechiness(x) => x.to_string(),
-            MaxSpeechiness(x) => x.to_string(),
-            TargetSpeechiness(x) => x.to_string(),
-            MinTempo(x) => x.to_string(),
-            MaxTempo(x) => x.to_string(),
-            TargetTempo(x) => x.to_string(),
-            MinTimeSignature(x) => x.to_string(),
-            MaxTimeSignature(x) => x.to_string(),
-            TargetTimeSignature(x) => x.to_string(),
-            MinValence(x) => x.to_string(),
-            MaxValence(x) => x.to_string(),
-            TargetValence(x) => x.to_string(),
+            MinAcousticness(x)
+            | MaxAcousticness(x)
+            | TargetAcousticness(x)
+            | MinDanceability(x)
+            | MaxDanceability(x)
+            | TargetDanceability(x)
+            | MinEnergy(x)
+            | MaxEnergy(x)
+            | TargetEnergy(x)
+            | MinInstrumentalness(x)
+            | MaxInstrumentalness(x)
+            | TargetInstrumentalness(x)
+            | MinLiveness(x)
+            | MaxLiveness(x)
+            | TargetLiveness(x)
+            | MinLoudness(x)
+            | MaxLoudness(x)
+            | TargetLoudness(x)
+            | MinTempo(x)
+            | MaxTempo(x)
+            | TargetTempo(x)
+            | MinSpeechiness(x)
+            | MaxSpeechiness(x)
+            | TargetSpeechiness(x)
+            | MinValence(x)
+            | MaxValence(x)
+            | TargetValence(x) => x.to_string(),
+            MinDurationMs(x)
+            | MaxDurationMs(x)
+            | TargetDurationMs(x)
+            | MinPopularity(x)
+            | MaxPopularity(x)
+            | TargetPopularity(x)
+            | MinTimeSignature(x)
+            | MaxTimeSignature(x)
+            | TargetTimeSignature(x)
+            | MinMode(x)
+            | MaxMode(x)
+            | TargetMode(x)
+            | MinKey(x)
+            | MaxKey(x)
+            | TargetKey(x) => x.to_string(),
         }
     }
 }

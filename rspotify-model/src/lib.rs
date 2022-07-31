@@ -1,7 +1,6 @@
 //! All Spotify API endpoint response objects. Please refer to the endpoints
 //! where they are used for a link to their reference in the Spotify API
 //! documentation.
-
 pub mod album;
 pub mod artist;
 pub mod audio;

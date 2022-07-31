@@ -6,7 +6,7 @@ pub struct LockError;
 
 impl<T> Mutex<T> {
     pub fn new(val: T) -> Self {
-        Mutex(futures::lock::Mutex::new(val))
+        Self(futures::lock::Mutex::new(val))
     }
 
     pub async fn lock(&self) -> Result<futures::lock::MutexGuard<'_, T>, LockError> {

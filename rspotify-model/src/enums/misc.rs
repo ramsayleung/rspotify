@@ -43,7 +43,7 @@ pub enum RepeatState {
     Context,
 }
 
-/// Type for include_external: `audio`.
+/// Type for `include_external`: `audio`.
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -84,7 +84,8 @@ pub enum Modality {
 
 /// Limit the response to a particular market
 ///
-/// FromToken is the same thing as setting the market parameter to the user's country.
+/// `FromToken` is the same thing as setting the market parameter to the user's
+/// country.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Market {
     Country(Country),

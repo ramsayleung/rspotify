@@ -179,7 +179,7 @@ pub(in crate) mod params {
 /// Common alphabets for random number generation and similars
 pub(in crate) mod alphabets {
     pub const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    /// From https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+    /// From <https://datatracker.ietf.org/doc/html/rfc7636#section-4.1>
     pub const PKCE_CODE_VERIFIER: &[u8] =
         b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 }
@@ -221,7 +221,7 @@ pub enum ClientError {
 // The conversion has to be done manually because it's in a `Box<T>`
 impl From<HttpError> for ClientError {
     fn from(err: HttpError) -> Self {
-        ClientError::Http(Box::new(err))
+        Self::Http(Box::new(err))
     }
 }
 
@@ -262,7 +262,7 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config {
+        Self {
             prefix: String::from(DEFAULT_API_PREFIX),
             cache_path: PathBuf::from(DEFAULT_CACHE_PATH),
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
@@ -311,16 +311,18 @@ pub struct Credentials {
 
 impl Credentials {
     /// Initialization with both the client ID and the client secret
+    #[must_use]
     pub fn new(id: &str, secret: &str) -> Self {
-        Credentials {
+        Self {
             id: id.to_owned(),
             secret: Some(secret.to_owned()),
         }
     }
 
     /// Initialization with just the client ID
+    #[must_use]
     pub fn new_pkce(id: &str) -> Self {
-        Credentials {
+        Self {
             id: id.to_owned(),
             secret: None,
         }
@@ -330,13 +332,14 @@ impl Credentials {
     /// `RSPOTIFY_CLIENT_ID` and `RSPOTIFY_CLIENT_SECRET`. You can optionally
     /// activate the `env-file` feature in order to read these variables from
     /// a `.env` file.
+    #[must_use]
     pub fn from_env() -> Option<Self> {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
         }
 
-        Some(Credentials {
+        Some(Self {
             id: env::var("RSPOTIFY_CLIENT_ID").ok()?,
             secret: env::var("RSPOTIFY_CLIENT_SECRET").ok(),
         })
@@ -345,6 +348,7 @@ impl Credentials {
     /// Generates an HTTP basic authorization header with proper formatting
     ///
     /// This will only work when the client secret is set to `Option::Some`.
+    #[must_use]
     pub fn auth_headers(&self) -> Option<HashMap<String, String>> {
         let auth = "authorization".to_owned();
         let value = format!("{}:{}", self.id, self.secret.as_ref()?);
@@ -370,7 +374,7 @@ pub struct OAuth {
 
 impl Default for OAuth {
     fn default() -> Self {
-        OAuth {
+        Self {
             redirect_uri: String::new(),
             state: generate_random_string(16, alphabets::ALPHANUM),
             scopes: HashSet::new(),
@@ -383,13 +387,14 @@ impl OAuth {
     /// Parses the credentials from the environment variable
     /// `RSPOTIFY_REDIRECT_URI`. You can optionally activate the `env-file`
     /// feature in order to read these variables from a `.env` file.
+    #[must_use]
     pub fn from_env(scopes: HashSet<String>) -> Option<Self> {
         #[cfg(feature = "env-file")]
         {
             dotenv::dotenv().ok();
         }
 
-        Some(OAuth {
+        Some(Self {
             scopes,
             redirect_uri: env::var("RSPOTIFY_REDIRECT_URI").ok()?,
             ..Default::default()

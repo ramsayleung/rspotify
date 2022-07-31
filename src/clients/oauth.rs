@@ -90,7 +90,7 @@ pub trait OAuthClient: BaseClient {
 
         // Making sure the state is the same
         let expected_state = &self.get_oauth().state;
-        let state = params.get("state").map(|cow| cow.as_ref());
+        let state = params.get("state").map(AsRef::as_ref);
         if state != Some(expected_state) {
             log::error!("Request state doesn't match the callback state");
             return None;
@@ -541,7 +541,7 @@ pub trait OAuthClient: BaseClient {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("market", market.map(|x| x.into())),
+            ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -584,7 +584,7 @@ pub trait OAuthClient: BaseClient {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("market", market.map(|x| x.into())),
+            ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -697,7 +697,7 @@ pub trait OAuthClient: BaseClient {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
         let params = build_map([
-            ("time_range", time_range.map(|x| x.into())),
+            ("time_range", time_range.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -739,7 +739,7 @@ pub trait OAuthClient: BaseClient {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
         let params = build_map([
-            ("time_range", time_range.map(|x| x.into())),
+            ("time_range", time_range.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
@@ -936,12 +936,12 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Option<CurrentPlaybackContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
-                .map(|x| x.into())
+                .map(Into::into)
                 .collect::<Vec<&'static str>>()
                 .join(",")
         });
         let params = build_map([
-            ("country", country.map(|x| x.into())),
+            ("country", country.map(Into::into)),
             ("additional_types", additional_types.as_deref()),
         ]);
 
@@ -969,12 +969,12 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let additional_types = additional_types.map(|x| {
             x.into_iter()
-                .map(|x| x.into())
+                .map(Into::into)
                 .collect::<Vec<&'static str>>()
                 .join(",")
         });
         let params = build_map([
-            ("market", market.map(|x| x.into())),
+            ("market", market.map(Into::into)),
             ("additional_types", additional_types.as_deref()),
         ]);
 
