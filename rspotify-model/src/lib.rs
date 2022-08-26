@@ -7,7 +7,7 @@ pub mod audio;
 pub mod auth;
 pub mod category;
 pub mod context;
-pub(in crate) mod custom_serde;
+pub(crate) mod custom_serde;
 pub mod device;
 pub mod enums;
 pub mod error;
