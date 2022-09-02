@@ -167,6 +167,10 @@ pub trait OAuthClient: BaseClient {
                             self.request_token(&code).await?;
                         }
                     }
+                } else {
+                    // Token is expired, we have to refetch the token
+                    let code = self.get_code_from_user(url)?;
+                    self.request_token(&code).await?;
                 }
             }
             // Otherwise following the usual procedure to get the token.
