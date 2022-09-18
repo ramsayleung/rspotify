@@ -16,12 +16,7 @@ use rocket_contrib::json::JsonValue;
 use rocket_contrib::templates::Template;
 use rspotify::{prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token};
 
-use std::{
-    collections::HashMap,
-    env, fs,
-    path::PathBuf,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, env, fs, path::PathBuf};
 
 #[derive(Debug, Responder)]
 pub enum AppResponse {
