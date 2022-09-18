@@ -64,6 +64,19 @@ fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
     cache_path
 }
 
+fn is_authenticated(cookies: &Cookies) -> bool {
+    let authenticated = cookies.get("uuid").is_some() && check_cache_path_exists(&cookies);
+    if authenticated {
+        let cache_path = get_cache_path(&cookies);
+        match Token::from_cache(cache_path) {
+            Ok(token) => !token.is_expired(),
+            Err(_) => false,
+        }
+    } else {
+        false
+    }
+}
+
 fn remove_cache_path(mut cookies: Cookies) {
     let cache_path = get_cache_path(&cookies);
     if cache_path.exists() {
@@ -163,37 +176,54 @@ fn sign_out(cookies: Cookies) -> AppResponse {
 
 #[get("/playlists")]
 fn playlist(cookies: Cookies) -> AppResponse {
-    let spotify = init_spotify(&cookies);
-    if !spotify.config.cache_path.exists() {
+    if !is_authenticated(&cookies) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let token = spotify.read_token_cache(false).unwrap();
-    spotify.token = Arc::new(Mutex::new(token));
-    let playlists = spotify
-        .current_user_playlists()
-        .take(50)
-        .filter_map(Result::ok)
-        .collect::<Vec<_>>();
+    let cache_path = get_cache_path(&cookies);
+    match Token::from_cache(cache_path) {
+        Ok(token) => {
+            let spotify = AuthCodeSpotify::from_token(token);
+            let playlists = spotify
+                .current_user_playlists()
+                .take(50)
+                .filter_map(Result::ok)
+                .collect::<Vec<_>>();
 
-    if playlists.is_empty() {
-        return AppResponse::Redirect(Redirect::to("/"));
+            if playlists.is_empty() {
+                return AppResponse::Redirect(Redirect::to("/"));
+            }
+
+            AppResponse::Json(json!(playlists))
+        }
+        Err(err) => {
+            let mut context = HashMap::new();
+            context.insert("err_msg", format!("Failed for {err}!"));
+            AppResponse::Template(Template::render("error", context))
+        }
     }
-
-    AppResponse::Json(json!(playlists))
 }
 
 #[get("/me")]
 fn me(cookies: Cookies) -> AppResponse {
-    let spotify = init_spotify(&cookies);
-    if !spotify.config.cache_path.exists() {
+    if !is_authenticated(&cookies) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    spotify.token = Arc::new(Mutex::new(spotify.read_token_cache(false).unwrap()));
-    match spotify.me() {
-        Ok(user_info) => AppResponse::Json(json!(user_info)),
-        Err(_) => AppResponse::Redirect(Redirect::to("/")),
+    let cache_path = get_cache_path(&cookies);
+    match Token::from_cache(cache_path) {
+        Ok(token) => {
+            let spotify = AuthCodeSpotify::from_token(token);
+            match spotify.me() {
+                Ok(user_info) => AppResponse::Json(json!(user_info)),
+                Err(_) => AppResponse::Redirect(Redirect::to("/")),
+            }
+        }
+        Err(err) => {
+            let mut context = HashMap::new();
+            context.insert("err_msg", format!("Failed for {err}!"));
+            AppResponse::Template(Template::render("error", context))
+        }
     }
 }
 
