@@ -3,17 +3,14 @@
 //! you can disable `token_cached` in the `Config` struct passed to the client
 //! when initializing it to avoid using cache files.
 
-#![feature(proc_macro_hygiene, decl_macro)]
-
-#[macro_use]
-extern crate rocket;
-
 use getrandom::getrandom;
-use rocket::http::{Cookie, Cookies};
+use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
-use rocket_contrib::json;
-use rocket_contrib::json::JsonValue;
-use rocket_contrib::templates::Template;
+use rocket::serde::json::{json, Value};
+use rocket::Responder;
+use rocket::{get, launch, Build};
+use rocket::{routes, Rocket};
+use rocket_dyn_templates::Template;
 use rspotify::{prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token};
 
 use std::{collections::HashMap, env, fs, path::PathBuf};
@@ -22,7 +19,7 @@ use std::{collections::HashMap, env, fs, path::PathBuf};
 pub enum AppResponse {
     Template(Template),
     Redirect(Redirect),
-    Json(JsonValue),
+    Json(Value),
 }
 
 const CACHE_PATH: &str = ".spotify_cache/";
@@ -40,17 +37,17 @@ fn generate_random_uuid(length: usize) -> String {
         .collect()
 }
 
-fn get_cache_path(cookies: &Cookies) -> PathBuf {
+fn get_cache_path(jar: &CookieJar<'_>) -> PathBuf {
     let project_dir_path = env::current_dir().unwrap();
     let mut cache_path = project_dir_path;
     cache_path.push(CACHE_PATH);
-    cache_path.push(cookies.get("uuid").unwrap().value());
+    cache_path.push(jar.get_pending("uuid").unwrap().value());
 
     cache_path
 }
 
-fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
-    let cache_path = get_cache_path(cookies);
+fn create_cache_path_if_absent(jar: &CookieJar<'_>) -> PathBuf {
+    let cache_path = get_cache_path(jar);
     if !cache_path.exists() {
         let mut path = cache_path.clone();
         path.pop();
@@ -59,10 +56,10 @@ fn create_cache_path_if_absent(cookies: &Cookies) -> PathBuf {
     cache_path
 }
 
-fn is_authenticated(cookies: &Cookies) -> bool {
-    let authenticated = cookies.get("uuid").is_some() && check_cache_path_exists(&cookies);
+fn is_authenticated(jar: &CookieJar<'_>) -> bool {
+    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(&jar);
     if authenticated {
-        let cache_path = get_cache_path(&cookies);
+        let cache_path = get_cache_path(&jar);
         match Token::from_cache(cache_path) {
             Ok(token) => !token.is_expired(),
             Err(_) => false,
@@ -72,23 +69,23 @@ fn is_authenticated(cookies: &Cookies) -> bool {
     }
 }
 
-fn remove_cache_path(mut cookies: Cookies) {
-    let cache_path = get_cache_path(&cookies);
+fn remove_cache_path(jar: &CookieJar<'_>) {
+    let cache_path = get_cache_path(&jar);
     if cache_path.exists() {
         fs::remove_file(cache_path).unwrap()
     }
-    cookies.remove(Cookie::named("uuid"))
+    jar.remove(Cookie::named("uuid"))
 }
 
-fn check_cache_path_exists(cookies: &Cookies) -> bool {
-    let cache_path = get_cache_path(cookies);
+fn check_cache_path_exists(jar: &CookieJar<'_>) -> bool {
+    let cache_path = get_cache_path(jar);
     cache_path.exists()
 }
 
-fn init_spotify(cookies: &Cookies) -> AuthCodeSpotify {
+fn init_spotify(jar: &CookieJar<'_>) -> AuthCodeSpotify {
     let config = Config {
         token_cached: true,
-        cache_path: create_cache_path_if_absent(cookies),
+        cache_path: create_cache_path_if_absent(jar),
         ..Default::default()
     };
 
@@ -110,8 +107,14 @@ fn init_spotify(cookies: &Cookies) -> AuthCodeSpotify {
 }
 
 #[get("/callback?<code>")]
-fn callback(cookies: Cookies, code: String) -> AppResponse {
-    let spotify = init_spotify(&cookies);
+fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
+    if jar.get("uuid").is_none() {
+        let mut context = HashMap::new();
+        context.insert("err_msg", "The uuid in cookie is empty!");
+        return AppResponse::Template(Template::render("error", context));
+    }
+
+    let spotify = init_spotify(&jar);
 
     match spotify.request_token(&code) {
         Ok(_) => {
@@ -128,22 +131,21 @@ fn callback(cookies: Cookies, code: String) -> AppResponse {
 }
 
 #[get("/")]
-fn index(mut cookies: Cookies) -> AppResponse {
+fn index(jar: &CookieJar<'_>) -> Template {
     let mut context = HashMap::new();
 
     // The user is authenticated if their cookie is set and a cache exists for
     // them.
-    let authenticated = cookies.get("uuid").is_some() && check_cache_path_exists(&cookies);
+    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(&jar);
     if !authenticated {
-        cookies.add(Cookie::new("uuid", generate_random_uuid(64)));
-
-        let spotify = init_spotify(&cookies);
+        jar.add(Cookie::new("uuid", generate_random_uuid(64)));
+        let spotify = init_spotify(&jar);
         let auth_url = spotify.get_authorize_url(true).unwrap();
         context.insert("auth_url", auth_url);
-        return AppResponse::Template(Template::render("authorize", context));
+        return Template::render("authorize", context);
     }
 
-    let cache_path = get_cache_path(&cookies);
+    let cache_path = get_cache_path(&jar);
     let token = Token::from_cache(cache_path).unwrap();
     let spotify = AuthCodeSpotify::from_token(token);
     match spotify.me() {
@@ -154,28 +156,28 @@ fn index(mut cookies: Cookies) -> AppResponse {
                     .display_name
                     .unwrap_or_else(|| String::from("Dear")),
             );
-            AppResponse::Template(Template::render("index", context.clone()))
+            Template::render("index", context.clone())
         }
         Err(err) => {
             context.insert("err_msg", format!("Failed for {err}!"));
-            AppResponse::Template(Template::render("error", context))
+            Template::render("error", context)
         }
     }
 }
 
 #[get("/sign_out")]
-fn sign_out(cookies: Cookies) -> AppResponse {
-    remove_cache_path(cookies);
+fn sign_out(jar: &CookieJar<'_>) -> AppResponse {
+    remove_cache_path(jar);
     AppResponse::Redirect(Redirect::to("/"))
 }
 
 #[get("/playlists")]
-fn playlist(cookies: Cookies) -> AppResponse {
-    if !is_authenticated(&cookies) {
+fn playlist(jar: &CookieJar<'_>) -> AppResponse {
+    if !is_authenticated(&jar) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(&cookies);
+    let cache_path = get_cache_path(&jar);
     match Token::from_cache(cache_path) {
         Ok(token) => {
             let spotify = AuthCodeSpotify::from_token(token);
@@ -200,12 +202,12 @@ fn playlist(cookies: Cookies) -> AppResponse {
 }
 
 #[get("/me")]
-fn me(cookies: Cookies) -> AppResponse {
-    if !is_authenticated(&cookies) {
+fn me(jar: &CookieJar<'_>) -> AppResponse {
+    if !is_authenticated(&jar) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(&cookies);
+    let cache_path = get_cache_path(&jar);
     match Token::from_cache(cache_path) {
         Ok(token) => {
             let spotify = AuthCodeSpotify::from_token(token);
@@ -222,9 +224,16 @@ fn me(cookies: Cookies) -> AppResponse {
     }
 }
 
-fn main() {
-    rocket::ignite()
+// fn main() {
+//     rocket::ignite()
+//         .mount("/", routes![index, callback, sign_out, me, playlist])
+//         .attach(Template::fairing())
+//         .launch();
+// }
+
+#[launch]
+fn rocket() -> Rocket<Build> {
+    rocket::build()
         .mount("/", routes![index, callback, sign_out, me, playlist])
         .attach(Template::fairing())
-        .launch();
 }
