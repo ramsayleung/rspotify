@@ -11,7 +11,9 @@ use rocket::Responder;
 use rocket::{get, launch, Build};
 use rocket::{routes, Rocket};
 use rocket_dyn_templates::Template;
-use rspotify::{prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token};
+use rspotify::{
+    model::TimeRange, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token,
+};
 
 use std::{collections::HashMap, env, fs, path::PathBuf};
 
@@ -92,7 +94,11 @@ fn init_spotify(jar: &CookieJar<'_>) -> AuthCodeSpotify {
     // Please notice that protocol of redirect_uri, make sure it's http
     // (or https). It will fail if you mix them up.
     let oauth = OAuth {
-        scopes: scopes!("user-read-currently-playing", "playlist-modify-private"),
+        scopes: scopes!(
+            "user-read-currently-playing",
+            "playlist-modify-private",
+            "user-top-read"
+        ),
         redirect_uri: "http://localhost:8000/callback".to_owned(),
         ..Default::default()
     };
@@ -161,6 +167,32 @@ fn index(jar: &CookieJar<'_>) -> Template {
         Err(err) => {
             context.insert("err_msg", format!("Failed for {err}!"));
             Template::render("error", context)
+        }
+    }
+}
+#[get("/topartists")]
+fn top_artists(jar: &CookieJar<'_>) -> AppResponse {
+    if !is_authenticated(&jar) {
+        return AppResponse::Redirect(Redirect::to("/"));
+    }
+
+    let cache_path = get_cache_path(&jar);
+    match Token::from_cache(cache_path) {
+        Ok(token) => {
+            let spotify = AuthCodeSpotify::from_token(token);
+
+            let top_artists = spotify
+                .current_user_top_artists(Some(TimeRange::LongTerm))
+                .take(10)
+                .filter_map(Result::ok)
+                .collect::<Vec<_>>();
+
+            AppResponse::Json(json!(top_artists))
+        }
+        Err(err) => {
+            let mut context = HashMap::new();
+            context.insert("err_msg", format!("Failed for {err}!"));
+            AppResponse::Template(Template::render("error", context))
         }
     }
 }
@@ -233,7 +265,11 @@ fn me(jar: &CookieJar<'_>) -> AppResponse {
 
 #[launch]
 fn rocket() -> Rocket<Build> {
+    env_logger::init();
     rocket::build()
-        .mount("/", routes![index, callback, sign_out, me, playlist])
+        .mount(
+            "/",
+            routes![index, callback, sign_out, me, playlist, top_artists],
+        )
         .attach(Template::fairing())
 }
