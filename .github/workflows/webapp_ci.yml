@@ -3,14 +3,10 @@ on:
   push:
     branches: master
 
-defaults:
-  run:
-    working-directory: examples/webapp
-
 name: WebApp Continuous Integration
 
 jobs:
-  formatting:
+  building:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
@@ -28,16 +24,19 @@ jobs:
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
         with:
+          cwd: ./examples/webapp
           command: fmt
           args: --all -- --check
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
+          cwd: ./examples/webapp
           command: build
           args: --release --all-features
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
         with:
+          cwd: ./examples/webapp
           command: clippy
