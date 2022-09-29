@@ -6,12 +6,13 @@
 use cookie::{time::Duration, SameSite};
 use getrandom::getrandom;
 use log::info;
+use rocket::catch;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
 use rocket::serde::json::{json, Value};
+use rocket::Request;
 use rocket::Responder;
-use rocket::{get, launch, Build};
-use rocket::{routes, Rocket};
+use rocket::{catchers, get, launch, routes, Build, Rocket};
 use rocket_dyn_templates::Template;
 use rspotify::{
     model::TimeRange, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token,
@@ -287,6 +288,16 @@ fn me(jar: &CookieJar<'_>) -> AppResponse {
     }
 }
 
+#[catch(500)]
+pub fn server_error(_req: &Request) -> Template {
+    let mut context = HashMap::new();
+    context.insert(
+        "err_msg",
+        format!("Ooops, there is something wrong with the server"),
+    );
+    Template::render("error", context)
+}
+
 #[launch]
 fn rocket() -> Rocket<Build> {
     env_logger::init();
@@ -296,4 +307,5 @@ fn rocket() -> Rocket<Build> {
             routes![index, callback, sign_out, me, playlist, top_artists],
         )
         .attach(Template::fairing())
+        .register("/", catchers![server_error])
 }
