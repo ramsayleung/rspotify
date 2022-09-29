@@ -3,6 +3,7 @@
 //! you can disable `token_cached` in the `Config` struct passed to the client
 //! when initializing it to avoid using cache files.
 
+use cookie::{time::Duration, SameSite};
 use getrandom::getrandom;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
@@ -144,7 +145,14 @@ fn index(jar: &CookieJar<'_>) -> Template {
     // them.
     let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(jar);
     if !authenticated {
-        jar.add(Cookie::new("uuid", generate_random_uuid(64)));
+        let uuid = Cookie::build("uuid", generate_random_uuid(64))
+            .path("/")
+            .secure(true)
+            .max_age(Duration::minutes(30))
+            .same_site(SameSite::Lax)
+            .finish();
+
+        jar.add(uuid);
         let spotify = init_spotify(jar);
         let auth_url = spotify.get_authorize_url(true).unwrap();
         context.insert("auth_url", auth_url);
