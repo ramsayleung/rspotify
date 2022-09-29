@@ -4,12 +4,12 @@ on:
     branches: master
 
 name: WebApp Continuous Integration
-defaults:
-  run:
-    working-directory: ./examples/webapp
 
 jobs:
   formatting:
+    defaults:
+      run:
+        working-directory: ./examples/webapp
     name: Formatting
     runs-on: ubuntu-latest
     steps:
