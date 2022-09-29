@@ -59,9 +59,9 @@ fn create_cache_path_if_absent(jar: &CookieJar<'_>) -> PathBuf {
 }
 
 fn is_authenticated(jar: &CookieJar<'_>) -> bool {
-    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(&jar);
+    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(jar);
     if authenticated {
-        let cache_path = get_cache_path(&jar);
+        let cache_path = get_cache_path(jar);
         match Token::from_cache(cache_path) {
             Ok(token) => !token.is_expired(),
             Err(_) => false,
@@ -72,7 +72,7 @@ fn is_authenticated(jar: &CookieJar<'_>) -> bool {
 }
 
 fn remove_cache_path(jar: &CookieJar<'_>) {
-    let cache_path = get_cache_path(&jar);
+    let cache_path = get_cache_path(jar);
     if cache_path.exists() {
         fs::remove_file(cache_path).unwrap()
     }
@@ -120,7 +120,7 @@ fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
         return AppResponse::Template(Template::render("error", context));
     }
 
-    let spotify = init_spotify(&jar);
+    let spotify = init_spotify(jar);
 
     match spotify.request_token(&code) {
         Ok(_) => {
@@ -142,16 +142,16 @@ fn index(jar: &CookieJar<'_>) -> Template {
 
     // The user is authenticated if their cookie is set and a cache exists for
     // them.
-    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(&jar);
+    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(jar);
     if !authenticated {
         jar.add(Cookie::new("uuid", generate_random_uuid(64)));
-        let spotify = init_spotify(&jar);
+        let spotify = init_spotify(jar);
         let auth_url = spotify.get_authorize_url(true).unwrap();
         context.insert("auth_url", auth_url);
         return Template::render("authorize", context);
     }
 
-    let cache_path = get_cache_path(&jar);
+    let cache_path = get_cache_path(jar);
     let token = Token::from_cache(cache_path).unwrap();
     let spotify = AuthCodeSpotify::from_token(token);
     match spotify.me() {
@@ -172,11 +172,11 @@ fn index(jar: &CookieJar<'_>) -> Template {
 }
 #[get("/topartists")]
 fn top_artists(jar: &CookieJar<'_>) -> AppResponse {
-    if !is_authenticated(&jar) {
+    if !is_authenticated(jar) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(&jar);
+    let cache_path = get_cache_path(jar);
     match Token::from_cache(cache_path) {
         Ok(token) => {
             let spotify = AuthCodeSpotify::from_token(token);
@@ -205,11 +205,11 @@ fn sign_out(jar: &CookieJar<'_>) -> AppResponse {
 
 #[get("/playlists")]
 fn playlist(jar: &CookieJar<'_>) -> AppResponse {
-    if !is_authenticated(&jar) {
+    if !is_authenticated(jar) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(&jar);
+    let cache_path = get_cache_path(jar);
     match Token::from_cache(cache_path) {
         Ok(token) => {
             let spotify = AuthCodeSpotify::from_token(token);
@@ -235,11 +235,11 @@ fn playlist(jar: &CookieJar<'_>) -> AppResponse {
 
 #[get("/me")]
 fn me(jar: &CookieJar<'_>) -> AppResponse {
-    if !is_authenticated(&jar) {
+    if !is_authenticated(jar) {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(&jar);
+    let cache_path = get_cache_path(jar);
     match Token::from_cache(cache_path) {
         Ok(token) => {
             let spotify = AuthCodeSpotify::from_token(token);
