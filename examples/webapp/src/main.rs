@@ -5,6 +5,7 @@
 
 use cookie::{time::Duration, SameSite};
 use getrandom::getrandom;
+use log::info;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
 use rocket::serde::json::{json, Value};
@@ -137,6 +138,25 @@ fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
     }
 }
 
+fn show_index(spotify: &AuthCodeSpotify) -> Template {
+    let mut context = HashMap::new();
+    match spotify.me() {
+        Ok(user_info) => {
+            context.insert(
+                "display_name",
+                user_info
+                    .display_name
+                    .unwrap_or_else(|| String::from("Dear")),
+            );
+            Template::render("index", context.clone())
+        }
+        Err(err) => {
+            context.insert("err_msg", format!("Failed for {err}!"));
+            Template::render("error", context)
+        }
+    }
+}
+
 #[get("/")]
 fn index(jar: &CookieJar<'_>) -> Template {
     let mut context = HashMap::new();
@@ -161,23 +181,26 @@ fn index(jar: &CookieJar<'_>) -> Template {
 
     let cache_path = get_cache_path(jar);
     let token = Token::from_cache(cache_path).unwrap();
-    let spotify = AuthCodeSpotify::from_token(token);
-    match spotify.me() {
-        Ok(user_info) => {
-            context.insert(
-                "display_name",
-                user_info
-                    .display_name
-                    .unwrap_or_else(|| String::from("Dear")),
-            );
-            Template::render("index", context.clone())
+    // Refresh token if token is expired
+    if token.is_expired() {
+        let spotify = init_spotify(jar);
+        *spotify.token.lock().unwrap() = Some(token.clone());
+        match spotify.refresh_token() {
+            Ok(_) => {
+                info!("Success to refresh token");
+                return show_index(&spotify);
+            }
+            Err(err) => {
+                context.insert("err_msg", format!("Failed to refresh token for {err}!"));
+                return Template::render("error", context);
+            }
         }
-        Err(err) => {
-            context.insert("err_msg", format!("Failed for {err}!"));
-            Template::render("error", context)
-        }
+    } else {
+        let spotify = AuthCodeSpotify::from_token(token.clone());
+        show_index(&spotify)
     }
 }
+
 #[get("/topartists")]
 fn top_artists(jar: &CookieJar<'_>) -> AppResponse {
     if !is_authenticated(jar) {
@@ -263,13 +286,6 @@ fn me(jar: &CookieJar<'_>) -> AppResponse {
         }
     }
 }
-
-// fn main() {
-//     rocket::ignite()
-//         .mount("/", routes![index, callback, sign_out, me, playlist])
-//         .attach(Template::fairing())
-//         .launch();
-// }
 
 #[launch]
 fn rocket() -> Rocket<Build> {
