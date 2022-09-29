@@ -3,13 +3,14 @@ on:
   push:
     branches: master
 
+defaults:
+  run:
+    working-directory: examples/webapp
+
 name: WebApp Continuous Integration
 
 jobs:
   formatting:
-    defaults:
-      run:
-        working-directory: ./examples/webapp
     name: Formatting
     runs-on: ubuntu-latest
     steps:
