@@ -7,6 +7,10 @@
 //! * A `Paginator` struct which wraps the iterable of items
 //! * A `paginate` function, which returns a `Paginator` based on a request that
 //!   may be repeated in order to return a continuous sequence of `Page`s
+//! * A `paginate_with_ctx` function that does the same as the `paginate`
+//!   function, but accepts a generic context that works around lifetime issues
+//!   in the async version due to restrictions in HRTBs
+//!   (<https://kevincox.ca/2022/04/16/rust-generic-closure-lifetimes/>)
 //!
 //! Note that `Paginator` should actually be a trait so that a dynamic
 //! allocation can be avoided when returning it with `-> impl Iterator<T>`, as
@@ -25,6 +29,6 @@ mod iter;
 mod stream;
 
 #[cfg(feature = "__sync")]
-pub use iter::{paginate, Paginator};
+pub use iter::{paginate, paginate_with_ctx, Paginator};
 #[cfg(feature = "__async")]
-pub use stream::{paginate, Paginator};
+pub use stream::{paginate, paginate_with_ctx, Paginator};

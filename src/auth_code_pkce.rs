@@ -38,7 +38,7 @@ pub struct AuthCodePkceSpotify {
     pub token: Arc<Mutex<Option<Token>>>,
     /// The code verifier for the authentication process
     pub verifier: Option<String>,
-    pub(in crate) http: HttpClient,
+    pub(crate) http: HttpClient,
 }
 
 /// This client has access to the base methods.
