@@ -26,7 +26,7 @@ pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,
     pub token: Arc<Mutex<Option<Token>>>,
-    pub(in crate) http: HttpClient,
+    pub(crate) http: HttpClient,
 }
 
 /// This client has access to the base methods.

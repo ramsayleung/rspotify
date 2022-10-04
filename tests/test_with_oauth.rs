@@ -619,7 +619,7 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
         .await
         .unwrap();
     assert_eq!(playlist.id, fetched_playlist.id);
-    let user_playlists = fetch_all(client.user_playlists(&user.id)).await;
+    let user_playlists = fetch_all(client.user_playlists(user.id)).await;
     let current_user_playlists = fetch_all(client.current_user_playlists()).await;
     assert_eq!(user_playlists.len(), current_user_playlists.len());
 
@@ -642,7 +642,7 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
 
 #[maybe_async]
 async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: PlaylistId<'_>, num: i32) {
-    let fetched_tracks = fetch_all(client.playlist_items(&playlist_id.as_ref(), None, None)).await;
+    let fetched_tracks = fetch_all(client.playlist_items(playlist_id, None, None)).await;
     assert_eq!(fetched_tracks.len() as i32, num);
 }
 

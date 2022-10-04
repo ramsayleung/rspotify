@@ -36,7 +36,7 @@ pub struct SimplifiedPlaylist {
 }
 
 /// Full playlist object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullPlaylist {
     pub collaborative: bool,
     pub description: Option<String>,
@@ -62,7 +62,7 @@ pub struct PlaylistItem {
 }
 
 /// Featured playlists object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FeaturedPlaylists {
     pub message: String,
     pub playlists: Page<SimplifiedPlaylist>,

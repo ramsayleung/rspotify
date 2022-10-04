@@ -156,7 +156,7 @@ pub mod prelude {
 }
 
 /// Common headers as constants.
-pub(in crate) mod params {
+pub(crate) mod params {
     pub const CLIENT_ID: &str = "client_id";
     pub const CODE: &str = "code";
     pub const GRANT_TYPE: &str = "grant_type";
@@ -177,14 +177,14 @@ pub(in crate) mod params {
 }
 
 /// Common alphabets for random number generation and similars
-pub(in crate) mod alphabets {
+pub(crate) mod alphabets {
     pub const ALPHANUM: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     /// From <https://datatracker.ietf.org/doc/html/rfc7636#section-4.1>
     pub const PKCE_CODE_VERIFIER: &[u8] =
         b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 }
 
-pub(in crate) mod auth_urls {
+pub(crate) mod auth_urls {
     pub const AUTHORIZE: &str = "https://accounts.spotify.com/authorize";
     pub const TOKEN: &str = "https://accounts.spotify.com/api/token";
 }
@@ -276,7 +276,7 @@ impl Default for Config {
 ///
 /// It is assumed that system always provides high-quality cryptographically
 /// secure random data, ideally backed by hardware entropy sources.
-pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> String {
+pub(crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> String {
     let mut buf = vec![0u8; length];
     getrandom(&mut buf).unwrap();
     let range = alphabet.len();
@@ -287,13 +287,13 @@ pub(in crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> Strin
 }
 
 #[inline]
-pub(in crate) fn join_ids<'a, T: Id + 'a>(ids: impl IntoIterator<Item = T>) -> String {
+pub(crate) fn join_ids<'a, T: Id + 'a>(ids: impl IntoIterator<Item = T>) -> String {
     let ids = ids.into_iter().collect::<Vec<_>>();
     ids.iter().map(Id::id).collect::<Vec<_>>().join(",")
 }
 
 #[inline]
-pub(in crate) fn join_scopes(scopes: &HashSet<String>) -> String {
+pub(crate) fn join_scopes(scopes: &HashSet<String>) -> String {
     scopes
         .iter()
         .map(String::as_str)

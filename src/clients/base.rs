@@ -2,7 +2,7 @@ use crate::{
     auth_urls,
     clients::{
         convert_result,
-        pagination::{paginate, Paginator},
+        pagination::{paginate, paginate_with_ctx, Paginator},
     },
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     join_ids,
@@ -313,13 +313,20 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-albums)
     fn artist_albums<'a>(
         &'a self,
-        artist_id: &'a ArtistId<'_>,
+        artist_id: ArtistId<'a>,
         album_type: Option<AlbumType>,
         market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedAlbum>> {
-        paginate(
-            move |limit, offset| {
-                self.artist_albums_manual(artist_id, album_type, market, Some(limit), Some(offset))
+        paginate_with_ctx(
+            (self, artist_id),
+            move |(slf, artist_id), limit, offset| {
+                slf.artist_albums_manual(
+                    artist_id.as_ref(),
+                    album_type,
+                    market,
+                    Some(limit),
+                    Some(offset),
+                )
             },
             self.get_config().pagination_chunks,
         )
@@ -328,7 +335,7 @@ where
     /// The manually paginated version of [`Self::artist_albums`].
     async fn artist_albums_manual(
         &self,
-        artist_id: &ArtistId<'_>,
+        artist_id: ArtistId<'_>,
         album_type: Option<AlbumType>,
         market: Option<Market>,
         limit: Option<u32>,
@@ -466,10 +473,13 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-albums-tracks)
     fn album_track<'a>(
         &'a self,
-        album_id: &'a AlbumId<'_>,
+        album_id: AlbumId<'a>,
     ) -> Paginator<'_, ClientResult<SimplifiedTrack>> {
-        paginate(
-            move |limit, offset| self.album_track_manual(album_id, Some(limit), Some(offset)),
+        paginate_with_ctx(
+            (self, album_id),
+            move |(slf, album_id), limit, offset| {
+                slf.album_track_manual(album_id.as_ref(), Some(limit), Some(offset))
+            },
             self.get_config().pagination_chunks,
         )
     }
@@ -477,7 +487,7 @@ where
     /// The manually paginated version of [`Self::album_track`].
     async fn album_track_manual(
         &self,
-        album_id: &AlbumId<'_>,
+        album_id: AlbumId<'_>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedTrack>> {
@@ -626,12 +636,13 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-shows-episodes)
     fn get_shows_episodes<'a>(
         &'a self,
-        id: &'a ShowId<'_>,
+        id: ShowId<'a>,
         market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedEpisode>> {
-        paginate(
-            move |limit, offset| {
-                self.get_shows_episodes_manual(id, market, Some(limit), Some(offset))
+        paginate_with_ctx(
+            (self, id),
+            move |(slf, id), limit, offset| {
+                slf.get_shows_episodes_manual(id.as_ref(), market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
         )
@@ -640,7 +651,7 @@ where
     /// The manually paginated version of [`Self::get_shows_episodes`].
     async fn get_shows_episodes_manual(
         &self,
-        id: &ShowId<'_>,
+        id: ShowId<'_>,
         market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
@@ -991,15 +1002,16 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlists-tracks)
     fn playlist_items<'a>(
         &'a self,
-        playlist_id: &'a PlaylistId<'_>,
+        playlist_id: PlaylistId<'a>,
         fields: Option<&'a str>,
         market: Option<Market>,
     ) -> Paginator<'_, ClientResult<PlaylistItem>> {
-        paginate(
-            move |limit, offset| {
-                self.playlist_items_manual(
+        paginate_with_ctx(
+            (self, playlist_id, fields),
+            move |(slf, playlist_id, fields), limit, offset| {
+                slf.playlist_items_manual(
                     playlist_id.as_ref(),
-                    fields,
+                    *fields,
                     market,
                     Some(limit),
                     Some(offset),
@@ -1045,10 +1057,13 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
     fn user_playlists<'a>(
         &'a self,
-        user_id: &'a UserId<'_>,
+        user_id: UserId<'a>,
     ) -> Paginator<'_, ClientResult<SimplifiedPlaylist>> {
-        paginate(
-            move |limit, offset| self.user_playlists_manual(user_id, Some(limit), Some(offset)),
+        paginate_with_ctx(
+            (self, user_id),
+            move |(slf, user_id), limit, offset| {
+                slf.user_playlists_manual(user_id.as_ref(), Some(limit), Some(offset))
+            },
             self.get_config().pagination_chunks,
         )
     }
@@ -1056,7 +1071,7 @@ where
     /// The manually paginated version of [`Self::user_playlists`].
     async fn user_playlists_manual(
         &self,
-        user_id: &UserId<'_>,
+        user_id: UserId<'_>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedPlaylist>> {

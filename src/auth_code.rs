@@ -68,7 +68,7 @@ pub struct AuthCodeSpotify {
     pub oauth: OAuth,
     pub config: Config,
     pub token: Arc<Mutex<Option<Token>>>,
-    pub(in crate) http: HttpClient,
+    pub(crate) http: HttpClient,
 }
 
 /// This client has access to the base methods.
