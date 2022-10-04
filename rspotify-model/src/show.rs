@@ -47,7 +47,7 @@ pub struct Show {
 }
 
 /// Full show object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullShow {
     pub available_markets: Vec<String>,
     pub copyrights: Vec<Copyright>,
