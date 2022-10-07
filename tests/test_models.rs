@@ -855,6 +855,267 @@ fn test_current_playback_context() {
 }
 
 #[test]
+fn test_current_user_queue() {
+  let json = r#"
+  {
+    "currently_playing": {
+      "album": {
+        "album_type": "album",
+        "artists": [
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/artist/3DmG65yHQsMms7WAvrZOdt"
+            },
+            "href": "https://api.spotify.com/v1/artists/3DmG65yHQsMms7WAvrZOdt",
+            "id": "3DmG65yHQsMms7WAvrZOdt",
+            "name": "Enigma",
+            "type": "artist",
+            "uri": "spotify:artist:3DmG65yHQsMms7WAvrZOdt"
+          }
+        ],
+        "available_markets": [
+          "AD",
+          "AE"
+        ],
+        "external_urls": {
+          "spotify": "https://open.spotify.com/album/1t4hf9yHMQBoTz2CxTBJKj"
+        },
+        "href": "https://api.spotify.com/v1/albums/1t4hf9yHMQBoTz2CxTBJKj",
+        "id": "1t4hf9yHMQBoTz2CxTBJKj",
+        "images": [
+          {
+            "height": 640,
+            "url": "https://i.scdn.co/image/ab67616d0000b2736d7e526534a3561be5e94a85",
+            "width": 640
+          },
+          {
+            "height": 300,
+            "url": "https://i.scdn.co/image/ab67616d00001e026d7e526534a3561be5e94a85",
+            "width": 300
+          },
+          {
+            "height": 64,
+            "url": "https://i.scdn.co/image/ab67616d000048516d7e526534a3561be5e94a85",
+            "width": 64
+          }
+        ],
+        "name": "The Cross Of Changes",
+        "release_date": "1993-01-01",
+        "release_date_precision": "day",
+        "total_tracks": 9,
+        "type": "album",
+        "uri": "spotify:album:1t4hf9yHMQBoTz2CxTBJKj"
+      },
+      "artists": [
+        {
+          "external_urls": {
+            "spotify": "https://open.spotify.com/artist/3DmG65yHQsMms7WAvrZOdt"
+          },
+          "href": "https://api.spotify.com/v1/artists/3DmG65yHQsMms7WAvrZOdt",
+          "id": "3DmG65yHQsMms7WAvrZOdt",
+          "name": "Enigma",
+          "type": "artist",
+          "uri": "spotify:artist:3DmG65yHQsMms7WAvrZOdt"
+        }
+      ],
+      "available_markets": [
+        "AD",
+        "AE"
+      ],
+      "disc_number": 1,
+      "duration_ms": 532560,
+      "explicit": false,
+      "external_ids": {
+        "isrc": "DEG129300014"
+      },
+      "external_urls": {
+        "spotify": "https://open.spotify.com/track/3E61ra5VUF6eu3tpfsXfou"
+      },
+      "href": "https://api.spotify.com/v1/tracks/3E61ra5VUF6eu3tpfsXfou",
+      "id": "3E61ra5VUF6eu3tpfsXfou",
+      "is_local": false,
+      "name": "I Love You... I'll Kill You",
+      "popularity": 48,
+      "preview_url": "https://p.scdn.co/mp3-preview/221a5d1c44ffdc0452f65a56adfd95c92b61a989?cid=774b29d4f13844c495f206cafdad9c86",
+      "track_number": 4,
+      "type": "track",
+      "uri": "spotify:track:3E61ra5VUF6eu3tpfsXfou"
+    },
+    "queue": [
+      {
+        "album": {
+          "album_type": "album",
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/7w29UYBi0qsHi5RTcv3lmA"
+              },
+              "href": "https://api.spotify.com/v1/artists/7w29UYBi0qsHi5RTcv3lmA",
+              "id": "7w29UYBi0qsHi5RTcv3lmA",
+              "name": "Björk",
+              "type": "artist",
+              "uri": "spotify:artist:7w29UYBi0qsHi5RTcv3lmA"
+            }
+          ],
+          "available_markets": [
+            "AD"
+          ],
+          "external_urls": {
+            "spotify": "https://open.spotify.com/album/3knDOJUQBAATXsKYLWO4k8"
+          },
+          "href": "https://api.spotify.com/v1/albums/3knDOJUQBAATXsKYLWO4k8",
+          "id": "3knDOJUQBAATXsKYLWO4k8",
+          "images": [
+            {
+              "height": 640,
+              "url": "https://i.scdn.co/image/ab67616d0000b273b6f50e46dac445dff914a56f",
+              "width": 640
+            },
+            {
+              "height": 300,
+              "url": "https://i.scdn.co/image/ab67616d00001e02b6f50e46dac445dff914a56f",
+              "width": 300
+            },
+            {
+              "height": 64,
+              "url": "https://i.scdn.co/image/ab67616d00004851b6f50e46dac445dff914a56f",
+              "width": 64
+            }
+          ],
+          "name": "Homogenic",
+          "release_date": "1997-09-22",
+          "release_date_precision": "day",
+          "total_tracks": 10,
+          "type": "album",
+          "uri": "spotify:album:3knDOJUQBAATXsKYLWO4k8"
+        },
+        "artists": [
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/artist/7w29UYBi0qsHi5RTcv3lmA"
+            },
+            "href": "https://api.spotify.com/v1/artists/7w29UYBi0qsHi5RTcv3lmA",
+            "id": "7w29UYBi0qsHi5RTcv3lmA",
+            "name": "Björk",
+            "type": "artist",
+            "uri": "spotify:artist:7w29UYBi0qsHi5RTcv3lmA"
+          }
+        ],
+        "available_markets": [
+          "AD"
+        ],
+        "disc_number": 1,
+        "duration_ms": 255266,
+        "explicit": false,
+        "external_ids": {
+          "isrc": "GBBTF9700142"
+        },
+        "external_urls": {
+          "spotify": "https://open.spotify.com/track/0zQnCy0NCcBmQcsl2PBNE3"
+        },
+        "href": "https://api.spotify.com/v1/tracks/0zQnCy0NCcBmQcsl2PBNE3",
+        "id": "0zQnCy0NCcBmQcsl2PBNE3",
+        "is_local": false,
+        "name": "Hunter",
+        "popularity": 51,
+        "preview_url": "https://p.scdn.co/mp3-preview/b355ab990e93e8c1a575ad7cd0e752302a60f067?cid=774b29d4f13844c495f206cafdad9c86",
+        "track_number": 1,
+        "type": "track",
+        "uri": "spotify:track:0zQnCy0NCcBmQcsl2PBNE3"
+      },
+      {
+        "album": {
+          "album_type": "compilation",
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/artist/0LyfQWJT6nXafLPZqxe9Of"
+              },
+              "href": "https://api.spotify.com/v1/artists/0LyfQWJT6nXafLPZqxe9Of",
+              "id": "0LyfQWJT6nXafLPZqxe9Of",
+              "name": "Various Artists",
+              "type": "artist",
+              "uri": "spotify:artist:0LyfQWJT6nXafLPZqxe9Of"
+            }
+          ],
+          "available_markets": [
+            "AD",
+            "AE"
+          ],
+          "external_urls": {
+            "spotify": "https://open.spotify.com/album/6IV7472Hni7A1ENilCManS"
+          },
+          "href": "https://api.spotify.com/v1/albums/6IV7472Hni7A1ENilCManS",
+          "id": "6IV7472Hni7A1ENilCManS",
+          "images": [
+            {
+              "height": 640,
+              "url": "https://i.scdn.co/image/ab67616d0000b273afda2a51e7bb55197fdeb4c0",
+              "width": 640
+            },
+            {
+              "height": 300,
+              "url": "https://i.scdn.co/image/ab67616d00001e02afda2a51e7bb55197fdeb4c0",
+              "width": 300
+            },
+            {
+              "height": 64,
+              "url": "https://i.scdn.co/image/ab67616d00004851afda2a51e7bb55197fdeb4c0",
+              "width": 64
+            }
+          ],
+          "name": "The Grand Budapest Hotel (Original Soundtrack)",
+          "release_date": "2014-01-01",
+          "release_date_precision": "day",
+          "total_tracks": 32,
+          "type": "album",
+          "uri": "spotify:album:6IV7472Hni7A1ENilCManS"
+        },
+        "artists": [
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/artist/71jzN72g8qWMCMkWC5p1Z0"
+            },
+            "href": "https://api.spotify.com/v1/artists/71jzN72g8qWMCMkWC5p1Z0",
+            "id": "71jzN72g8qWMCMkWC5p1Z0",
+            "name": "Alexandre Desplat",
+            "type": "artist",
+            "uri": "spotify:artist:71jzN72g8qWMCMkWC5p1Z0"
+          }
+        ],
+        "available_markets": [
+          "AD",
+          "AE"
+        ],
+        "disc_number": 1,
+        "duration_ms": 335026,
+        "explicit": false,
+        "external_ids": {
+          "isrc": "USA171491023"
+        },
+        "external_urls": {
+          "spotify": "https://open.spotify.com/track/1w3bpz8NvESU3A2jd9e22a"
+        },
+        "href": "https://api.spotify.com/v1/tracks/1w3bpz8NvESU3A2jd9e22a",
+        "id": "1w3bpz8NvESU3A2jd9e22a",
+        "is_local": false,
+        "name": "Canto At Gabelmeister's Peak",
+        "popularity": 40,
+        "preview_url": "https://p.scdn.co/mp3-preview/a2008fb3fe62cfe09b2c80f99236bdcdaab55c79?cid=774b29d4f13844c495f206cafdad9c86",
+        "track_number": 27,
+        "type": "track",
+        "uri": "spotify:track:1w3bpz8NvESU3A2jd9e22a"
+      }
+    ]
+  }
+  "#;
+  let current_user_queue: CurrentUserQueue = deserialize(json);
+  assert_eq!(current_user_queue.currently_playing.unwrap().id().unwrap().id(), "3E61ra5VUF6eu3tpfsXfou");
+  assert_eq!(current_user_queue.queue.len(), 2);
+  assert_eq!(current_user_queue.queue[1].id().unwrap().id(), "1w3bpz8NvESU3A2jd9e22a");  
+}
+
+#[test]
 fn test_audio_analysis_track() {
     let json = r#"
   {

@@ -53,6 +53,11 @@ pub struct CurrentPlaybackContext {
     pub currently_playing_type: CurrentlyPlayingType,
     pub actions: Actions,
 }
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CurrentUserQueue {
+    pub currently_playing: Option<PlayableItem>,
+    pub queue: Vec<PlayableItem>
+}
 
 /// Actions object
 #[derive(Clone, Debug, Serialize, PartialEq, Eq, Default)]
