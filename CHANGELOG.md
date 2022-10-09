@@ -18,6 +18,9 @@
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) All enums now implement `Into<&'static str>` instead of `AsRef<str>`
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Option<&Market>` parameters have been changed to `Option<Market>`
 
+**New features**
+- ([362](https://github.com/ramsayleung/rspotify/pull/362)) Add "Get the User's Queue" endpoint
+
 ## 0.11.5 (2022.03.28)
 
 **Breaking changes**:
