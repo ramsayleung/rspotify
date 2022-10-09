@@ -944,87 +944,6 @@ fn test_current_user_queue() {
     "queue": [
       {
         "album": {
-          "album_type": "album",
-          "artists": [
-            {
-              "external_urls": {
-                "spotify": "https://open.spotify.com/artist/7w29UYBi0qsHi5RTcv3lmA"
-              },
-              "href": "https://api.spotify.com/v1/artists/7w29UYBi0qsHi5RTcv3lmA",
-              "id": "7w29UYBi0qsHi5RTcv3lmA",
-              "name": "Björk",
-              "type": "artist",
-              "uri": "spotify:artist:7w29UYBi0qsHi5RTcv3lmA"
-            }
-          ],
-          "available_markets": [
-            "AD"
-          ],
-          "external_urls": {
-            "spotify": "https://open.spotify.com/album/3knDOJUQBAATXsKYLWO4k8"
-          },
-          "href": "https://api.spotify.com/v1/albums/3knDOJUQBAATXsKYLWO4k8",
-          "id": "3knDOJUQBAATXsKYLWO4k8",
-          "images": [
-            {
-              "height": 640,
-              "url": "https://i.scdn.co/image/ab67616d0000b273b6f50e46dac445dff914a56f",
-              "width": 640
-            },
-            {
-              "height": 300,
-              "url": "https://i.scdn.co/image/ab67616d00001e02b6f50e46dac445dff914a56f",
-              "width": 300
-            },
-            {
-              "height": 64,
-              "url": "https://i.scdn.co/image/ab67616d00004851b6f50e46dac445dff914a56f",
-              "width": 64
-            }
-          ],
-          "name": "Homogenic",
-          "release_date": "1997-09-22",
-          "release_date_precision": "day",
-          "total_tracks": 10,
-          "type": "album",
-          "uri": "spotify:album:3knDOJUQBAATXsKYLWO4k8"
-        },
-        "artists": [
-          {
-            "external_urls": {
-              "spotify": "https://open.spotify.com/artist/7w29UYBi0qsHi5RTcv3lmA"
-            },
-            "href": "https://api.spotify.com/v1/artists/7w29UYBi0qsHi5RTcv3lmA",
-            "id": "7w29UYBi0qsHi5RTcv3lmA",
-            "name": "Björk",
-            "type": "artist",
-            "uri": "spotify:artist:7w29UYBi0qsHi5RTcv3lmA"
-          }
-        ],
-        "available_markets": [
-          "AD"
-        ],
-        "disc_number": 1,
-        "duration_ms": 255266,
-        "explicit": false,
-        "external_ids": {
-          "isrc": "GBBTF9700142"
-        },
-        "external_urls": {
-          "spotify": "https://open.spotify.com/track/0zQnCy0NCcBmQcsl2PBNE3"
-        },
-        "href": "https://api.spotify.com/v1/tracks/0zQnCy0NCcBmQcsl2PBNE3",
-        "id": "0zQnCy0NCcBmQcsl2PBNE3",
-        "is_local": false,
-        "name": "Hunter",
-        "popularity": 51,
-        "preview_url": "https://p.scdn.co/mp3-preview/b355ab990e93e8c1a575ad7cd0e752302a60f067?cid=774b29d4f13844c495f206cafdad9c86",
-        "track_number": 1,
-        "type": "track",
-        "uri": "spotify:track:0zQnCy0NCcBmQcsl2PBNE3"
-      },
-      {
-        "album": {
           "album_type": "compilation",
           "artists": [
             {
@@ -1111,8 +1030,8 @@ fn test_current_user_queue() {
   "#;
   let current_user_queue: CurrentUserQueue = deserialize(json);
   assert_eq!(current_user_queue.currently_playing.unwrap().id().unwrap().id(), "3E61ra5VUF6eu3tpfsXfou");
-  assert_eq!(current_user_queue.queue.len(), 2);
-  assert_eq!(current_user_queue.queue[1].id().unwrap().id(), "1w3bpz8NvESU3A2jd9e22a");  
+  assert_eq!(current_user_queue.queue.len(), 1);
+  assert_eq!(current_user_queue.queue[0].id().unwrap().id(), "1w3bpz8NvESU3A2jd9e22a");  
 }
 
 #[test]
