@@ -988,6 +988,15 @@ pub trait OAuthClient: BaseClient {
         }
     }
 
+    /// Get the Current User’s Queue
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-queue)
+    async fn current_user_queue(&self) -> ClientResult<CurrentUserQueue> {
+        let params = build_map([]);
+        let result = self.endpoint_get("me/player/queue", &params).await?;
+        convert_result(&result)
+    }
+
     /// Transfer a User’s Playback.
     ///
     /// Note: Although an array is accepted, only a single device_id is
