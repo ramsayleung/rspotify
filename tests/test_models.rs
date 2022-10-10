@@ -856,7 +856,7 @@ fn test_current_playback_context() {
 
 #[test]
 fn test_current_user_queue() {
-  let json = r#"
+    let json = r#"
   {
     "currently_playing": {
       "album": {
@@ -1028,10 +1028,21 @@ fn test_current_user_queue() {
     ]
   }
   "#;
-  let current_user_queue: CurrentUserQueue = deserialize(json);
-  assert_eq!(current_user_queue.currently_playing.unwrap().id().unwrap().id(), "3E61ra5VUF6eu3tpfsXfou");
-  assert_eq!(current_user_queue.queue.len(), 1);
-  assert_eq!(current_user_queue.queue[0].id().unwrap().id(), "1w3bpz8NvESU3A2jd9e22a");  
+    let current_user_queue: CurrentUserQueue = deserialize(json);
+    assert_eq!(
+        current_user_queue
+            .currently_playing
+            .unwrap()
+            .id()
+            .unwrap()
+            .id(),
+        "3E61ra5VUF6eu3tpfsXfou"
+    );
+    assert_eq!(current_user_queue.queue.len(), 1);
+    assert_eq!(
+        current_user_queue.queue[0].id().unwrap().id(),
+        "1w3bpz8NvESU3A2jd9e22a"
+    );
 }
 
 #[test]
