@@ -23,7 +23,9 @@ use rspotify::{
         SearchType, ShowId, TimeLimits, TimeRange, TrackId, UserId,
     },
     prelude::*,
-    scopes, AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
+    scopes,
+    search::SearchQuery,
+    AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
 };
 
 use std::env;
@@ -444,10 +446,16 @@ async fn test_repeat() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_search_album() {
-    let query = "album:arrival artist:abba";
     oauth_client()
         .await
-        .search(query, SearchType::Album, None, None, Some(10), Some(0))
+        .search(
+            SearchQuery::default().album("arrival").artist("abba"),
+            SearchType::Album,
+            None,
+            None,
+            Some(10),
+            Some(0),
+        )
         .await
         .unwrap();
 }
