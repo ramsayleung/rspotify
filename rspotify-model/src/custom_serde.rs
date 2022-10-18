@@ -1,45 +1,40 @@
 //! Custom serialization methods used throughout the crate
 
 pub mod duration_ms {
+    use chrono::Duration;
     use serde::{de, Serializer};
-    use std::{fmt, time::Duration};
+    use std::fmt;
 
     /// Vistor to help deserialize duration represented as millisecond to
-    /// `std::time::Duration`.
+    /// `chrono::Duration`.
     pub struct DurationVisitor;
     impl<'de> de::Visitor<'de> for DurationVisitor {
         type Value = Duration;
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(formatter, "a milliseconds represents std::time::Duration")
-        }
-        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(Duration::from_millis(v))
+            write!(formatter, "a milliseconds represents chrono::Duration")
         }
         fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
-            Ok(Duration::from_millis(v.max(0) as u64))
+            Ok(Duration::milliseconds(v))
         }
     }
 
-    /// Deserialize `std::time::Duration` from milliseconds (represented as u64)
+    /// Deserialize `chrono::Duration` from milliseconds (represented as i64)
     pub fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        d.deserialize_u64(DurationVisitor)
+        d.deserialize_i64(DurationVisitor)
     }
 
-    /// Serialize `std::time::Duration` to milliseconds (represented as u64)
+    /// Serialize `chrono::Duration` to milliseconds (represented as i64)
     pub fn serialize<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        s.serialize_u64(x.as_millis() as u64)
+        s.serialize_i64(x.num_milliseconds())
     }
 }
 
@@ -97,11 +92,12 @@ pub mod millisecond_timestamp {
 
 pub mod option_duration_ms {
     use crate::custom_serde::duration_ms;
+    use chrono::Duration;
     use serde::{de, Serializer};
-    use std::{fmt, time::Duration};
+    use std::fmt;
 
     /// Vistor to help deserialize duration represented as milliseconds to
-    /// `Option<std::time::Duration>`
+    /// `Option<chrono::Duration>`
     struct OptionDurationVisitor;
 
     impl<'de> de::Visitor<'de> for OptionDurationVisitor {
@@ -110,7 +106,7 @@ pub mod option_duration_ms {
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 formatter,
-                "a optional milliseconds represents std::time::Duration"
+                "a optional milliseconds represents chrono::Duration"
             )
         }
 
@@ -126,13 +122,13 @@ pub mod option_duration_ms {
             D: de::Deserializer<'de>,
         {
             Ok(Some(
-                deserializer.deserialize_u64(duration_ms::DurationVisitor)?,
+                deserializer.deserialize_i64(duration_ms::DurationVisitor)?,
             ))
         }
     }
 
-    /// Deserialize `Option<std::time::Duration>` from milliseconds
-    /// (represented as u64)
+    /// Deserialize `Option<chrono::Duration>` from milliseconds
+    /// (represented as i64)
     pub fn deserialize<'de, D>(d: D) -> Result<Option<Duration>, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -140,14 +136,14 @@ pub mod option_duration_ms {
         d.deserialize_option(OptionDurationVisitor)
     }
 
-    /// Serialize `Option<std::time::Duration>` to milliseconds (represented as
-    /// u64)
+    /// Serialize `Option<chrono::Duration>` to milliseconds (represented as
+    /// i64)
     pub fn serialize<S>(x: &Option<Duration>, s: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         match *x {
-            Some(duration) => s.serialize_u64(duration.as_millis() as u64),
+            Some(duration) => s.serialize_i64(duration.num_milliseconds()),
             None => s.serialize_none(),
         }
     }
