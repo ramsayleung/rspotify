@@ -24,7 +24,7 @@ use rspotify::{
     },
     prelude::*,
     scopes,
-    search::SearchQuery,
+    search::{AlbumSearchFilter, Albums, ArtistSearchFilter, SearchQuery},
     AuthCodeSpotify, ClientResult, Credentials, OAuth, Token,
 };
 
@@ -446,16 +446,16 @@ async fn test_repeat() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 #[ignore]
 async fn test_search_album() {
+    let query = SearchQuery::<Albums>::new()
+        .album("Hello")
+        .any("Test")
+        .artist("Abba");
+
+    let query: String = (&query).into();
+
     oauth_client()
         .await
-        .search(
-            SearchQuery::default().album("arrival").artist("abba"),
-            SearchType::Album,
-            None,
-            None,
-            Some(10),
-            Some(0),
-        )
+        .search(&query, SearchType::Album, None, None, Some(10), Some(0))
         .await
         .unwrap();
 }
