@@ -1,7 +1,6 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use rspotify::model::*;
 use serde::de::DeserializeOwned;
-use std::time::Duration;
 
 #[track_caller]
 fn deserialize<T>(data: impl AsRef<str>) -> T
@@ -51,7 +50,7 @@ fn test_simplified_track() {
 
 "#;
     let track: SimplifiedTrack = deserialize(json_str);
-    let duration = Duration::from_millis(276773);
+    let duration = Duration::milliseconds(276773);
     assert_eq!(track.duration, duration);
 }
 
@@ -195,7 +194,7 @@ fn test_simplified_episode() {
         simplified_episode.release_date_precision,
         DatePrecision::Day
     );
-    let duration = Duration::from_millis(2685023);
+    let duration = Duration::milliseconds(2685023);
     assert_eq!(simplified_episode.duration, duration);
 }
 
@@ -263,7 +262,7 @@ fn test_full_episode() {
         "#;
     let full_episode: FullEpisode = deserialize(json_str);
     assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
-    let duration = Duration::from_millis(1502795);
+    let duration = Duration::milliseconds(1502795);
     assert_eq!(full_episode.duration, duration);
 }
 
@@ -518,7 +517,7 @@ fn test_audio_features() {
     }
     "#;
     let audio_features: AudioFeatures = deserialize(json);
-    let duration = Duration::from_millis(255349);
+    let duration = Duration::milliseconds(255349);
     assert_eq!(audio_features.duration, duration);
 }
 
@@ -597,7 +596,7 @@ fn test_full_track() {
 }
     "#;
     let full_track: FullTrack = deserialize(json);
-    let duration = Duration::from_millis(207959);
+    let duration = Duration::milliseconds(207959);
     assert_eq!(full_track.duration, duration);
 }
 
@@ -610,7 +609,7 @@ fn test_resume_point() {
     }   
     "#;
     let resume_point: ResumePoint = deserialize(json);
-    let duration = Duration::from_millis(423432);
+    let duration = Duration::milliseconds(423432);
     assert_eq!(resume_point.resume_position, duration);
 }
 
@@ -623,7 +622,7 @@ fn test_resume_point_negative() {
     }
     "#;
     let resume_point: ResumePoint = deserialize(json);
-    let duration = Duration::default();
+    let duration = Duration::zero();
     assert_eq!(resume_point.resume_position, duration);
 }
 
@@ -737,7 +736,7 @@ fn test_currently_playing_context() {
     );
     assert_eq!(currently_playing_context.timestamp, dt);
 
-    let duration = Duration::from_millis(22270);
+    let duration = Duration::milliseconds(22270);
     assert_eq!(currently_playing_context.progress, Some(duration));
 }
 
