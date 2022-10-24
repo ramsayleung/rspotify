@@ -1,9 +1,10 @@
 //! All kinds of tracks object
 
 use chrono::prelude::*;
+use chrono::Duration;
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
@@ -56,7 +57,7 @@ pub struct FullTracks {
 ///
 /// `is_playable`, `linked_from` and `restrictions` will only be present when
 /// relinking is applied.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedTrack {
     pub artists: Vec<SimplifiedArtist>,
     pub available_markets: Option<Vec<String>>,
