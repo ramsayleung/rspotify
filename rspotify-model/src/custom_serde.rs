@@ -27,7 +27,7 @@ pub mod duration_ms {
             E: de::Error,
         {
             i64::try_from(v)
-                .map(|x| Duration::milliseconds(x))
+                .map(Duration::milliseconds)
                 .map_err(E::custom)
         }
     }
