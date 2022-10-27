@@ -622,7 +622,7 @@ fn test_resume_point_negative() {
     }
     "#;
     let resume_point: ResumePoint = deserialize(json);
-    let duration = Duration::zero();
+    let duration = Duration::milliseconds(-1000);
     assert_eq!(resume_point.resume_position, duration);
 }
 

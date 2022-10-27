@@ -3,6 +3,7 @@
 pub mod duration_ms {
     use chrono::Duration;
     use serde::{de, Serializer};
+    use std::convert::TryFrom;
     use std::fmt;
 
     /// Vistor to help deserialize duration represented as millisecond to
@@ -18,6 +19,16 @@ pub mod duration_ms {
             E: de::Error,
         {
             Ok(Duration::milliseconds(v))
+        }
+
+        // JSON deserializer calls visit_u64 for non-negative intgers
+        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            i64::try_from(v)
+                .map(|x| Duration::milliseconds(x))
+                .map_err(E::custom)
         }
     }
 
