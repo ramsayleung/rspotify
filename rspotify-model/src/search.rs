@@ -7,8 +7,6 @@ use crate::{
     SimplifiedShow,
 };
 
-use strum::Display;
-
 /// Search for playlists
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SearchPlaylists {
@@ -61,20 +59,4 @@ pub enum SearchResult {
     Shows(Page<SimplifiedShow>),
     #[serde(rename = "episodes")]
     Episodes(Page<SimplifiedEpisode>),
-}
-
-#[derive(Debug, Display, PartialEq, Eq, Hash)]
-#[strum(serialize_all = "snake_case")]
-pub enum SearchFilter {
-    Album,
-    Artist,
-    Track,
-    Year,
-    Upc,
-    #[strum(serialize = "tag:hipster")]
-    TagHipster,
-    #[strum(serialize = "tag:new")]
-    TagNew,
-    Isrc,
-    Genre,
 }
