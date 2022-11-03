@@ -1,84 +1,68 @@
 use std::collections::HashMap;
 
-use strum::Display;
-
-#[derive(Debug, Display, PartialEq, Eq, Hash)]
-#[strum(serialize_all = "snake_case")]
-pub enum SearchFilter {
-    Album,
-    Artist,
-    Track,
-    Year,
-    Upc,
-    #[strum(serialize = "tag:hipster")]
-    TagHipster,
-    #[strum(serialize = "tag:new")]
-    TagNew,
-    Isrc,
-    Genre,
-}
+use rspotify_model::SearchFilter;
 
 #[derive(Debug, Default)]
-pub struct SearchQuery {
-    no_filter_query: String,
-    query_map: HashMap<SearchFilter, String>,
+pub struct SearchQuery<'a> {
+    no_filter_query: &'a str,
+    query_map: HashMap<SearchFilter, &'a str>,
 }
 
-impl SearchQuery {
-    pub fn any<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.no_filter_query = str.into();
+impl<'a> SearchQuery<'a> {
+    pub fn any(&mut self, str: &'a str) -> &mut Self {
+        self.no_filter_query = str;
         self
     }
 
-    pub fn album<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Album, str.into());
+    pub fn album(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Album, str);
         self
     }
 
-    pub fn artist<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Artist, str.into());
+    pub fn artist(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Artist, str);
         self
     }
 
-    pub fn track<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Track, str.into());
+    pub fn track(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Track, str);
         self
     }
 
-    pub fn year<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Year, str.into());
+    pub fn year(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Year, str);
         self
     }
 
-    pub fn upc<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Upc, str.into());
+    pub fn upc(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Upc, str);
         self
     }
 
     pub fn tag_new(&mut self) -> &mut Self {
-        self.query_map.insert(SearchFilter::TagNew, "".into());
+        self.query_map.insert(SearchFilter::TagNew, "");
         self
     }
 
     pub fn tag_hipster(&mut self) -> &mut Self {
-        self.query_map.insert(SearchFilter::TagHipster, "".into());
+        self.query_map.insert(SearchFilter::TagHipster, "");
         self
     }
 
-    pub fn isrc<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Isrc, str.into());
+    pub fn isrc(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Isrc, str);
         self
     }
 
-    pub fn genre<T: Into<String>>(&mut self, str: T) -> &mut Self {
-        self.query_map.insert(SearchFilter::Genre, str.into());
+    pub fn genre(&mut self, str: &'a str) -> &mut Self {
+        self.query_map.insert(SearchFilter::Genre, str);
         self
     }
 }
 
-impl From<&mut SearchQuery> for String {
-    fn from(val: &mut SearchQuery) -> Self {
-        let mut rep = val.no_filter_query.clone();
+impl From<&SearchQuery<'_>> for String {
+    fn from(val: &SearchQuery) -> Self {
+        let mut rep = val.no_filter_query.to_owned();
         rep.push(' ');
         rep.push_str(
             val.query_map

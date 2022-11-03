@@ -7,7 +7,6 @@ use crate::{
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     join_ids,
     model::*,
-    search::SearchQuery,
     sync::Mutex,
     util::build_map,
     ClientResult, Config, Credentials, Token,
