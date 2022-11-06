@@ -62,7 +62,8 @@ pub enum SearchResult {
     Episodes(Page<SimplifiedEpisode>),
 }
 
-#[derive(Debug, Display, PartialEq, Eq, Hash)]
+/// Valid filters to used in the search endpoint's query string
+#[derive(Debug, Display, PartialEq, Eq, PartialOrd, Ord)]
 #[strum(serialize_all = "snake_case")]
 pub enum SearchFilter {
     Album,
