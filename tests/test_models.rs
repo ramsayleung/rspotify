@@ -732,7 +732,7 @@ fn test_currently_playing_context() {
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
     let dt = DateTime::<Utc>::from_utc(
-        NaiveDateTime::from_timestamp(second, nanosecond as u32),
+        NaiveDateTime::from_timestamp_opt(second, nanosecond as u32).unwrap(),
         Utc,
     );
     assert_eq!(currently_playing_context.timestamp, dt);
@@ -847,7 +847,7 @@ fn test_current_playback_context() {
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
     let dt = DateTime::<Utc>::from_utc(
-        NaiveDateTime::from_timestamp(second, nanosecond as u32),
+        NaiveDateTime::from_timestamp_opt(second, nanosecond as u32).unwrap(),
         Utc,
     );
     assert_eq!(current_playback_context.timestamp, dt);
