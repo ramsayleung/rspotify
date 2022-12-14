@@ -1,4 +1,4 @@
-## Unreleased
+## 0.11.6 (2022.12.14)
 
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
 
