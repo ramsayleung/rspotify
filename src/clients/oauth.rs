@@ -1021,7 +1021,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Provide a `context_uri` to start playback or a album, artist, or
     /// playlist. Provide a `uris` list to start playback of one or more tracks.
-    /// Provide `offset` as {"position": <int>} or {"uri": "<track uri>"} to
+    /// Provide `offset` as `{"position": <int>}` or `{"uri": "<track uri>"}` to
     /// start playback at a particular offset.
     ///
     /// Parameters:

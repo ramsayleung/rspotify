@@ -940,13 +940,13 @@ where
     /// - seed_artists - a list of artist IDs, URIs or URLs
     /// - seed_tracks - a list of artist IDs, URIs or URLs
     /// - seed_genres - a list of genre names. Available genres for
-    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token. If provided, all
-    ///   results will be playable in this country.
+    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    ///   If provided, all results will be playable in this country.
     /// - limit - The maximum number of items to return. Default: 20.
     ///   Minimum: 1. Maximum: 100
-    /// - min/max/target_<attribute> - For the tuneable track attributes listed
-    ///   in the documentation, these values provide filters and targeting on
-    ///   results.
+    /// - `min/max/target_<attribute>` - For the tuneable track attributes
+    ///   listed in the documentation, these values provide filters and
+    ///   targeting on results.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recommendations)
     async fn recommendations<'a>(
