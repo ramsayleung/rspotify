@@ -12,7 +12,7 @@ use rocket::response::Redirect;
 use rocket::serde::json::{json, Value};
 use rocket::Request;
 use rocket::Responder;
-use rocket::{catchers, get, launch, routes, Build, Rocket};
+use rocket::{catchers, get, launch, routes};
 use rocket_dyn_templates::Template;
 use rspotify::{
     model::TimeRange, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token,
@@ -299,7 +299,7 @@ pub fn server_error(_req: &Request) -> Template {
 }
 
 #[launch]
-fn rocket() -> Rocket<Build> {
+fn rocket() -> _ {
     env_logger::init();
     rocket::build()
         .mount(
