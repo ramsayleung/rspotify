@@ -5,7 +5,7 @@
 
 use cookie::{time::Duration, SameSite};
 use getrandom::getrandom;
-use log::info;
+use log::{error, info};
 use rocket::catch;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
@@ -21,6 +21,7 @@ use rspotify::{
 use std::{collections::HashMap, env, fs, path::PathBuf};
 
 #[derive(Debug, Responder)]
+#[allow(clippy::large_enum_variant)]
 pub enum AppResponse {
     Template(Template),
     Redirect(Redirect),
@@ -28,6 +29,10 @@ pub enum AppResponse {
 }
 
 const CACHE_PATH: &str = ".spotify_cache/";
+// Taken from the `.env` file from the main repository. Please replace this with
+// yours for production usage.
+const CLIENT_ID: &str = "e1dce60f1e274e20861ce5d96142a4d3";
+const CLIENT_SECRET: &str = "0e4e03b9be8d465d87fc32857a4b5aa3";
 
 /// Generate `length` random chars
 fn generate_random_uuid(length: usize) -> String {
@@ -42,9 +47,9 @@ fn generate_random_uuid(length: usize) -> String {
         .collect()
 }
 
+/// We store the cache locally within the current directory.
 fn get_cache_path(jar: &CookieJar<'_>) -> PathBuf {
-    let project_dir_path = env::current_dir().unwrap();
-    let mut cache_path = project_dir_path;
+    let mut cache_path = env::current_dir().unwrap();
     cache_path.push(CACHE_PATH);
     cache_path.push(jar.get_pending("uuid").unwrap().value());
 
@@ -62,7 +67,7 @@ fn create_cache_path_if_absent(jar: &CookieJar<'_>) -> PathBuf {
 }
 
 fn is_authenticated(jar: &CookieJar<'_>) -> bool {
-    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(jar);
+    let authenticated = jar.get("uuid").is_some() && cache_path_exists(jar);
     if authenticated {
         let cache_path = get_cache_path(jar);
         match Token::from_cache(cache_path) {
@@ -82,7 +87,7 @@ fn remove_cache_path(jar: &CookieJar<'_>) {
     jar.remove(Cookie::named("uuid"))
 }
 
-fn check_cache_path_exists(jar: &CookieJar<'_>) -> bool {
+fn cache_path_exists(jar: &CookieJar<'_>) -> bool {
     let cache_path = get_cache_path(jar);
     cache_path.exists()
 }
@@ -94,8 +99,8 @@ fn init_spotify(jar: &CookieJar<'_>) -> AuthCodeSpotify {
         ..Default::default()
     };
 
-    // Please notice that protocol of redirect_uri, make sure it's http
-    // (or https). It will fail if you mix them up.
+    // Please notice that protocol of redirect_uri, make sure it's http (or
+    // https). It will fail if you mix them up.
     let oauth = OAuth {
         scopes: scopes!(
             "user-read-currently-playing",
@@ -106,12 +111,7 @@ fn init_spotify(jar: &CookieJar<'_>) -> AuthCodeSpotify {
         ..Default::default()
     };
 
-    // Replacing client_id and client_secret with yours.
-    let creds = Credentials::new(
-        "e1dce60f1e274e20861ce5d96142a4d3",
-        "0e4e03b9be8d465d87fc32857a4b5aa3",
-    );
-
+    let creds = Credentials::new(CLIENT_ID, CLIENT_SECRET);
     AuthCodeSpotify::with_config(creds, oauth, config)
 }
 
@@ -127,11 +127,11 @@ fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
 
     match spotify.request_token(&code) {
         Ok(_) => {
-            println!("Request user token successful");
+            info!("Requested user token successfully");
             AppResponse::Redirect(Redirect::to("/"))
         }
         Err(err) => {
-            println!("Failed to get user token {:?}", err);
+            error!("Failed to get user token: {:?}", err);
             let mut context = HashMap::new();
             context.insert("err_msg", "Failed to get token!");
             AppResponse::Template(Template::render("error", context))
@@ -152,7 +152,7 @@ fn show_index(spotify: &AuthCodeSpotify) -> Template {
             Template::render("index", context.clone())
         }
         Err(err) => {
-            context.insert("err_msg", format!("Failed for {err}!"));
+            context.insert("err_msg", format!("Failed to fetch `me` endpoint: {err}"));
             Template::render("error", context)
         }
     }
@@ -164,7 +164,7 @@ fn index(jar: &CookieJar<'_>) -> Template {
 
     // The user is authenticated if their cookie is set and a cache exists for
     // them.
-    let authenticated = jar.get("uuid").is_some() && check_cache_path_exists(jar);
+    let authenticated = jar.get("uuid").is_some() && cache_path_exists(jar);
     if !authenticated {
         let uuid = Cookie::build("uuid", generate_random_uuid(64))
             .path("/")
@@ -185,19 +185,19 @@ fn index(jar: &CookieJar<'_>) -> Template {
     // Refresh token if token is expired
     if token.is_expired() {
         let spotify = init_spotify(jar);
-        *spotify.token.lock().unwrap() = Some(token.clone());
+        *spotify.token.lock().unwrap() = Some(token);
         match spotify.refresh_token() {
             Ok(_) => {
-                info!("Success to refresh token");
-                return show_index(&spotify);
+                info!("Successfully refreshed token");
+                show_index(&spotify)
             }
             Err(err) => {
-                context.insert("err_msg", format!("Failed to refresh token for {err}!"));
-                return Template::render("error", context);
+                context.insert("err_msg", format!("Failed to refresh token: {err}"));
+                Template::render("error", context)
             }
         }
     } else {
-        let spotify = AuthCodeSpotify::from_token(token.clone());
+        let spotify = AuthCodeSpotify::from_token(token);
         show_index(&spotify)
     }
 }
@@ -223,7 +223,7 @@ fn top_artists(jar: &CookieJar<'_>) -> AppResponse {
         }
         Err(err) => {
             let mut context = HashMap::new();
-            context.insert("err_msg", format!("Failed for {err}!"));
+            context.insert("err_msg", format!("Failed to read token cache: {err}"));
             AppResponse::Template(Template::render("error", context))
         }
     }
@@ -259,7 +259,7 @@ fn playlist(jar: &CookieJar<'_>) -> AppResponse {
         }
         Err(err) => {
             let mut context = HashMap::new();
-            context.insert("err_msg", format!("Failed for {err}!"));
+            context.insert("err_msg", format!("Failed to read token cache: {err}"));
             AppResponse::Template(Template::render("error", context))
         }
     }
@@ -282,7 +282,7 @@ fn me(jar: &CookieJar<'_>) -> AppResponse {
         }
         Err(err) => {
             let mut context = HashMap::new();
-            context.insert("err_msg", format!("Failed for {err}!"));
+            context.insert("err_msg", format!("Failed to read token cache: {err}"));
             AppResponse::Template(Template::render("error", context))
         }
     }
@@ -293,7 +293,7 @@ pub fn server_error(_req: &Request) -> Template {
     let mut context = HashMap::new();
     context.insert(
         "err_msg",
-        format!("Ooops, there is something wrong with the server"),
+        "Ooops, there is something wrong with the server".to_owned(),
     );
     Template::render("error", context)
 }
