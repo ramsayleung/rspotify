@@ -25,16 +25,16 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --manifest-path examples/webapp/Cargo.toml --all -- --check
+          args: --manifest-path examples/webapp/Cargo.toml -- --check
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --manifest-path examples/webapp/Cargo.toml --release --all-features
+          args: --manifest-path examples/webapp/Cargo.toml
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --manifest-path examples/webapp/Cargo.toml
+          args: --manifest-path examples/webapp/Cargo.toml -- -D warnings
