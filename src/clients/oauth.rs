@@ -11,7 +11,7 @@ use crate::{
     ClientResult, OAuth, Token,
 };
 
-use std::{collections::HashMap, time};
+use std::collections::HashMap;
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::{PlayContextId, PlayableId};

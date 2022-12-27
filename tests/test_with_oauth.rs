@@ -349,7 +349,7 @@ async fn test_playback() {
             .start_uris_playback(
                 uris.iter().map(PlayableId::as_ref),
                 Some(device_id),
-                Some(Offset::Position(0)),
+                Some(Offset::Position(chrono::Duration::zero())),
                 None,
             )
             .await
@@ -389,7 +389,7 @@ async fn test_playback() {
         if let Some(uri) = uri {
             let offset = None;
             let device = backup.device.id.as_deref();
-            let position = backup.progress.map(|p| p.num_milliseconds() as u32);
+            let position = backup.progress;
             client
                 .start_uris_playback(uri, device, offset, position)
                 .await
@@ -527,17 +527,17 @@ async fn test_seek_track() {
     // Saving the previous state to restore it later
     let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
 
-    client.seek_track(25000, None).await.unwrap();
+    client
+        .seek_track(chrono::Duration::seconds(25), None)
+        .await
+        .unwrap();
 
     if let Some(CurrentPlaybackContext {
         progress: Some(progress),
         ..
     }) = backup
     {
-        client
-            .seek_track(progress.num_milliseconds() as u32, None)
-            .await
-            .unwrap();
+        client.seek_track(progress, None).await.unwrap();
     }
 }
 
