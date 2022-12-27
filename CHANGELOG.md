@@ -2,7 +2,7 @@
 
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
 - ([#366](https://github.com/ramsayleung/rspotify/pull/366)) Replace all `std::time::Duration` with `chrono::Duration` to support negative duration.
-- ([#TODO](https://github.com/ramsayleung/rspotify/pull/TODO)) We now use
+- ([#375](https://github.com/ramsayleung/rspotify/pull/375)) We now use
   `chrono::Duration` in more places for consistency and usability: `start_uris_playback`, `start_context_playback`, `rspotify_model::Offset`, `resume_playback`, `seek_track`. Some of these fields have been renamed from `position_ms` to `position`.
 
 **Bugfixes**:
