@@ -1,0 +1,40 @@
+on:
+  pull_request:
+  push:
+    branches: master
+
+name: WebApp Continuous Integration
+
+jobs:
+  building:
+    name: Building
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --manifest-path examples/webapp/Cargo.toml -- --check
+
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --manifest-path examples/webapp/Cargo.toml
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --manifest-path examples/webapp/Cargo.toml -- -D warnings
