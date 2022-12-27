@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use chrono::Duration;
 use std::collections::HashMap;
-use std::time::Duration;
 
 use crate::{
     custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId,
@@ -123,7 +123,7 @@ pub struct EpisodesPayload {
 }
 
 /// Resume point object
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ResumePoint {
     pub fully_played: bool,
     #[serde(with = "duration_ms", rename = "resume_position_ms")]

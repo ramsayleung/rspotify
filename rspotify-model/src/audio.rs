@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use std::time::Duration;
+use chrono::Duration;
 
 use crate::{
     custom_serde::{duration_ms, modality},

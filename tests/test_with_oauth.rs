@@ -389,7 +389,7 @@ async fn test_playback() {
         if let Some(uri) = uri {
             let offset = None;
             let device = backup.device.id.as_deref();
-            let position = backup.progress.map(|p| p.as_millis() as u32);
+            let position = backup.progress.map(|p| p.num_milliseconds() as u32);
             client
                 .start_uris_playback(uri, device, offset, position)
                 .await
@@ -535,7 +535,7 @@ async fn test_seek_track() {
     }) = backup
     {
         client
-            .seek_track(progress.as_millis() as u32, None)
+            .seek_track(progress.num_milliseconds() as u32, None)
             .await
             .unwrap();
     }

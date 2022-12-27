@@ -1,10 +1,9 @@
 //! All objects related to context
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 
 use std::collections::HashMap;
-use std::time::Duration;
 
 use crate::{
     custom_serde::{millisecond_timestamp, option_duration_ms},
