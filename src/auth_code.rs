@@ -21,8 +21,8 @@ use url::Url;
 /// [`OAuthClient`] for the available endpoints.
 ///
 /// If you're developing a CLI application, you might be interested in the `cli`
-/// feature. This brings the [`Self::prompt_for_token`] utility to automatically
-/// follow the flow steps via user interaction.
+/// feature. This brings the `prompt_for_token` method to automatically follow
+/// the flow steps via user interaction.
 ///
 /// Otherwise, these are the steps to be followed to authenticate your app:
 ///

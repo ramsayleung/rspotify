@@ -55,7 +55,7 @@
 //!
 //! ### Environmental variables
 //!
-//! RSpotify supports the [`dotenv`] crate, which allows you to save credentials
+//! RSpotify supports the `dotenv` crate, which allows you to save credentials
 //! in a `.env` file. These will then be automatically available as
 //! environmental values when using methods like [`Credentials::from_env`].
 //!

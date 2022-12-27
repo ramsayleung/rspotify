@@ -485,7 +485,7 @@ fn test_full_playlist() {
             "uri": "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n"
         }
         "#.replace("json_str_images", json_str_images).replace("json_str_simplified_artists", json_str_simplified_artists);
-    let full_playlist: FullPlaylist = deserialize(&json_str);
+    let full_playlist: FullPlaylist = deserialize(json_str);
     assert_eq!(
         full_playlist.id.uri(),
         "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
