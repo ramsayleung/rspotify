@@ -167,7 +167,7 @@ impl AuthCodePkceSpotify {
         hasher.update(verifier.as_bytes());
         let challenge = hasher.finalize();
 
-        let challenge = base64::encode_config(challenge, base64::URL_SAFE_NO_PAD);
+        let challenge = base64::encode(challenge);
 
         (verifier, challenge)
     }
