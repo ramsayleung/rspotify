@@ -235,10 +235,10 @@ pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
 /// Struct to configure the Spotify client.
 #[derive(Debug, Clone)]
 pub struct Config {
-    /// The Spotify API prefix, [`DEFAULT_API_PREFIX`] by default.
+    /// The Spotify API prefix, [`DEFAULT_API_BASE_URL`] by default.
     pub api_base_url: String,
 
-    /// The Spotify Authentication prefix, [`DEFAULT_AUTH_PREFIX`] by default.
+    /// The Spotify Authentication prefix, [`DEFAULT_AUTH_BASE_URL`] by default.
     pub auth_base_url: String,
 
     /// The cache file path, in case it's used. By default it's

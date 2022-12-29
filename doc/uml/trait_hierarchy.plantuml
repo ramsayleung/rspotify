@@ -9,7 +9,7 @@ abstract class BaseClient {
     ---
     ClientResult<()> auto_reauth()
     ClientResult<()> refresh_token()
-    String endpoint_url()
+    String api_url()
     String auth_url()
     ClientResult<Headers> auth_headers()
     ClientResult<()> write_token_cache()

@@ -35,8 +35,8 @@ where
     /// be mutable (the token is accessed to from every endpoint).
     fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
-    /// Returns the absolute URL for an endpoint in the API
-    fn endpoint_url(&self, url: &str) -> String {
+    /// Returns the absolute URL for an endpoint in the API.
+    fn api_url(&self, url: &str) -> String {
         let mut base = self.get_config().api_base_url.clone();
         if !base.ends_with('/') {
             base.push('/');
@@ -44,7 +44,7 @@ where
         base + url
     }
 
-    /// Returns the absolute URL for an authentication step in the API
+    /// Returns the absolute URL for an authentication step in the API.
     fn auth_url(&self, url: &str) -> String {
         let mut base = self.get_config().auth_base_url.clone();
         if !base.ends_with('/') {
@@ -114,8 +114,8 @@ where
     /// API.
     #[doc(hidden)]
     #[inline]
-    async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
+    async fn api_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
+        let url = self.api_url(url);
         let headers = self.auth_headers().await;
         Ok(self.get_http().get(&url, Some(&headers), payload).await?)
     }
@@ -124,8 +124,8 @@ where
     /// API.
     #[doc(hidden)]
     #[inline]
-    async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
+    async fn api_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let url = self.api_url(url);
         let headers = self.auth_headers().await;
         Ok(self.get_http().post(&url, Some(&headers), payload).await?)
     }
@@ -134,8 +134,8 @@ where
     /// API.
     #[doc(hidden)]
     #[inline]
-    async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
+    async fn api_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let url = self.api_url(url);
         let headers = self.auth_headers().await;
         Ok(self.get_http().put(&url, Some(&headers), payload).await?)
     }
@@ -144,8 +144,8 @@ where
     /// API.
     #[doc(hidden)]
     #[inline]
-    async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
+    async fn api_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let url = self.api_url(url);
         let headers = self.auth_headers().await;
         Ok(self
             .get_http()
@@ -207,7 +207,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-track)
     async fn track(&self, track_id: TrackId<'_>) -> ClientResult<FullTrack> {
         let url = format!("tracks/{}", track_id.id());
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -227,7 +227,7 @@ where
         let params = build_map([("market", market.map(Into::into))]);
 
         let url = format!("tracks/?ids={ids}");
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
@@ -239,7 +239,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artist)
     async fn artist(&self, artist_id: ArtistId<'_>) -> ClientResult<FullArtist> {
         let url = format!("artists/{}", artist_id.id());
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -255,7 +255,7 @@ where
     ) -> ClientResult<Vec<FullArtist>> {
         let ids = join_ids(artist_ids);
         let url = format!("artists/?ids={ids}");
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
 
         convert_result::<FullArtists>(&result).map(|x| x.artists)
     }
@@ -313,7 +313,7 @@ where
         ]);
 
         let url = format!("artists/{}/albums", artist_id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -333,7 +333,7 @@ where
         let params = build_map([("market", Some(market.into()))]);
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result::<FullTracks>(&result).map(|x| x.tracks)
     }
 
@@ -350,7 +350,7 @@ where
         artist_id: ArtistId<'_>,
     ) -> ClientResult<Vec<FullArtist>> {
         let url = format!("artists/{}/related-artists", artist_id.id());
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result::<FullArtists>(&result).map(|x| x.artists)
     }
 
@@ -363,7 +363,7 @@ where
     async fn album(&self, album_id: AlbumId<'_>) -> ClientResult<FullAlbum> {
         let url = format!("albums/{}", album_id.id());
 
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -379,7 +379,7 @@ where
     ) -> ClientResult<Vec<FullAlbum>> {
         let ids = join_ids(album_ids);
         let url = format!("albums/?ids={ids}");
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
 
@@ -418,7 +418,7 @@ where
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self.endpoint_get("search", &params).await?;
+        let result = self.api_get("search", &params).await?;
         convert_result(&result)
     }
 
@@ -458,7 +458,7 @@ where
         let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
         let url = format!("albums/{}/tracks", album_id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -470,7 +470,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-profile)
     async fn user(&self, user_id: UserId<'_>) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id.id());
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -490,7 +490,7 @@ where
         let params = build_map([("fields", fields), ("market", market.map(Into::into))]);
 
         let url = format!("playlists/{}", playlist_id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -514,7 +514,7 @@ where
             Some(playlist_id) => format!("users/{}/playlists/{}", user_id.id(), playlist_id.id()),
             None => format!("users/{}/starred", user_id.id()),
         };
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -540,7 +540,7 @@ where
             playlist_id.id(),
             user_ids.iter().map(Id::id).collect::<Vec<_>>().join(","),
         );
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -557,7 +557,7 @@ where
         let params = build_map([("market", market.map(Into::into))]);
 
         let url = format!("shows/{}", id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -577,7 +577,7 @@ where
         let ids = join_ids(ids);
         let params = build_map([("ids", Some(&ids)), ("market", market.map(Into::into))]);
 
-        let result = self.endpoint_get("shows", &params).await?;
+        let result = self.api_get("shows", &params).await?;
         convert_result::<SeversalSimplifiedShows>(&result).map(|x| x.shows)
     }
 
@@ -627,7 +627,7 @@ where
         ]);
 
         let url = format!("shows/{}/episodes", id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -648,7 +648,7 @@ where
         let url = format!("episodes/{}", id.id());
         let params = build_map([("market", market.map(Into::into))]);
 
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -667,7 +667,7 @@ where
         let ids = join_ids(ids);
         let params = build_map([("ids", Some(&ids)), ("market", market.map(Into::into))]);
 
-        let result = self.endpoint_get("episodes", &params).await?;
+        let result = self.api_get("episodes", &params).await?;
         convert_result::<EpisodesPayload>(&result).map(|x| x.episodes)
     }
 
@@ -679,7 +679,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-features)
     async fn track_features(&self, track_id: TrackId<'_>) -> ClientResult<AudioFeatures> {
         let url = format!("audio-features/{}", track_id.id());
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -695,7 +695,7 @@ where
     ) -> ClientResult<Option<Vec<AudioFeatures>>> {
         let url = format!("audio-features/?ids={}", join_ids(track_ids));
 
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -712,7 +712,7 @@ where
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-analysis)
     async fn track_analysis(&self, track_id: TrackId<'_>) -> ClientResult<AudioAnalysis> {
         let url = format!("audio-analysis/{}", track_id.id());
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -758,7 +758,7 @@ where
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
         ]);
-        let result = self.endpoint_get("browse/categories", &params).await?;
+        let result = self.api_get("browse/categories", &params).await?;
         convert_result::<PageCategory>(&result).map(|x| x.categories)
     }
 
@@ -806,7 +806,7 @@ where
         ]);
 
         let url = format!("browse/categories/{category_id}/playlists");
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result::<CategoryPlaylists>(&result).map(|x| x.playlists)
     }
 
@@ -846,9 +846,7 @@ where
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self
-            .endpoint_get("browse/featured-playlists", &params)
-            .await?;
+        let result = self.api_get("browse/featured-playlists", &params).await?;
         convert_result(&result)
     }
 
@@ -890,7 +888,7 @@ where
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self.endpoint_get("browse/new-releases", &params).await?;
+        let result = self.api_get("browse/new-releases", &params).await?;
         convert_result::<PageSimplifiedAlbums>(&result).map(|x| x.albums)
     }
 
@@ -945,7 +943,7 @@ where
         // And finally adding all of them to the payload
         params.extend(borrowed_attributes);
 
-        let result = self.endpoint_get("recommendations", &params).await?;
+        let result = self.api_get("recommendations", &params).await?;
         convert_result(&result)
     }
 
@@ -1002,7 +1000,7 @@ where
         ]);
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -1042,7 +1040,7 @@ where
         let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
         let url = format!("users/{}/playlists", user_id.id());
-        let result = self.endpoint_get(&url, &params).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 }

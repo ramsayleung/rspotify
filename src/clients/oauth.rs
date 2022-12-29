@@ -206,7 +206,7 @@ pub trait OAuthClient: BaseClient {
         let offset = offset.map(|s| s.to_string());
         let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
-        let result = self.endpoint_get("me/playlists", &params).await?;
+        let result = self.api_get("me/playlists", &params).await?;
         convert_result(&result)
     }
 
@@ -243,7 +243,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = format!("users/{}/playlists", user_id.id());
-        let result = self.endpoint_post(&url, &params).await?;
+        let result = self.api_post(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -273,7 +273,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = format!("playlists/{}", playlist_id.id());
-        self.endpoint_put(&url, &params).await
+        self.api_put(&url, &params).await
     }
 
     /// Unfollows (deletes) a playlist for a user.
@@ -284,7 +284,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/unfollow-playlist)
     async fn playlist_unfollow(&self, playlist_id: PlaylistId<'_>) -> ClientResult<()> {
         let url = format!("playlists/{}/followers", playlist_id.id());
-        self.endpoint_delete(&url, &json!({})).await?;
+        self.api_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -310,7 +310,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        let result = self.endpoint_post(&url, &params).await?;
+        let result = self.api_post(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -331,7 +331,7 @@ pub trait OAuthClient: BaseClient {
         let params = JsonBuilder::new().required("uris", uris).build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        self.endpoint_put(&url, &params).await?;
+        self.api_put(&url, &params).await?;
 
         Ok(())
     }
@@ -364,7 +364,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        let result = self.endpoint_put(&url, &params).await?;
+        let result = self.api_put(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -397,7 +397,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        let result = self.endpoint_delete(&url, &params).await?;
+        let result = self.api_delete(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -452,7 +452,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
-        let result = self.endpoint_delete(&url, &params).await?;
+        let result = self.api_delete(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -471,7 +471,7 @@ pub trait OAuthClient: BaseClient {
 
         let params = JsonBuilder::new().optional("public", public).build();
 
-        self.endpoint_put(&url, &params).await?;
+        self.api_put(&url, &params).await?;
 
         Ok(())
     }
@@ -481,7 +481,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-current-users-profile)
     async fn me(&self) -> ClientResult<PrivateUser> {
-        let result = self.endpoint_get("me/", &Query::new()).await?;
+        let result = self.api_get("me/", &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -498,7 +498,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-the-users-currently-playing-track)
     async fn current_user_playing_item(&self) -> ClientResult<Option<CurrentlyPlayingContext>> {
         let result = self
-            .endpoint_get("me/player/currently-playing", &Query::new())
+            .api_get("me/player/currently-playing", &Query::new())
             .await?;
         if result.is_empty() {
             Ok(None)
@@ -546,7 +546,7 @@ pub trait OAuthClient: BaseClient {
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self.endpoint_get("me/albums", &params).await?;
+        let result = self.api_get("me/albums", &params).await?;
         convert_result(&result)
     }
 
@@ -589,7 +589,7 @@ pub trait OAuthClient: BaseClient {
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self.endpoint_get("me/tracks", &params).await?;
+        let result = self.api_get("me/tracks", &params).await?;
         convert_result(&result)
     }
 
@@ -612,7 +612,7 @@ pub trait OAuthClient: BaseClient {
             ("limit", limit.as_deref()),
         ]);
 
-        let result = self.endpoint_get("me/following", &params).await?;
+        let result = self.api_get("me/following", &params).await?;
         convert_result::<CursorPageFullArtists>(&result).map(|x| x.artists)
     }
 
@@ -627,7 +627,7 @@ pub trait OAuthClient: BaseClient {
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/tracks/?ids={}", join_ids(track_ids));
-        self.endpoint_delete(&url, &json!({})).await?;
+        self.api_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -644,7 +644,7 @@ pub trait OAuthClient: BaseClient {
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
         let url = format!("me/tracks/contains/?ids={}", join_ids(track_ids));
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -659,7 +659,7 @@ pub trait OAuthClient: BaseClient {
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/tracks/?ids={}", join_ids(track_ids));
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -702,7 +702,7 @@ pub trait OAuthClient: BaseClient {
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self.endpoint_get("me/top/artists", &params).await?;
+        let result = self.api_get("me/top/artists", &params).await?;
         convert_result(&result)
     }
 
@@ -744,7 +744,7 @@ pub trait OAuthClient: BaseClient {
             ("offset", offset.as_deref()),
         ]);
 
-        let result = self.endpoint_get("me/top/tracks", &params).await?;
+        let result = self.api_get("me/top/tracks", &params).await?;
         convert_result(&result)
     }
 
@@ -773,9 +773,7 @@ pub trait OAuthClient: BaseClient {
             params.insert(name, value);
         }
 
-        let result = self
-            .endpoint_get("me/player/recently-played", &params)
-            .await?;
+        let result = self.api_get("me/player/recently-played", &params).await?;
         convert_result(&result)
     }
 
@@ -790,7 +788,7 @@ pub trait OAuthClient: BaseClient {
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/albums/?ids={}", join_ids(album_ids));
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -806,7 +804,7 @@ pub trait OAuthClient: BaseClient {
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/albums/?ids={}", join_ids(album_ids));
-        self.endpoint_delete(&url, &json!({})).await?;
+        self.api_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -823,7 +821,7 @@ pub trait OAuthClient: BaseClient {
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
         let url = format!("me/albums/contains/?ids={}", join_ids(album_ids));
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -838,7 +836,7 @@ pub trait OAuthClient: BaseClient {
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -854,7 +852,7 @@ pub trait OAuthClient: BaseClient {
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
-        self.endpoint_delete(&url, &json!({})).await?;
+        self.api_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -874,7 +872,7 @@ pub trait OAuthClient: BaseClient {
             "me/following/contains?type=artist&ids={}",
             join_ids(artist_ids)
         );
-        let result = self.endpoint_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &Query::new()).await?;
         convert_result(&result)
     }
 
@@ -889,7 +887,7 @@ pub trait OAuthClient: BaseClient {
         user_ids: impl IntoIterator<Item = UserId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -905,7 +903,7 @@ pub trait OAuthClient: BaseClient {
         user_ids: impl IntoIterator<Item = UserId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
-        self.endpoint_delete(&url, &json!({})).await?;
+        self.api_delete(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -914,9 +912,7 @@ pub trait OAuthClient: BaseClient {
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-users-available-devices)
     async fn device(&self) -> ClientResult<Vec<Device>> {
-        let result = self
-            .endpoint_get("me/player/devices", &Query::new())
-            .await?;
+        let result = self.api_get("me/player/devices", &Query::new()).await?;
         convert_result::<DevicePayload>(&result).map(|x| x.devices)
     }
 
@@ -945,7 +941,7 @@ pub trait OAuthClient: BaseClient {
             ("additional_types", additional_types.as_deref()),
         ]);
 
-        let result = self.endpoint_get("me/player", &params).await?;
+        let result = self.api_get("me/player", &params).await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -978,9 +974,7 @@ pub trait OAuthClient: BaseClient {
             ("additional_types", additional_types.as_deref()),
         ]);
 
-        let result = self
-            .endpoint_get("me/player/currently-playing", &params)
-            .await?;
+        let result = self.api_get("me/player/currently-playing", &params).await?;
         if result.is_empty() {
             Ok(None)
         } else {
@@ -993,7 +987,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-queue)
     async fn current_user_queue(&self) -> ClientResult<CurrentUserQueue> {
         let params = build_map([]);
-        let result = self.endpoint_get("me/player/queue", &params).await?;
+        let result = self.api_get("me/player/queue", &params).await?;
         convert_result(&result)
     }
 
@@ -1013,7 +1007,7 @@ pub trait OAuthClient: BaseClient {
             .optional("play", play)
             .build();
 
-        self.endpoint_put("me/player", &params).await?;
+        self.api_put("me/player", &params).await?;
         Ok(())
     }
 
@@ -1054,7 +1048,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = append_device_id("me/player/play", device_id);
-        self.endpoint_put(&url, &params).await?;
+        self.api_put(&url, &params).await?;
 
         Ok(())
     }
@@ -1093,7 +1087,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = append_device_id("me/player/play", device_id);
-        self.endpoint_put(&url, &params).await?;
+        self.api_put(&url, &params).await?;
 
         Ok(())
     }
@@ -1106,7 +1100,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/pause-a-users-playback)
     async fn pause_playback(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id("me/player/pause", device_id);
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1128,7 +1122,7 @@ pub trait OAuthClient: BaseClient {
             .build();
 
         let url = append_device_id("me/player/play", device_id);
-        self.endpoint_put(&url, &params).await?;
+        self.api_put(&url, &params).await?;
 
         Ok(())
     }
@@ -1141,7 +1135,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/skip-users-playback-to-next-track)
     async fn next_track(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id("me/player/next", device_id);
-        self.endpoint_post(&url, &json!({})).await?;
+        self.api_post(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1154,7 +1148,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/skip-users-playback-to-previous-track)
     async fn previous_track(&self, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id("me/player/previous", device_id);
-        self.endpoint_post(&url, &json!({})).await?;
+        self.api_post(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1175,7 +1169,7 @@ pub trait OAuthClient: BaseClient {
             &format!("me/player/seek?position_ms={}", position.num_milliseconds()),
             device_id,
         );
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1192,7 +1186,7 @@ pub trait OAuthClient: BaseClient {
             &format!("me/player/repeat?state={}", <&str>::from(state)),
             device_id,
         );
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1213,7 +1207,7 @@ pub trait OAuthClient: BaseClient {
             &format!("me/player/volume?volume_percent={volume_percent}"),
             device_id,
         );
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1227,7 +1221,7 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/toggle-shuffle-for-users-playback)
     async fn shuffle(&self, state: bool, device_id: Option<&str>) -> ClientResult<()> {
         let url = append_device_id(&format!("me/player/shuffle?state={state}"), device_id);
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1247,7 +1241,7 @@ pub trait OAuthClient: BaseClient {
         device_id: Option<&str>,
     ) -> ClientResult<()> {
         let url = append_device_id(&format!("me/player/queue?uri={}", item.uri()), device_id);
-        self.endpoint_post(&url, &json!({})).await?;
+        self.api_post(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1264,7 +1258,7 @@ pub trait OAuthClient: BaseClient {
         show_ids: impl IntoIterator<Item = ShowId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
         let url = format!("me/shows/?ids={}", join_ids(show_ids));
-        self.endpoint_put(&url, &json!({})).await?;
+        self.api_put(&url, &json!({})).await?;
 
         Ok(())
     }
@@ -1299,7 +1293,7 @@ pub trait OAuthClient: BaseClient {
         let offset = offset.map(|x| x.to_string());
         let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
 
-        let result = self.endpoint_get("me/shows", &params).await?;
+        let result = self.api_get("me/shows", &params).await?;
         convert_result(&result)
     }
 
@@ -1315,7 +1309,7 @@ pub trait OAuthClient: BaseClient {
     ) -> ClientResult<Vec<bool>> {
         let ids = join_ids(ids);
         let params = build_map([("ids", Some(&ids))]);
-        let result = self.endpoint_get("me/shows/contains", &params).await?;
+        let result = self.api_get("me/shows/contains", &params).await?;
         convert_result(&result)
     }
 
@@ -1336,7 +1330,7 @@ pub trait OAuthClient: BaseClient {
         let params = JsonBuilder::new()
             .optional("country", country.map(<&str>::from))
             .build();
-        self.endpoint_delete(&url, &params).await?;
+        self.api_delete(&url, &params).await?;
 
         Ok(())
     }

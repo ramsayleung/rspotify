@@ -55,10 +55,10 @@ mod test {
     }
 
     #[test]
-    fn test_endpoint_url() {
+    fn test_api_url() {
         let mut spotify = ClientCredsSpotify::default();
         assert_eq!(
-            spotify.endpoint_url("me/player/play"),
+            spotify.api_url("me/player/play"),
             "https://api.spotify.com/v1/me/player/play"
         );
 
@@ -67,7 +67,7 @@ mod test {
             ..Default::default()
         };
         assert_eq!(
-            spotify.endpoint_url("me/player/play"),
+            spotify.api_url("me/player/play"),
             "http://localhost:8080/api/v1/me/player/play"
         );
 
@@ -77,7 +77,7 @@ mod test {
             ..Default::default()
         };
         assert_eq!(
-            spotify.endpoint_url("me/player/play"),
+            spotify.api_url("me/player/play"),
             "http://localhost:8080/api/v1/me/player/play"
         );
     }
