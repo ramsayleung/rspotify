@@ -6,17 +6,20 @@
 use cookie::{time::Duration, SameSite};
 use getrandom::getrandom;
 use log::{error, info};
-use rocket::catch;
-use rocket::http::{Cookie, CookieJar};
-use rocket::response::Redirect;
-use rocket::serde::json::{json, Value};
-use rocket::Request;
-use rocket::Responder;
-use rocket::{catchers, get, launch, routes};
-use rocket_dyn_templates::Template;
-use rspotify::{
-    model::TimeRange, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth, Token,
+use rocket::{
+    catch, catchers, get,
+    http::{Cookie, CookieJar},
+    launch,
+    response::Redirect,
+    routes,
+    serde::{
+        json::{json, Value},
+        Deserialize,
+    },
+    Request, Responder,
 };
+use rocket_dyn_templates::Template;
+use rspotify::{model::TimeRange, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth};
 
 use std::{collections::HashMap, env, fs, path::PathBuf};
 
@@ -33,6 +36,41 @@ const CACHE_PATH: &str = ".spotify_cache/";
 // yours for production usage.
 const CLIENT_ID: &str = "e1dce60f1e274e20861ce5d96142a4d3";
 const CLIENT_SECRET: &str = "0e4e03b9be8d465d87fc32857a4b5aa3";
+
+fn creds() -> Credentials {
+    Credentials::new(CLIENT_ID, CLIENT_SECRET)
+}
+
+fn oauth() -> OAuth {
+    #[derive(Deserialize)]
+    #[serde(crate = "rocket::serde")]
+    struct Config {
+        address: String,
+        port: u16,
+    }
+
+    // Obtaining the configured host from the Rocket configuration.
+    let rocket = rocket::build();
+    let config: Config = rocket.figment().extract().expect("no config set by rocket");
+
+    OAuth {
+        scopes: scopes!(
+            "user-read-currently-playing",
+            "playlist-modify-private",
+            "user-top-read"
+        ),
+        redirect_uri: format!("{}:{}/callback", config.address, config.port),
+        ..Default::default()
+    }
+}
+
+fn config(jar: &CookieJar<'_>) -> Config {
+    Config {
+        token_cached: true,
+        cache_path: create_cache_path_if_absent(jar),
+        ..Default::default()
+    }
+}
 
 /// Generate `length` random chars
 fn generate_random_uuid(length: usize) -> String {
@@ -67,16 +105,7 @@ fn create_cache_path_if_absent(jar: &CookieJar<'_>) -> PathBuf {
 }
 
 fn is_authenticated(jar: &CookieJar<'_>) -> bool {
-    let authenticated = jar.get("uuid").is_some() && cache_path_exists(jar);
-    if authenticated {
-        let cache_path = get_cache_path(jar);
-        match Token::from_cache(cache_path) {
-            Ok(token) => !token.is_expired(),
-            Err(_) => false,
-        }
-    } else {
-        false
-    }
+    jar.get("uuid").is_some() && cache_path_exists(jar)
 }
 
 fn remove_cache_path(jar: &CookieJar<'_>) {
@@ -92,29 +121,6 @@ fn cache_path_exists(jar: &CookieJar<'_>) -> bool {
     cache_path.exists()
 }
 
-fn init_spotify(jar: &CookieJar<'_>) -> AuthCodeSpotify {
-    let config = Config {
-        token_cached: true,
-        cache_path: create_cache_path_if_absent(jar),
-        ..Default::default()
-    };
-
-    // Please notice that protocol of redirect_uri, make sure it's http (or
-    // https). It will fail if you mix them up.
-    let oauth = OAuth {
-        scopes: scopes!(
-            "user-read-currently-playing",
-            "playlist-modify-private",
-            "user-top-read"
-        ),
-        redirect_uri: "http://localhost:8000/callback".to_owned(),
-        ..Default::default()
-    };
-
-    let creds = Credentials::new(CLIENT_ID, CLIENT_SECRET);
-    AuthCodeSpotify::with_config(creds, oauth, config)
-}
-
 #[get("/callback?<code>")]
 fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
     if jar.get("uuid").is_none() {
@@ -123,7 +129,7 @@ fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
         return AppResponse::Template(Template::render("error", context));
     }
 
-    let spotify = init_spotify(jar);
+    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
 
     match spotify.request_token(&code) {
         Ok(_) => {
@@ -160,46 +166,28 @@ fn show_index(spotify: &AuthCodeSpotify) -> Template {
 
 #[get("/")]
 fn index(jar: &CookieJar<'_>) -> Template {
-    let mut context = HashMap::new();
+    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
 
-    // The user is authenticated if their cookie is set and a cache exists for
-    // them.
-    let authenticated = jar.get("uuid").is_some() && cache_path_exists(jar);
-    if !authenticated {
+    // If it's the user's first log in, we need to authorize our Spotify client.
+    // The next time, the cache will already be initialized, so we can read from
+    // it. Even if it's expired, we'll have the refresh token, which can be used
+    // to authorize again seamlessly.
+    if !is_authenticated(jar) {
         let uuid = Cookie::build("uuid", generate_random_uuid(64))
             .path("/")
             .secure(true)
             .max_age(Duration::minutes(30))
             .same_site(SameSite::Lax)
             .finish();
-
         jar.add(uuid);
-        let spotify = init_spotify(jar);
+
         let auth_url = spotify.get_authorize_url(true).unwrap();
+        let mut context = HashMap::new();
         context.insert("auth_url", auth_url);
         return Template::render("authorize", context);
     }
 
-    let cache_path = get_cache_path(jar);
-    let token = Token::from_cache(cache_path).unwrap();
-    // Refresh token if token is expired
-    if token.is_expired() {
-        let spotify = init_spotify(jar);
-        *spotify.token.lock().unwrap() = Some(token);
-        match spotify.refresh_token() {
-            Ok(_) => {
-                info!("Successfully refreshed token");
-                show_index(&spotify)
-            }
-            Err(err) => {
-                context.insert("err_msg", format!("Failed to refresh token: {err}"));
-                Template::render("error", context)
-            }
-        }
-    } else {
-        let spotify = AuthCodeSpotify::from_token(token);
-        show_index(&spotify)
-    }
+    show_index(&spotify)
 }
 
 #[get("/topartists")]
@@ -208,25 +196,15 @@ fn top_artists(jar: &CookieJar<'_>) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(jar);
-    match Token::from_cache(cache_path) {
-        Ok(token) => {
-            let spotify = AuthCodeSpotify::from_token(token);
+    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
 
-            let top_artists = spotify
-                .current_user_top_artists(Some(TimeRange::LongTerm))
-                .take(10)
-                .filter_map(Result::ok)
-                .collect::<Vec<_>>();
+    let top_artists = spotify
+        .current_user_top_artists(Some(TimeRange::LongTerm))
+        .take(10)
+        .filter_map(Result::ok)
+        .collect::<Vec<_>>();
 
-            AppResponse::Json(json!(top_artists))
-        }
-        Err(err) => {
-            let mut context = HashMap::new();
-            context.insert("err_msg", format!("Failed to read token cache: {err}"));
-            AppResponse::Template(Template::render("error", context))
-        }
-    }
+    AppResponse::Json(json!(top_artists))
 }
 
 #[get("/sign_out")]
@@ -241,28 +219,18 @@ fn playlist(jar: &CookieJar<'_>) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(jar);
-    match Token::from_cache(cache_path) {
-        Ok(token) => {
-            let spotify = AuthCodeSpotify::from_token(token);
-            let playlists = spotify
-                .current_user_playlists()
-                .take(50)
-                .filter_map(Result::ok)
-                .collect::<Vec<_>>();
+    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
+    let playlists = spotify
+        .current_user_playlists()
+        .take(50)
+        .filter_map(Result::ok)
+        .collect::<Vec<_>>();
 
-            if playlists.is_empty() {
-                return AppResponse::Redirect(Redirect::to("/"));
-            }
-
-            AppResponse::Json(json!(playlists))
-        }
-        Err(err) => {
-            let mut context = HashMap::new();
-            context.insert("err_msg", format!("Failed to read token cache: {err}"));
-            AppResponse::Template(Template::render("error", context))
-        }
+    if playlists.is_empty() {
+        return AppResponse::Redirect(Redirect::to("/"));
     }
+
+    AppResponse::Json(json!(playlists))
 }
 
 #[get("/me")]
@@ -271,20 +239,10 @@ fn me(jar: &CookieJar<'_>) -> AppResponse {
         return AppResponse::Redirect(Redirect::to("/"));
     }
 
-    let cache_path = get_cache_path(jar);
-    match Token::from_cache(cache_path) {
-        Ok(token) => {
-            let spotify = AuthCodeSpotify::from_token(token);
-            match spotify.me() {
-                Ok(user_info) => AppResponse::Json(json!(user_info)),
-                Err(_) => AppResponse::Redirect(Redirect::to("/")),
-            }
-        }
-        Err(err) => {
-            let mut context = HashMap::new();
-            context.insert("err_msg", format!("Failed to read token cache: {err}"));
-            AppResponse::Template(Template::render("error", context))
-        }
+    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
+    match spotify.me() {
+        Ok(user_info) => AppResponse::Json(json!(user_info)),
+        Err(_) => AppResponse::Redirect(Redirect::to("/")),
     }
 }
 
