@@ -1,9 +1,11 @@
+## 0.11.7 (Unreleased)
+
+- ([#375](https://github.com/ramsayleung/rspotify/pull/375)) We now use `chrono::Duration` in more places for consistency and usability: `start_uris_playback`, `start_context_playback`, `rspotify_model::Offset`, `resume_playback`, `seek_track`. Some of these fields have been renamed from `position_ms` to `position`.
+
 ## 0.11.6 (2022.12.14)
 
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
 - ([#366](https://github.com/ramsayleung/rspotify/pull/366)) Replace all `std::time::Duration` with `chrono::Duration` to support negative duration.
-- ([#375](https://github.com/ramsayleung/rspotify/pull/375)) We now use
-  `chrono::Duration` in more places for consistency and usability: `start_uris_playback`, `start_context_playback`, `rspotify_model::Offset`, `resume_playback`, `seek_track`. Some of these fields have been renamed from `position_ms` to `position`.
 
 **Bugfixes**:
 - ([#332](https://github.com/ramsayleung/rspotify/pull/332)) Fix typo in `RestrictionReason` enum values
