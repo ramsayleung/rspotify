@@ -236,10 +236,10 @@ pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
 #[derive(Debug, Clone)]
 pub struct Config {
     /// The Spotify API prefix, [`DEFAULT_API_PREFIX`] by default.
-    pub api_base_url: &'static str,
+    pub api_base_url: String,
 
     /// The Spotify Authentication prefix, [`DEFAULT_AUTH_PREFIX`] by default.
-    pub auth_base_url: &'static str,
+    pub auth_base_url: String,
 
     /// The cache file path, in case it's used. By default it's
     /// [`DEFAULT_CACHE_PATH`]
@@ -267,8 +267,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            api_base_url: DEFAULT_API_BASE_URL,
-            auth_base_url: DEFAULT_AUTH_BASE_URL,
+            api_base_url: String::from(DEFAULT_API_BASE_URL),
+            auth_base_url: String::from(DEFAULT_AUTH_BASE_URL),
             cache_path: PathBuf::from(DEFAULT_CACHE_PATH),
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
             token_cached: false,
