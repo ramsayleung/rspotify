@@ -35,15 +35,22 @@ where
     /// be mutable (the token is accessed to from every endpoint).
     fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
-    /// If it's a relative URL like "me", the prefix is appended to it.
-    /// Otherwise, the same URL is returned.
+    /// Returns the absolute URL for an endpoint in the API
     fn endpoint_url(&self, url: &str) -> String {
-        // Using the client's prefix in case it's a relative route.
-        if url.starts_with("http") {
-            url.to_string()
-        } else {
-            self.get_config().api_base_url.clone() + url
+        let mut base = self.get_config().api_base_url.clone();
+        if !base.ends_with('/') {
+            base.push('/');
         }
+        base + url
+    }
+
+    /// Returns the absolute URL for an authentication step in the API
+    fn auth_url(&self, url: &str) -> String {
+        let mut base = self.get_config().auth_base_url.clone();
+        if !base.ends_with('/') {
+            base.push('/');
+        }
+        base + url
     }
 
     /// Refetch the current access token given a refresh token.
@@ -100,109 +107,64 @@ where
             .auth_headers()
     }
 
-    // HTTP-related methods for the Spotify client. It wraps the basic HTTP
-    // client with features needed of higher level.
-    //
-    // The Spotify client has two different wrappers to perform requests:
-    //
-    // * Basic wrappers: `get`, `post`, `put`, `delete`, `post_form`. These only
-    //   append the configured Spotify API URL to the relative URL provided so
-    //   that it's not forgotten. They're used in the authentication process to
-    //   request an access token and similars.
-    // * Endpoint wrappers: `endpoint_get`, `endpoint_post`, `endpoint_put`,
-    //   `endpoint_delete`. These append the authentication headers for endpoint
-    //   requests to reduce the code needed for endpoints and make them as
-    //   concise as possible.
+    // HTTP-related methods for the Spotify client. They wrap up the basic HTTP
+    // client with its specific usage for endpoints or authentication.
 
+    /// Convenience method to send GET requests related to an endpoint in the
+    /// API.
     #[doc(hidden)]
     #[inline]
-    async fn get(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Query<'_>,
-    ) -> ClientResult<String> {
+    async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let url = self.endpoint_url(url);
-        Ok(self.get_http().get(&url, headers, payload).await?)
+        let headers = self.auth_headers().await;
+        Ok(self.get_http().get(&url, Some(&headers), payload).await?)
     }
 
+    /// Convenience method to send POST requests related to an endpoint in the
+    /// API.
     #[doc(hidden)]
     #[inline]
-    async fn post(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> ClientResult<String> {
+    async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.endpoint_url(url);
-        Ok(self.get_http().post(&url, headers, payload).await?)
+        let headers = self.auth_headers().await;
+        Ok(self.get_http().post(&url, Some(&headers), payload).await?)
     }
 
+    /// Convenience method to send PUT requests related to an endpoint in the
+    /// API.
     #[doc(hidden)]
     #[inline]
-    async fn post_form(
+    async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        let headers = self.auth_headers().await;
+        Ok(self.get_http().put(&url, Some(&headers), payload).await?)
+    }
+
+    /// Convenience method to send DELETE requests related to an endpoint in the
+    /// API.
+    #[doc(hidden)]
+    #[inline]
+    async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
+        let url = self.endpoint_url(url);
+        let headers = self.auth_headers().await;
+        Ok(self
+            .get_http()
+            .delete(&url, Some(&headers), payload)
+            .await?)
+    }
+
+    /// Convenience method to send POST requests related to the authentication
+    /// process.
+    #[doc(hidden)]
+    #[inline]
+    async fn auth_post(
         &self,
         url: &str,
         headers: Option<&Headers>,
         payload: &Form<'_>,
     ) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
+        let url = self.auth_url(url);
         Ok(self.get_http().post_form(&url, headers, payload).await?)
-    }
-
-    #[doc(hidden)]
-    #[inline]
-    async fn put(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
-        Ok(self.get_http().put(&url, headers, payload).await?)
-    }
-
-    #[doc(hidden)]
-    #[inline]
-    async fn delete(
-        &self,
-        url: &str,
-        headers: Option<&Headers>,
-        payload: &Value,
-    ) -> ClientResult<String> {
-        let url = self.endpoint_url(url);
-        Ok(self.get_http().delete(&url, headers, payload).await?)
-    }
-
-    // The wrappers for the endpoints, which also includes the required
-    // autentication.
-
-    #[doc(hidden)]
-    #[inline]
-    async fn endpoint_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
-        let headers = self.auth_headers().await;
-        self.get(url, Some(&headers), payload).await
-    }
-
-    #[doc(hidden)]
-    #[inline]
-    async fn endpoint_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers().await;
-        self.post(url, Some(&headers), payload).await
-    }
-
-    #[doc(hidden)]
-    #[inline]
-    async fn endpoint_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers().await;
-        self.put(url, Some(&headers), payload).await
-    }
-
-    #[doc(hidden)]
-    #[inline]
-    async fn endpoint_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
-        let headers = self.auth_headers().await;
-        self.delete(url, Some(&headers), payload).await
     }
 
     /// Updates the cache file at the internal cache path.
@@ -230,8 +192,7 @@ where
         payload: &Form<'_>,
         headers: Option<&Headers>,
     ) -> ClientResult<Token> {
-        let request_url = format!("{}/{}", self.get_config().auth_base_url, auth_urls::TOKEN);
-        let response = self.post_form(&request_url, headers, payload).await?;
+        let response = self.auth_post(auth_urls::TOKEN, headers, payload).await?;
 
         let mut tok = serde_json::from_str::<Token>(&response)?;
         tok.expires_at = Utc::now().checked_add_signed(tok.expires_in);
