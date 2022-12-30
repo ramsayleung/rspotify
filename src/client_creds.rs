@@ -111,7 +111,6 @@ impl ClientCredsSpotify {
         log::info!("Requesting Client Credentials token");
 
         let new_token = self.fetch_token().await?;
-        *self.token.lock() = Some(new_token.clone());
-        self.write_token_cache(new_token).await
+        self.set_token(new_token).await
     }
 }

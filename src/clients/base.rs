@@ -35,6 +35,8 @@ where
     /// be mutable (the token is accessed to from every endpoint).
     fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
+    /// Convenience method to set the token both locally and to the cache, if
+    /// configured.
     async fn set_token(&self, tok: Token) -> ClientResult<()> {
         *self.get_token().lock() = Some(tok.clone());
         self.write_token_cache(tok).await
@@ -51,11 +53,11 @@ where
         }
     }
 
-    /// Refetch the current access token given a refresh token.
+    /// Refetch the current access token based on existing information. This
+    /// flow depends on the specific client.
     async fn refetch_token(&self) -> ClientResult<Option<Token>>;
 
-    /// Reads and writes to the cache in order to set it up the first time it's
-    /// ran.
+    /// Tries to initialize the token from the cache, if configured.
     async fn auto_cache(&self) -> ClientResult<()> {
         if !self.get_config().token_cached {
             log::info!("Token cache update ignored (not configured)");
@@ -81,8 +83,6 @@ where
             return Ok(());
         }
 
-        // NOTE: It's important to not leave the token locked, or else a
-        // deadlock when calling `refresh_token` will occur.
         let should_reauth = self
             .get_token()
             .lock()
@@ -96,11 +96,10 @@ where
         }
     }
 
-    /// Refreshes the current access token given a refresh token. The obtained
-    /// token will be saved internally.
+    /// Refreshes the current token, which depends on the specific client. The
+    /// obtained token will be saved internally.
     async fn refresh_token(&self) -> ClientResult<()> {
-        let token = self.refetch_token().await?;
-        if let Some(token) = token {
+        if let Some(token) = self.refetch_token().await? {
             self.set_token(token).await?;
         }
 

@@ -147,8 +147,7 @@ impl OAuthClient for AuthCodeSpotify {
             .expect("No client secret set in the credentials.");
 
         let token = self.fetch_access_token(&data, Some(&headers)).await?;
-        *self.token.lock() = Some(token.clone());
-        self.write_token_cache(token).await
+        self.set_token(token).await
     }
 }
 

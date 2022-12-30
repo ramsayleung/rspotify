@@ -52,7 +52,7 @@ fn oauth() -> OAuth {
         tls: Option<TlsConfig>,
     }
 
-    // Obtaining the configured host from the Rocket configuration.
+    // Obtaining the configured host details from the Rocket configuration.
     let rocket = rocket::build();
     let config: Config = rocket.figment().extract().expect("no config set by rocket");
     let address = if config.address == net::Ipv4Addr::LOCALHOST {
@@ -61,11 +61,7 @@ fn oauth() -> OAuth {
         config.address.to_string()
     };
     let port = config.port;
-    let protocol = if config.tls.is_some() {
-        "https"
-    } else {
-        "http"
-    };
+    let protocol = config.tls.map_or("http", |_| "https");
 
     OAuth {
         scopes: scopes!(
