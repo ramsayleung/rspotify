@@ -58,9 +58,12 @@ impl BaseClient for AuthCodePkceSpotify {
         &self.config
     }
 
-    /// Tokens won't be valid if scopes don't match with the current client.
+    /// Tokens won't be valid if:
+    ///
+    /// * Scopes don't match with the current client.
+    /// * There is no refresh token available.
     fn is_token_valid(&self, tok: &Token) -> bool {
-        self.get_oauth().scopes.is_subset(&tok.scopes)
+        self.get_oauth().scopes.is_subset(&tok.scopes) && tok.refresh_token.is_some()
     }
 
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {

@@ -249,6 +249,11 @@ where
     /// * The cached token is disabled in the config.
     /// * The `is_token_valid` method returns `false`, which can be overridden
     ///   by the specific client.
+    ///
+    /// These checks are performed in this function because it's the only one
+    /// that can receive invalid tokens. For example, when fetching a new token
+    /// from the API, it wouldn't make sense to check if it's valid. But the
+    /// cache might be left over from another session or corrupt.
     async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
         if !self.get_config().token_cached {
             log::info!("Token cache read ignored (not configured)");
@@ -260,7 +265,6 @@ where
         if self.is_token_valid(&token) {
             Ok(Some(token))
         } else {
-            // Invalid token for whatever reason
             Ok(None)
         }
     }
