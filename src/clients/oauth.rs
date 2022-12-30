@@ -93,52 +93,17 @@ pub trait OAuthClient: BaseClient {
     /// in order to obtain the access token information. The resulting access
     /// token will be saved internally once the operation is successful.
     ///
-    /// If the [`Config::token_cached`] setting is enabled for this client,
-    /// and a token exists in the cache, the token will be loaded and the client
-    /// will attempt to automatically refresh the token if it is expired. If
-    /// the token was unable to be refreshed, the client will then prompt the
-    /// user for the token as normal.
-    ///
     /// Note: this method requires the `cli` feature.
-    ///
-    /// [`Config::token_cached`]: crate::Config::token_cached
     #[cfg(feature = "cli")]
     #[maybe_async]
     async fn prompt_for_token(&self, url: &str) -> ClientResult<()> {
-        // TODO: re-think?
-        match self.read_token_cache(true).await {
-            Ok(Some(new_token)) => {
-                let expired = new_token.is_expired();
-
-                // Load token into client regardless of whether it's expired o
-                // not, since it will be refreshed later anyway.
-                self.set_token(Some(new_token)).await?;
-
-                if expired {
-                    // Ensure that we actually got a token from the refetch
-                    match self.refetch_token().await? {
-                        Some(refreshed_token) => {
-                            log::info!("Successfully refreshed expired token from token cache");
-                            self.set_token(Some(refreshed_token)).await?;
-                        }
-                        // If not, prompt the user for it
-                        None => {
-                            log::info!("Unable to refresh expired token from token cache");
-                            let code = self.get_code_from_user(url)?;
-                            self.request_token(&code).await?;
-                        }
-                    }
-                }
-            }
-            // Otherwise following the usual procedure to get the token.
-            _ => {
-                let code = self.get_code_from_user(url)?;
-                self.request_token(&code).await?;
-            }
+        if self.get_token().lock().is_some() {
+            log::info!("Skipped token prompt because it already exists");
+            return Ok(());
         }
 
-        // TODO: re-think
-        // self.write_token_cache().await
+        let code = self.get_code_from_user(url)?;
+        self.request_token(&code).await?;
     }
 
     /// Get current user playlists without required getting his profile.
