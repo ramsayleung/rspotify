@@ -7,7 +7,6 @@ use crate::{
     http::{BaseHttpClient, Form, Headers, HttpClient, Query},
     join_ids,
     model::*,
-    sync::Mutex,
     util::build_map,
     ClientResult, Config, Credentials, Token,
 };
@@ -16,6 +15,7 @@ use std::{collections::HashMap, fmt, sync::Arc};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
+use parking_lot::Mutex;
 use serde_json::Value;
 
 /// This trait implements the basic endpoints from the Spotify API that may be
@@ -35,6 +35,11 @@ where
     /// be mutable (the token is accessed to from every endpoint).
     fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
+    async fn set_token(&self, tok: Token) -> ClientResult<()> {
+        *self.get_token().lock() = Some(tok.clone());
+        self.write_token_cache(tok).await
+    }
+
     /// If it's a relative URL like "me", the prefix is appended to it.
     /// Otherwise, the same URL is returned.
     fn endpoint_url(&self, url: &str) -> String {
@@ -49,6 +54,26 @@ where
     /// Refetch the current access token given a refresh token.
     async fn refetch_token(&self) -> ClientResult<Option<Token>>;
 
+    /// Reads and writes to the cache in order to set it up the first time it's
+    /// ran.
+    async fn auto_cache(&self) -> ClientResult<()> {
+        if !self.get_config().token_cached {
+            log::info!("Token cache update ignored (not configured)");
+            return Ok(());
+        }
+
+        // We only need to read the cache the first time we authenticate
+        if self.get_token().lock().is_some() {
+            return Ok(());
+        }
+
+        if let Some(new_token) = self.read_token_cache().await? {
+            self.set_token(new_token).await?;
+        }
+
+        Ok(())
+    }
+
     /// Re-authenticate the client automatically if it's configured to do so,
     /// which uses the refresh token to obtain a new access token.
     async fn auto_reauth(&self) -> ClientResult<()> {
@@ -61,8 +86,6 @@ where
         let should_reauth = self
             .get_token()
             .lock()
-            .await
-            .unwrap()
             .as_ref()
             .map_or(false, Token::is_expired);
 
@@ -77,8 +100,11 @@ where
     /// token will be saved internally.
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
-        *self.get_token().lock().await.unwrap() = token;
-        self.write_token_cache().await
+        if let Some(token) = token {
+            self.set_token(token).await?;
+        }
+
+        Ok(())
     }
 
     /// The headers required for authenticated requests to the API.
@@ -87,14 +113,16 @@ where
     /// automatic reauthentication takes place, if enabled.
     #[doc(hidden)]
     async fn auth_headers(&self) -> Headers {
+        self.auto_cache()
+            .await
+            .expect("Failed to read or write to cache automatically");
+
         self.auto_reauth()
             .await
             .expect("Failed to re-authenticate automatically, please authenticate");
 
         self.get_token()
             .lock()
-            .await
-            .expect("Failed to acquire lock")
             .as_ref()
             .expect("RSpotify not authenticated")
             .auth_headers()
@@ -205,21 +233,52 @@ where
         self.delete(url, Some(&headers), payload).await
     }
 
+    /// Returns whether a token is considered valid for the authentication
+    /// method or not. Note that an expired token can be considered valid in
+    /// some cases, since its refresh token can be used to request a new one.
+    ///
+    /// For simple clients this is always true, but it can be overridden.
+    fn is_token_valid(&self, _tok: &Token) -> bool {
+        true
+    }
+
+    /// Tries to read the cache file's token.
+    ///
+    /// This will return an error if the token couldn't be read (e.g. it's not
+    /// available or the JSON is malformed). It may return `Ok(None)` if:
+    ///
+    /// * The cached token is disabled in the config.
+    /// * The `is_token_valid` method returns `false`, which can be overridden
+    ///   by the specific client.
+    async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
+        if !self.get_config().token_cached {
+            log::info!("Token cache read ignored (not configured)");
+            return Ok(None);
+        }
+
+        log::info!("Reading token cache");
+        let token = Token::from_cache(&self.get_config().cache_path)?;
+        if self.is_token_valid(&token) {
+            Ok(Some(token))
+        } else {
+            // Invalid token for whatever reason
+            Ok(None)
+        }
+    }
+
     /// Updates the cache file at the internal cache path.
     ///
     /// This should be used whenever it's possible to, even if the cached token
     /// isn't configured, because this will already check `Config::token_cached`
     /// and do nothing in that case already.
-    async fn write_token_cache(&self) -> ClientResult<()> {
+    async fn write_token_cache(&self, tok: Token) -> ClientResult<()> {
         if !self.get_config().token_cached {
             log::info!("Token cache write ignored (not configured)");
             return Ok(());
         }
 
         log::info!("Writing token cache");
-        if let Some(tok) = self.get_token().lock().await.unwrap().as_ref() {
-            tok.write_cache(&self.get_config().cache_path)?;
-        }
+        tok.write_cache(&self.get_config().cache_path)?;
 
         Ok(())
     }

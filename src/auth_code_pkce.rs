@@ -3,15 +3,13 @@ use crate::{
     clients::{BaseClient, OAuthClient},
     generate_random_string,
     http::{Form, HttpClient},
-    join_scopes, params,
-    sync::Mutex,
-    ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
 };
 
-use std::collections::HashMap;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use maybe_async::maybe_async;
+use parking_lot::Mutex;
 use sha2::{Digest, Sha256};
 use url::Url;
 
@@ -60,15 +58,21 @@ impl BaseClient for AuthCodePkceSpotify {
         &self.config
     }
 
+    /// Tokens won't be valid if scopes don't match with the current client.
+    fn is_token_valid(&self, tok: &Token) -> bool {
+        self.get_oauth().scopes.is_subset(&tok.scopes)
+    }
+
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
-        match self.token.lock().await.unwrap().as_ref() {
+        let token = self.token.lock().clone();
+        match token {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
             }) => {
                 let mut data = Form::new();
                 data.insert(params::GRANT_TYPE, params::GRANT_TYPE_REFRESH_TOKEN);
-                data.insert(params::REFRESH_TOKEN, refresh_token);
+                data.insert(params::REFRESH_TOKEN, &refresh_token);
                 data.insert(params::CLIENT_ID, &self.creds.id);
 
                 let mut token = self.fetch_access_token(&data, None).await?;
@@ -108,9 +112,8 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(params::CODE_VERIFIER, verifier);
 
         let token = self.fetch_access_token(&data, None).await?;
-        *self.token.lock().await.unwrap() = Some(token);
-
-        self.write_token_cache().await
+        *self.token.lock() = Some(token.clone());
+        self.write_token_cache(token).await
     }
 }
 

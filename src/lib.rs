@@ -125,7 +125,6 @@ mod auth_code;
 mod auth_code_pkce;
 mod client_creds;
 pub mod clients;
-pub mod sync;
 mod util;
 
 // Subcrate re-exports

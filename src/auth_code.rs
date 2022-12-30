@@ -2,15 +2,13 @@ use crate::{
     auth_urls,
     clients::{BaseClient, OAuthClient},
     http::{Form, HttpClient},
-    join_scopes, params,
-    sync::Mutex,
-    ClientResult, Config, Credentials, OAuth, Token,
+    join_scopes, params, ClientResult, Config, Credentials, OAuth, Token,
 };
 
-use std::collections::HashMap;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use maybe_async::maybe_async;
+use parking_lot::Mutex;
 use url::Url;
 
 /// The [Authorization Code Flow](reference) client for the Spotify API.
@@ -90,16 +88,22 @@ impl BaseClient for AuthCodeSpotify {
         &self.config
     }
 
+    /// Tokens won't be valid if scopes don't match with the current client.
+    fn is_token_valid(&self, tok: &Token) -> bool {
+        self.get_oauth().scopes.is_subset(&tok.scopes)
+    }
+
     /// Refetch the current access token given a refresh token. May return
     /// `None` if there's no access/refresh token.
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
-        match self.token.lock().await.unwrap().as_ref() {
+        let token = self.token.lock().clone();
+        match token {
             Some(Token {
                 refresh_token: Some(refresh_token),
                 ..
             }) => {
                 let mut data = Form::new();
-                data.insert(params::REFRESH_TOKEN, refresh_token);
+                data.insert(params::REFRESH_TOKEN, &refresh_token);
                 data.insert(params::GRANT_TYPE, params::REFRESH_TOKEN);
 
                 let headers = self
@@ -143,9 +147,8 @@ impl OAuthClient for AuthCodeSpotify {
             .expect("No client secret set in the credentials.");
 
         let token = self.fetch_access_token(&data, Some(&headers)).await?;
-        *self.token.lock().await.unwrap() = Some(token);
-
-        self.write_token_cache().await
+        *self.token.lock() = Some(token.clone());
+        self.write_token_cache(token).await
     }
 }
 

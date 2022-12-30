@@ -83,7 +83,7 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         };
 
         let spotify = AuthCodeSpotify::new(creds, oauth);
-        *spotify.token.lock().await.unwrap() = Some(token);
+        *spotify.token.lock().await = Some(token);
         spotify.refresh_token().await.unwrap();
         spotify
     } else {

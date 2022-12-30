@@ -7,7 +7,9 @@ use cookie::{time::Duration, SameSite};
 use getrandom::getrandom;
 use log::{error, info};
 use rocket::{
-    catch, catchers, get,
+    catch, catchers,
+    config::TlsConfig,
+    get,
     http::{Cookie, CookieJar},
     launch,
     response::Redirect,
@@ -21,7 +23,7 @@ use rocket::{
 use rocket_dyn_templates::Template;
 use rspotify::{model::TimeRange, prelude::*, scopes, AuthCodeSpotify, Config, Credentials, OAuth};
 
-use std::{collections::HashMap, env, fs, path::PathBuf};
+use std::{collections::HashMap, env, fs, net, path::PathBuf};
 
 #[derive(Debug, Responder)]
 #[allow(clippy::large_enum_variant)]
@@ -45,13 +47,25 @@ fn oauth() -> OAuth {
     #[derive(Deserialize)]
     #[serde(crate = "rocket::serde")]
     struct Config {
-        address: String,
+        address: net::IpAddr,
         port: u16,
+        tls: Option<TlsConfig>,
     }
 
     // Obtaining the configured host from the Rocket configuration.
     let rocket = rocket::build();
     let config: Config = rocket.figment().extract().expect("no config set by rocket");
+    let address = if config.address == net::Ipv4Addr::LOCALHOST {
+        "localhost".to_string() // API doesn't work with IPs
+    } else {
+        config.address.to_string()
+    };
+    let port = config.port;
+    let protocol = if config.tls.is_some() {
+        "https"
+    } else {
+        "http"
+    };
 
     OAuth {
         scopes: scopes!(
@@ -59,7 +73,7 @@ fn oauth() -> OAuth {
             "playlist-modify-private",
             "user-top-read"
         ),
-        redirect_uri: format!("{}:{}/callback", config.address, config.port),
+        redirect_uri: format!("{protocol}://{address}:{port}/callback"),
         ..Default::default()
     }
 }
@@ -67,6 +81,7 @@ fn oauth() -> OAuth {
 fn config(jar: &CookieJar<'_>) -> Config {
     Config {
         token_cached: true,
+        token_refreshing: true,
         cache_path: create_cache_path_if_absent(jar),
         ..Default::default()
     }
@@ -166,8 +181,6 @@ fn show_index(spotify: &AuthCodeSpotify) -> Template {
 
 #[get("/")]
 fn index(jar: &CookieJar<'_>) -> Template {
-    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
-
     // If it's the user's first log in, we need to authorize our Spotify client.
     // The next time, the cache will already be initialized, so we can read from
     // it. Even if it's expired, we'll have the refresh token, which can be used
@@ -181,12 +194,15 @@ fn index(jar: &CookieJar<'_>) -> Template {
             .finish();
         jar.add(uuid);
 
+        let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
         let auth_url = spotify.get_authorize_url(true).unwrap();
         let mut context = HashMap::new();
         context.insert("auth_url", auth_url);
         return Template::render("authorize", context);
     }
 
+    // Already authenticated Spotify client.
+    let spotify = AuthCodeSpotify::with_config(creds(), oauth(), config(jar));
     show_index(&spotify)
 }
 

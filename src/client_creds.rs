@@ -1,12 +1,11 @@
 use crate::{
     clients::BaseClient,
     http::{Form, HttpClient},
-    params,
-    sync::Mutex,
-    ClientResult, Config, Credentials, Token,
+    params, ClientResult, Config, Credentials, Token,
 };
 
 use maybe_async::maybe_async;
+use parking_lot::Mutex;
 use std::sync::Arc;
 
 /// The [Client Credentials Flow][reference] client for the Spotify API.
@@ -90,30 +89,6 @@ impl ClientCredsSpotify {
         }
     }
 
-    /// Tries to read the cache file's token.
-    ///
-    /// This will return an error if the token couldn't be read (e.g. it's not
-    /// available or the JSON is malformed). It may return `Ok(None)` if:
-    ///
-    /// * The read token is expired
-    /// * The cached token is disabled in the config
-    #[maybe_async]
-    pub async fn read_token_cache(&self) -> ClientResult<Option<Token>> {
-        if !self.get_config().token_cached {
-            log::info!("Token cache read ignored (not configured)");
-            return Ok(None);
-        }
-
-        log::info!("Reading token cache");
-        let token = Token::from_cache(&self.get_config().cache_path)?;
-        if token.is_expired() {
-            // Invalid token, since it's expired.
-            Ok(None)
-        } else {
-            Ok(Some(token))
-        }
-    }
-
     /// Fetch access token
     #[maybe_async]
     async fn fetch_token(&self) -> ClientResult<Token> {
@@ -135,8 +110,8 @@ impl ClientCredsSpotify {
     pub async fn request_token(&self) -> ClientResult<()> {
         log::info!("Requesting Client Credentials token");
 
-        *self.token.lock().await.unwrap() = Some(self.fetch_token().await?);
-
-        self.write_token_cache().await
+        let new_token = self.fetch_token().await?;
+        *self.token.lock() = Some(new_token.clone());
+        self.write_token_cache(new_token).await
     }
 }
