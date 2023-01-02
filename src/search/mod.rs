@@ -4,7 +4,7 @@ use rspotify_model::SearchFilter;
 
 /// Builder used to create search query.
 ///
-/// Note that when calling the same function multiple time, the filter will be the text from the
+/// Note that when calling the same function multiple times, the filter will be the text from the
 /// last call
 ///
 /// This is converted to the query string using into()
@@ -17,7 +17,7 @@ use rspotify_model::SearchFilter;
 /// // Filter on album containing "bar" and anything containing "foo"
 /// ```
 ///
-/// For more informations on the different filters, look at the [soptify
+/// For more information on the different filters, look at the [Soptify
 /// documentation](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
 #[derive(Debug, Default)]
 pub struct SearchQuery<'a> {
