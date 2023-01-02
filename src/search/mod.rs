@@ -21,14 +21,15 @@ use rspotify_model::SearchFilter;
 /// documentation](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
 #[derive(Debug, Default)]
 pub struct SearchQuery<'a> {
-    no_filter_query: &'a str,
+    no_filter_query: String,
     query_map: BTreeMap<SearchFilter, &'a str>,
 }
 
 impl<'a> SearchQuery<'a> {
     /// Basic filter where the given string can be anything
     pub fn any(&mut self, str: &'a str) -> &mut Self {
-        self.no_filter_query = str;
+        self.no_filter_query.push_str(str);
+        self.no_filter_query.push(' ');
         self
     }
 
@@ -80,13 +81,12 @@ impl<'a> SearchQuery<'a> {
 
 impl From<&SearchQuery<'_>> for String {
     fn from(val: &SearchQuery) -> Self {
-        let mut rep = val.no_filter_query.to_owned();
+        let mut rep = val.no_filter_query.clone();
 
         if val.query_map.is_empty() {
             return rep;
         }
 
-        rep.push(' ');
         rep.push_str(
             val.query_map
                 .iter()
@@ -121,7 +121,8 @@ mod test {
     #[test]
     fn test_search_query() {
         let query: String = SearchQuery::default()
-            .any("foo bar")
+            .any("foo")
+            .any("bar")
             .album("wrong album")
             .album("arrival")
             .artist("abba")
