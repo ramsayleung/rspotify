@@ -11,7 +11,7 @@ use crate::{
     ClientResult, OAuth, Token,
 };
 
-use std::{collections::HashMap, time};
+use std::collections::HashMap;
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::{PlayContextId, PlayableId};
@@ -301,12 +301,12 @@ pub trait OAuthClient: BaseClient {
         &self,
         playlist_id: PlaylistId<'_>,
         items: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
-        position: Option<i32>,
+        position: Option<chrono::Duration>,
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = JsonBuilder::new()
             .required("uris", uris)
-            .optional("position", position)
+            .optional("position", position.map(|p| p.num_milliseconds()))
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
@@ -752,8 +752,8 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Parameters:
     /// - limit - the number of entities to return
-    /// - time_limit - a Unix timestamp in milliseconds. Returns all items after
-    /// or before (but not including) this cursor position.
+    /// - time_limit - a timestamp. The endpoint will return all items after
+    ///   or before (but not including) this cursor position.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played)
     async fn current_user_recently_played(
@@ -1029,7 +1029,7 @@ pub trait OAuthClient: BaseClient {
     /// - context_uri - spotify context uri to play
     /// - uris - spotify track uris
     /// - offset - offset into context by index or track
-    /// - position_ms - Indicates from what position to start playback.
+    /// - position - Indicates from what position to start playback.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/start-a-users-playback)
     async fn start_context_playback(
@@ -1037,18 +1037,20 @@ pub trait OAuthClient: BaseClient {
         context_uri: PlayContextId<'_>,
         device_id: Option<&str>,
         offset: Option<Offset>,
-        position_ms: Option<time::Duration>,
+        position: Option<chrono::Duration>,
     ) -> ClientResult<()> {
         let params = JsonBuilder::new()
             .required("context_uri", context_uri.uri())
             .optional(
                 "offset",
                 offset.map(|x| match x {
-                    Offset::Position(position) => json!({ "position": position }),
+                    Offset::Position(position) => {
+                        json!({ "position": position.num_milliseconds() })
+                    }
                     Offset::Uri(uri) => json!({ "uri": uri }),
                 }),
             )
-            .optional("position_ms", position_ms)
+            .optional("position_ms", position.map(|p| p.num_milliseconds()))
             .build();
 
         let url = append_device_id("me/player/play", device_id);
@@ -1063,7 +1065,7 @@ pub trait OAuthClient: BaseClient {
     /// - uris
     /// - device_id
     /// - offset
-    /// - position_ms
+    /// - position
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/start-a-users-playback)
     async fn start_uris_playback<'a>(
@@ -1071,18 +1073,20 @@ pub trait OAuthClient: BaseClient {
         uris: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
         device_id: Option<&str>,
         offset: Option<crate::model::Offset>,
-        position_ms: Option<u32>,
+        position: Option<chrono::Duration>,
     ) -> ClientResult<()> {
         let params = JsonBuilder::new()
             .required(
                 "uris",
                 uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>(),
             )
-            .optional("position_ms", position_ms)
+            .optional("position_ms", position.map(|p| p.num_milliseconds()))
             .optional(
                 "offset",
                 offset.map(|x| match x {
-                    Offset::Position(position) => json!({ "position": position }),
+                    Offset::Position(position) => {
+                        json!({ "position": position.num_milliseconds() })
+                    }
                     Offset::Uri(uri) => json!({ "uri": uri }),
                 }),
             )
@@ -1111,16 +1115,16 @@ pub trait OAuthClient: BaseClient {
     ///
     /// Parameters:
     /// - device_id - device target for playback
-    /// - position_ms
+    /// - position
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/start-a-users-playback)
     async fn resume_playback(
         &self,
         device_id: Option<&str>,
-        position_ms: Option<u32>,
+        position: Option<chrono::Duration>,
     ) -> ClientResult<()> {
         let params = JsonBuilder::new()
-            .optional("position_ms", position_ms)
+            .optional("position_ms", position.map(|p| p.num_milliseconds()))
             .build();
 
         let url = append_device_id("me/player/play", device_id);
@@ -1158,13 +1162,17 @@ pub trait OAuthClient: BaseClient {
     /// Seek To Position In Currently Playing Track.
     ///
     /// Parameters:
-    /// - position_ms - position in milliseconds to seek to
+    /// - position - position in milliseconds to seek to
     /// - device_id - device target for playback
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/seek-to-position-in-currently-playing-track)
-    async fn seek_track(&self, position_ms: u32, device_id: Option<&str>) -> ClientResult<()> {
+    async fn seek_track(
+        &self,
+        position: chrono::Duration,
+        device_id: Option<&str>,
+    ) -> ClientResult<()> {
         let url = append_device_id(
-            &format!("me/player/seek?position_ms={position_ms}"),
+            &format!("me/player/seek?position_ms={}", position.num_milliseconds()),
             device_id,
         );
         self.endpoint_put(&url, &json!({})).await?;
