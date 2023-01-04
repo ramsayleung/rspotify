@@ -32,7 +32,7 @@ pub(crate) fn append_device_id(path: &str, device_id: Option<&str>) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{model::Token, scopes, ClientCredsSpotify};
+    use crate::{model::Token, scopes, ClientCredsSpotify, Config};
     use chrono::{prelude::*, Duration};
 
     #[test]
@@ -55,19 +55,58 @@ mod test {
     }
 
     #[test]
-    fn test_endpoint_url() {
-        let spotify = ClientCredsSpotify::default();
+    fn test_api_url() {
+        let mut spotify = ClientCredsSpotify::default();
         assert_eq!(
-            spotify.endpoint_url("me/player/play"),
+            spotify.api_url("me/player/play"),
             "https://api.spotify.com/v1/me/player/play"
         );
+
+        spotify.config = Config {
+            api_base_url: String::from("http://localhost:8080/api/v1/"),
+            ..Default::default()
+        };
         assert_eq!(
-            spotify.endpoint_url("http://api.spotify.com/v1/me/player/play"),
-            "http://api.spotify.com/v1/me/player/play"
+            spotify.api_url("me/player/play"),
+            "http://localhost:8080/api/v1/me/player/play"
         );
+
+        // Also works without trailing character
+        spotify.config = Config {
+            api_base_url: String::from("http://localhost:8080/api/v1"),
+            ..Default::default()
+        };
         assert_eq!(
-            spotify.endpoint_url("https://api.spotify.com/v1/me/player/play"),
-            "https://api.spotify.com/v1/me/player/play"
+            spotify.api_url("me/player/play"),
+            "http://localhost:8080/api/v1/me/player/play"
+        );
+    }
+
+    #[test]
+    fn test_auth_url() {
+        let mut spotify = ClientCredsSpotify::default();
+        assert_eq!(
+            spotify.auth_url("api/token"),
+            "https://accounts.spotify.com/api/token"
+        );
+
+        spotify.config = Config {
+            auth_base_url: String::from("http://localhost:8080/accounts/"),
+            ..Default::default()
+        };
+        assert_eq!(
+            spotify.auth_url("api/token"),
+            "http://localhost:8080/accounts/api/token"
+        );
+
+        // Also works without trailing character
+        spotify.config = Config {
+            auth_base_url: String::from("http://localhost:8080/accounts"),
+            ..Default::default()
+        };
+        assert_eq!(
+            spotify.auth_url("api/token"),
+            "http://localhost:8080/accounts/api/token"
         );
     }
 
