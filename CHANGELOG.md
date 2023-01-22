@@ -2,6 +2,7 @@
 
 - ([#375](https://github.com/ramsayleung/rspotify/pull/375)) We now use `chrono::Duration` in more places for consistency and usability: `start_uris_playback`, `start_context_playback`, `rspotify_model::Offset`, `resume_playback`, `seek_track`. Some of these fields have been renamed from `position_ms` to `position`.
 - ((#356)[https://github.com/ramsayleung/rspotify/pull/356]) We now support custom authentication base URLs. `Config::prefix` has been renamed to `Config::api_base_url`, and we've introduced `Config::auth_base_url`.
+- ([#384](https://github.com/ramsayleung/rspotify/pull/384)) Add STB alias for Stb device type, fix for `json parse error: unknown variant STB`.
 
 ## 0.11.6 (2022.12.14)
 
