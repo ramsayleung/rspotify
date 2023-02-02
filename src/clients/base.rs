@@ -276,7 +276,7 @@ where
     fn artist_albums<'a>(
         &'a self,
         artist_id: ArtistId<'a>,
-        album_type: Option<AlbumType>,
+        album_types: &'a [AlbumType],
         market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedAlbum>> {
         paginate_with_ctx(
@@ -284,7 +284,7 @@ where
             move |(slf, artist_id), limit, offset| {
                 slf.artist_albums_manual(
                     artist_id.as_ref(),
-                    album_type,
+                    album_types,
                     market,
                     Some(limit),
                     Some(offset),
@@ -298,15 +298,21 @@ where
     async fn artist_albums_manual(
         &self,
         artist_id: ArtistId<'_>,
-        album_type: Option<AlbumType>,
+        album_types: &[AlbumType],
         market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
+        let album_types = album_types.as_ref();
+        let album_types = album_types
+            .iter()
+            .map(|album_type| album_type.into())
+            .collect::<Vec<&'static str>>()
+            .join(",");
         let params = build_map([
-            ("album_type", album_type.map(Into::into)),
+            ("album_type", Some(album_types.as_str())),
             ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
