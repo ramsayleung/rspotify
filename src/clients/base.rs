@@ -312,7 +312,7 @@ where
             .collect::<Vec<&'static str>>()
             .join(",");
         let params = build_map([
-            ("album_type", Some(album_types.as_str())),
+            ("include_groups", Some(album_types.as_str())),
             ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
