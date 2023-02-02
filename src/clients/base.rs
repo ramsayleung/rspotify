@@ -12,7 +12,7 @@ use crate::{
     ClientResult, Config, Credentials, Token,
 };
 
-use std::{collections::HashMap, fmt, sync::Arc};
+use std::{collections::HashMap, fmt, ops::Not, sync::Arc};
 
 use chrono::Utc;
 use maybe_async::maybe_async;
@@ -264,7 +264,7 @@ where
     ///
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
-    /// - album_type - 'album', 'single', 'appears_on', 'compilation'
+    /// - include_groups - 'album', 'single', 'appears_on', 'compilation'
     /// - market - limit the response to one particular country.
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
@@ -276,7 +276,7 @@ where
     fn artist_albums<'a>(
         &'a self,
         artist_id: ArtistId<'a>,
-        album_types: &'a [AlbumType],
+        include_groups: impl IntoIterator<Item = AlbumType> + Send + Copy + 'a,
         market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedAlbum>> {
         paginate_with_ctx(
@@ -284,7 +284,7 @@ where
             move |(slf, artist_id), limit, offset| {
                 slf.artist_albums_manual(
                     artist_id.as_ref(),
-                    album_types,
+                    include_groups,
                     market,
                     Some(limit),
                     Some(offset),
@@ -295,24 +295,28 @@ where
     }
 
     /// The manually paginated version of [`Self::artist_albums`].
-    async fn artist_albums_manual(
+    async fn artist_albums_manual<'a>(
         &self,
         artist_id: ArtistId<'_>,
-        album_types: &[AlbumType],
+        include_groups: impl IntoIterator<Item = AlbumType> + Send + 'a,
         market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let album_types = album_types.as_ref();
-        let album_types = album_types
-            .iter()
-            .map(|album_type| album_type.into())
-            .collect::<Vec<&'static str>>()
-            .join(",");
+        let include_groups = include_groups
+            .into_iter()
+            .map(|t| t.into())
+            .collect::<Vec<&'static str>>();
+        let include_groups = include_groups
+            .is_empty()
+            .not()
+            .then_some(include_groups)
+            .map(|t| t.join(","));
+
         let params = build_map([
-            ("include_groups", Some(album_types.as_str())),
+            ("include_groups", include_groups.as_deref()),
             ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),

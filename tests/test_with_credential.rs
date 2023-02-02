@@ -72,12 +72,29 @@ async fn test_artists_albums() {
         .await
         .artist_albums_manual(
             birdy_uri,
-            &[
-                AlbumType::Album,
-                AlbumType::Single,
-                AlbumType::Compilation,
-                AlbumType::AppearsOn,
-            ],
+            Some(AlbumType::Album),
+            Some(Market::Country(Country::UnitedStates)),
+            Some(10),
+            None,
+        )
+        .await
+        .unwrap();
+}
+
+#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+async fn test_artists_albums_with_multiple_album_types() {
+    let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
+    let include_groups = [
+        AlbumType::Album,
+        AlbumType::Single,
+        AlbumType::Compilation,
+        AlbumType::AppearsOn,
+    ];
+    creds_client()
+        .await
+        .artist_albums_manual(
+            birdy_uri,
+            include_groups,
             Some(Market::Country(Country::UnitedStates)),
             Some(10),
             None,
