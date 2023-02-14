@@ -264,7 +264,7 @@ where
     ///
     /// Parameters:
     /// - artist_id - the artist ID, URI or URL
-    /// - include_groups - 'album', 'single', 'appears_on', 'compilation'
+    /// - include_groups -  a list of album type like 'album', 'single' that will be used to filter response. if not supplied, all album types will be returned. 
     /// - market - limit the response to one particular country.
     /// - limit  - the number of albums to return
     /// - offset - the index of the first album to return
