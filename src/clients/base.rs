@@ -305,18 +305,18 @@ where
     ) -> ClientResult<Page<SimplifiedAlbum>> {
         let limit = limit.map(|x| x.to_string());
         let offset = offset.map(|x| x.to_string());
-        let include_groups = include_groups
+        let include_groups_vec = include_groups
             .into_iter()
             .map(|t| t.into())
             .collect::<Vec<&'static str>>();
-        let include_groups = include_groups
+        let include_groups_opt = include_groups_vec
             .is_empty()
             .not()
-            .then_some(include_groups)
+            .then_some(include_groups_vec)
             .map(|t| t.join(","));
 
         let params = build_map([
-            ("include_groups", include_groups.as_deref()),
+            ("include_groups", include_groups_opt.as_deref()),
             ("market", market.map(Into::into)),
             ("limit", limit.as_deref()),
             ("offset", offset.as_deref()),
