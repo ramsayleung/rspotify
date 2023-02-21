@@ -58,3 +58,40 @@ where
         }
     })
 }
+
+#[cfg(test)]
+mod test {
+    use super::paginate;
+    use crate::model::Page;
+    use futures::{future, StreamExt};
+    use std::future::Future;
+
+    fn schedule_future<'a, F>(fut: F)
+    where
+        F: Future + Send + 'a,
+    {
+        futures::executor::block_on(fut);
+    }
+
+    #[test]
+    fn test_mt_scheduling() {
+        async fn test() {
+            let mut paginator = paginate(
+                |_, offset| {
+                    let fake_page = Page {
+                        items: vec![offset, offset + 1, offset + 2],
+                        ..Page::default()
+                    };
+                    future::ok(fake_page)
+                },
+                32,
+            );
+
+            let mut expected = [0, 1, 2].into_iter();
+            while let Some(item) = paginator.next().await {
+                assert_eq!(expected.next().unwrap(), item.unwrap());
+            }
+        }
+        schedule_future(test());
+    }
+}
