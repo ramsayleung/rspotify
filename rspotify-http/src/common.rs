@@ -37,11 +37,11 @@ pub trait BaseHttpClient: Send + Default + Clone + fmt::Debug {
         payload: &Value,
     ) -> Result<String, Self::Error>;
 
-    async fn post_form<'a>(
+    async fn post_form(
         &self,
         url: &str,
         headers: Option<&Headers>,
-        payload: &Form<'a>,
+        payload: &Form<'_>,
     ) -> Result<String, Self::Error>;
 
     async fn put(

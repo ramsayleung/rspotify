@@ -78,7 +78,7 @@ pub mod millisecond_timestamp {
             // so it would be safe to convert it i64.
             match NaiveDateTime::from_timestamp_opt(second as i64, nanosecond) {
                 Some(ndt) => Ok(DateTime::<Utc>::from_utc(ndt, Utc)),
-                None => Err(E::custom(format!("v is invalid second: {}", v))),
+                None => Err(E::custom(format!("v is invalid second: {v}"))),
             }
         }
     }
