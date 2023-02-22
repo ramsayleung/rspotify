@@ -31,7 +31,7 @@ macro_rules! scopes {
         let mut container = ::std::collections::HashSet::new();
         $(
             for scope in $key.split_whitespace(){
-            container.insert(scope);
+            container.insert(scope.to_owned());
             }
         )*
         container
