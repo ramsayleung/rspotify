@@ -46,6 +46,7 @@ reqwest-native-tls = ["reqwest/native-tls"]
 reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 # Same for ureq.
 ureq-rustls-tls = ["ureq/tls"]
+ureq-rustls-tls-native-certs = ["ureq/tls", "ureq/native-certs"]
 
 # Internal features for checking async or sync compilation
 __async = ["async-trait"]
