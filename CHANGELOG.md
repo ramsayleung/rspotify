@@ -4,6 +4,7 @@
 - ((#356)[https://github.com/ramsayleung/rspotify/pull/356]) We now support custom authentication base URLs. `Config::prefix` has been renamed to `Config::api_base_url`, and we've introduced `Config::auth_base_url`.
 - ([#384](https://github.com/ramsayleung/rspotify/pull/384)) Add STB alias for Stb device type, fix for `json parse error: unknown variant STB`.
 - ([#386](https://github.com/ramsayleung/rspotify/pull/386)) Support `BaseClient::artist_albums` with zero or more `AlbumType`.
+- ([#393](https://github.com/ramsayleung/rspotify/pull/393)) Add `ureq-rustls-tls-native-certs` feature flag.
 
 ## 0.11.6 (2022.12.14)
 
