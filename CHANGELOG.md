@@ -5,6 +5,9 @@
 - ([#384](https://github.com/ramsayleung/rspotify/pull/384)) Add STB alias for Stb device type, fix for `json parse error: unknown variant STB`.
 - ([#386](https://github.com/ramsayleung/rspotify/pull/386)) Support `BaseClient::artist_albums` with zero or more `AlbumType`.
 
+**Bugfixes**
+- ([#394](https://github.com/ramsayleung/rspotify/pull/394)) Set a common 10 second timeout for both http clients.
+
 ## 0.11.6 (2022.12.14)
 
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
