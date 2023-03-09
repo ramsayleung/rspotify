@@ -50,8 +50,18 @@ pub enum UreqError {
     StatusCode(ureq::Response),
 }
 
-#[derive(Default, Debug, Clone)]
-pub struct UreqClient {}
+#[derive(Debug, Clone)]
+pub struct UreqClient {
+    agent: ureq::Agent,
+}
+
+impl Default for UreqClient {
+    fn default() -> Self {
+        Self {
+            agent: ureq::agent(),
+        }
+    }
+}
 
 impl UreqClient {
     /// The request handling in ureq is split in three parts:
@@ -101,7 +111,7 @@ impl BaseHttpClient for UreqClient {
         headers: Option<&Headers>,
         payload: &Query,
     ) -> Result<String, Self::Error> {
-        let request = ureq::get(url);
+        let request = self.agent.get(url);
         let sender = |mut req: Request| {
             for (key, val) in payload.iter() {
                 req = req.query(key, val);
@@ -118,7 +128,7 @@ impl BaseHttpClient for UreqClient {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> Result<String, Self::Error> {
-        let request = ureq::post(url);
+        let request = self.agent.post(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
     }
@@ -130,7 +140,7 @@ impl BaseHttpClient for UreqClient {
         headers: Option<&Headers>,
         payload: &Form<'_>,
     ) -> Result<String, Self::Error> {
-        let request = ureq::post(url);
+        let request = self.agent.post(url);
         let sender = |req: Request| {
             let payload = payload
                 .iter()
@@ -150,7 +160,7 @@ impl BaseHttpClient for UreqClient {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> Result<String, Self::Error> {
-        let request = ureq::put(url);
+        let request = self.agent.put(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
     }
@@ -162,7 +172,7 @@ impl BaseHttpClient for UreqClient {
         headers: Option<&Headers>,
         payload: &Value,
     ) -> Result<String, Self::Error> {
-        let request = ureq::delete(url);
+        let request = self.agent.delete(url);
         let sender = |req: Request| req.send_json(payload.clone());
         self.request(request, headers, sender)
     }
