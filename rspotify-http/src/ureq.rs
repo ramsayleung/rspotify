@@ -2,7 +2,7 @@
 
 use super::{BaseHttpClient, Form, Headers, Query};
 
-use std::io;
+use std::{io, time::Duration};
 
 use maybe_async::sync_impl;
 use serde_json::Value;
@@ -57,9 +57,10 @@ pub struct UreqClient {
 
 impl Default for UreqClient {
     fn default() -> Self {
-        Self {
-            agent: ureq::agent(),
-        }
+        let agent = ureq::AgentBuilder::new()
+            .timeout(Duration::from_secs(10))
+            .build();
+        Self { agent }
     }
 }
 
