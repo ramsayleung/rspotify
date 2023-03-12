@@ -6,6 +6,9 @@
 - ([#386](https://github.com/ramsayleung/rspotify/pull/386)) Support `BaseClient::artist_albums` with zero or more `AlbumType`.
 - ([#393](https://github.com/ramsayleung/rspotify/pull/393)) Add `ureq-rustls-tls-native-certs` feature flag.
 
+**Bugfixes**
+- ([#394](https://github.com/ramsayleung/rspotify/pull/394)) Set a common 10 second timeout for both http clients.
+
 ## 0.11.6 (2022.12.14)
 
 - ([#331](https://github.com/ramsayleung/rspotify/pull/331)) `Market` is now `Copy`
