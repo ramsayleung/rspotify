@@ -39,6 +39,7 @@ pub enum Type {
     Show,
     Episode,
     Collection,
+    Collectionyourepisodes, // rename to collectionyourepisodes
 }
 
 /// Additional typs: `track`, `episode`
