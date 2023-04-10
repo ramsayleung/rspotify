@@ -222,7 +222,7 @@ pub mod space_separated_scopes {
     where
         D: de::Deserializer<'de>,
     {
-        let scopes: &str = Deserialize::deserialize(d)?;
+        let scopes: String = Deserialize::deserialize(d)?;
         Ok(scopes.split_whitespace().map(ToOwned::to_owned).collect())
     }
 
