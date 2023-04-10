@@ -125,7 +125,7 @@ mod test {
         scopes.insert("user-read-email".to_owned());
         let tok = Token {
             access_token: "access_token".to_string(),
-            scopes: scopes,
+            scopes,
             ..Default::default()
         };
         let value = json!(tok);
