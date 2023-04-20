@@ -13,7 +13,7 @@ use std::sync::Arc;
 use maybe_async::maybe_async;
 use url::Url;
 
-/// The [Authorization Code Flow](reference) client for the Spotify API.
+/// The [Authorization Code Flow][reference] client for the Spotify API.
 ///
 /// This includes user authorization, and thus has access to endpoints related
 /// to user private data, unlike the [Client Credentials
