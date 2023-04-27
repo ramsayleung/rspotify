@@ -1,6 +1,6 @@
 use crate::{
     auth_urls,
-    clients::{BaseClient, OAuthClient},
+    clients::{BaseClient, OAuthClient, TokenCallback},
     http::{Form, HttpClient},
     join_scopes, params,
     sync::Mutex,
@@ -10,7 +10,6 @@ use crate::{
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use derivative::Derivative;
 use maybe_async::maybe_async;
 use url::Url;
 
@@ -63,16 +62,14 @@ use url::Url;
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code.rs
 /// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
 /// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs
-#[derive(Derivative)]
-#[derivative(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct AuthCodeSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
     pub config: Config,
     pub token: Arc<Mutex<Option<Token>>>,
     pub(crate) http: HttpClient,
-    #[derivative(Debug = "ignore")]
-    pub token_callback: Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>>,
+    pub token_callback: Arc<Mutex<Option<TokenCallback>>>,
 }
 
 /// This client has access to the base methods.
@@ -94,12 +91,12 @@ impl BaseClient for AuthCodeSpotify {
         &self.config
     }
 
-    fn get_token_callback(&self) -> Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>> {
+    fn get_token_callback(&self) -> Arc<Mutex<Option<TokenCallback>>> {
         Arc::clone(&self.token_callback)
     }
 
     async fn set_token_callback(&self, cb: Box<dyn Fn(Option<Token>) + Send + Sync>) {
-        *self.token_callback.lock().await.unwrap() = Some(cb);
+        *self.token_callback.lock().await.unwrap() = Some(TokenCallback(cb));
     }
 
     /// Refetch the current access token given a refresh token. May return

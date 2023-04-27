@@ -18,6 +18,14 @@ use chrono::Utc;
 use maybe_async::maybe_async;
 use serde_json::Value;
 
+pub struct TokenCallback(pub Box<dyn Fn(Option<Token>) + Send + Sync>);
+
+impl fmt::Debug for TokenCallback {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("TokenCallback")
+    }
+}
+
 /// This trait implements the basic endpoints from the Spotify API that may be
 /// accessed without user authorization, including parts of the authentication
 /// flow that are shared, and the endpoints.
@@ -35,7 +43,7 @@ where
     /// be mutable (the token is accessed to from every endpoint).
     fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
-    fn get_token_callback(&self) -> Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>>;
+    fn get_token_callback(&self) -> Arc<Mutex<Option<TokenCallback>>>;
 
     async fn set_token_callback(&self, cb: Box<dyn Fn(Option<Token>) + Send + Sync>);
 
@@ -90,7 +98,7 @@ where
         let token = self.refetch_token().await?;
 
         if let Some(cb) = &*self.get_token_callback().lock().await.unwrap() {
-            cb(token.clone())
+            cb.0(token.clone())
         }
 
         *self.get_token().lock().await.unwrap() = token;

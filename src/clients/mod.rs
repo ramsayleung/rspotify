@@ -2,7 +2,7 @@ mod base;
 mod oauth;
 pub mod pagination;
 
-pub use base::BaseClient;
+pub use base::{BaseClient, TokenCallback};
 pub use oauth::OAuthClient;
 
 use crate::ClientResult;

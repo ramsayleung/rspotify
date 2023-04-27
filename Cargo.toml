@@ -35,7 +35,6 @@ async-trait = { version = "0.1.51", optional = true }
 base64 = "0.20.0"
 chrono = { version = "0.4.19", features = ["serde"] }
 dotenv = { version = "0.15.0", optional = true }
-derivative = "2.2.0"
 futures = { version = "0.3.17", optional = true }
 getrandom = "0.2.3"
 log = "0.4.14"
