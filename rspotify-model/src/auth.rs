@@ -99,7 +99,10 @@ impl Token {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
+
     use crate::Token;
+    use serde_json::json;
 
     #[test]
     fn test_bearer_auth() {
@@ -114,5 +117,20 @@ mod test {
             headers.get("authorization"),
             Some(&"Bearer access_token".to_owned())
         );
+    }
+
+    #[test]
+    fn test_token_deserialize() {
+        let mut scopes = HashSet::<String>::new();
+        scopes.insert("user-read-email".to_owned());
+        let tok = Token {
+            access_token: "access_token".to_string(),
+            scopes,
+            ..Default::default()
+        };
+        let value = json!(tok);
+        let token = serde_json::from_value::<Token>(value);
+        assert!(token.is_ok());
+        assert_eq!(token.unwrap().scopes, tok.scopes);
     }
 }

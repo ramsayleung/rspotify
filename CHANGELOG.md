@@ -6,6 +6,7 @@
 - ([#384](https://github.com/ramsayleung/rspotify/pull/384)) Add STB alias for Stb device type, fix for `json parse error: unknown variant STB`.
 - ([#386](https://github.com/ramsayleung/rspotify/pull/386)) Support `BaseClient::artist_albums` with zero or more `AlbumType`.
 - ([#393](https://github.com/ramsayleung/rspotify/pull/393)) Add `ureq-rustls-tls-native-certs` feature flag.
+- ([#402](https://github.com/ramsayleung/rspotify/pull/402)) Add `ureq-native-tls` feature flag.
 
 **Bugfixes**
 - ([#394](https://github.com/ramsayleung/rspotify/pull/394)) Set a common 10 second timeout for both http clients.
