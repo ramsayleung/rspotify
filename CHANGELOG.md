@@ -1,4 +1,4 @@
-## 0.11.7 (Unreleased)
+## 0.11.7 (2023.04.26)
 
 - ([#399](https://github.com/ramsayleung/rspotify/pull/399)) Add a new variant `Collectionyourepisodes` for `Type` enum.
 - ([#375](https://github.com/ramsayleung/rspotify/pull/375)) We now use `chrono::Duration` in more places for consistency and usability: `start_uris_playback`, `start_context_playback`, `rspotify_model::Offset`, `resume_playback`, `seek_track`. Some of these fields have been renamed from `position_ms` to `position`.
