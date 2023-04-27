@@ -1,11 +1,12 @@
 use crate::{
-    clients::BaseClient,
+    clients::{BaseClient},
     http::{Form, HttpClient},
     params,
     sync::Mutex,
     ClientResult, Config, Credentials, Token,
 };
 
+use derivative::Derivative;
 use maybe_async::maybe_async;
 use std::sync::Arc;
 
@@ -21,12 +22,15 @@ use std::sync::Arc;
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/client-credentials/
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/client_creds.rs
-#[derive(Clone, Debug, Default)]
+#[derive(Derivative)]
+#[derivative(Clone, Debug, Default)]
 pub struct ClientCredsSpotify {
     pub config: Config,
     pub creds: Credentials,
     pub token: Arc<Mutex<Option<Token>>>,
     pub(crate) http: HttpClient,
+    #[derivative(Debug="ignore")]
+    pub token_callback: Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Sync + Send>>>>,
 }
 
 /// This client has access to the base methods.
@@ -46,6 +50,14 @@ impl BaseClient for ClientCredsSpotify {
 
     fn get_config(&self) -> &Config {
         &self.config
+    }
+
+    fn get_token_callback(&self) -> Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>> {
+        Arc::clone(&self.token_callback)
+    }
+
+    async fn set_token_callback(&self, cb: Box<dyn Fn(Option<Token>) + Send + Sync>) {
+        *self.token_callback.lock().await.unwrap() = Some(cb);
     }
 
     /// Note that refetching a token in the Client Credentials flow is

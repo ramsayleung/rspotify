@@ -35,6 +35,10 @@ where
     /// be mutable (the token is accessed to from every endpoint).
     fn get_token(&self) -> Arc<Mutex<Option<Token>>>;
 
+    fn get_token_callback(&self) -> Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>>;
+
+    async fn set_token_callback(&self, cb: Box<dyn Fn(Option<Token>) + Send + Sync>);
+
     /// Returns the absolute URL for an endpoint in the API.
     fn api_url(&self, url: &str) -> String {
         let mut base = self.get_config().api_base_url.clone();
@@ -84,6 +88,11 @@ where
     /// token will be saved internally.
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
+
+        if let Some(cb) = &*self.get_token_callback().lock().await.unwrap() {
+            cb(token.clone())
+        }
+
         *self.get_token().lock().await.unwrap() = token;
         self.write_token_cache().await
     }

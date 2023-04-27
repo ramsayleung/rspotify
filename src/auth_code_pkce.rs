@@ -11,6 +11,7 @@ use crate::{
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use derivative::Derivative;
 use maybe_async::maybe_async;
 use sha2::{Digest, Sha256};
 use url::Url;
@@ -30,7 +31,8 @@ use url::Url;
 ///
 /// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code_pkce.rs
-#[derive(Clone, Debug, Default)]
+#[derive(Derivative)]
+#[derivative(Clone, Debug, Default)]
 pub struct AuthCodePkceSpotify {
     pub creds: Credentials,
     pub oauth: OAuth,
@@ -39,6 +41,8 @@ pub struct AuthCodePkceSpotify {
     /// The code verifier for the authentication process
     pub verifier: Option<String>,
     pub(crate) http: HttpClient,
+    #[derivative(Debug="ignore")]
+    pub token_callback: Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>>,
 }
 
 /// This client has access to the base methods.
@@ -58,6 +62,14 @@ impl BaseClient for AuthCodePkceSpotify {
 
     fn get_config(&self) -> &Config {
         &self.config
+    }
+
+    fn get_token_callback(&self) -> Arc<Mutex<Option<Box<dyn Fn(Option<Token>) + Send + Sync>>>> {
+        Arc::clone(&self.token_callback)
+    }
+
+    async fn set_token_callback(&self, cb: Box<dyn Fn(Option<Token>) + Send + Sync>) {
+        *self.token_callback.lock().await.unwrap() = Some(cb);
     }
 
     async fn refetch_token(&self) -> ClientResult<Option<Token>> {
