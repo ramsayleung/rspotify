@@ -73,3 +73,10 @@ pub struct FeaturedPlaylists {
 pub struct CategoryPlaylists {
     pub playlists: Page<SimplifiedPlaylist>,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PlaylistCover {
+    pub url: String,
+    pub height: Option<u32>,
+    pub width: Option<u32>,
+}
