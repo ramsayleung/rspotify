@@ -1,3 +1,8 @@
+## Unreleased
+
+**New features**
+- ([377](https://github.com/ramsayleung/rspotify/pull/408)) add endpoint for get playlist image
+
 ## 0.11.7 (2023.04.26)
 
 - ([#399](https://github.com/ramsayleung/rspotify/pull/399)) Add a new variant `Collectionyourepisodes` for `Type` enum.
