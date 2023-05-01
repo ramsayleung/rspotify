@@ -1013,14 +1013,17 @@ where
         let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
-    
+
     /// Get the current image associated with a specific playlist.
     ///
     /// Parameters:
-    /// - playlist_id - the id of the playlist 
+    /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/get-playlist-cover)
-    async fn playlist_cover(&self, playlist_id: PlaylistId<'_>) -> ClientResult<Vec<PlaylistCover>> {
+    async fn playlist_cover(
+        &self,
+        playlist_id: PlaylistId<'_>,
+    ) -> ClientResult<Vec<PlaylistCover>> {
         let url = format!("playlists/{}/images", playlist_id.id());
         let result = self.api_get(&url, &Query::new()).await?;
 
