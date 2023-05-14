@@ -1,3 +1,6 @@
+## 0.12(unreleased)
+- ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.
+
 ## 0.11.7 (2023.04.26)
 
 - ([#399](https://github.com/ramsayleung/rspotify/pull/399)) Add a new variant `Collectionyourepisodes` for `Type` enum.
