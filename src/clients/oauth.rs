@@ -294,7 +294,7 @@ pub trait OAuthClient: BaseClient {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
-    /// - position - the position to add the tracks
+    /// - position - the position to add the items, a zero-based index 
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/add-tracks-to-playlist)
     async fn playlist_add_items<'a>(
