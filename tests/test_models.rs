@@ -1030,11 +1030,11 @@ fn test_current_user_queue() {
     let current_user_queue: CurrentUserQueue = deserialize(json);
     assert_eq!(
         current_user_queue
-            .currently_playing
-            .unwrap()
-            .id()
-            .unwrap()
-            .id(),
+        .currently_playing
+        .unwrap()
+        .id()
+        .unwrap()
+        .id(),
         "3E61ra5VUF6eu3tpfsXfou"
     );
     assert_eq!(current_user_queue.queue.len(), 1);
@@ -1126,4 +1126,20 @@ fn test_simplified_playlist() {
         "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks"
     );
     assert_eq!(simplified_playlist.tracks.total, 62);
+}
+
+#[test]
+fn test_collectionyourepisodes_type(){
+    let json = r#"
+{
+	"external_urls": {
+		"spotify": "https://open.spotify.com/collection/episodes"
+	},
+	"href": "https://api.spotify.com/v1/me/episodes",
+	"type": "collectionyourepisodes",
+	"uri": "spotify:user:<username>:collection:your-episodes"
+}
+"#;
+    let context: Context = deserialize(json);
+    assert_eq!(context._type, Type::Collectionyourepisodes);
 }
