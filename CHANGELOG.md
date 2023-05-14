@@ -1,4 +1,7 @@
 ## 0.12 (unreleased )
+**New features**
+- ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.
+
 **Breaking changes**
 - ([#409](https://github.com/ramsayleung/rspotify/pull/409)) Change type of `position` parameter in `playlist_add_items` endpoint from `Opinion<Duration>` to `Opinion<u32>`
 
