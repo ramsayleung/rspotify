@@ -1030,11 +1030,11 @@ fn test_current_user_queue() {
     let current_user_queue: CurrentUserQueue = deserialize(json);
     assert_eq!(
         current_user_queue
-        .currently_playing
-        .unwrap()
-        .id()
-        .unwrap()
-        .id(),
+            .currently_playing
+            .unwrap()
+            .id()
+            .unwrap()
+            .id(),
         "3E61ra5VUF6eu3tpfsXfou"
     );
     assert_eq!(current_user_queue.queue.len(), 1);
@@ -1129,7 +1129,7 @@ fn test_simplified_playlist() {
 }
 
 #[test]
-fn test_collectionyourepisodes_type(){
+fn test_collectionyourepisodes_type() {
     let json = r#"
 {
 	"external_urls": {
