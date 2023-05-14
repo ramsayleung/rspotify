@@ -3,11 +3,11 @@
 //! you can disable `token_cached` in the `Config` struct passed to the client
 //! when initializing it to avoid using cache files.
 
-use cookie::{time::Duration, SameSite};
+use cookie::time::Duration;
 use getrandom::getrandom;
 use log::{error, info};
 use rocket::catch;
-use rocket::http::{Cookie, CookieJar};
+use rocket::http::{Cookie, CookieJar, SameSite};
 use rocket::response::Redirect;
 use rocket::serde::json::{json, Value};
 use rocket::Request;

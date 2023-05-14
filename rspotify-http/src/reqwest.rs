@@ -4,6 +4,7 @@
 use super::{BaseHttpClient, Form, Headers, Query};
 
 use std::convert::TryInto;
+use std::time::Duration;
 
 use maybe_async::async_impl;
 use reqwest::{Method, RequestBuilder};
@@ -49,10 +50,21 @@ pub enum ReqwestError {
     StatusCode(reqwest::Response),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct ReqwestClient {
     /// reqwest needs an instance of its client to perform requests.
     client: reqwest::Client,
+}
+
+impl Default for ReqwestClient {
+    fn default() -> Self {
+        let client = reqwest::ClientBuilder::new()
+            .timeout(Duration::from_secs(10))
+            .build()
+            // building with these options cannot fail
+            .unwrap();
+        Self { client }
+    }
 }
 
 impl ReqwestClient {

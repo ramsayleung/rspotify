@@ -4,7 +4,7 @@ authors = [
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
 name = "rspotify-http"
-version = "0.11.6"
+version = "0.11.7"
 license = "MIT"
 description = "HTTP compatibility layer for RSpotify"
 homepage = "https://github.com/ramsayleung/rspotify"
@@ -29,7 +29,7 @@ ureq = { version = "2.2.0", default-features = false, features = ["json", "cooki
 
 [dev-dependencies]
 tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread"] }
-rspotify-model = { path = "../rspotify-model", version = "0.11.6" }
+rspotify-model = { path = "../rspotify-model", version = "0.11.7" }
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]
@@ -46,6 +46,8 @@ reqwest-native-tls = ["reqwest/native-tls"]
 reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 # Same for ureq.
 ureq-rustls-tls = ["ureq/tls"]
+ureq-rustls-tls-native-certs = ["ureq/tls", "ureq/native-certs"]
+ureq-native-tls = ["ureq/native-tls"]
 
 # Internal features for checking async or sync compilation
 __async = ["async-trait"]

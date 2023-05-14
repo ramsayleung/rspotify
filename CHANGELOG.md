@@ -1,10 +1,18 @@
-## 0.11.7 (Unreleased)
+## 0.12(unreleased)
+- ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.
 
+## 0.11.7 (2023.04.26)
+
+- ([#399](https://github.com/ramsayleung/rspotify/pull/399)) Add a new variant `Collectionyourepisodes` for `Type` enum.
 - ([#375](https://github.com/ramsayleung/rspotify/pull/375)) We now use `chrono::Duration` in more places for consistency and usability: `start_uris_playback`, `start_context_playback`, `rspotify_model::Offset`, `resume_playback`, `seek_track`. Some of these fields have been renamed from `position_ms` to `position`.
 - ((#356)[https://github.com/ramsayleung/rspotify/pull/356]) We now support custom authentication base URLs. `Config::prefix` has been renamed to `Config::api_base_url`, and we've introduced `Config::auth_base_url`.
 - ([#384](https://github.com/ramsayleung/rspotify/pull/384)) Add STB alias for Stb device type, fix for `json parse error: unknown variant STB`.
 - ([#386](https://github.com/ramsayleung/rspotify/pull/386)) Support `BaseClient::artist_albums` with zero or more `AlbumType`.
-- ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.
+- ([#393](https://github.com/ramsayleung/rspotify/pull/393)) Add `ureq-rustls-tls-native-certs` feature flag.
+- ([#402](https://github.com/ramsayleung/rspotify/pull/402)) Add `ureq-native-tls` feature flag.
+
+**Bugfixes**
+- ([#394](https://github.com/ramsayleung/rspotify/pull/394)) Set a common 10 second timeout for both http clients.
 
 ## 0.11.6 (2022.12.14)
 

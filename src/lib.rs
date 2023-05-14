@@ -20,6 +20,7 @@
 //! - [ureq][ureq-docs]: enabling `client-ureq`, TLS
 //!   available:
 //!     + `ureq-rustls-tls` (ureq's default)
+//!     + `ureq-rustls-tls-native-certs` (`rustls` with OS root certificates)
 //!
 //! If you want to use a different client or TLS than the default ones, you'll
 //! have to disable the default features and enable whichever you want. For

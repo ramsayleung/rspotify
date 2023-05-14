@@ -13,7 +13,7 @@ use std::sync::Arc;
 use maybe_async::maybe_async;
 use url::Url;
 
-/// The [Authorization Code Flow](reference) client for the Spotify API.
+/// The [Authorization Code Flow][reference] client for the Spotify API.
 ///
 /// This includes user authorization, and thus has access to endpoints related
 /// to user private data, unlike the [Client Credentials
@@ -58,7 +58,7 @@ use url::Url;
 /// `http://localhost:8888/callback` for example, which will also have the code
 /// appended like so: `http://localhost/?code=...`.
 ///
-/// [reference]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
+/// [reference]: https://developer.spotify.com/documentation/web-api/tutorials/code-flow
 /// [example-main]: https://github.com/ramsayleung/rspotify/blob/master/examples/auth_code.rs
 /// [example-webapp]: https://github.com/ramsayleung/rspotify/tree/master/examples/webapp
 /// [example-refresh-token]: https://github.com/ramsayleung/rspotify/blob/master/examples/with_refresh_token.rs
