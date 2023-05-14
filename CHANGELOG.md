@@ -1,3 +1,6 @@
+## 0.12 (unreleased )
+- ([]()) Change type of `position` parameter in `playlist_add_items` endpoint from `Opinion<Duration>` to `Opinion<u32>`
+
 ## 0.11.7 (2023.04.26)
 
 - ([#399](https://github.com/ramsayleung/rspotify/pull/399)) Add a new variant `Collectionyourepisodes` for `Type` enum.

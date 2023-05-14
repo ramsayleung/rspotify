@@ -301,12 +301,12 @@ pub trait OAuthClient: BaseClient {
         &self,
         playlist_id: PlaylistId<'_>,
         items: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
-        position: Option<chrono::Duration>,
+        position: Option<u32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = JsonBuilder::new()
             .required("uris", uris)
-            .optional("position", position.map(|p| p.num_milliseconds()))
+            .optional("position", position)
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
