@@ -1127,3 +1127,19 @@ fn test_simplified_playlist() {
     );
     assert_eq!(simplified_playlist.tracks.total, 62);
 }
+
+#[test]
+fn test_collectionyourepisodes_type() {
+    let json = r#"
+{
+	"external_urls": {
+		"spotify": "https://open.spotify.com/collection/episodes"
+	},
+	"href": "https://api.spotify.com/v1/me/episodes",
+	"type": "collectionyourepisodes",
+	"uri": "spotify:user:<username>:collection:your-episodes"
+}
+"#;
+    let context: Context = deserialize(json);
+    assert_eq!(context._type, Type::Collectionyourepisodes);
+}
