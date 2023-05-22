@@ -294,19 +294,19 @@ pub trait OAuthClient: BaseClient {
     /// Parameters:
     /// - playlist_id - the id of the playlist
     /// - track_ids - a list of track URIs, URLs or IDs
-    /// - position - the position to add the tracks
+    /// - position - the position to add the items, a zero-based index
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/add-tracks-to-playlist)
     async fn playlist_add_items<'a>(
         &self,
         playlist_id: PlaylistId<'_>,
         items: impl IntoIterator<Item = PlayableId<'a>> + Send + 'a,
-        position: Option<chrono::Duration>,
+        position: Option<u32>,
     ) -> ClientResult<PlaylistResult> {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = JsonBuilder::new()
             .required("uris", uris)
-            .optional("position", position.map(|p| p.num_milliseconds()))
+            .optional("position", position)
             .build();
 
         let url = format!("playlists/{}/tracks", playlist_id.id());
