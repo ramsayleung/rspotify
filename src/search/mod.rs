@@ -11,6 +11,8 @@ use rspotify_model::SearchFilter;
 ///
 /// Exemple
 /// ```rust
+/// use rspotify::search::SearchQuery;
+///
 /// SearchQuery::default()
 ///     .any("foo")
 ///     .album("bar")
