@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use rspotify::{
     clients::OAuthClient, scopes, AuthCodePkceSpotify, AuthCodeSpotify, ClientCredsSpotify, Config,
-    Credentials, OAuth, TokenCallback,
+    Credentials, OAuth, TokenCallback, CallbackError,
 };
 
 async fn _with_pkce(creds: Credentials, oauth: OAuth) {
@@ -15,6 +15,7 @@ async fn _with_pkce(creds: Credentials, oauth: OAuth) {
         println!(">>> From token callback function with AuthCodePkceSpotify");
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
+        Err(CallbackError::CustomizedError("oooh, there is an error".to_string()))
     };
     let token_callback = TokenCallback(Box::new(operate_token_fn));
 
@@ -39,6 +40,7 @@ async fn with_auth(creds: Credentials, oauth: OAuth) {
         println!(">>> From token callback function with AuthCodeSpotify");
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
+        Ok(())
     };
     let token_callback = TokenCallback(Box::new(operate_token_fn));
 
@@ -64,6 +66,7 @@ async fn with_client_credentials(creds: Credentials) {
         println!(">>> From token callback function with ClientCredsSpotify");
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
+        Ok(())
     };
     let token_callback = TokenCallback(Box::new(operate_token_fn));
 

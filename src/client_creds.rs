@@ -128,7 +128,7 @@ impl ClientCredsSpotify {
         let token = self.fetch_access_token(&data, Some(&headers)).await?;
 
         if let Some(callback_fn) = &*self.get_config().token_callback_fn.clone() {
-            callback_fn.0(token.clone());
+            callback_fn.0(token.clone())?;
         }
 
         Ok(token)
