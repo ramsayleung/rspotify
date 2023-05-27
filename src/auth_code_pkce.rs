@@ -74,6 +74,11 @@ impl BaseClient for AuthCodePkceSpotify {
                 data.insert(params::CLIENT_ID, &self.creds.id);
 
                 let mut token = self.fetch_access_token(&data, None).await?;
+
+                if let Some(callback_fn) = &*self.get_config().token_callback_fn.clone() {
+                    callback_fn.0(token.clone());
+                }
+
                 token.refresh_token = Some(refresh_token.to_string());
                 Ok(Some(token))
             }
@@ -110,6 +115,11 @@ impl OAuthClient for AuthCodePkceSpotify {
         data.insert(params::CODE_VERIFIER, verifier);
 
         let token = self.fetch_access_token(&data, None).await?;
+
+        if let Some(callback_fn) = &*self.get_config().token_callback_fn.clone() {
+            callback_fn.0(token.clone());
+        }
+
         *self.token.lock().await.unwrap() = Some(token);
 
         self.write_token_cache().await
