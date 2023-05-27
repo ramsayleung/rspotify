@@ -16,9 +16,7 @@ async fn _with_pkce(creds: Credentials, oauth: OAuth) {
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
     };
-    let token_callback = TokenCallback {
-        0: Box::new(operate_token_fn),
-    };
+    let token_callback = TokenCallback(Box::new(operate_token_fn));
 
     // Enabling automatic token refreshing in the config
     let config = Config {
@@ -42,9 +40,7 @@ async fn with_auth(creds: Credentials, oauth: OAuth) {
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
     };
-    let token_callback = TokenCallback {
-        0: Box::new(operate_token_fn),
-    };
+    let token_callback = TokenCallback(Box::new(operate_token_fn));
 
     // Enabling automatic token refreshing in the config
     let config = Config {
@@ -69,9 +65,7 @@ async fn with_client_credentials(creds: Credentials) {
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
     };
-    let token_callback = TokenCallback {
-        0: Box::new(operate_token_fn),
-    };
+    let token_callback = TokenCallback(Box::new(operate_token_fn));
 
     // Enabling automatic token refreshing in the config
     let config = Config {
