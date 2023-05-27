@@ -116,6 +116,11 @@ required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/with_auto_reauth.rs"
 
 [[example]]
+name = "with_token_callback_fn"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/with_token_callback_fn.rs"
+
+[[example]]
 name = "device"
 required-features = ["env-file", "cli", "client-ureq"]
 path = "examples/ureq/device.rs"
