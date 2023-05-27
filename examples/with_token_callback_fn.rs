@@ -6,8 +6,8 @@
 use std::sync::Arc;
 
 use rspotify::{
-    clients::OAuthClient, scopes, AuthCodePkceSpotify, AuthCodeSpotify, ClientCredsSpotify, Config,
-    Credentials, OAuth, TokenCallback, CallbackError,
+    clients::OAuthClient, scopes, AuthCodePkceSpotify, AuthCodeSpotify, CallbackError,
+    ClientCredsSpotify, Config, Credentials, OAuth, TokenCallback,
 };
 
 async fn _with_pkce(creds: Credentials, oauth: OAuth) {
@@ -15,7 +15,9 @@ async fn _with_pkce(creds: Credentials, oauth: OAuth) {
         println!(">>> From token callback function with AuthCodePkceSpotify");
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
-        Err(CallbackError::CustomizedError("oooh, there is an error".to_string()))
+        Err(CallbackError::CustomizedError(
+            "oooh, there is an error".to_string(),
+        ))
     };
     let token_callback = TokenCallback(Box::new(operate_token_fn));
 

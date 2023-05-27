@@ -244,7 +244,7 @@ pub enum CallbackError {
 }
 
 /// A callback function is invokved whenever successfully request or refetch a new token.
-pub struct TokenCallback(pub Box<dyn Fn(Token) -> Result<(), CallbackError> + Send + Sync >);
+pub struct TokenCallback(pub Box<dyn Fn(Token) -> Result<(), CallbackError> + Send + Sync>);
 
 impl fmt::Debug for TokenCallback {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
