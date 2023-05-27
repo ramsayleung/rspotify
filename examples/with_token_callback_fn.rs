@@ -1,26 +1,25 @@
-//! If developer specify a callback function for token, this callback function 
+//! If developer specify a callback function for token, this callback function
 //! will be invoked whenever client succeeds to request or refetch a token.
 //! Therefore, developer could write token into file or save token into database
 //! after fetch the token with their own callback function.
 
 use std::sync::Arc;
 
-use rspotify::{scopes, AuthCodeSpotify, ClientCredsSpotify,
-    Config, Credentials, OAuth, TokenCallback,
-    AuthCodePkceSpotify,
-    clients::OAuthClient
+use rspotify::{
+    clients::OAuthClient, scopes, AuthCodePkceSpotify, AuthCodeSpotify, ClientCredsSpotify, Config,
+    Credentials, OAuth, TokenCallback,
 };
 
-async fn _with_pkce(creds: Credentials, oauth: OAuth){
+async fn _with_pkce(creds: Credentials, oauth: OAuth) {
     let operate_token_fn = |token| {
         println!(">>> From token callback function with AuthCodePkceSpotify");
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
     };
-    let token_callback = TokenCallback{
+    let token_callback = TokenCallback {
         0: Box::new(operate_token_fn),
     };
-    
+
     // Enabling automatic token refreshing in the config
     let config = Config {
         token_refreshing: true,
@@ -43,10 +42,10 @@ async fn with_auth(creds: Credentials, oauth: OAuth) {
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
     };
-    let token_callback = TokenCallback{
+    let token_callback = TokenCallback {
         0: Box::new(operate_token_fn),
     };
-    
+
     // Enabling automatic token refreshing in the config
     let config = Config {
         token_refreshing: true,
@@ -70,7 +69,7 @@ async fn with_client_credentials(creds: Credentials) {
         println!(">>> Let's manipulate it. Oooh, we could only read it");
         println!(">>> token: {:?}", token);
     };
-    let token_callback = TokenCallback{
+    let token_callback = TokenCallback {
         0: Box::new(operate_token_fn),
     };
 

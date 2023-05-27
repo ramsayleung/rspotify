@@ -144,8 +144,9 @@ use crate::{http::HttpError, model::Id};
 
 use std::{
     collections::{HashMap, HashSet},
-    env,
-    path::PathBuf, fmt, sync::Arc,
+    env, fmt,
+    path::PathBuf,
+    sync::Arc,
 };
 
 use getrandom::getrandom;
