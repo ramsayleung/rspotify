@@ -148,6 +148,7 @@ use std::{
     path::PathBuf,
 };
 
+use base64::{engine::general_purpose, Engine as _};
 use getrandom::getrandom;
 use thiserror::Error;
 
@@ -358,7 +359,7 @@ impl Credentials {
     pub fn auth_headers(&self) -> Option<HashMap<String, String>> {
         let auth = "authorization".to_owned();
         let value = format!("{}:{}", self.id, self.secret.as_ref()?);
-        let value = format!("Basic {}", base64::encode(value));
+        let value = format!("Basic {}", general_purpose::STANDARD_NO_PAD.encode(value));
 
         let mut headers = HashMap::new();
         headers.insert(auth, value);
