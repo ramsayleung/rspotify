@@ -8,6 +8,8 @@ use crate::{
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
+use base64::{engine::general_purpose, Engine as _};
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -167,7 +169,7 @@ impl AuthCodePkceSpotify {
         hasher.update(verifier.as_bytes());
         let challenge = hasher.finalize();
 
-        let challenge = base64::encode(challenge);
+        let challenge = general_purpose::URL_SAFE_NO_PAD.encode(challenge);
 
         (verifier, challenge)
     }
