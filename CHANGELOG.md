@@ -4,9 +4,11 @@
 
 **Breaking changes**
 - ([#409](https://github.com/ramsayleung/rspotify/pull/409)) Change type of `position` parameter in `playlist_add_items` endpoint from `Opinion<Duration>` to `Opinion<u32>`
+- ([[#421](https://github.com/ramsayleung/rspotify/issues/421)) Change type of `AudioFeaturesPayload.audio_features` from `Vec<AudioFeatures>` to `Vec<Option<AudioFeatures>>`
 
 **Bugfixes**
 - ([[#419](https://github.com/ramsayleung/rspotify/issues/419)) Base64url encode instead of plain base64 encode for PKCE challenge code.
+- ([[#421](https://github.com/ramsayleung/rspotify/issues/421)) Filter `null`s on `tracks_features` requests
 
 ## 0.11.7 (2023.04.26)
 
