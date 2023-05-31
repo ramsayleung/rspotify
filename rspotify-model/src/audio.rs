@@ -35,7 +35,7 @@ pub struct AudioFeatures {
 /// Intermediate audio feature object wrapped by `Vec`
 #[derive(Deserialize)]
 pub struct AudioFeaturesPayload {
-    pub audio_features: Vec<AudioFeatures>,
+    pub audio_features: Vec<Option<AudioFeatures>>,
 }
 
 /// Audio analysis object

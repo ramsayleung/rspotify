@@ -708,9 +708,11 @@ where
         let result = self.api_get(&url, &Query::new()).await?;
         if result.is_empty() {
             Ok(None)
+        } else if let Some(payload) = convert_result::<Option<AudioFeaturesPayload>>(&result)? {
+            let audio_features = payload.audio_features.into_iter().flatten().collect();
+            Ok(Some(audio_features))
         } else {
-            convert_result::<Option<AudioFeaturesPayload>>(&result)
-                .map(|option_payload| option_payload.map(|x| x.audio_features))
+            Ok(None)
         }
     }
 
