@@ -73,8 +73,7 @@ impl BaseClient for AuthCodePkceSpotify {
                 data.insert(params::REFRESH_TOKEN, refresh_token);
                 data.insert(params::CLIENT_ID, &self.creds.id);
 
-                let mut token = self.fetch_access_token(&data, None).await?;
-                token.refresh_token = Some(refresh_token.to_string());
+                let token = self.fetch_access_token(&data, None).await?;
                 Ok(Some(token))
             }
             _ => Ok(None),
