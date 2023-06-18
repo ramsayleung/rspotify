@@ -8,6 +8,8 @@ use crate::{
     ClientResult, Config, Credentials, OAuth, Token,
 };
 
+use base64::{engine::general_purpose, Engine as _};
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -71,13 +73,12 @@ impl BaseClient for AuthCodePkceSpotify {
                 data.insert(params::REFRESH_TOKEN, refresh_token);
                 data.insert(params::CLIENT_ID, &self.creds.id);
 
-                let mut token = self.fetch_access_token(&data, None).await?;
+                let token = self.fetch_access_token(&data, None).await?;
 
                 if let Some(callback_fn) = &*self.get_config().token_callback_fn.clone() {
-                    callback_fn.0(token.clone())?;
+                    callback_fn.0(token.clone());
                 }
 
-                token.refresh_token = Some(refresh_token.to_string());
                 Ok(Some(token))
             }
             _ => Ok(None),
@@ -177,7 +178,7 @@ impl AuthCodePkceSpotify {
         hasher.update(verifier.as_bytes());
         let challenge = hasher.finalize();
 
-        let challenge = base64::encode(challenge);
+        let challenge = general_purpose::URL_SAFE_NO_PAD.encode(challenge);
 
         (verifier, challenge)
     }

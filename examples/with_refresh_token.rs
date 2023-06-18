@@ -15,11 +15,13 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
-use rspotify::{model::ArtistId, prelude::*, scopes, AuthCodeSpotify, Credentials, OAuth};
+use rspotify::{
+    model::ArtistId, prelude::*, scopes, AuthCodePkceSpotify, AuthCodeSpotify, Credentials, OAuth,
+};
 
 // Sample request that will follow some artists, print the user's
 // followed artists, and then unfollow the artists.
-async fn do_things(spotify: AuthCodeSpotify) {
+async fn do_things(spotify: &AuthCodeSpotify) {
     let artists = [
         ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
         ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
@@ -49,15 +51,70 @@ async fn do_things(spotify: AuthCodeSpotify) {
     println!("Unfollowed {num_artists} artists successfully.");
 }
 
-#[tokio::main]
-async fn main() {
-    // You can use any logger for debugging.
-    env_logger::init();
+// Sample request that will follow some artists, print the user's
+// followed artists, and then unfollow the artists.
+async fn pkce_do_things(spotify: &AuthCodePkceSpotify) {
+    let artists = [
+        ArtistId::from_id("3RGLhK1IP9jnYFH4BRFJBS").unwrap(), // The Clash
+        ArtistId::from_id("0yNLKJebCb8Aueb54LYya3").unwrap(), // New Order
+        ArtistId::from_id("2jzc5TC5TVFLXQlBNiIUzE").unwrap(), // a-ha
+    ];
+    let num_artists = artists.len();
+    spotify
+        .user_follow_artists(artists.iter().map(|a| a.as_ref()))
+        .await
+        .expect("AuthCodePkceSpotify couldn't follow artists");
+    println!("AuthCodePkceSpotify Followed {num_artists} artists successfully.");
 
-    // May require the `env-file` feature enabled if the environment variables
-    // aren't configured manually.
-    let creds = Credentials::from_env().unwrap();
-    let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
+    // Printing the followed artists
+    let followed = spotify
+        .current_user_followed_artists(None, None)
+        .await
+        .expect("couldn't get user followed artists");
+    println!(
+        "AuthCodePkceSpotify User currently follows at least {} artists.",
+        followed.items.len()
+    );
+
+    spotify
+        .user_unfollow_artists(artists)
+        .await
+        .expect("couldn't unfollow artists");
+    println!("AuthCodePkceSpotify Unfollowed {num_artists} artists successfully.");
+}
+async fn refresh_pkce_code(creds: Credentials, oauth: OAuth) {
+    let mut spotify = AuthCodePkceSpotify::new(creds.clone(), oauth.clone());
+
+    // Obtaining the access token
+    let url = spotify.get_authorize_url(None).unwrap();
+    // This function requires the `cli` feature enabled.
+    spotify.prompt_for_token(&url).await.unwrap();
+
+    // Token refreshing works as well, but should with the one generated in the
+    // previous request
+    pkce_do_things(&spotify).await;
+
+    // At a different time, the refresh token can be used to refresh an access
+    // token directly and run requests:
+    println!(">>> Pkce Session two, running some requests:");
+    // No `prompt_for_user_token` needed.
+    spotify
+        .refresh_token()
+        .await
+        .expect("couldn't refresh user token");
+    pkce_do_things(&spotify).await;
+
+    // This process can now be repeated multiple times by using only the
+    // refresh token that was obtained at the beginning.
+    println!(">>> Pkce Session three, running some requests:");
+    spotify
+        .refresh_token()
+        .await
+        .expect("couldn't refresh user token");
+    pkce_do_things(&spotify).await;
+}
+
+async fn refresh_auth_code(creds: Credentials, oauth: OAuth) {
     let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
 
     // In the first session of the application we authenticate and obtain the
@@ -71,29 +128,38 @@ async fn main() {
         .expect("couldn't authenticate successfully");
     // Token refreshing works as well, but should with the one generated in the
     // previous request
-    let prev_token = spotify.get_token().lock().await.unwrap().clone();
-    do_things(spotify).await;
+    do_things(&spotify).await;
 
     // At a different time, the refresh token can be used to refresh an access
     // token directly and run requests:
     println!(">>> Session two, running some requests:");
-    let spotify = AuthCodeSpotify::new(creds.clone(), oauth.clone());
-    *spotify.token.lock().await.unwrap() = prev_token.clone();
     // No `prompt_for_user_token` needed.
     spotify
         .refresh_token()
         .await
         .expect("couldn't refresh user token");
-    do_things(spotify).await;
+    do_things(&spotify).await;
 
     // This process can now be repeated multiple times by using only the
     // refresh token that was obtained at the beginning.
     println!(">>> Session three, running some requests:");
-    let spotify = AuthCodeSpotify::new(creds, oauth);
-    *spotify.token.lock().await.unwrap() = prev_token;
     spotify
         .refresh_token()
         .await
         .expect("couldn't refresh user token");
-    do_things(spotify).await;
+    do_things(&spotify).await;
+}
+
+#[tokio::main]
+async fn main() {
+    // You can use any logger for debugging.
+    env_logger::init();
+
+    // May require the `env-file` feature enabled if the environment variables
+    // aren't configured manually.
+    let creds = Credentials::from_env().unwrap();
+    let oauth = OAuth::from_env(scopes!("user-follow-read user-follow-modify")).unwrap();
+    refresh_auth_code(creds.clone(), oauth.clone()).await;
+
+    refresh_pkce_code(creds, oauth).await;
 }

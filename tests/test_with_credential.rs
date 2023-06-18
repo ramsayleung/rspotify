@@ -157,6 +157,8 @@ async fn test_audios_features() {
     tracks_ids.push(track_id1);
     let track_id2 = TrackId::from_uri("spotify:track:24JygzOLM0EmRQeGtFcIcG").unwrap();
     tracks_ids.push(track_id2);
+    let track_id_no_features = TrackId::from_uri("spotify:track:6z99LwRS28wga9xc2u09Po").unwrap();
+    tracks_ids.push(track_id_no_features);
     creds_client()
         .await
         .tracks_features(tracks_ids)
