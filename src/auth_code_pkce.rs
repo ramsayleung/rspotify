@@ -76,7 +76,7 @@ impl BaseClient for AuthCodePkceSpotify {
                 let token = self.fetch_access_token(&data, None).await?;
 
                 if let Some(callback_fn) = &*self.get_config().token_callback_fn.clone() {
-                    callback_fn.0(token.clone());
+                    callback_fn.0(token.clone())?;
                 }
 
                 Ok(Some(token))
