@@ -144,8 +144,9 @@ use crate::{http::HttpError, model::Id};
 
 use std::{
     collections::{HashMap, HashSet},
-    env,
+    env, fmt,
     path::PathBuf,
+    sync::Arc,
 };
 
 use base64::{engine::general_purpose, Engine as _};
@@ -216,6 +217,9 @@ pub enum ClientError {
     #[error("cache file error: {0}")]
     CacheFile(String),
 
+    #[error("token callback function error: {0}")]
+    TokenCallbackFn(#[from] CallbackError),
+
     #[error("model error: {0}")]
     Model(#[from] model::ModelError),
 }
@@ -233,6 +237,21 @@ pub const DEFAULT_API_BASE_URL: &str = "https://api.spotify.com/v1/";
 pub const DEFAULT_AUTH_BASE_URL: &str = "https://accounts.spotify.com/";
 pub const DEFAULT_CACHE_PATH: &str = ".spotify_token_cache.json";
 pub const DEFAULT_PAGINATION_CHUNKS: u32 = 50;
+
+#[derive(Error, Debug)]
+pub enum CallbackError {
+    #[error("The callback function raises an error: `{0}`")]
+    CustomizedError(String),
+}
+
+/// A callback function is invokved whenever successfully request or refetch a new token.
+pub struct TokenCallback(pub Box<dyn Fn(Token) -> Result<(), CallbackError> + Send + Sync>);
+
+impl fmt::Debug for TokenCallback {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("TokenCallback")
+    }
+}
 
 /// Struct to configure the Spotify client.
 #[derive(Debug, Clone)]
@@ -264,6 +283,10 @@ pub struct Config {
     /// Whether or not to check if the token has expired when sending a
     /// request with credentials, and in that case, automatically refresh it.
     pub token_refreshing: bool,
+
+    /// Whenever client succeeds to request or refresh a token, the callback function
+    /// will be invoked
+    pub token_callback_fn: Arc<Option<TokenCallback>>,
 }
 
 impl Default for Config {
@@ -275,6 +298,7 @@ impl Default for Config {
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
             token_cached: false,
             token_refreshing: false,
+            token_callback_fn: Arc::new(None),
         }
     }
 }

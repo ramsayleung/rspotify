@@ -10,4 +10,4 @@ Cargo.lock
 .spotify_cache/
 **/target/
 /.test_read_token_cache.json
-.vscode/
+.vscode
