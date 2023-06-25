@@ -119,7 +119,7 @@
 //! [spotify-register-app]: https://developer.spotify.com/dashboard/applications
 //! [spotify-client-creds]: https://developer.spotify.com/documentation/general/guides/authorization/client-credentials/
 //! [spotify-auth-code]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
-//! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/general/guides/authorization/code-flow
+//! [spotify-auth-code-pkce]: https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
 //! [spotify-implicit-grant]: https://developer.spotify.com/documentation/general/guides/authorization/implicit-grant
 
 mod auth_code;
