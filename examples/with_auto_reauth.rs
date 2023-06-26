@@ -113,7 +113,6 @@ async fn main() {
 
     // Enabling automatic token refreshing in the config
     let config = Config {
-        token_refreshing: true,
         ..Default::default()
     };
 
