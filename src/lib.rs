@@ -297,7 +297,7 @@ impl Default for Config {
             cache_path: PathBuf::from(DEFAULT_CACHE_PATH),
             pagination_chunks: DEFAULT_PAGINATION_CHUNKS,
             token_cached: false,
-            token_refreshing: false,
+            token_refreshing: true,
             token_callback_fn: Arc::new(None),
         }
     }
