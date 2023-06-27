@@ -120,8 +120,7 @@ mod test {
             refresh_token: Some("...".to_string()),
         };
 
-        let spotify = ClientCredsSpotify::from_token(tok);
-        let headers = spotify.auth_headers().await;
+        let headers = tok.auth_headers();
         assert_eq!(
             headers.get("authorization"),
             Some(&"Bearer test-access_token".to_owned())
