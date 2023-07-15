@@ -52,7 +52,7 @@ async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
 async fn expire_token<S: BaseClient>(spotify: &S) {
     let token_mutex = spotify.get_token();
     let mut token = token_mutex.lock().await.unwrap();
-    let mut token = token.as_mut().expect("Token can't be empty as this point");
+    let token = token.as_mut().expect("Token can't be empty as this point");
     // In a regular case, the token would expire with time. Here we just do
     // it manually.
     let now = Utc::now().checked_sub_signed(Duration::seconds(10));
