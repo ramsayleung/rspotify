@@ -205,9 +205,15 @@ where
     /// - track_id - a spotify URI, URL or ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-track)
-    async fn track(&self, track_id: TrackId<'_>) -> ClientResult<FullTrack> {
+    async fn track(
+        &self,
+        track_id: TrackId<'_>,
+        market: Option<Market>,
+    ) -> ClientResult<FullTrack> {
+        let params = build_map([("market", market.map(Into::into))]);
+
         let url = format!("tracks/{}", track_id.id());
-        let result = self.api_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -370,10 +376,15 @@ where
     /// - album_id - the album ID, URI or URL
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-album)
-    async fn album(&self, album_id: AlbumId<'_>) -> ClientResult<FullAlbum> {
-        let url = format!("albums/{}", album_id.id());
+    async fn album(
+        &self,
+        album_id: AlbumId<'_>,
+        market: Option<Market>,
+    ) -> ClientResult<FullAlbum> {
+        let params = build_map([("market", market.map(Into::into))]);
 
-        let result = self.api_get(&url, &Query::new()).await?;
+        let url = format!("albums/{}", album_id.id());
+        let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
 
@@ -386,10 +397,13 @@ where
     async fn albums<'a>(
         &self,
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
+        market: Option<Market>,
     ) -> ClientResult<Vec<FullAlbum>> {
+        let params = build_map([("market", market.map(Into::into))]);
+
         let ids = join_ids(album_ids);
         let url = format!("albums/?ids={ids}");
-        let result = self.api_get(&url, &Query::new()).await?;
+        let result = self.api_get(&url, &params).await?;
         convert_result::<FullAlbums>(&result).map(|x| x.albums)
     }
 
@@ -446,11 +460,12 @@ where
     fn album_track<'a>(
         &'a self,
         album_id: AlbumId<'a>,
+        market: Option<Market>,
     ) -> Paginator<'_, ClientResult<SimplifiedTrack>> {
         paginate_with_ctx(
             (self, album_id),
             move |(slf, album_id), limit, offset| {
-                slf.album_track_manual(album_id.as_ref(), Some(limit), Some(offset))
+                slf.album_track_manual(album_id.as_ref(), market, Some(limit), Some(offset))
             },
             self.get_config().pagination_chunks,
         )
@@ -460,12 +475,17 @@ where
     async fn album_track_manual(
         &self,
         album_id: AlbumId<'_>,
+        market: Option<Market>,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> ClientResult<Page<SimplifiedTrack>> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let params = build_map([("limit", limit.as_deref()), ("offset", offset.as_deref())]);
+        let params = build_map([
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+            ("market", market.map(Into::into)),
+        ]);
 
         let url = format!("albums/{}/tracks", album_id.id());
         let result = self.api_get(&url, &params).await?;

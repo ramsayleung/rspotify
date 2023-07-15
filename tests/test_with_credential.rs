@@ -26,7 +26,7 @@ pub async fn creds_client() -> ClientCredsSpotify {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_album() {
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
-    creds_client().await.album(birdy_uri).await.unwrap();
+    creds_client().await.album(birdy_uri, None).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -36,7 +36,7 @@ async fn test_albums() {
         AlbumId::from_uri("spotify:album:6JWc4iAiJ9FjyK0B59ABb4").unwrap(),
         AlbumId::from_uri("spotify:album:6UXCm6bOO4gFlDQZV5yL37").unwrap(),
     ];
-    creds_client().await.albums(track_uris).await.unwrap();
+    creds_client().await.albums(track_uris, None).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -44,7 +44,7 @@ async fn test_album_tracks() {
     let birdy_uri = AlbumId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
     creds_client()
         .await
-        .album_track_manual(birdy_uri, Some(2), None)
+        .album_track_manual(birdy_uri, None, Some(2), None)
         .await
         .unwrap();
 }
@@ -175,7 +175,7 @@ async fn test_user() {
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_track() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
-    creds_client().await.track(birdy_uri).await.unwrap();
+    creds_client().await.track(birdy_uri, None).await.unwrap();
 }
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
@@ -248,7 +248,7 @@ mod test_pagination {
         let album = AlbumId::from_uri(ALBUM).unwrap();
 
         let names = client
-            .album_track(album)
+            .album_track(album, None)
             .map(|track| track.unwrap().name)
             .collect::<Vec<_>>()
             .await;
