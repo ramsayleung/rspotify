@@ -45,7 +45,7 @@ async fn auth_code_do_things(spotify: &AuthCodeSpotify) {
 async fn client_creds_do_things(spotify: &ClientCredsSpotify) {
     // Running the requests
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
-    let albums = spotify.album(birdy_uri).await;
+    let albums = spotify.album(birdy_uri, None).await;
     println!("Get albums: {}", albums.unwrap().id);
 }
 

@@ -28,7 +28,7 @@ async fn main() {
         let spotify = Arc::clone(&spotify);
         let wr = wr.clone();
         let handle = task::spawn(async move {
-            let albums = spotify.album(id).await.unwrap();
+            let albums = spotify.album(id, None).await.unwrap();
             wr.send(albums).unwrap();
         });
 
