@@ -29,7 +29,7 @@ fn main() {
         let spotify = Arc::clone(&spotify);
         let wr = wr.clone();
         let handle = thread::spawn(move || {
-            let albums = spotify.album(id).unwrap();
+            let albums = spotify.album(id, None).unwrap();
             wr.send(albums).unwrap();
         });
 

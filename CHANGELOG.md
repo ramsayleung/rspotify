@@ -7,6 +7,7 @@
 - ([#409](https://github.com/ramsayleung/rspotify/pull/409)) Change type of `position` parameter in `playlist_add_items` endpoint from `Opinion<Duration>` to `Opinion<u32>`
 - ([#421](https://github.com/ramsayleung/rspotify/issues/421)) Change type of `AudioFeaturesPayload.audio_features` from `Vec<AudioFeatures>` to `Vec<Option<AudioFeatures>>`
 - ([#429](https://github.com/ramsayleung/rspotify/pull/429)) Enable Token refreshing by default.
+- ([#432](https://github.com/ramsayleung/rspotify/pull/432)) Add optional `market` field to `track`, `album`, `albums`, and `album_track[_manual]`. Make `market` field in `artist_top_tracks` optional.
 
 **Bugfixes**
 - ([#419](https://github.com/ramsayleung/rspotify/issues/419)) Base64url encode instead of plain base64 encode for PKCE challenge code.
