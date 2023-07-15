@@ -23,7 +23,6 @@ async fn _with_pkce(creds: Credentials, oauth: OAuth) {
 
     // Enabling automatic token refreshing in the config
     let config = Config {
-        token_refreshing: true,
         token_callback_fn: Arc::new(Some(token_callback)),
         ..Default::default()
     };
@@ -48,7 +47,6 @@ async fn with_auth(creds: Credentials, oauth: OAuth) {
 
     // Enabling automatic token refreshing in the config
     let config = Config {
-        token_refreshing: true,
         token_callback_fn: Arc::new(Some(token_callback)),
         ..Default::default()
     };
@@ -74,7 +72,6 @@ async fn with_client_credentials(creds: Credentials) {
 
     // Enabling automatic token refreshing in the config
     let config = Config {
-        token_refreshing: true,
         token_callback_fn: Arc::new(Some(token_callback)),
         ..Default::default()
     };
