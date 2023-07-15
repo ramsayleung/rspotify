@@ -344,9 +344,9 @@ where
     async fn artist_top_tracks(
         &self,
         artist_id: ArtistId<'_>,
-        market: Market,
+        market: Option<Market>,
     ) -> ClientResult<Vec<FullTrack>> {
-        let params = build_map([("market", Some(market.into()))]);
+        let params = build_map([("market", market.map(Into::into))]);
 
         let url = format!("artists/{}/top-tracks", artist_id.id());
         let result = self.api_get(&url, &params).await?;
