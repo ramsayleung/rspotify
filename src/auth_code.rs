@@ -108,11 +108,12 @@ impl BaseClient for AuthCodeSpotify {
                     .expect("No client secret set in the credentials.");
                 let mut token = self.fetch_access_token(&data, Some(&headers)).await?;
 
+                token.refresh_token = Some(refresh_token.to_string());
+
                 if let Some(callback_fn) = &*self.get_config().token_callback_fn.clone() {
                     callback_fn.0(token.clone())?;
                 }
 
-                token.refresh_token = Some(refresh_token.to_string());
                 Ok(Some(token))
             }
             _ => Ok(None),
