@@ -4,6 +4,7 @@
 [![Docs](https://docs.rs/rspotify/badge.svg)](https://docs.rs/crate/rspotify/)
 
 # RSpotify
+![](./doc/images/rspotify_logo_with_name.png)
 
 RSpotify is a wrapper for the [Spotify Web API](https://developer.spotify.com/documentation/web-api/), inspired by [spotipy](https://github.com/plamere/spotipy). It includes support for all the [authorization flows](https://developer.spotify.com/documentation/general/guides/authorization/), and helper functions for [all endpoints](https://developer.spotify.com/documentation/web-api/reference/).
 
