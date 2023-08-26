@@ -4,7 +4,7 @@ authors = [
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
 name = "rspotify"
-version = "0.11.7"
+version = "0.12.0"
 license = "MIT"
 readme = "README.md"
 description = "Spotify API wrapper"
@@ -26,9 +26,9 @@ exclude = [
 ]
 
 [dependencies]
-rspotify-macros = { path = "rspotify-macros", version = "0.11.7" }
-rspotify-model = { path = "rspotify-model", version = "0.11.7" }
-rspotify-http = { path = "rspotify-http", version = "0.11.7", default-features = false }
+rspotify-macros = { path = "rspotify-macros", version = "0.12.0" }
+rspotify-model = { path = "rspotify-model", version = "0.12.0" }
+rspotify-http = { path = "rspotify-http", version = "0.12.0", default-features = false }
 
 async-stream = { version = "0.3.2", optional = true }
 async-trait = { version = "0.1.51", optional = true }
