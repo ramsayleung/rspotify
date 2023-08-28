@@ -333,6 +333,37 @@ pub trait OAuthClient: BaseClient {
         convert_result(&result)
     }
 
+    /// Replace the image used to represent a specific playlist
+    /// 
+    /// Parameters:
+    /// - playlist_id - the id of the playlist
+    /// - image - Base64 encoded JPEG image data, maximum payload size is 256 KB.
+    /// [Reference] (https://developer.spotify.com/documentation/web-api/reference/upload-custom-playlist-cover)
+    async fn playlist_upload_cover_image(
+        &self,
+        playlist_id: PlaylistId<'_>,
+        image: &str,
+    ) -> ClientResult<String> {
+        let url = format!("playlists/{}/images", playlist_id.id());
+        let params = JsonBuilder::new().required("image", image).build();
+        self.api_put(&url, &params).await
+    }
+
+
+        /// Get cover image of a playlist.
+        /// 
+        /// Parameters:
+        /// - playlist_id - the playlist ID, URI or URL
+    async fn playlist_cover_image(&self, playlist_id: PlaylistId<'_>)-> ClientResult<Option<Image>>{
+        let url = format!("playlists/{}/images" , playlist_id);
+        let result = self.api_get(&url, &Query::new()).await?;
+        if result.is_empty() {
+            Ok(None)
+        } else {
+            convert_result(&result)
+        }
+    }
+
     /// Changes a playlist's name and/or public/private state.
     ///
     /// Parameters:
