@@ -578,6 +578,7 @@ where
     ///
     /// Parameters:
     /// - playlist_id - the playlist ID, URI or URL
+    /// 
     /// [reference](https://developer.spotify.com/documentation/web-api/reference/get-playlist-cover)
     async fn playlist_cover_image(
         &self,
@@ -585,11 +586,11 @@ where
     ) -> ClientResult<Option<Image>> {
         let url = format!("playlists/{}/images", playlist_id);
         let result = self.api_get(&url, &Query::new()).await?;
-        if result.is_empty() {
-            Ok(None)
-        } else {
+        // if result.is_empty() {
+        //     Ok(None)
+        // } else {
             convert_result(&result)
-        }
+        // }
     }
 
     /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
