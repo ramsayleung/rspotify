@@ -1,3 +1,7 @@
+## 0.12.1 (Unreleased)
+**Bugfixes**
+- ([#440](https://github.com/ramsayleung/rspotify/issues/440)) Add Smartwatch device type, fix for json parse error: unknown variant Smartwatch.
+
 ## 0.12.0 (2023.08.26)
 **New features**
 - ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.

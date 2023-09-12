@@ -730,7 +730,7 @@ fn test_currently_playing_context() {
     let timestamp = 1607769168429;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
-    let dt = DateTime::<Utc>::from_utc(
+    let dt = DateTime::<Utc>::from_naive_utc_and_offset(
         NaiveDateTime::from_timestamp_opt(second, nanosecond as u32).unwrap(),
         Utc,
     );
@@ -845,7 +845,7 @@ fn test_current_playback_context() {
     let timestamp = 1607774342714;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
-    let dt = DateTime::<Utc>::from_utc(
+    let dt = DateTime::<Utc>::from_naive_utc_and_offset(
         NaiveDateTime::from_timestamp_opt(second, nanosecond as u32).unwrap(),
         Utc,
     );

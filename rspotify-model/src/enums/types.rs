@@ -96,6 +96,7 @@ pub enum DeviceType {
     Computer,
     Tablet,
     Smartphone,
+    Smartwatch,
     Speaker,
     /// Though undocumented, it has been reported that the Web API returns both
     /// 'Tv' and 'TV' as the type.
