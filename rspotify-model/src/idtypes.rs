@@ -105,7 +105,7 @@ use crate::Type;
 
 /// Spotify ID or URI parsing error
 ///
-/// See also [`Id`](crate::idtypes::Id) for details.
+/// See also [`Id`] for details.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Display, Error)]
 pub enum IdError {
     /// Spotify URI prefix is not `spotify:` or `spotify/`.

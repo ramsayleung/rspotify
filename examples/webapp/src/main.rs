@@ -84,7 +84,7 @@ fn remove_cache_path(jar: &CookieJar<'_>) {
     if cache_path.exists() {
         fs::remove_file(cache_path).unwrap()
     }
-    jar.remove(Cookie::named("uuid"))
+    jar.remove(Cookie::from("uuid"))
 }
 
 fn cache_path_exists(jar: &CookieJar<'_>) -> bool {
@@ -166,12 +166,12 @@ fn index(jar: &CookieJar<'_>) -> Template {
     // them.
     let authenticated = jar.get("uuid").is_some() && cache_path_exists(jar);
     if !authenticated {
-        let uuid = Cookie::build("uuid", generate_random_uuid(64))
+        let uuid = Cookie::build(("uuid", generate_random_uuid(64)))
             .path("/")
             .secure(true)
             .max_age(Duration::minutes(30))
             .same_site(SameSite::Lax)
-            .finish();
+            .build();
 
         jar.add(uuid);
         let spotify = init_spotify(jar);
