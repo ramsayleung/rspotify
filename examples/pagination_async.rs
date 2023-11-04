@@ -1,6 +1,9 @@
 //! This example showcases how streams can be used for asynchronous automatic
 //! pagination.
 //!
+//! You'll need to run `cargo add futures futures_util` to get the `pin_mut!`
+//! macro and the `stream.try_next()` method.
+//!
 //! Asynchronous iteration is a bit uglier, since there's currently no
 //! syntactic sugar for `for` loops. See this article for more information:
 //!
