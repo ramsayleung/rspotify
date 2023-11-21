@@ -1,6 +1,7 @@
 ## 0.12.1 (Unreleased)
 **Bugfixes**
 - ([#440](https://github.com/ramsayleung/rspotify/issues/440)) Add Smartwatch device type, fix for json parse error: unknown variant Smartwatch.
+- ([#447](https://github.com/ramsayleung/rspotify/pull/447)) Replace the deprecated `dotenv` crate with `dotenvy`
 
 ## 0.12.0 (2023.08.26)
 **New features**
