@@ -94,10 +94,10 @@ where
     /// automatic reauthentication takes place, if enabled.
     #[doc(hidden)]
     async fn auth_headers(&self) -> ClientResult<Headers> {
-        self.auto_reauth()
-            .await?;
+        self.auto_reauth().await?;
 
-        Ok(self.get_token()
+        Ok(self
+            .get_token()
             .lock()
             .await
             .unwrap()
