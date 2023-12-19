@@ -222,6 +222,9 @@ pub enum ClientError {
 
     #[error("model error: {0}")]
     Model(#[from] model::ModelError),
+
+    #[error("Token is not valid")]
+    InvalidToken,
 }
 
 // The conversion has to be done manually because it's in a `Box<T>`

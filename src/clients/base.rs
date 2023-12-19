@@ -9,7 +9,7 @@ use crate::{
     model::*,
     sync::Mutex,
     util::build_map,
-    ClientResult, Config, Credentials, Token,
+    ClientError, ClientResult, Config, Credentials, Token,
 };
 
 use std::{collections::HashMap, fmt, ops::Not, sync::Arc};
@@ -93,18 +93,17 @@ where
     /// Since this is accessed by authenticated requests always, it's where the
     /// automatic reauthentication takes place, if enabled.
     #[doc(hidden)]
-    async fn auth_headers(&self) -> Headers {
-        self.auto_reauth()
-            .await
-            .expect("Failed to re-authenticate automatically, please authenticate");
+    async fn auth_headers(&self) -> ClientResult<Headers> {
+        self.auto_reauth().await?;
 
-        self.get_token()
+        Ok(self
+            .get_token()
             .lock()
             .await
-            .expect("Failed to acquire lock")
+            .unwrap()
             .as_ref()
-            .expect("RSpotify not authenticated")
-            .auth_headers()
+            .ok_or(ClientError::InvalidToken)?
+            .auth_headers())
     }
 
     // HTTP-related methods for the Spotify client. They wrap up the basic HTTP
@@ -116,7 +115,7 @@ where
     #[inline]
     async fn api_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let url = self.api_url(url);
-        let headers = self.auth_headers().await;
+        let headers = self.auth_headers().await?;
         Ok(self.get_http().get(&url, Some(&headers), payload).await?)
     }
 
@@ -126,7 +125,7 @@ where
     #[inline]
     async fn api_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.api_url(url);
-        let headers = self.auth_headers().await;
+        let headers = self.auth_headers().await?;
         Ok(self.get_http().post(&url, Some(&headers), payload).await?)
     }
 
@@ -136,7 +135,7 @@ where
     #[inline]
     async fn api_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.api_url(url);
-        let headers = self.auth_headers().await;
+        let headers = self.auth_headers().await?;
         Ok(self.get_http().put(&url, Some(&headers), payload).await?)
     }
 
@@ -146,7 +145,7 @@ where
     #[inline]
     async fn api_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.api_url(url);
-        let headers = self.auth_headers().await;
+        let headers = self.auth_headers().await?;
         Ok(self
             .get_http()
             .delete(&url, Some(&headers), payload)
