@@ -957,7 +957,7 @@ pub trait OAuthClient: BaseClient {
     ///   your client supports besides the default track type. Valid types are:
     ///   `track` and `episode`.
     ///
-    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-recently-played)
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/get-the-users-currently-playing-track)
     async fn current_playing<'a>(
         &'a self,
         market: Option<Market>,
