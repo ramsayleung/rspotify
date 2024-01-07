@@ -4,7 +4,7 @@ use crate::{
     http::{Form, HttpClient},
     join_scopes, params,
     sync::Mutex,
-    ClientResult, Config, Credentials, OAuth, Token,
+    ClientError, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
@@ -116,7 +116,10 @@ impl BaseClient for AuthCodeSpotify {
 
                 Ok(Some(token))
             }
-            _ => Ok(None),
+            _ => {
+                log::warn!("Can not refresh token! Token missing!");
+                Err(ClientError::InvalidToken)
+            }
         }
     }
 }
