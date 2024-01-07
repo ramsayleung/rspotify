@@ -198,6 +198,24 @@ impl AuthCodeSpotify {
         }
     }
 
+    /// Build a new [`AuthCodeSpotify`] from an already generated token and
+    /// config. Use this to be able to refresh a token.
+    #[must_use]
+    pub fn from_token_with_config(
+        token: Token,
+        creds: Credentials,
+        oauth: OAuth,
+        config: Config,
+    ) -> Self {
+        Self {
+            token: Arc::new(Mutex::new(Some(token))),
+            creds,
+            oauth,
+            config,
+            ..Default::default()
+        }
+    }
+
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {
