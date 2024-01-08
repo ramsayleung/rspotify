@@ -4,7 +4,7 @@ use crate::{
     http::{Form, HttpClient},
     join_scopes, params,
     sync::Mutex,
-    ClientResult, Config, Credentials, OAuth, Token,
+    ClientError, ClientResult, Config, Credentials, OAuth, Token,
 };
 
 use std::collections::HashMap;
@@ -116,7 +116,10 @@ impl BaseClient for AuthCodeSpotify {
 
                 Ok(Some(token))
             }
-            _ => Ok(None),
+            _ => {
+                log::warn!("Can not refresh token! Token missing!");
+                Err(ClientError::InvalidToken)
+            }
         }
     }
 }
@@ -188,6 +191,24 @@ impl AuthCodeSpotify {
     #[must_use]
     pub fn with_config(creds: Credentials, oauth: OAuth, config: Config) -> Self {
         Self {
+            creds,
+            oauth,
+            config,
+            ..Default::default()
+        }
+    }
+
+    /// Build a new [`AuthCodeSpotify`] from an already generated token and
+    /// config. Use this to be able to refresh a token.
+    #[must_use]
+    pub fn from_token_with_config(
+        token: Token,
+        creds: Credentials,
+        oauth: OAuth,
+        config: Config,
+    ) -> Self {
+        Self {
+            token: Arc::new(Mutex::new(Some(token))),
             creds,
             oauth,
             config,
