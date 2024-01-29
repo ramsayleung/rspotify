@@ -58,6 +58,7 @@ pub struct UreqClient {
 impl Default for UreqClient {
     fn default() -> Self {
         let agent = ureq::AgentBuilder::new()
+            .try_proxy_from_env(true)
             .timeout(Duration::from_secs(10))
             .build();
         Self { agent }
