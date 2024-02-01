@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{ArtistId, CursorBasedPage, Followers, Image};
+use crate::{data_type_patcher::as_u32, ArtistId, CursorBasedPage, Followers, Image};
 
 /// Simplified Artist Object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -25,6 +25,8 @@ pub struct FullArtist {
     pub id: ArtistId<'static>,
     pub images: Vec<Image>,
     pub name: String,
+    // TODO: remove this statement after Spotify fix the [issue](https://github.com/ramsayleung/rspotify/issues/452)
+    #[serde(deserialize_with = "as_u32")]
     pub popularity: u32,
 }
 
