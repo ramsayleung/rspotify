@@ -8,6 +8,7 @@ pub mod auth;
 pub mod category;
 pub mod context;
 pub(crate) mod custom_serde;
+pub mod data_type_patcher;
 pub mod device;
 pub mod enums;
 pub mod error;
@@ -24,9 +25,9 @@ pub mod track;
 pub mod user;
 
 pub use {
-    album::*, artist::*, audio::*, auth::*, category::*, context::*, device::*, enums::*, error::*,
-    idtypes::*, image::*, offset::*, page::*, playing::*, playlist::*, recommend::*, search::*,
-    show::*, track::*, user::*,
+    album::*, artist::*, audio::*, auth::*, category::*, context::*, data_type_patcher::as_u32,
+    device::*, enums::*, error::*, idtypes::*, image::*, offset::*, page::*, playing::*,
+    playlist::*, recommend::*, search::*, show::*, track::*, user::*,
 };
 
 use serde::{Deserialize, Serialize};
@@ -36,6 +37,8 @@ use serde::{Deserialize, Serialize};
 pub struct Followers {
     // This field will always set to null, as the Web API does not support it at the moment.
     // pub href: Option<String>,
+    // TODO: remove this statement after Spotify fix the [issue](https://github.com/ramsayleung/rspotify/issues/452)
+    #[serde(deserialize_with = "as_u32")]
     pub total: u32,
 }
 
