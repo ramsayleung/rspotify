@@ -421,9 +421,9 @@ where
     ///   relevant audio content that is hosted externally.  
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
-    async fn search(
+    async fn search<T: Into<String> + Send>(
         &self,
-        q: &str,
+        q: T,
         _type: SearchType,
         market: Option<Market>,
         include_external: Option<IncludeExternal>,
@@ -432,8 +432,9 @@ where
     ) -> ClientResult<SearchResult> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
+        let q: String = q.into();
         let params = build_map([
-            ("q", Some(q)),
+            ("q", Some(&q)),
             ("type", Some(_type.into())),
             ("market", market.map(Into::into)),
             ("include_external", include_external.map(Into::into)),

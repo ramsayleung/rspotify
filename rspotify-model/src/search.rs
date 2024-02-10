@@ -1,6 +1,7 @@
 //! All object related to search
 
 use serde::{Deserialize, Serialize};
+use strum::Display;
 
 use crate::{
     FullArtist, FullTrack, Page, SimplifiedAlbum, SimplifiedEpisode, SimplifiedPlaylist,
@@ -59,4 +60,21 @@ pub enum SearchResult {
     Shows(Page<SimplifiedShow>),
     #[serde(rename = "episodes")]
     Episodes(Page<SimplifiedEpisode>),
+}
+
+/// Valid filters to used in the search endpoint's query string
+#[derive(Debug, Display, PartialEq, Eq, PartialOrd, Ord)]
+#[strum(serialize_all = "snake_case")]
+pub enum SearchFilter {
+    Album,
+    Artist,
+    Track,
+    Year,
+    Upc,
+    #[strum(serialize = "tag:hipster")]
+    TagHipster,
+    #[strum(serialize = "tag:new")]
+    TagNew,
+    Isrc,
+    Genre,
 }
