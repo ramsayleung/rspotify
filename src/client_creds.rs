@@ -30,7 +30,8 @@ pub struct ClientCredsSpotify {
 }
 
 /// This client has access to the base methods.
-#[maybe_async]
+#[cfg_attr(target_arch = "wasm32", maybe_async(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), maybe_async)]
 impl BaseClient for ClientCredsSpotify {
     fn get_http(&self) -> &HttpClient {
         &self.http

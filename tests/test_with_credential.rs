@@ -1,35 +1,52 @@
+mod util;
+
 use rspotify::{
     model::{AlbumId, AlbumType, ArtistId, Country, Market, PlaylistId, TrackId, UserId},
     prelude::*,
-    ClientCredsSpotify, Credentials,
+    ClientCredsSpotify,
 };
 
 use maybe_async::maybe_async;
 
+#[cfg(target_arch="wasm32")]
+use wasm_bindgen_test::*;
+
 /// Generating a new basic client for the requests.
 #[maybe_async]
 pub async fn creds_client() -> ClientCredsSpotify {
-    // The credentials must be available in the environment.
-    let creds = Credentials::from_env().unwrap_or_else(|| {
-        panic!(
-            "No credentials configured. Make sure that either the `env-file` \
-            feature is enabled, or that the required environment variables are \
-            exported (`RSPOTIFY_CLIENT_ID`, `RSPOTIFY_CLIENT_SECRET`)"
-        )
-    });
-
+    let creds = util::get_credentials();
     let spotify = ClientCredsSpotify::new(creds);
     spotify.request_token().await.unwrap();
     spotify
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_album() {
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
     creds_client().await.album(birdy_uri, None).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_albums() {
     let track_uris = [
         AlbumId::from_uri("spotify:album:41MnTivkwTO3UUJ8DrqEJJ").unwrap(),
@@ -39,7 +56,17 @@ async fn test_albums() {
     creds_client().await.albums(track_uris, None).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_album_tracks() {
     let birdy_uri = AlbumId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
     creds_client()
@@ -49,7 +76,17 @@ async fn test_album_tracks() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artist_related_artists() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:43ZHCT0cAZBISjO8DG9PnE").unwrap();
     creds_client()
@@ -59,13 +96,33 @@ async fn test_artist_related_artists() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artist() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client().await.artist(birdy_uri).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artists_albums() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
@@ -81,7 +138,17 @@ async fn test_artists_albums() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artists_albums_with_multiple_album_types() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     let include_groups = [
@@ -103,7 +170,17 @@ async fn test_artists_albums_with_multiple_album_types() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artists_albums_with_zero_album_type() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
@@ -119,7 +196,17 @@ async fn test_artists_albums_with_zero_album_type() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artists() {
     let artist_uris = [
         ArtistId::from_uri("spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy").unwrap(),
@@ -128,7 +215,17 @@ async fn test_artists() {
     creds_client().await.artists(artist_uris).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_artist_top_tracks() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
@@ -138,19 +235,49 @@ async fn test_artist_top_tracks() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_audio_analysis() {
     let track = TrackId::from_id("06AKEBrKUckW0KREUWRnvT").unwrap();
     creds_client().await.track_analysis(track).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_audio_features() {
     let track = TrackId::from_uri("spotify:track:06AKEBrKUckW0KREUWRnvT").unwrap();
     creds_client().await.track_features(track).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_audios_features() {
     let mut tracks_ids = vec![];
     let track_id1 = TrackId::from_uri("spotify:track:4JpKVNYnVcJ8tuMKjAj50A").unwrap();
@@ -166,19 +293,49 @@ async fn test_audios_features() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_user() {
     let birdy_uri = UserId::from_id("tuggareutangranser").unwrap();
     creds_client().await.user(birdy_uri).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_track() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
     creds_client().await.track(birdy_uri, None).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_tracks() {
     let track_uris = [
         TrackId::from_uri("spotify:track:3n3Ppam7vgaVa1iaRUc9Lp").unwrap(),
@@ -187,7 +344,17 @@ async fn test_tracks() {
     creds_client().await.tracks(track_uris, None).await.unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_existing_playlist() {
     let playlist_id = PlaylistId::from_id("37i9dQZF1DZ06evO45P0Eo").unwrap();
     creds_client()
@@ -197,14 +364,24 @@ async fn test_existing_playlist() {
         .unwrap();
 }
 
-#[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
+#[maybe_async::test(
+    feature = "__sync", 
+    async(
+        all(feature = "__async", not(target_arch="wasm32")), 
+        tokio::test
+    ),
+    async(
+        all(feature = "__async", target_arch="wasm32"),
+        wasm_bindgen_test
+    )
+)]
 async fn test_fake_playlist() {
     let playlist_id = PlaylistId::from_id("fakeid").unwrap();
     let playlist = creds_client().await.playlist(playlist_id, None, None).await;
     assert!(playlist.is_err());
 }
 
-mod test_pagination {
+pub mod test_pagination {
     use super::*;
 
     static ALBUM: &str = "spotify:album:2T7DdrOvsqOqU9bGTkjBYu";
@@ -238,8 +415,8 @@ mod test_pagination {
     }
 
     /// This test iterates a request of 10 items, with 5 requests of 2 items.
-    #[cfg(feature = "__async")]
-    #[tokio::test]
+    #[cfg_attr(all(feature = "__async", not(target_arch="wasm32")), tokio::test)]
+    #[cfg_attr(all(feature = "__async", target_arch="wasm32"), wasm_bindgen_test)]
     async fn test_pagination_async() {
         use futures_util::StreamExt;
 

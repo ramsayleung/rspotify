@@ -442,11 +442,13 @@ impl OAuth {
 }
 
 #[cfg(test)]
-mod test {
+pub mod test {
     use crate::{alphabets, generate_random_string, Credentials};
     use std::collections::HashSet;
+    use wasm_bindgen_test::*;
 
     #[test]
+    #[wasm_bindgen_test]
     fn test_generate_random_string() {
         let mut containers = HashSet::new();
         for _ in 1..101 {
@@ -456,6 +458,7 @@ mod test {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn test_basic_auth() {
         let creds = Credentials::new_pkce("ramsay");
         let headers = creds.auth_headers();

@@ -1,6 +1,7 @@
 use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use rspotify::model::*;
 use serde::de::DeserializeOwned;
+use wasm_bindgen_test::*;
 
 #[track_caller]
 fn deserialize<T>(data: impl AsRef<str>) -> T
@@ -18,6 +19,7 @@ where
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_simplified_track() {
     let json_str = r#"
 {
@@ -55,6 +57,7 @@ fn test_simplified_track() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_public_user() {
     let json_str = r#"
         {
@@ -89,6 +92,7 @@ fn test_public_user() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_private_user() {
     let json_str = r#"
         {
@@ -119,6 +123,7 @@ fn test_private_user() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_full_artist() {
     let json_str = r#"
         {
@@ -153,6 +158,7 @@ fn test_full_artist() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_simplified_episode() {
     let json_str = r#"
         {
@@ -199,6 +205,7 @@ fn test_simplified_episode() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_full_episode() {
     let json_str = r#"
     {
@@ -267,6 +274,7 @@ fn test_full_episode() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_copyright() {
     let json_str = r#"
 	[ {
@@ -280,6 +288,7 @@ fn test_copyright() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_audio_analysis_section() {
     let json_str = r#"
         {
@@ -303,6 +312,7 @@ fn test_audio_analysis_section() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_audio_analysis_segments() {
     let json_str = r#"
          {
@@ -327,6 +337,7 @@ fn test_audio_analysis_segments() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_actions() {
     let json_str = r#"
         {
@@ -340,6 +351,7 @@ fn test_actions() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_recommendations_seed() {
     let json_str = r#"
         {
@@ -356,6 +368,7 @@ fn test_recommendations_seed() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_full_playlist() {
     let json_str_images = r#"
 [
@@ -493,6 +506,7 @@ fn test_full_playlist() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_audio_features() {
     let json = r#"
     {
@@ -522,6 +536,7 @@ fn test_audio_features() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_full_track() {
     let json = r#"
     {
@@ -601,6 +616,7 @@ fn test_full_track() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_resume_point() {
     let json = r#"
     {
@@ -614,6 +630,7 @@ fn test_resume_point() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_resume_point_negative() {
     let json = r#"
     {
@@ -627,6 +644,7 @@ fn test_resume_point_negative() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_currently_playing_context() {
     let json = r#"
 {
@@ -741,6 +759,7 @@ fn test_currently_playing_context() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_current_playback_context() {
     let json = r#"
 {
@@ -854,6 +873,7 @@ fn test_current_playback_context() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_current_user_queue() {
     let json = r#"
   {
@@ -1045,6 +1065,7 @@ fn test_current_user_queue() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_audio_analysis_track() {
     let json = r#"
   {
@@ -1081,6 +1102,7 @@ fn test_audio_analysis_track() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_simplified_playlist() {
     let json = r#"
   {
@@ -1129,6 +1151,7 @@ fn test_simplified_playlist() {
 }
 
 #[test]
+#[wasm_bindgen_test]
 fn test_collectionyourepisodes_type() {
     let json = r#"
 {

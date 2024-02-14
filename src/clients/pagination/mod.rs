@@ -25,10 +25,18 @@
 
 #[cfg(feature = "__sync")]
 mod iter;
-#[cfg(feature = "__async")]
+
+#[cfg(all(feature = "__async", not(target_arch = "wasm32")))]
 mod stream;
+
+#[cfg(all(feature = "__async", target_arch = "wasm32"))]
+mod wasm_stream;
 
 #[cfg(feature = "__sync")]
 pub use iter::{paginate, paginate_with_ctx, Paginator};
-#[cfg(feature = "__async")]
+
+#[cfg(all(feature = "__async", not(target_arch = "wasm32")))]
 pub use stream::{paginate, paginate_with_ctx, Paginator};
+
+#[cfg(all(feature = "__async", target_arch = "wasm32"))]
+pub use wasm_stream::{paginate, paginate_with_ctx, Paginator};
