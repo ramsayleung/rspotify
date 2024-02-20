@@ -307,8 +307,9 @@ pub mod test_pagination {
     }
 
     /// This test iterates a request of 10 items, with 5 requests of 2 items.
-    #[cfg_attr(all(feature = "__async", not(target_arch = "wasm32")), tokio::test)]
-    #[cfg_attr(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)]
+    #[cfg(feature = "__async")]
+    #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_pagination_async() {
         use futures_util::StreamExt;
 

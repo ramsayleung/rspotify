@@ -19,19 +19,3 @@ pub fn get_credentials() -> Credentials {
     let secret = dotenvy_macro::dotenv!("RSPOTIFY_CLIENT_SECRET");
     Credentials::new(&id, &secret)
 }
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn get_access_tokens() -> (Option<String>, Option<String>) {
-    use std::env;
-    (
-        env::var("RSPOTIFY_ACCESS_TOKEN").ok(),
-        env::var("RSPOTIFY_REFRESH_TOKEN").ok(),
-    )
-}
-
-#[cfg(target_arch = "wasm32")]
-pub fn get_access_tokens() -> (Option<String>, Option<String>) {
-    let access_token = option_env!("RSPOTIFY_ACCESS_TOKEN").map(|s| s.to_string());
-    let refresh_token = option_env!("RSPOTIFY_REFRESH_TOKEN").map(|s| s.to_string());
-    (access_token, refresh_token)
-}

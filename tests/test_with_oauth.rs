@@ -34,10 +34,26 @@ use maybe_async::maybe_async;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 
+#[cfg(not(target_arch = "wasm32"))]
+fn get_access_tokens() -> (Option<String>, Option<String>) {
+    use std::env;
+    (
+        env::var("RSPOTIFY_ACCESS_TOKEN").ok(),
+        env::var("RSPOTIFY_REFRESH_TOKEN").ok(),
+    )
+}
+
+#[cfg(target_arch = "wasm32")]
+fn get_access_tokens() -> (Option<String>, Option<String>) {
+    let access_token = option_env!("RSPOTIFY_ACCESS_TOKEN").map(|s| s.to_string());
+    let refresh_token = option_env!("RSPOTIFY_REFRESH_TOKEN").map(|s| s.to_string());
+    (access_token, refresh_token)
+}
+
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
 pub async fn oauth_client() -> AuthCodeSpotify {
-    let (access_token, refresh_token) = util::get_access_tokens();
+    let (access_token, refresh_token) = get_access_tokens();
 
     if let Some(access_token) = access_token {
         let tok = Token {
