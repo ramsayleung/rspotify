@@ -1,6 +1,6 @@
 use rspotify::Credentials;
 
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub fn get_credentials() -> Credentials {
     // The credentials must be available in the environment.
     Credentials::from_env().unwrap_or_else(|| {
@@ -12,7 +12,7 @@ pub fn get_credentials() -> Credentials {
     })
 }
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 pub fn get_credentials() -> Credentials {
     // The credentials must be available in the environment. Panics if they are not available
     let id = dotenvy_macro::dotenv!("RSPOTIFY_CLIENT_ID");
@@ -20,16 +20,16 @@ pub fn get_credentials() -> Credentials {
     Credentials::new(&id, &secret)
 }
 
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub fn get_access_tokens() -> (Option<String>, Option<String>) {
     use std::env;
     (
         env::var("RSPOTIFY_ACCESS_TOKEN").ok(),
-        env::var("RSPOTIFY_REFRESH_TOKEN").ok()
+        env::var("RSPOTIFY_REFRESH_TOKEN").ok(),
     )
 }
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 pub fn get_access_tokens() -> (Option<String>, Option<String>) {
     let access_token = option_env!("RSPOTIFY_ACCESS_TOKEN").map(|s| s.to_string());
     let refresh_token = option_env!("RSPOTIFY_REFRESH_TOKEN").map(|s| s.to_string());

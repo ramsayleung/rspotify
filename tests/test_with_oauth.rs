@@ -14,7 +14,7 @@
 //! with the `oauth_tokens` example:
 //!
 //!   cargo run --example oauth_tokens --features=env-file,cli
-//! 
+//!
 mod util;
 
 use rspotify::{
@@ -31,9 +31,8 @@ use rspotify::{
 use chrono::{prelude::*, Duration};
 use maybe_async::maybe_async;
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
-
 
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
@@ -107,15 +106,9 @@ async fn fetch_all<T>(paginator: Paginator<'_, ClientResult<T>>) -> Vec<T> {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_categories() {
@@ -132,15 +125,9 @@ async fn test_categories() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_category_playlists() {
@@ -157,15 +144,9 @@ async fn test_category_playlists() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_playback() {
@@ -177,15 +158,9 @@ async fn test_current_playback() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_playing() {
@@ -197,15 +172,9 @@ async fn test_current_playing() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_followed_artists() {
@@ -217,15 +186,9 @@ async fn test_current_user_followed_artists() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_playing_track() {
@@ -237,15 +200,9 @@ async fn test_current_user_playing_track() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_recently_played() {
@@ -258,15 +215,9 @@ async fn test_current_user_recently_played() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_saved_albums() {
@@ -305,15 +256,9 @@ async fn test_current_user_saved_albums() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_saved_tracks_add() {
@@ -349,15 +294,9 @@ async fn test_current_user_saved_tracks_add() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_top_artists() {
@@ -369,15 +308,9 @@ async fn test_current_user_top_artists() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_current_user_top_tracks() {
@@ -389,15 +322,9 @@ async fn test_current_user_top_tracks() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_featured_playlists() {
@@ -410,15 +337,9 @@ async fn test_featured_playlists() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_me() {
@@ -426,15 +347,9 @@ async fn test_me() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_new_releases() {
@@ -446,15 +361,9 @@ async fn test_new_releases() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_new_releases_with_from_token() {
@@ -466,15 +375,9 @@ async fn test_new_releases_with_from_token() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_playback() {
@@ -559,15 +462,9 @@ async fn test_playback() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_recommendations() {
@@ -593,15 +490,9 @@ async fn test_recommendations() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_repeat() {
@@ -618,15 +509,9 @@ async fn test_repeat() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_search_album() {
@@ -639,15 +524,9 @@ async fn test_search_album() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_search_artist() {
@@ -667,15 +546,9 @@ async fn test_search_artist() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_search_playlist() {
@@ -695,15 +568,9 @@ async fn test_search_playlist() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_search_track() {
@@ -725,15 +592,9 @@ async fn test_search_track() {
 // This also tests percentage signs in search queries to avoid regressions of
 // https://github.com/ramsayleung/rspotify/issues/141
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_search_show() {
@@ -746,15 +607,9 @@ async fn test_search_show() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_seek_track() {
@@ -778,15 +633,9 @@ async fn test_seek_track() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_shuffle() {
@@ -803,15 +652,9 @@ async fn test_shuffle() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_user_follow_artist() {
@@ -829,15 +672,9 @@ async fn test_user_follow_artist() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_user_follow_users() {
@@ -855,15 +692,9 @@ async fn test_user_follow_users() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_user_follow_playlist() {
@@ -1038,15 +869,9 @@ async fn check_playlist_follow(client: &AuthCodeSpotify, playlist: &FullPlaylist
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_playlist() {
@@ -1058,15 +883,9 @@ async fn test_playlist() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_volume() {
@@ -1090,15 +909,9 @@ async fn test_volume() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_add_queue() {
@@ -1114,15 +927,9 @@ async fn test_add_queue() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_get_several_shows() {
@@ -1139,15 +946,9 @@ async fn test_get_several_shows() {
 }
 
 #[maybe_async::test(
-    feature = "__sync", 
-    async(
-        all(feature = "__async", not(target_arch="wasm32")), 
-        tokio::test
-    ),
-    async(
-        all(feature = "__async", target_arch="wasm32"),
-        wasm_bindgen_test
-    )
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 #[ignore]
 async fn test_get_several_episodes() {
