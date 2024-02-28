@@ -1,3 +1,8 @@
+## 0.13.0 (2024.02.28)
+
+**New features**
+- ([#458](https://github.com/ramsayleung/rspotify/pull/458)) Support for the `wasm32-unknown-unknown` build target
+
 ## 0.12.1 (Unreleased)
 **Bugfixes**
 - ([#440](https://github.com/ramsayleung/rspotify/issues/440)) Add Smartwatch device type, fix for json parse error: unknown variant Smartwatch.
