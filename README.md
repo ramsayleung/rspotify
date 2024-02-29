@@ -54,6 +54,16 @@ $ cargo build --all-features
 
 Because in order to switch between clients, the different clients have to implement the same base trait in [src/http/mod.rs](https://github.com/ramsayleung/rspotify/blob/master/src/http/mod.rs), so if you build with all features, you'll get `duplicate definitions` error. As every coin has two sides, you can only have one side at a time, not all sides of it.
 
+## WASM support
+
+RSpotify supports building for the `wasm32-unknown-unknown` target. It should be as easy as:
+
+```sh
+$ cargo build --target wasm32-unknown-unknown
+```
+
+Refer to the [documentation](https://docs.rs/rspotify/latest/rspotify/#webassembly) for more details
+
 ## License
 
 [MIT](./LICENSE)

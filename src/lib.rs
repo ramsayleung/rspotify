@@ -108,6 +108,21 @@
 //! the [`.env` file](https://github.com/ramsayleung/rspotify/blob/master/.env)
 //! for more details.
 //!
+//! ### WebAssembly
+//!
+//! RSpotify supports the `wasm32-unknown-unknown` target in combination
+//! with the `client-reqwest` feature. HTTP requests must be processed async.
+//! Other HTTP client configurations are not supported.
+//!
+//! [Spotify recommends][spotify-auth-flows] using [`AuthCodePkceSpotify`] for
+//! authorization flows on the web.
+//!
+//! Importing the Client ID via `RSPOTIFY_CLIENT_ID` is not possible since WASM
+//! web runtimes are isolated from the host environment. The client ID must be
+//! passed explicitly to [`Credentials::new_pkce`]. Alternatively, it can be
+//! embedded at compile time with the [`std::env!`] or
+//! [`dotenv!`](https://crates.io/crates/dotenvy) macros.
+//!
 //! ### Examples
 //!
 //! There are some [available examples on the GitHub
@@ -442,11 +457,13 @@ impl OAuth {
 }
 
 #[cfg(test)]
-mod test {
+pub mod test {
     use crate::{alphabets, generate_random_string, Credentials};
     use std::collections::HashSet;
+    use wasm_bindgen_test::*;
 
     #[test]
+    #[wasm_bindgen_test]
     fn test_generate_random_string() {
         let mut containers = HashSet::new();
         for _ in 1..101 {
@@ -456,6 +473,7 @@ mod test {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn test_basic_auth() {
         let creds = Credentials::new_pkce("ramsay");
         let headers = creds.auth_headers();

@@ -4,6 +4,8 @@
 use super::{BaseHttpClient, Form, Headers, Query};
 
 use std::convert::TryInto;
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::Duration;
 
 use maybe_async::async_impl;
@@ -56,10 +58,22 @@ pub struct ReqwestClient {
     client: reqwest::Client,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Default for ReqwestClient {
     fn default() -> Self {
         let client = reqwest::ClientBuilder::new()
             .timeout(Duration::from_secs(10))
+            .build()
+            // building with these options cannot fail
+            .unwrap();
+        Self { client }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Default for ReqwestClient {
+    fn default() -> Self {
+        let client = reqwest::ClientBuilder::new()
             .build()
             // building with these options cannot fail
             .unwrap();
@@ -109,7 +123,8 @@ impl ReqwestClient {
     }
 }
 
-#[async_impl]
+#[cfg_attr(target_arch = "wasm32", async_impl(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_impl)]
 impl BaseHttpClient for ReqwestClient {
     type Error = ReqwestError;
 

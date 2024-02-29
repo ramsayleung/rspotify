@@ -91,3 +91,30 @@ jobs:
         with:
           command: test
           args: -p rspotify -p rspotify-http -p rspotify-model -p rspotify-macros --no-default-features --features=${{ matrix.features }}
+
+  test-wasm:
+    name: Test WASM client
+    runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: 1
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: clippy
+
+      - name: Install node
+        uses: actions/setup-node@v4
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Run wasm-pack test
+        run: wasm-pack test --node
