@@ -222,7 +222,7 @@ async fn test_current_user_playing_track() {
 )]
 #[ignore]
 async fn test_current_user_recently_played() {
-    let limit = TimeLimits::After(Utc::now() - Duration::days(2));
+    let limit = TimeLimits::After(Utc::now() - Duration::try_days(2).unwrap());
     oauth_client()
         .await
         .current_user_recently_played(Some(10), Some(limit))
@@ -635,7 +635,7 @@ async fn test_seek_track() {
     let backup = client.current_playback(None, None::<&[_]>).await.unwrap();
 
     client
-        .seek_track(chrono::Duration::seconds(25), None)
+        .seek_track(chrono::Duration::try_seconds(25).unwrap(), None)
         .await
         .unwrap();
 

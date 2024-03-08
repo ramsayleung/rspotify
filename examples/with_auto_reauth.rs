@@ -55,9 +55,9 @@ async fn expire_token<S: BaseClient>(spotify: &S) {
     let token = token.as_mut().expect("Token can't be empty as this point");
     // In a regular case, the token would expire with time. Here we just do
     // it manually.
-    let now = Utc::now().checked_sub_signed(Duration::seconds(10));
+    let now = Utc::now().checked_sub_signed(Duration::try_seconds(10).unwrap());
     token.expires_at = now;
-    token.expires_in = Duration::seconds(0);
+    token.expires_in = Duration::try_seconds(0).unwrap();
     // We also use a garbage access token to make sure it's actually
     // refreshed.
     token.access_token = "garbage".to_owned();

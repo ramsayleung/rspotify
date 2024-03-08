@@ -18,7 +18,12 @@ pub mod duration_ms {
         where
             E: de::Error,
         {
-            Ok(Duration::milliseconds(v))
+            Duration::try_milliseconds(v).ok_or_else(|| {
+                E::invalid_value(
+                    serde::de::Unexpected::Signed(v),
+                    &"an invalid duration in milliseconds",
+                )
+            })
         }
 
         // JSON deserializer calls visit_u64 for non-negative intgers
@@ -26,9 +31,19 @@ pub mod duration_ms {
         where
             E: de::Error,
         {
-            i64::try_from(v)
-                .map(Duration::milliseconds)
-                .map_err(E::custom)
+            match i64::try_from(v) {
+                Ok(val) => Duration::try_milliseconds(val).ok_or_else(|| {
+                    E::invalid_value(
+                        serde::de::Unexpected::Signed(val),
+                        &"a valid duration in
+        milliseconds",
+                    )
+                }),
+                Err(_) => Err(E::custom(format!(
+                    "Conversion error: u64 to i64 conversion failed for value {}",
+                    v
+                ))),
+            }
         }
     }
 
@@ -46,57 +61,6 @@ pub mod duration_ms {
         S: Serializer,
     {
         s.serialize_i64(x.num_milliseconds())
-    }
-}
-
-pub mod millisecond_timestamp {
-    use chrono::{DateTime, NaiveDateTime, Utc};
-    use serde::{de, Serializer};
-    use std::fmt;
-
-    /// Vistor to help deserialize unix millisecond timestamp to
-    /// `chrono::DateTime`.
-    struct DateTimeVisitor;
-
-    impl<'de> de::Visitor<'de> for DateTimeVisitor {
-        type Value = DateTime<Utc>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            write!(
-                formatter,
-                "an unix millisecond timestamp represents DataTime<UTC>"
-            )
-        }
-
-        fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            let second = (v - v % 1000) / 1000;
-            let nanosecond = ((v % 1000) * 1_000_000) as u32;
-            // The maximum value of i64 is large enough to hold milliseconds,
-            // so it would be safe to convert it i64.
-            match NaiveDateTime::from_timestamp_opt(second as i64, nanosecond) {
-                Some(ndt) => Ok(DateTime::<Utc>::from_naive_utc_and_offset(ndt, Utc)),
-                None => Err(E::custom(format!("v is invalid second: {v}"))),
-            }
-        }
-    }
-
-    /// Deserialize Unix millisecond timestamp to `DateTime<Utc>`
-    pub fn deserialize<'de, D>(d: D) -> Result<DateTime<Utc>, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        d.deserialize_u64(DateTimeVisitor)
-    }
-
-    /// Serialize `DateTime<Utc>` to Unix millisecond timestamp
-    pub fn serialize<S>(x: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        s.serialize_i64(x.timestamp_millis())
     }
 }
 
@@ -202,7 +166,10 @@ pub mod duration_second {
         D: de::Deserializer<'de>,
     {
         let duration: i64 = Deserialize::deserialize(d)?;
-        Ok(Duration::seconds(duration))
+        Duration::try_seconds(duration).ok_or(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Signed(duration),
+            &"an invalid duration in seconds",
+        ))
     }
 
     /// Serialize `chrono::Duration` to seconds (represented as u64)
