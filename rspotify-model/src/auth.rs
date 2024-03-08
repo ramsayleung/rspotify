@@ -12,7 +12,7 @@ use std::{
     path::Path,
 };
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, TimeDelta, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Spotify access token information
@@ -46,7 +46,7 @@ impl Default for Token {
     fn default() -> Self {
         Self {
             access_token: String::new(),
-            expires_in: Duration::seconds(0),
+            expires_in: Duration::try_seconds(0).unwrap(),
             expires_at: Some(Utc::now()),
             refresh_token: None,
             scopes: HashSet::new(),
@@ -81,7 +81,7 @@ impl Token {
     #[must_use]
     pub fn is_expired(&self) -> bool {
         self.expires_at.map_or(true, |expiration| {
-            Utc::now() + Duration::seconds(10) >= expiration
+            Utc::now() + TimeDelta::try_seconds(10).unwrap() >= expiration
         })
     }
 

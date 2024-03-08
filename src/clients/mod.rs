@@ -114,7 +114,7 @@ mod test {
     async fn test_auth_headers() {
         let tok = Token {
             access_token: "test-access_token".to_string(),
-            expires_in: Duration::seconds(1),
+            expires_in: Duration::try_seconds(1).unwrap(),
             expires_at: Some(Utc::now()),
             scopes: scopes!("playlist-read-private"),
             refresh_token: Some("...".to_string()),

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, NaiveDateTime, Utc};
+use chrono::{DateTime, Duration};
 use rspotify::model::*;
 use serde::de::DeserializeOwned;
 use wasm_bindgen_test::*;
@@ -52,7 +52,7 @@ fn test_simplified_track() {
 
 "#;
     let track: SimplifiedTrack = deserialize(json_str);
-    let duration = Duration::milliseconds(276773);
+    let duration = Duration::try_milliseconds(276773).unwrap();
     assert_eq!(track.duration, duration);
 }
 
@@ -200,7 +200,7 @@ fn test_simplified_episode() {
         simplified_episode.release_date_precision,
         DatePrecision::Day
     );
-    let duration = Duration::milliseconds(2685023);
+    let duration = Duration::try_milliseconds(2685023).unwrap();
     assert_eq!(simplified_episode.duration, duration);
 }
 
@@ -269,7 +269,7 @@ fn test_full_episode() {
         "#;
     let full_episode: FullEpisode = deserialize(json_str);
     assert_eq!(full_episode.release_date_precision, DatePrecision::Day);
-    let duration = Duration::milliseconds(1502795);
+    let duration = Duration::try_milliseconds(1502795).unwrap();
     assert_eq!(full_episode.duration, duration);
 }
 
@@ -531,7 +531,7 @@ fn test_audio_features() {
     }
     "#;
     let audio_features: AudioFeatures = deserialize(json);
-    let duration = Duration::milliseconds(255349);
+    let duration = Duration::try_milliseconds(255349).unwrap();
     assert_eq!(audio_features.duration, duration);
 }
 
@@ -611,7 +611,7 @@ fn test_full_track() {
 }
     "#;
     let full_track: FullTrack = deserialize(json);
-    let duration = Duration::milliseconds(207959);
+    let duration = Duration::try_milliseconds(207959).unwrap();
     assert_eq!(full_track.duration, duration);
 }
 
@@ -625,7 +625,7 @@ fn test_resume_point() {
     }   
     "#;
     let resume_point: ResumePoint = deserialize(json);
-    let duration = Duration::milliseconds(423432);
+    let duration = Duration::try_milliseconds(423432).unwrap();
     assert_eq!(resume_point.resume_position, duration);
 }
 
@@ -639,7 +639,7 @@ fn test_resume_point_negative() {
     }
     "#;
     let resume_point: ResumePoint = deserialize(json);
-    let duration = Duration::milliseconds(-1000);
+    let duration = Duration::try_milliseconds(-1000).unwrap();
     assert_eq!(resume_point.resume_position, duration);
 }
 
@@ -748,13 +748,10 @@ fn test_currently_playing_context() {
     let timestamp = 1607769168429;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
-    let dt = DateTime::<Utc>::from_naive_utc_and_offset(
-        NaiveDateTime::from_timestamp_opt(second, nanosecond as u32).unwrap(),
-        Utc,
-    );
+    let dt = DateTime::from_timestamp(second, nanosecond as u32).unwrap();
     assert_eq!(currently_playing_context.timestamp, dt);
 
-    let duration = Duration::milliseconds(22270);
+    let duration = Duration::try_milliseconds(22270).unwrap();
     assert_eq!(currently_playing_context.progress, Some(duration));
 }
 
@@ -864,10 +861,7 @@ fn test_current_playback_context() {
     let timestamp = 1607774342714;
     let second: i64 = (timestamp - timestamp % 1000) / 1000;
     let nanosecond = (timestamp % 1000) * 1000000;
-    let dt = DateTime::<Utc>::from_naive_utc_and_offset(
-        NaiveDateTime::from_timestamp_opt(second, nanosecond as u32).unwrap(),
-        Utc,
-    );
+    let dt = DateTime::from_timestamp(second, nanosecond as u32).unwrap();
     assert_eq!(current_playback_context.timestamp, dt);
     assert!(current_playback_context.progress.is_none());
 }

@@ -36,7 +36,7 @@ fn test_get_authorize_url() {
 
 #[maybe_async::test(feature = "__sync", async(feature = "__async", tokio::test))]
 async fn test_read_token_cache() {
-    let expires_in = Duration::seconds(3600);
+    let expires_in = Duration::try_seconds(3600).unwrap();
     let expires_at = Some(Utc::now() + expires_in);
     let scopes = scopes!("playlist-read-private", "playlist-read-collaborative");
 
@@ -67,7 +67,10 @@ async fn test_read_token_cache() {
     let tok_from_file = spotify.read_token_cache().await.unwrap().unwrap();
     assert_eq!(tok_from_file.scopes, scopes);
     assert_eq!(tok_from_file.refresh_token.unwrap(), "...");
-    assert_eq!(tok_from_file.expires_in, Duration::seconds(3600));
+    assert_eq!(
+        tok_from_file.expires_in,
+        Duration::try_seconds(3600).unwrap()
+    );
     assert_eq!(tok_from_file.expires_at, expires_at);
 
     // delete cache file in the end
@@ -81,7 +84,7 @@ async fn test_write_token() {
 
     let tok = Token {
         access_token: "test-access_token".to_owned(),
-        expires_in: Duration::seconds(3600),
+        expires_in: Duration::try_seconds(3600).unwrap(),
         expires_at: Some(now),
         scopes: scopes.clone(),
         refresh_token: Some("...".to_owned()),
@@ -105,7 +108,10 @@ async fn test_write_token() {
     assert_eq!(tok_str, tok_str_file);
     let tok_from_file: Token = serde_json::from_str(&tok_str_file).unwrap();
     assert_eq!(tok_from_file.scopes, scopes);
-    assert_eq!(tok_from_file.expires_in, Duration::seconds(3600));
+    assert_eq!(
+        tok_from_file.expires_in,
+        Duration::try_seconds(3600).unwrap()
+    );
     assert_eq!(tok_from_file.expires_at.unwrap(), now);
 
     // delete cache file in the end
@@ -115,7 +121,7 @@ async fn test_write_token() {
 #[test]
 #[wasm_bindgen_test]
 fn test_token_is_expired() {
-    let expires_in = Duration::seconds(20);
+    let expires_in = Duration::try_seconds(20).unwrap();
     let tok = Token {
         scopes: scopes!("playlist-read-private", "playlist-read-collaborative"),
         access_token: "test-access_token".to_owned(),
@@ -125,7 +131,7 @@ fn test_token_is_expired() {
     };
     assert!(!tok.is_expired());
 
-    let expires_in = Duration::seconds(3); // There's a margin of 10 seconds
+    let expires_in = Duration::try_seconds(3).unwrap(); // There's a margin of 10 seconds
     let tok = Token {
         scopes: scopes!("playlist-read-private", "playlist-read-collaborative"),
         access_token: "test-access_token".to_owned(),

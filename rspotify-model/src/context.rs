@@ -1,13 +1,14 @@
 //! All objects related to context
 
+use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 
 use std::collections::HashMap;
 
 use crate::{
-    custom_serde::{millisecond_timestamp, option_duration_ms},
-    CurrentlyPlayingType, Device, DisallowKey, PlayableItem, RepeatState, Type,
+    custom_serde::option_duration_ms, CurrentlyPlayingType, Device, DisallowKey, PlayableItem,
+    RepeatState, Type,
 };
 
 /// Context object
@@ -25,7 +26,7 @@ pub struct Context {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CurrentlyPlayingContext {
     pub context: Option<Context>,
-    #[serde(with = "millisecond_timestamp")]
+    #[serde(with = "ts_milliseconds")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
     #[serde(with = "option_duration_ms", rename = "progress_ms")]
@@ -42,7 +43,7 @@ pub struct CurrentPlaybackContext {
     pub repeat_state: RepeatState,
     pub shuffle_state: bool,
     pub context: Option<Context>,
-    #[serde(with = "millisecond_timestamp")]
+    #[serde(with = "ts_milliseconds")]
     pub timestamp: DateTime<Utc>,
     #[serde(default)]
     #[serde(with = "option_duration_ms", rename = "progress_ms")]
