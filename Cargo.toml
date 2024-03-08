@@ -4,7 +4,7 @@ authors = [
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"
 ]
 name = "rspotify"
-version = "0.13.0"
+version = "0.12.0"
 license = "MIT"
 readme = "README.md"
 description = "Spotify API wrapper"
