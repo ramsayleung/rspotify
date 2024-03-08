@@ -1,7 +1,7 @@
 on:
   create:
     tags:
-      - v*
+      - 'v*'
 
 name: Publish Crate
 
