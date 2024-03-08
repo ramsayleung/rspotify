@@ -59,6 +59,7 @@ pub struct FullTracks {
 /// relinking is applied.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedTrack {
+    pub album: SimplifiedAlbum,
     pub artists: Vec<SimplifiedArtist>,
     pub available_markets: Option<Vec<String>>,
     pub disc_number: i32,
