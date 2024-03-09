@@ -59,6 +59,8 @@ pub struct FullTracks {
 /// relinking is applied.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedTrack {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub album: Option<SimplifiedAlbum>,
     pub artists: Vec<SimplifiedArtist>,
     pub available_markets: Option<Vec<String>>,
     pub disc_number: i32,
