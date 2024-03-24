@@ -69,7 +69,11 @@ impl Token {
     pub fn write_cache<T: AsRef<Path>>(&self, path: T) -> ModelResult<()> {
         let token_info = serde_json::to_string(&self)?;
 
-        let mut file = fs::OpenOptions::new().write(true).create(true).truncate(true).open(path)?;
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)?;
         file.set_len(0)?;
         file.write_all(token_info.as_bytes())?;
 
