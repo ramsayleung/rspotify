@@ -59,9 +59,16 @@ impl Default for UreqClient {
     fn default() -> Self {
         let agent = ureq::AgentBuilder::new()
             .try_proxy_from_env(true)
-            .timeout(Duration::from_secs(10))
-            .build();
-        Self { agent }
+            .timeout(Duration::from_secs(10));
+
+        #[cfg(feature = "ureq-native-tls")]
+        let agent = agent.tls_connector(std::sync::Arc::new(
+            native_tls::TlsConnector::new().expect("Failed to initialize TLS connector"),
+        ));
+
+        Self {
+            agent: agent.build(),
+        }
     }
 }
 

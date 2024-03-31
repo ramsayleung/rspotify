@@ -1,3 +1,8 @@
+## 0.13.1 (Unreleased)
+
+**Bugfixes**
+- ([#471](https://github.com/ramsayleung/rspotify/pull/471)) Fix `ureq-native-tls` feature to actually use native-tls
+
 ## 0.13.0 (2024.03.08)
 
 **New features**
