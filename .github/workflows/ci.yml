@@ -68,6 +68,7 @@ jobs:
         features:
           - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-rustls-tls,rspotify-http/client-ureq,rspotify-http/ureq-rustls-tls
           - rspotify/cli,rspotify/env-file,rspotify/client-reqwest,rspotify/reqwest-rustls-tls,rspotify-http/client-reqwest,rspotify-http/reqwest-rustls-tls
+          - rspotify/cli,rspotify/env-file,rspotify/client-ureq,rspotify/ureq-native-tls,rspotify-http/client-ureq,rspotify-http/ureq-native-tls
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -79,6 +80,10 @@ jobs:
           toolchain: stable
           override: true
           components: clippy
+
+      - name: Install libssl-dev
+        if: ${{ contains(matrix.features, 'ureq-native-tls') }}
+        run: sudo apt-get install libssl-dev
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1

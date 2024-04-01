@@ -26,6 +26,7 @@ thiserror = "1.0.29"
 # Supported clients
 reqwest = { version = "0.12.1", default-features = false, features = ["json", "socks"], optional = true }
 ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies", "socks-proxy"], optional = true }
+native-tls = { version = "0.2.11", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread"] }
@@ -47,7 +48,7 @@ reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 # Same for ureq.
 ureq-rustls-tls = ["ureq/tls"]
 ureq-rustls-tls-native-certs = ["ureq/tls", "ureq/native-certs"]
-ureq-native-tls = ["ureq/native-tls"]
+ureq-native-tls = ["ureq/native-tls", "dep:native-tls"]
 
 # Internal features for checking async or sync compilation
 __async = ["async-trait"]
