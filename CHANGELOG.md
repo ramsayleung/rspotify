@@ -1,4 +1,4 @@
-## 0.13.1 (Unreleased)
+## 0.13.1 (2024.04.01)
 
 **Bugfixes**
 - ([#471](https://github.com/ramsayleung/rspotify/pull/471)) Fix `ureq-native-tls` feature to actually use native-tls
@@ -12,7 +12,7 @@
 - ([#440](https://github.com/ramsayleung/rspotify/issues/440)) Add Smartwatch device type, fix for json parse error: unknown variant Smartwatch.
 - ([#447](https://github.com/ramsayleung/rspotify/pull/447)) Replace the deprecated `dotenv` crate with `dotenvy`
 
-## 0.13.0 (2023.08.26)
+## 0.12.0 (2023.08.26)
 **New features**
 - ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.
 - ([#418](https://github.com/ramsayleung/rspotify/pull/418)) Add a user-settable callback function whenever token is updated.
