@@ -66,4 +66,4 @@ Refer to the [documentation](https://docs.rs/rspotify/latest/rspotify/#webassemb
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE) 
