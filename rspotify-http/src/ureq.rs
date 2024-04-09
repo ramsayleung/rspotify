@@ -63,7 +63,11 @@ impl Default for UreqClient {
 
         #[cfg(feature = "ureq-native-tls")]
         let agent = agent.tls_connector(std::sync::Arc::new(
-            native_tls::TlsConnector::new().expect("Failed to initialize TLS connector"),
+            native_tls::TlsConnector::builder()
+                // rust-native-tls defaults to a minimum of TLS 1.0, which is insecure
+                .min_protocol_version(Some(native_tls::Protocol::Tlsv12))
+                .build()
+                .expect("Failed to initialize TLS connector"),
         ));
 
         Self {
