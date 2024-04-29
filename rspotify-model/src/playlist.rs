@@ -20,6 +20,14 @@ pub struct PlaylistTracksRef {
     pub total: u32,
 }
 
+fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    T: Default + serde::Deserialize<'de>,
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_default())
+}
+
 /// Simplified playlist object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedPlaylist {
@@ -27,6 +35,7 @@ pub struct SimplifiedPlaylist {
     pub external_urls: HashMap<String, String>,
     pub href: String,
     pub id: PlaylistId<'static>,
+    #[serde(deserialize_with = "deserialize_null_default")]
     pub images: Vec<Image>,
     pub name: String,
     pub owner: PublicUser,
