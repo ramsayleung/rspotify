@@ -1,3 +1,5 @@
+#![allow(clippy::assigning_clones)]
+
 use rspotify::{prelude::*, scopes, AuthCodePkceSpotify, Credentials, OAuth};
 
 #[tokio::main]

@@ -3,6 +3,8 @@
 //! Spotify server, it will check whether the token is expired and automatically
 //! re-authenticate by refresh_token if set `Token.token_refreshing` to true.
 
+#![allow(clippy::assigning_clones)]
+
 use chrono::offset::Utc;
 use chrono::Duration;
 use rspotify::{
