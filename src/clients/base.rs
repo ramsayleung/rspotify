@@ -318,7 +318,7 @@ where
         let include_groups_opt = include_groups_vec
             .is_empty()
             .not()
-            .then_some(include_groups_vec)
+            .then(|| include_groups_vec)
             .map(|t| t.join(","));
 
         let params = build_map([
