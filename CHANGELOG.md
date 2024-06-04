@@ -1,3 +1,6 @@
+## 0.13.2 (2024.06.03)
+- ([#480](https://github.com/ramsayleung/rspotify/pull/480)) Fix deserialize empty images from null.
+
 ## 0.13.1 (2024.04.01)
 
 **Bugfixes**
