@@ -41,7 +41,7 @@ pub struct FullTrack {
 }
 
 /// Track link object
-/// https://developer.spotify.com/documentation/web-api/concepts/track-relinking
+/// [track-relinking](https://developer.spotify.com/documentation/web-api/concepts/track-relinking)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
