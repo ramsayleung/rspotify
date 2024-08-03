@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-    custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId, Type
+    custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
+    Type,
 };
 
 /// Full track object
@@ -47,7 +48,7 @@ pub struct TrackLink {
     pub href: String,
     pub id: Option<TrackId<'static>>,
     pub r#type: Type,
-    pub uri: String
+    pub uri: String,
 }
 
 /// Intermediate full track wrapped by `Vec`
