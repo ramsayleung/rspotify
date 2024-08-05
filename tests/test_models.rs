@@ -1204,3 +1204,22 @@ fn test_collectionyourepisodes_type() {
     let context: Context = deserialize(json);
     assert_eq!(context._type, Type::Collectionyourepisodes);
 }
+
+#[test]
+#[wasm_bindgen_test]
+fn test_null_id_in_tracklink() {
+    let json = r#"
+{
+          "external_urls": {
+            "spotify": "https://open.spotify.com/track/0tSkMuKKrLXEfxc58cEhFX"
+          },
+          "href": "https://api.spotify.com/v1/tracks/0tSkMuKKrLXEfxc58cEhFX",
+          "id": null,
+          "type": "track",
+          "uri": "spotify:track:0tSkMuKKrLXEfxc58cEhFX"
+        }
+"#;
+    let linked_from: TrackLink = deserialize(json);
+    assert!(linked_from.id.is_none());
+    assert_eq!(linked_from.r#type, Type::Track);
+}

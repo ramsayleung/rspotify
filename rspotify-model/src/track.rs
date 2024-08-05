@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 use crate::{
     custom_serde::duration_ms, PlayableId, Restriction, SimplifiedAlbum, SimplifiedArtist, TrackId,
+    Type,
 };
 
 /// Full track object
@@ -40,11 +41,14 @@ pub struct FullTrack {
 }
 
 /// Track link object
+/// [track-relinking](https://developer.spotify.com/documentation/web-api/concepts/track-relinking)
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TrackLink {
     pub external_urls: HashMap<String, String>,
     pub href: String,
-    pub id: TrackId<'static>,
+    pub id: Option<TrackId<'static>>,
+    pub r#type: Type,
+    pub uri: String,
 }
 
 /// Intermediate full track wrapped by `Vec`
