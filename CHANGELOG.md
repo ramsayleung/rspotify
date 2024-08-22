@@ -13,6 +13,7 @@
 ## 0.13.0 (2024.03.08)
 
 **New features**
+- ([#490](https://github.com/ramsayleung/rspotify/pull/490)) Add impls for `Clone`, `Debug`, `PartialEq`, `Eq`, `Serialize` and `Hash` for `PlayContextId` and `PlayableId`
 - ([#458](https://github.com/ramsayleung/rspotify/pull/458)) Support for the `wasm32-unknown-unknown` build target
 
 **Bugfixes**

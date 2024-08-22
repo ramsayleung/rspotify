@@ -479,6 +479,7 @@ define_idtypes!(
 /// Grouping up multiple kinds of IDs to treat them generically. This also
 /// implements [`Id`], and [`From`] to instantiate it.
 #[enum_dispatch(Id)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 pub enum PlayContextId<'a> {
     Artist(ArtistId<'a>),
     Album(AlbumId<'a>),
@@ -521,6 +522,7 @@ impl<'a> PlayContextId<'a> {
 /// Grouping up multiple kinds of IDs to treat them generically. This also
 /// implements [`Id`] and [`From`] to instantiate it.
 #[enum_dispatch(Id)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 pub enum PlayableId<'a> {
     Track(TrackId<'a>),
     Episode(EpisodeId<'a>),
