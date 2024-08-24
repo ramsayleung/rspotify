@@ -2,6 +2,10 @@
 **Breaking changes**
 - ([#487](https://github.com/ramsayleung/rspotify/pull/487)) Change the type of `TrackLink.id` from `TrackId<'static>` to `Option<TrackId<'static>>`
 
+## 0.13.3 (2024.08.24)
+**New features**
+- ([#490](https://github.com/ramsayleung/rspotify/pull/490)) Add impls for `Clone`, `Debug`, `PartialEq`, `Eq`, `Serialize` and `Hash` for `PlayContextId` and `PlayableId`
+
 ## 0.13.2 (2024.06.03)
 - ([#480](https://github.com/ramsayleung/rspotify/pull/480)) Fix deserialize empty images from null.
 
@@ -13,7 +17,6 @@
 ## 0.13.0 (2024.03.08)
 
 **New features**
-- ([#490](https://github.com/ramsayleung/rspotify/pull/490)) Add impls for `Clone`, `Debug`, `PartialEq`, `Eq`, `Serialize` and `Hash` for `PlayContextId` and `PlayableId`
 - ([#458](https://github.com/ramsayleung/rspotify/pull/458)) Support for the `wasm32-unknown-unknown` build target
 
 **Bugfixes**
