@@ -28,6 +28,12 @@ where
             let request = req(&ctx, page_size, offset);
             let page = request.await?;
             offset += page.items.len() as u32;
+            // Occasionally, the Spotify will return an empty items with non-none next page
+            // So we have to check both conditions
+            // https://github.com/ramsayleung/rspotify/issues/492
+            if page.items.is_empty() {
+                break;
+            }
             for item in page.items {
                 yield Ok(item);
             }
