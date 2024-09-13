@@ -34,11 +34,11 @@ where
             if page.items.is_empty() {
                 break;
             }
-            if page.next.is_none() {
-                break;
-            }
             for item in page.items {
                 yield Ok(item);
+            }
+            if page.next.is_none() {
+                break;
             }
         }
     })

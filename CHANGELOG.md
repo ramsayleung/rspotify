@@ -2,6 +2,9 @@
 **Breaking changes**
 - ([#487](https://github.com/ramsayleung/rspotify/pull/487)) Change the type of `TrackLink.id` from `TrackId<'static>` to `Option<TrackId<'static>>`
 
+**Bugfixes**
+- ([#494](https://github.com/ramsayleung/rspotify/pull/494)) Fix endless sequential pagination problem.
+
 ## 0.13.3 (2024.08.24)
 **New features**
 - ([#490](https://github.com/ramsayleung/rspotify/pull/490)) Add impls for `Clone`, `Debug`, `PartialEq`, `Eq`, `Serialize` and `Hash` for `PlayContextId` and `PlayableId`
