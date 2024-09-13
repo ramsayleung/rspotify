@@ -409,6 +409,14 @@ where
 
     /// Search for an Item. Get Spotify catalog information about artists,
     /// albums, tracks or playlists that match a keyword string.
+    /// 
+    /// According to Spotify's doc, if you don't specify a country in the
+    /// request and your spotify account doesn't set the country, the content
+    /// might be unavailable for you:
+    /// > If a valid user access token is specified in the request header,
+    /// > the country associated with the user account will take priority over this parameter.
+    /// > Note: If neither market or user country are provided, the content is considered unavailable for the client.
+    /// > Users can view the country that is associated with their account in the [account settings](https://developer.spotify.com/documentation/web-api/reference/search).
     ///
     /// Parameters:
     /// - q - the search query
