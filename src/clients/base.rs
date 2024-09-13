@@ -409,7 +409,7 @@ where
 
     /// Search for an Item. Get Spotify catalog information about artists,
     /// albums, tracks or playlists that match a keyword string.
-    /// 
+    ///
     /// According to Spotify's doc, if you don't specify a country in the
     /// request and your spotify account doesn't set the country, the content
     /// might be unavailable for you:
