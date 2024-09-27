@@ -10,6 +10,7 @@ use maybe_async::maybe_async;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
+use rspotify_model::SearchType;
 
 /// Generating a new basic client for the requests.
 #[maybe_async]
@@ -271,6 +272,34 @@ async fn test_fake_playlist() {
     let playlist_id = PlaylistId::from_id("fakeid").unwrap();
     let playlist = creds_client().await.playlist(playlist_id, None, None).await;
     assert!(playlist.is_err());
+}
+
+#[maybe_async::test(
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
+)]
+async fn test_search_album() {
+    let query = "album:arrival artist:abba";
+    creds_client()
+        .await
+        .search(query, SearchType::Album, None, None, Some(10), Some(0))
+        .await
+        .unwrap();
+}
+
+#[maybe_async::test(
+    feature = "__sync",
+    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
+    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
+)]
+async fn test_search_multiple_types() {
+    let query = "album:arrival artist:abba";
+    creds_client()
+        .await
+        .search_multiple(query, vec![SearchType::Artist, SearchType::Album], None, None, Some(10), Some(0))
+        .await
+        .unwrap();
 }
 
 pub mod test_pagination {

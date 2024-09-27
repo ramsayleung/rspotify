@@ -60,3 +60,14 @@ pub enum SearchResult {
     #[serde(rename = "episodes")]
     Episodes(Page<SimplifiedEpisode>),
 }
+
+/// Search result of any multiple kinds
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SearchMultipleResult {
+    pub playlists: Option<Page<SimplifiedPlaylist>>,
+    pub albums: Option<Page<SimplifiedAlbum>>,
+    pub artists: Option<Page<FullArtist>>,
+    pub tracks: Option<Page<FullTrack>>,
+    pub shows: Option<Page<SimplifiedShow>>,
+    pub episodes: Option<Page<SimplifiedEpisode>>,
+}
