@@ -499,7 +499,6 @@ where
         ]);
 
         let result = self.api_get("search", &params).await?;
-        println!("{}", &result);
         convert_result(&result)
     }
 
