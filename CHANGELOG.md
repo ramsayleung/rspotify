@@ -4,10 +4,10 @@
 
 **Bugfixes**
 - ([#494](https://github.com/ramsayleung/rspotify/pull/494)) Fix endless sequential pagination problem.
-
-## 0.13.4 (unreleased)
+ 
 **New features**
 - ([#496](https://github.com/ramsayleung/rspotify/pull/497)) Add support for searching multiple types
+
 
 ## 0.13.3 (2024.08.24)
 **New features**

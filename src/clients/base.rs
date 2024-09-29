@@ -480,7 +480,7 @@ where
     async fn search_multiple(
         &self,
         q: &str,
-        _type: Vec<SearchType>,
+        r#type: impl IntoIterator<Item = SearchType> + Send,
         market: Option<Market>,
         include_external: Option<IncludeExternal>,
         limit: Option<u32>,
@@ -488,7 +488,10 @@ where
     ) -> ClientResult<SearchMultipleResult> {
         let limit = limit.map(|s| s.to_string());
         let offset = offset.map(|s| s.to_string());
-        let mut _type = _type.into_iter().map(|x| Into::<&str>::into(x).to_string() + ",").collect::<String>();
+        let mut _type = r#type
+            .into_iter()
+            .map(|x| Into::<&str>::into(x).to_string() + ",")
+            .collect::<String>();
         let params = build_map([
             ("q", Some(q)),
             ("type", Some(_type.trim_end_matches(","))),

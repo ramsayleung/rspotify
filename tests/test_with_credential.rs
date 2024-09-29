@@ -8,9 +8,9 @@ use rspotify::{
 
 use maybe_async::maybe_async;
 
+use rspotify_model::SearchType;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
-use rspotify_model::SearchType;
 
 /// Generating a new basic client for the requests.
 #[maybe_async]
@@ -297,7 +297,14 @@ async fn test_search_multiple_types() {
     let query = "album:arrival artist:abba";
     creds_client()
         .await
-        .search_multiple(query, vec![SearchType::Artist, SearchType::Album], None, None, Some(10), Some(0))
+        .search_multiple(
+            query,
+            vec![SearchType::Artist, SearchType::Album],
+            None,
+            None,
+            Some(10),
+            Some(0),
+        )
         .await
         .unwrap();
 }
