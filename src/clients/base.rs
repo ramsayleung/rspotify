@@ -427,7 +427,7 @@ where
     /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
     /// - include_external: Optional.Possible values: audio. If
     ///   include_external=audio is specified the response will include any
-    ///   relevant audio content that is hosted externally.  
+    ///   relevant audio content that is hosted externally.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
     async fn search(
@@ -444,6 +444,57 @@ where
         let params = build_map([
             ("q", Some(q)),
             ("type", Some(_type.into())),
+            ("market", market.map(Into::into)),
+            ("include_external", include_external.map(Into::into)),
+            ("limit", limit.as_deref()),
+            ("offset", offset.as_deref()),
+        ]);
+
+        let result = self.api_get("search", &params).await?;
+        convert_result(&result)
+    }
+
+    /// Search for multiple an Item. Get Spotify catalog information about artists,
+    /// albums, tracks or playlists that match a keyword string.
+    ///
+    /// According to Spotify's doc, if you don't specify a country in the
+    /// request and your spotify account doesn't set the country, the content
+    /// might be unavailable for you:
+    /// > If a valid user access token is specified in the request header,
+    /// > the country associated with the user account will take priority over this parameter.
+    /// > Note: If neither market or user country are provided, the content is considered unavailable for the client.
+    /// > Users can view the country that is associated with their account in the [account settings](https://developer.spotify.com/documentation/web-api/reference/search).
+    ///
+    /// Parameters:
+    /// - q - the search query
+    /// - limit  - the number of items to return
+    /// - offset - the index of the first item to return
+    /// - type - the type of item to return. Multiple of 'artist', 'album', 'track',
+    ///  'playlist', 'show' or 'episode'
+    /// - market - An ISO 3166-1 alpha-2 country code or the string from_token.
+    /// - include_external: Optional.Possible values: audio. If
+    ///   include_external=audio is specified the response will include any
+    ///   relevant audio content that is hosted externally.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
+    async fn search_multiple(
+        &self,
+        q: &str,
+        r#type: impl IntoIterator<Item = SearchType> + Send,
+        market: Option<Market>,
+        include_external: Option<IncludeExternal>,
+        limit: Option<u32>,
+        offset: Option<u32>,
+    ) -> ClientResult<SearchMultipleResult> {
+        let limit = limit.map(|s| s.to_string());
+        let offset = offset.map(|s| s.to_string());
+        let mut _type = r#type
+            .into_iter()
+            .map(|x| Into::<&str>::into(x).to_string() + ",")
+            .collect::<String>();
+        let params = build_map([
+            ("q", Some(q)),
+            ("type", Some(_type.trim_end_matches(","))),
             ("market", market.map(Into::into)),
             ("include_external", include_external.map(Into::into)),
             ("limit", limit.as_deref()),
