@@ -42,7 +42,7 @@ maybe-async = "0.2.6"
 serde = { version = "1.0.130", default-features = false }
 serde_json = "1.0.67"
 sha2 = "0.10.0"
-thiserror = "1.0.29"
+thiserror = "2.0.3"
 url = "2.2.2"
 webbrowser = { version = "1.0.0", optional = true }
 
