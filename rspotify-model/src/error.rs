@@ -6,6 +6,7 @@ pub type ModelResult<T> = Result<T, ModelError>;
 
 /// Matches errors that are returned from the Spotfiy
 /// API as part of the JSON response object.
+#[allow(unreachable_patterns)]
 #[derive(Debug, Error, Deserialize)]
 pub enum ApiError {
     /// See [Error Object](https://developer.spotify.com/documentation/web-api/reference/#object-errorobject)
