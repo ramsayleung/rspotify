@@ -279,7 +279,7 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-albums)
-    fn artist_albums<'b, 'a: 'b,>(
+    fn artist_albums<'b, 'a: 'b>(
         &'a self,
         artist_id: ArtistId<'a>,
         include_groups: impl IntoIterator<Item = AlbumType> + Send + Copy + 'a,
@@ -516,7 +516,7 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-albums-tracks)
-    fn album_track<'b, 'a:'b,>(
+    fn album_track<'b, 'a: 'b>(
         &'a self,
         album_id: AlbumId<'a>,
         market: Option<Market>,
@@ -685,7 +685,7 @@ where
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-shows-episodes)
-    fn get_shows_episodes<'b, 'a:'b>(
+    fn get_shows_episodes<'b, 'a: 'b>(
         &'a self,
         id: ShowId<'a>,
         market: Option<Market>,
@@ -822,7 +822,7 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-categories)
-    fn categories<'b,'a:'b>(
+    fn categories<'b, 'a: 'b>(
         &'a self,
         locale: Option<&'a str>,
         country: Option<Market>,
@@ -1051,7 +1051,7 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlists-tracks)
-    fn playlist_items<'b, 'a:'b>(
+    fn playlist_items<'b, 'a: 'b>(
         &'a self,
         playlist_id: PlaylistId<'a>,
         fields: Option<&'a str>,
@@ -1106,7 +1106,7 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
-    fn user_playlists<'b, 'a:'b>(
+    fn user_playlists<'b, 'a: 'b>(
         &'a self,
         user_id: UserId<'a>,
     ) -> Paginator<'b, ClientResult<SimplifiedPlaylist>> {
