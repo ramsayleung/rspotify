@@ -122,4 +122,4 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Run wasm-pack test
-        run: wasm-pack test --node
+        run: wasm-pack test --node -- --features console_error_panic_hook
