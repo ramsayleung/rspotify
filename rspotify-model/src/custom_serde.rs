@@ -9,7 +9,7 @@ pub mod duration_ms {
     /// Vistor to help deserialize duration represented as millisecond to
     /// `chrono::Duration`.
     pub struct DurationVisitor;
-    impl<'de> de::Visitor<'de> for DurationVisitor {
+    impl de::Visitor<'_> for DurationVisitor {
         type Value = Duration;
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             write!(formatter, "a milliseconds represents chrono::Duration")
