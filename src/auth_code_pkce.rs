@@ -162,6 +162,24 @@ impl AuthCodePkceSpotify {
         }
     }
 
+    /// Build a new [`AuthCodePkceSpotify`] from an already generated token and
+    /// config. Use this to be able to refresh a token.
+    #[must_use]
+    pub fn from_token_with_config(
+        token: Token,
+        creds: Credentials,
+        oauth: OAuth,
+        config: Config,
+    ) -> Self {
+        Self {
+            token: Arc::new(Mutex::new(Some(token))),
+            creds,
+            oauth,
+            config,
+            ..Default::default()
+        }
+    }
+
     /// Generate the verifier code and the challenge code.
     fn generate_codes(verifier_bytes: usize) -> (String, String) {
         log::info!("Generating PKCE codes");
