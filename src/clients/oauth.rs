@@ -152,7 +152,6 @@ pub trait OAuthClient: BaseClient {
     // If the specified `redirect_url` is HTTP, loopback, and contains a port,
     // then the corresponding socket address is returned.
     fn get_socket_address(&self, redirect_url: &str) -> Option<SocketAddr> {
-        println!("get_socket_address: {}", redirect_url);
         let url = match Url::parse(redirect_url) {
             Ok(parsed_url) if parsed_url.scheme() == "http" && parsed_url.port().is_some() => {
                 parsed_url
