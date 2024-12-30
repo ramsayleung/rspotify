@@ -24,7 +24,8 @@ serde_json = "1.0.67"
 thiserror = "2.0.9"
 
 # Supported clients
-reqwest = { version = "0.12.1", default-features = false, features = ["json", "socks"], optional = true }
+reqwest = { version = "0.12.1", default-features = false, features = [ "json", "socks"], optional = true }
+reqwest-middleware = { version = "0.4.0", features = ["json"], optional = true }
 ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies", "socks-proxy"], optional = true }
 native-tls = { version = "0.2.11", optional = true }
 
@@ -49,6 +50,9 @@ reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 ureq-rustls-tls = ["ureq/tls"]
 ureq-rustls-tls-native-certs = ["ureq/tls", "ureq/native-certs"]
 ureq-native-tls = ["ureq/native-tls", "dep:native-tls"]
+
+# Enables middleware for client-reqwest.
+reqwest-middleware = ["dep:reqwest-middleware"]
 
 # Internal features for checking async or sync compilation
 __async = ["async-trait"]

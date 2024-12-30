@@ -9,8 +9,11 @@ use std::convert::TryInto;
 use std::time::Duration;
 
 use maybe_async::async_impl;
-use reqwest::{Method, RequestBuilder};
+use reqwest::Method;
 use serde_json::Value;
+
+#[cfg(not(feature = "reqwest-middleware"))]
+use reqwest::{Client, Error, RequestBuilder};
 
 /// Custom enum that contains all the possible errors that may occur when using
 /// [`reqwest`].
@@ -42,7 +45,7 @@ pub enum ReqwestError {
     /// The request couldn't be completed because there was an error when trying
     /// to do so
     #[error("request: {0}")]
-    Client(#[from] reqwest::Error),
+    Client(#[from] Error),
 
     /// The request was made, but the server returned an unsuccessful status
     /// code, such as 404 or 503. In some cases, the response may contain a
@@ -55,29 +58,32 @@ pub enum ReqwestError {
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
     /// reqwest needs an instance of its client to perform requests.
-    client: reqwest::Client,
+    client: Client,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-impl Default for ReqwestClient {
-    fn default() -> Self {
-        let client = reqwest::ClientBuilder::new()
-            .timeout(Duration::from_secs(10))
-            .build()
-            // building with these options cannot fail
-            .unwrap();
-        Self { client }
-    }
+fn default_reqwest_client() -> reqwest::Client {
+    reqwest::ClientBuilder::new()
+        .timeout(Duration::from_secs(10))
+        .build()
+        // building with these options cannot fail
+        .unwrap()
 }
 
 #[cfg(target_arch = "wasm32")]
+fn default_reqwest_client() -> reqwest::Client {
+    reqwest::ClientBuilder::new()
+        .build()
+        // building with these options cannot fail
+        .unwrap()
+}
+
+#[cfg(not(feature = "reqwest-middleware"))]
 impl Default for ReqwestClient {
     fn default() -> Self {
-        let client = reqwest::ClientBuilder::new()
-            .build()
-            // building with these options cannot fail
-            .unwrap();
-        Self { client }
+        Self {
+            client: default_reqwest_client(),
+        }
     }
 }
 
@@ -116,7 +122,7 @@ impl ReqwestClient {
 
         // Making sure that the status code is OK
         if response.status().is_success() {
-            response.text().await.map_err(Into::into)
+            Ok(response.text().await.map_err(Error::from)?)
         } else {
             Err(ReqwestError::StatusCode(response))
         }
@@ -181,5 +187,60 @@ impl BaseHttpClient for ReqwestClient {
     ) -> Result<String, Self::Error> {
         self.request(Method::DELETE, url, headers, |req| req.json(payload))
             .await
+    }
+}
+
+#[cfg(feature = "reqwest-middleware")]
+use middleware::*;
+#[cfg(feature = "reqwest-middleware")]
+pub use middleware::{Middleware, ReqwestClientBuilder};
+#[cfg(feature = "reqwest-middleware")]
+mod middleware {
+    use std::sync::Arc;
+
+    pub use reqwest_middleware::{
+        ClientWithMiddleware as Client, Error, Middleware, RequestBuilder,
+    };
+
+    use super::{default_reqwest_client, ReqwestClient};
+    use reqwest_middleware::ClientBuilder;
+
+    impl Default for ReqwestClient {
+        fn default() -> Self {
+            let reqwest_client = default_reqwest_client();
+            let client = ClientBuilder::new(reqwest_client).build();
+            Self { client }
+        }
+    }
+
+    pub struct ReqwestClientBuilder {
+        builder: ClientBuilder,
+    }
+
+    impl Default for ReqwestClientBuilder {
+        fn default() -> Self {
+            let builder = ClientBuilder::new(default_reqwest_client());
+            Self { builder }
+        }
+    }
+
+    impl ReqwestClientBuilder {
+        pub fn with<M: Middleware>(self, middleware: M) -> Self {
+            Self {
+                builder: self.builder.with(middleware),
+            }
+        }
+
+        pub fn with_arc(self, middleware: Arc<dyn Middleware>) -> Self {
+            Self {
+                builder: self.builder.with_arc(middleware),
+            }
+        }
+
+        pub fn build(self) -> ReqwestClient {
+            ReqwestClient {
+                client: self.builder.build(),
+            }
+        }
     }
 }

@@ -87,6 +87,9 @@ ureq-rustls-tls = ["rspotify-http/ureq-rustls-tls"]
 ureq-rustls-tls-native-certs = ["rspotify-http/ureq-rustls-tls-native-certs"]
 ureq-native-tls = ["rspotify-http/ureq-native-tls"]
 
+# Enables middleware for client-reqwest.
+reqwest-middleware = ["rspotify-http/reqwest-middleware"]
+
 # Internal features for checking async or sync compilation
 __async = ["futures", "async-stream", "async-trait"]
 __sync = ["maybe-async/is_sync"]
