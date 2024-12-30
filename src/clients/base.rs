@@ -361,6 +361,7 @@ where
     /// - artist_id - the artist ID, URI or URL
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-related-artists)
+    #[deprecated(since = "0.14.0", note = "Spotify has deprecated this endpoint, check documentation for more information")]
     async fn artist_related_artists(
         &self,
         artist_id: ArtistId<'_>,
@@ -766,6 +767,7 @@ where
     /// - track - track URI, URL or ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-features)
+    #[deprecated(since = "0.14.0", note = "Spotify has deprecated this endpoint, check documentation for more information")]
     async fn track_features(&self, track_id: TrackId<'_>) -> ClientResult<AudioFeatures> {
         let url = format!("audio-features/{}", track_id.id());
         let result = self.api_get(&url, &Query::new()).await?;
@@ -778,6 +780,7 @@ where
     /// - tracks a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-audio-features)
+    #[deprecated(since = "0.14.0", note = "Spotify has deprecated this endpoint, check documentation for more information")]
     async fn tracks_features<'a>(
         &self,
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
@@ -801,6 +804,7 @@ where
     /// - track_id - a track URI, URL or ID
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-audio-analysis)
+    #[deprecated(since = "0.14.0", note = "Spotify has deprecated this endpoint, check documentation for more information")]
     async fn track_analysis(&self, track_id: TrackId<'_>) -> ClientResult<AudioAnalysis> {
         let url = format!("audio-analysis/{}", track_id.id());
         let result = self.api_get(&url, &Query::new()).await?;

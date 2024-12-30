@@ -64,20 +64,6 @@ async fn test_album_tracks() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
-async fn test_artist_related_artists() {
-    let birdy_uri = ArtistId::from_uri("spotify:artist:43ZHCT0cAZBISjO8DG9PnE").unwrap();
-    creds_client()
-        .await
-        .artist_related_artists(birdy_uri)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
 async fn test_artist() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client().await.artist(birdy_uri).await.unwrap();
@@ -181,46 +167,6 @@ async fn test_artist_top_tracks() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
-async fn test_audio_analysis() {
-    let track = TrackId::from_id("06AKEBrKUckW0KREUWRnvT").unwrap();
-    creds_client().await.track_analysis(track).await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-async fn test_audio_features() {
-    let track = TrackId::from_uri("spotify:track:06AKEBrKUckW0KREUWRnvT").unwrap();
-    creds_client().await.track_features(track).await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-async fn test_audios_features() {
-    let mut tracks_ids = vec![];
-    let track_id1 = TrackId::from_uri("spotify:track:4JpKVNYnVcJ8tuMKjAj50A").unwrap();
-    tracks_ids.push(track_id1);
-    let track_id2 = TrackId::from_uri("spotify:track:24JygzOLM0EmRQeGtFcIcG").unwrap();
-    tracks_ids.push(track_id2);
-    let track_id_no_features = TrackId::from_uri("spotify:track:6z99LwRS28wga9xc2u09Po").unwrap();
-    tracks_ids.push(track_id_no_features);
-    creds_client()
-        .await
-        .tracks_features(tracks_ids)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
 async fn test_user() {
     let birdy_uri = UserId::from_id("tuggareutangranser").unwrap();
     creds_client().await.user(birdy_uri).await.unwrap();
@@ -255,7 +201,7 @@ async fn test_tracks() {
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
 async fn test_existing_playlist() {
-    let playlist_id = PlaylistId::from_id("37i9dQZF1DZ06evO45P0Eo").unwrap();
+    let playlist_id = PlaylistId::from_id("0fwsN3jhWKTbJ1J7cR7fgu").unwrap();
     creds_client()
         .await
         .playlist(playlist_id, None, None)
