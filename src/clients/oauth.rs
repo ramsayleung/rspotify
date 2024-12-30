@@ -1414,7 +1414,7 @@ pub trait OAuthClient: BaseClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::{prelude::*, AuthCodeSpotify};
+    use crate::AuthCodeSpotify;
 
     use wasm_bindgen_test::*;
 
