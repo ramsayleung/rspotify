@@ -14,7 +14,7 @@ use crate::{
 use std::collections::HashMap;
 use std::{
     io::{BufRead, BufReader, Write},
-    net::{SocketAddr, TcpListener, IpAddr},
+    net::{IpAddr, SocketAddr, TcpListener},
 };
 
 use maybe_async::maybe_async;
@@ -181,7 +181,6 @@ pub trait OAuthClient: BaseClient {
         } else {
             None
         }
-        
     }
 
     /// Tries to open the authorization URL in the user's browser, and returns
