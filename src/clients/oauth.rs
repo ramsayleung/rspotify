@@ -14,7 +14,7 @@ use crate::{
 use std::collections::HashMap;
 use std::{
     io::{BufRead, BufReader, Write},
-    net::{SocketAddr, TcpListener},
+    net::{SocketAddr, TcpListener, IpAddr},
 };
 
 use maybe_async::maybe_async;
@@ -160,16 +160,28 @@ pub trait OAuthClient: BaseClient {
             _ => return None,
         };
 
-        let socket_addr = match url.socket_addrs(|| None) {
-            Ok(mut addrs) => addrs.pop(),
-            _ => None,
+        let host = url.host_str()?;
+        let port = url.port()?;
+
+        // Handle IPv6 addresses (they come with brackets from host_str())
+        let ip_addr = if host.starts_with('[') && host.ends_with(']') {
+            // Remove the brackets for IPv6 address parsing
+            let ip_str = &host[1..host.len() - 1];
+            ip_str.parse::<IpAddr>().ok()?
+        } else {
+            // Regular IPv4 address
+            host.parse::<IpAddr>().ok()?
         };
-        if let Some(s) = socket_addr {
-            if s.ip().is_loopback() {
-                return socket_addr;
-            }
+
+        let socket_addr = SocketAddr::new(ip_addr, port);
+
+        // Return the address only if it's a loopback address
+        if socket_addr.ip().is_loopback() {
+            Some(socket_addr)
+        } else {
+            None
         }
-        None
+        
     }
 
     /// Tries to open the authorization URL in the user's browser, and returns
