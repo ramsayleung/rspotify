@@ -10,7 +10,7 @@
 - ([#512](https://github.com/ramsayleung/rspotify/pull/512)) Add `AuthCodePkceSpotify::from_token_with_config()`
 - ([#513](https://github.com/ramsayleung/rspotify/pull/513)) 
     - Automatically spawn a local TCPListener to handle redirect url without manually copy/paste URL into terminal
-    - Mark `artist_related_artists`, `track_features`, `tracks_features` as deprecated because Spotify has deprecated these endpoints
+    - Mark `artist_related_artists`, `track_features`, `tracks_features`, `track_analysis` as deprecated because Spotify has deprecated these endpoints
 
 
 ## 0.13.3 (2024.08.24)
