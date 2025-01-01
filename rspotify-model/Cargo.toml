@@ -1,6 +1,6 @@
 [package]
 name = "rspotify-model"
-version = "0.13.3"
+version = "0.14.0"
 authors = [
     "Ramsay Leung <ramsayleung@gmail.com>",
     "Mario Ortiz Manero <marioortizmanero@gmail.com>"

@@ -1,4 +1,4 @@
-## 0.14.0 (unreleased)
+## 0.14.0 (2024.12.31)
 **Breaking changes**
 - ([#487](https://github.com/ramsayleung/rspotify/pull/487)) Change the type of `TrackLink.id` from `TrackId<'static>` to `Option<TrackId<'static>>`
 
