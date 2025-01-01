@@ -165,6 +165,7 @@ use crate::{http::HttpError, model::Id};
 use std::{
     collections::{HashMap, HashSet},
     env, fmt,
+    net::SocketAddr,
     path::PathBuf,
     sync::Arc,
 };
@@ -245,6 +246,21 @@ pub enum ClientError {
 
     #[error("Token is not valid")]
     InvalidToken,
+
+    #[error("Failed to bind server to {addr} ({e})")]
+    AuthCodeListenerBind { addr: SocketAddr, e: std::io::Error },
+
+    #[error("Listener terminated without accepting a connection")]
+    AuthCodeListenerTerminated,
+
+    #[error("Failed to read redirect URI from HTTP request")]
+    AuthCodeListenerRead,
+
+    #[error("Failed to parse redirect URI {0} from HTTP request")]
+    AuthCodeListenerParse(String),
+
+    #[error("Failed to write HTTP response")]
+    AuthCodeListenerWrite,
 }
 
 // The conversion has to be done manually because it's in a `Box<T>`
