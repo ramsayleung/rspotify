@@ -777,7 +777,7 @@ async fn check_playlist_cover(client: &AuthCodeSpotify, playlist_id: PlaylistId<
         .playlist_cover_image(playlist_id.as_ref())
         .await
         .unwrap();
-    assert_eq!(cover_res.unwrap().url, image);
+    assert_eq!(cover_res.url, image);
 }
 
 #[maybe_async]

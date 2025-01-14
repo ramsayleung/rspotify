@@ -646,14 +646,11 @@ where
     async fn playlist_cover_image(
         &self,
         playlist_id: PlaylistId<'_>,
-    ) -> ClientResult<Option<Image>> {
-        let url = format!("playlists/{}/images", playlist_id);
-        let result = self.api_get(&url, &Query::new()).await?;
-        // if result.is_empty() {
-        //     Ok(None)
-        // } else {
-            convert_result(&result)
-        // }
+    ) -> ClientResult<Image> {
+        let params = build_map([]);
+        let url = format!("playlists/{}/images", playlist_id.id());
+        let result = self.api_get(&url, &params).await?;
+        convert_result(&result)
     }
 
     /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
