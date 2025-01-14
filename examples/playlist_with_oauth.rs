@@ -30,7 +30,7 @@ async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: PlaylistId<'_>,
     assert_eq!(fetched_tracks.len() as i32, num);
 }
 
-async fn check_playlist_cover(client: &AuthCodeSpotify, playlist_id: PlaylistId<'_>) {
+async fn check_playlist_cover(client: &AuthCodeSpotify, playlist_id: &PlaylistId<'_>) {
     let img_url = "https://images.dog.ceo/breeds/poodle-toy/n02113624_8936.jpg";
     let img_bytes = tokio::task::spawn_blocking(move || {reqwest::blocking::get(img_url).unwrap().bytes().unwrap()}).await.unwrap();
     let playlist_cover_base64 = general_purpose::URL_SAFE_NO_PAD.encode(img_bytes.clone());
@@ -41,7 +41,6 @@ async fn check_playlist_cover(client: &AuthCodeSpotify, playlist_id: PlaylistId<
     let cover_res = client
         .playlist_cover_image(playlist_id.as_ref())
         .await
-        .unwrap()
         .unwrap();
 
     println!("cover_res pre upload: {:?}", cover_res);
@@ -56,7 +55,6 @@ async fn check_playlist_cover(client: &AuthCodeSpotify, playlist_id: PlaylistId<
     let cover_res = client
         .playlist_cover_image(playlist_id.as_ref())
         .await
-        .unwrap()
         .unwrap();
 
     println!("cover_res post upload: {:?}", cover_res);
@@ -218,8 +216,8 @@ async fn test_playlist(client: AuthCodeSpotify) {
     
     let playlist = check_playlist_create(&client).await;
     check_playlist_tracks(&client, &playlist).await;
+    check_playlist_cover(&client, &playlist.id).await;
     check_playlist_follow(&client, &playlist).await;
-    check_playlist_cover(&client, playlist.id).await;
 }
 
 #[tokio::main]

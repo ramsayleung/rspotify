@@ -10,7 +10,6 @@ use crate::{
     util::{build_map, JsonBuilder},
     ClientError, ClientResult, OAuth, Token,
 };
-
 use std::collections::HashMap;
 use std::{
     io::{BufRead, BufReader, Write},
@@ -19,6 +18,7 @@ use std::{
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::{PlayContextId, PlayableId};
+use rspotify_http::BaseHttpClient;
 use serde_json::{json, Map};
 use url::Url;
 
@@ -345,8 +345,19 @@ pub trait OAuthClient: BaseClient {
         image: &str,
     ) -> ClientResult<String> {
         let url = format!("playlists/{}/images", playlist_id.id());
-        let params = JsonBuilder::new().required("image", image).build();
-        self.api_put(&url, &params).await
+        let url = self.api_url(&url);
+
+        let mut headers = self.auth_headers().await?;
+        let content_type= "Content-Type".to_owned();
+        let value = String::from("image/jpeg");
+        headers.insert(content_type, value);
+
+        let payload= JsonBuilder::new()
+            .required("playlist_id", playlist_id.id())
+            .required("body", image.to_string())
+            .build();
+
+        Ok(self.get_http().put(&url, Some(&headers), &payload).await?)
     }
 
     /// Changes a playlist's name and/or public/private state.
