@@ -5,6 +5,7 @@ use crate::{model::Page, ClientResult};
 use std::pin::Pin;
 
 use futures::{future::Future, stream::Stream};
+use serde::de::DeserializeOwned;
 
 /// Alias for `futures::stream::Stream<Item = T>`, since async mode is enabled.
 pub type Paginator<'a, T> = Pin<Box<dyn Stream<Item = T> + 'a + Send>>;
@@ -18,7 +19,7 @@ pub fn paginate_with_ctx<'a, Ctx: 'a + Send, T, Request>(
     page_size: u32,
 ) -> Paginator<'a, ClientResult<T>>
 where
-    T: 'a + Unpin + Send,
+    T: 'a + Unpin + Send + DeserializeOwned,
     Request: 'a + for<'ctx> Fn(&'ctx Ctx, u32, u32) -> RequestFuture<'ctx, T> + Send,
 {
     use async_stream::stream;
@@ -46,7 +47,7 @@ where
 
 pub fn paginate<'a, T, Fut, Request>(req: Request, page_size: u32) -> Paginator<'a, ClientResult<T>>
 where
-    T: 'a + Unpin + Send,
+    T: 'a + Unpin + Send + DeserializeOwned,
     Fut: Future<Output = ClientResult<Page<T>>> + Send,
     Request: 'a + Fn(u32, u32) -> Fut + Send,
 {

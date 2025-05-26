@@ -1,11 +1,20 @@
 //! All kinds of page object
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use serde::{Deserialize, Serialize};
+fn vec_without_nulls<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+where
+    T: serde::Deserialize<'de>,
+    D: serde::Deserializer<'de>,
+{
+    let v = Vec::<Option<T>>::deserialize(deserializer)?;
+    Ok(v.into_iter().filter_map(|x| x).collect())
+}
 
 /// Paging object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct Page<T> {
+pub struct Page<T: DeserializeOwned> {
     pub href: String,
+    #[serde(deserialize_with = "vec_without_nulls")]
     pub items: Vec<T>,
     pub limit: u32,
     pub next: Option<String>,
