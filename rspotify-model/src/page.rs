@@ -1,13 +1,15 @@
 //! All kinds of page object
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+/// Custom deserializer to handle `Vec<Option<T>>` and filter out `None` values
+/// This is useful for deserializing lists that may contain null values that are not relevants
 fn vec_without_nulls<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
 where
     T: serde::Deserialize<'de>,
     D: serde::Deserializer<'de>,
 {
     let v = Vec::<Option<T>>::deserialize(deserializer)?;
-    Ok(v.into_iter().filter_map(|x| x).collect())
+    Ok(v.into_iter().flatten().collect())
 }
 
 /// Paging object
