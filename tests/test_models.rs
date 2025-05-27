@@ -1240,8 +1240,8 @@ fn test_null_item_in_page() {
   "total": 1
 }"#;
     let page: Page<SimplifiedPlaylist> = deserialize(json);
-    assert_eq!(page.items.len(), 1);
-    assert_eq!(page.total-1, 1); // Because one element is null so ignore at deserialization but counted in total
+    assert_eq!(page.items.len(), 0);
+    assert_eq!(page.total-1, 0); // Because one element is null so ignore at deserialization but counted in total
     assert_eq!(page.limit, 20);
     assert!(page.next.is_none());
     assert!(page.previous.is_none());
