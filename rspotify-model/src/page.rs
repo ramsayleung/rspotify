@@ -22,6 +22,8 @@ pub struct Page<T: DeserializeOwned> {
     pub next: Option<String>,
     pub offset: u32,
     pub previous: Option<String>,
+    /// This field could mismatch the actual number of items in `items` field 
+    /// because sometimes the API returns `null` items that are not included in the `items` field.
     pub total: u32,
 }
 
