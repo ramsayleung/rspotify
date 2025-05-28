@@ -84,9 +84,8 @@ impl Token {
     /// is how much a request would take in the worst case scenario).
     #[must_use]
     pub fn is_expired(&self) -> bool {
-        self.expires_at.is_none_or(|expiration| {
-            Utc::now() + TimeDelta::try_seconds(10).unwrap() >= expiration
-        })
+        self.expires_at
+            .is_none_or(|expiration| Utc::now() + TimeDelta::try_seconds(10).unwrap() >= expiration)
     }
 
     /// Generates an HTTP token authorization header with proper formatting

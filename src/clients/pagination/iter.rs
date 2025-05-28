@@ -1,11 +1,12 @@
 //! Synchronous implementation of automatic pagination requests.
 
 use crate::{model::Page, ClientError, ClientResult};
+use serde::de::DeserializeOwned;
 
 /// Alias for `Iterator<Item = T>`, since sync mode is enabled.
 pub type Paginator<'a, T> = Box<dyn Iterator<Item = T> + 'a>;
 
-pub fn paginate_with_ctx<'a, Ctx: 'a, T: 'a, Request>(
+pub fn paginate_with_ctx<'a, Ctx: 'a, T: DeserializeOwned + 'a, Request>(
     ctx: Ctx,
     req: Request,
     page_size: u32,
@@ -17,7 +18,7 @@ where
 }
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<'a, T: 'a, Request>(req: Request, page_size: u32) -> Paginator<'a, ClientResult<T>>
+pub fn paginate<'a, T: DeserializeOwned + 'a, Request>(req: Request, page_size: u32) -> Paginator<'a, ClientResult<T>>
 where
     Request: 'a + Fn(u32, u32) -> ClientResult<Page<T>>,
 {
@@ -40,7 +41,7 @@ struct PageIterator<Request> {
     page_size: u32,
 }
 
-impl<T, Request> Iterator for PageIterator<Request>
+impl<T: DeserializeOwned, Request> Iterator for PageIterator<Request>
 where
     Request: Fn(u32, u32) -> ClientResult<Page<T>>,
 {
