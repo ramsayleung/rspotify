@@ -18,7 +18,10 @@ where
 }
 
 /// This is used to handle paginated requests automatically.
-pub fn paginate<'a, T: DeserializeOwned + 'a, Request>(req: Request, page_size: u32) -> Paginator<'a, ClientResult<T>>
+pub fn paginate<'a, T: DeserializeOwned + 'a, Request>(
+    req: Request,
+    page_size: u32,
+) -> Paginator<'a, ClientResult<T>>
 where
     Request: 'a + Fn(u32, u32) -> ClientResult<Page<T>>,
 {
