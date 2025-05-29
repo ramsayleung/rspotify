@@ -1223,3 +1223,26 @@ fn test_null_id_in_tracklink() {
     assert!(linked_from.id.is_none());
     assert_eq!(linked_from.r#type, Type::Track);
 }
+
+#[test]
+#[wasm_bindgen_test]
+fn test_null_item_in_page() {
+    let json = r#"
+{
+  "href": "https://api.spotify.com/v1/search?offset=17&limit=2&query=My%20Playlist&type=playlist&market=FR",
+  "items": [
+    null
+  ],
+  "limit": 20,
+  "next": null,
+  "offset": 0,
+  "previous": null,
+  "total": 1
+}"#;
+    let page: Page<SimplifiedPlaylist> = deserialize(json);
+    assert_eq!(page.items.len(), 0);
+    assert_eq!(page.total, 1); // Because one element is null so ignored at deserialization but counted in total
+    assert_eq!(page.limit, 20);
+    assert!(page.next.is_none());
+    assert!(page.previous.is_none());
+}
