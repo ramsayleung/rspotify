@@ -245,3 +245,74 @@ mod middleware {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // Tests for reqwest with `reqwest-middleware` enabled
+    #[cfg(feature = "reqwest-middleware")]
+    mod middleware {
+        use super::super::*;
+        use reqwest::{Request, Response};
+        use reqwest_middleware::Next;
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::Arc;
+
+        /// Example middleware that flips `has_run` to `true` after it's handled a request.
+        #[derive(Default)]
+        pub struct TestMiddleware {
+            // this defaults to false
+            has_run: AtomicBool,
+        }
+
+        impl TestMiddleware {
+            fn get_has_run(&self) -> bool {
+                self.has_run.load(Ordering::Relaxed)
+            }
+
+            // called by the `Middleware` implementation when handling a request.
+            fn set_has_run(&self) {
+                self.has_run.store(true, Ordering::Relaxed);
+            }
+        }
+
+        #[async_trait::async_trait]
+        impl Middleware for TestMiddleware {
+            async fn handle(
+                &self,
+                req: Request,
+                extensions: &mut http::Extensions,
+                next: Next<'_>,
+            ) -> Result<Response, Error> {
+                // sets `has_run` to `true` indicating we've handled a request.
+                self.set_has_run();
+                next.run(req, extensions).await
+            }
+        }
+
+        #[tokio::test]
+        pub async fn test_reqwest_middleware_client() {
+            // Client that should run our middleware when handling requests
+            let middleware = Arc::new(TestMiddleware::default());
+            let client = ReqwestClientBuilder::default()
+                .with_arc(middleware.clone())
+                .build();
+
+            // Setup mock server to handle the request
+            let mock_server = wiremock::MockServer::start().await;
+            let mock = wiremock::Mock::given(wiremock::matchers::method("GET"))
+                .and(wiremock::matchers::path("/"))
+                .respond_with(wiremock::ResponseTemplate::new(200));
+            mock_server.register(mock).await;
+
+            // Verify middleware hasn't been run yet (has_run is false before the request)
+            assert!(!middleware.get_has_run());
+
+            // Make request, causing the middleware to run
+            let url = &mock_server.uri();
+            client.get(url, None, &Query::new()).await.unwrap();
+
+            // Verify middleware has run (has_run should have flipped to true)
+            assert!(middleware.get_has_run());
+        }
+    }
+}
