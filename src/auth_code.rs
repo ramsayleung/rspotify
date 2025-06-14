@@ -218,6 +218,24 @@ impl AuthCodeSpotify {
         }
     }
 
+    #[cfg(feature = "reqwest-middleware")]
+    pub fn with_middleware<M: rspotify_http::Middleware>(self, middleware: M) -> Self {
+        use rspotify_http::HttpClientBuilder;
+
+        let http = HttpClientBuilder::default().with(middleware).build();
+
+        Self { http, ..self }
+    }
+
+    #[cfg(feature = "reqwest-middleware")]
+    pub fn with_middleware_arc(self, middleware: Arc<dyn rspotify_http::Middleware>) -> Self {
+        use rspotify_http::HttpClientBuilder;
+
+        let http = HttpClientBuilder::default().with_arc(middleware).build();
+
+        Self { http, ..self }
+    }
+
     /// Returns the URL needed to authorize the current client as the first step
     /// in the authorization flow.
     pub fn get_authorize_url(&self, show_dialog: bool) -> ClientResult<String> {

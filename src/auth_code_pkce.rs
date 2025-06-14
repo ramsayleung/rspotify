@@ -180,6 +180,24 @@ impl AuthCodePkceSpotify {
         }
     }
 
+    #[cfg(feature = "reqwest-middleware")]
+    pub fn with_middleware<M: rspotify_http::Middleware>(self, middleware: M) -> Self {
+        use rspotify_http::HttpClientBuilder;
+
+        let http = HttpClientBuilder::default().with(middleware).build();
+
+        Self { http, ..self }
+    }
+
+    #[cfg(feature = "reqwest-middleware")]
+    pub fn with_middleware_arc(self, middleware: Arc<dyn rspotify_http::Middleware>) -> Self {
+        use rspotify_http::HttpClientBuilder;
+
+        let http = HttpClientBuilder::default().with_arc(middleware).build();
+
+        Self { http, ..self }
+    }
+
     /// Generate the verifier code and the challenge code.
     fn generate_codes(verifier_bytes: usize) -> (String, String) {
         log::info!("Generating PKCE codes");
