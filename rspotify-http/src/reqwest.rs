@@ -122,6 +122,7 @@ impl ReqwestClient {
 
         // Making sure that the status code is OK
         if response.status().is_success() {
+            #[cfg_attr(not(feature = "reqwest-middleware"), allow(clippy::useless_conversion))]
             Ok(response.text().await.map_err(Error::from)?)
         } else {
             Err(ReqwestError::StatusCode(response))
