@@ -24,7 +24,7 @@ serde_json = "1.0.67"
 thiserror = "2.0.9"
 
 # Supported clients
-reqwest = { version = "0.12.1", default-features = false, features = [ "json", "socks"], optional = true }
+reqwest = { version = "0.12.1", default-features = false, features = ["json", "socks"], optional = true }
 reqwest-middleware = { version = "0.4.0", features = ["json"], optional = true }
 ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies", "socks-proxy"], optional = true }
 native-tls = { version = "0.2.11", optional = true }
