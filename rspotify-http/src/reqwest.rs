@@ -14,6 +14,10 @@ use serde_json::Value;
 
 #[cfg(not(feature = "reqwest-middleware"))]
 use reqwest::{Client, Error, RequestBuilder};
+#[cfg(feature = "reqwest-middleware")]
+use reqwest_middleware::{ClientWithMiddleware as Client, Error, RequestBuilder};
+#[cfg(feature = "reqwest-middleware")]
+pub use {middleware::ReqwestClientBuilder, reqwest_middleware::Middleware};
 
 /// Custom enum that contains all the possible errors that may occur when using
 /// [`reqwest`].
@@ -192,19 +196,11 @@ impl BaseHttpClient for ReqwestClient {
 }
 
 #[cfg(feature = "reqwest-middleware")]
-use middleware::*;
-#[cfg(feature = "reqwest-middleware")]
-pub use middleware::{Middleware, ReqwestClientBuilder};
-#[cfg(feature = "reqwest-middleware")]
 mod middleware {
     use std::sync::Arc;
 
-    pub use reqwest_middleware::{
-        ClientWithMiddleware as Client, Error, Middleware, RequestBuilder,
-    };
-
     use super::{default_reqwest_client, ReqwestClient};
-    use reqwest_middleware::ClientBuilder;
+    use reqwest_middleware::{ClientBuilder, Middleware};
 
     impl Default for ReqwestClient {
         fn default() -> Self {
