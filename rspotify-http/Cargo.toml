@@ -25,12 +25,15 @@ thiserror = "2.0.9"
 
 # Supported clients
 reqwest = { version = "0.12.1", default-features = false, features = ["json", "socks"], optional = true }
+reqwest-middleware = { version = "0.4.0", features = ["json"], optional = true }
 ureq = { version = "2.2.0", default-features = false, features = ["json", "cookies", "socks-proxy"], optional = true }
 native-tls = { version = "0.2.11", optional = true }
 
 [dev-dependencies]
+http = "1.3.1"
 tokio = { version = "1.11.0", features = ["macros", "rt-multi-thread"] }
 rspotify-model = { path = "../rspotify-model", version = "0.14.0" }
+wiremock = "0.6.3"
 
 [features]
 default = ["client-reqwest", "reqwest-default-tls"]
@@ -49,6 +52,9 @@ reqwest-native-tls-vendored = ["reqwest/native-tls-vendored"]
 ureq-rustls-tls = ["ureq/tls"]
 ureq-rustls-tls-native-certs = ["ureq/tls", "ureq/native-certs"]
 ureq-native-tls = ["ureq/native-tls", "dep:native-tls"]
+
+# Enables middleware for client-reqwest.
+reqwest-middleware = ["dep:reqwest-middleware"]
 
 # Internal features for checking async or sync compilation
 __async = ["async-trait"]

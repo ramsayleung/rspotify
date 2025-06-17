@@ -91,6 +91,24 @@ impl ClientCredsSpotify {
         }
     }
 
+    #[cfg(feature = "reqwest-middleware")]
+    pub fn with_middleware<M: rspotify_http::Middleware>(self, middleware: M) -> Self {
+        use rspotify_http::HttpClientBuilder;
+
+        let http = HttpClientBuilder::default().with(middleware).build();
+
+        Self { http, ..self }
+    }
+
+    #[cfg(feature = "reqwest-middleware")]
+    pub fn with_middleware_arc(self, middleware: Arc<dyn rspotify_http::Middleware>) -> Self {
+        use rspotify_http::HttpClientBuilder;
+
+        let http = HttpClientBuilder::default().with_arc(middleware).build();
+
+        Self { http, ..self }
+    }
+
     /// Tries to read the cache file's token.
     ///
     /// This will return an error if the token couldn't be read (e.g. it's not

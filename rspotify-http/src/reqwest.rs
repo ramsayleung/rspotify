@@ -9,8 +9,15 @@ use std::convert::TryInto;
 use std::time::Duration;
 
 use maybe_async::async_impl;
-use reqwest::{Method, RequestBuilder};
+use reqwest::Method;
 use serde_json::Value;
+
+#[cfg(not(feature = "reqwest-middleware"))]
+use reqwest::{Client, Error, RequestBuilder};
+#[cfg(feature = "reqwest-middleware")]
+use reqwest_middleware::{ClientWithMiddleware as Client, Error, RequestBuilder};
+#[cfg(feature = "reqwest-middleware")]
+pub use {middleware::ReqwestClientBuilder, reqwest_middleware::Middleware};
 
 /// Custom enum that contains all the possible errors that may occur when using
 /// [`reqwest`].
@@ -42,7 +49,7 @@ pub enum ReqwestError {
     /// The request couldn't be completed because there was an error when trying
     /// to do so
     #[error("request: {0}")]
-    Client(#[from] reqwest::Error),
+    Client(#[from] Error),
 
     /// The request was made, but the server returned an unsuccessful status
     /// code, such as 404 or 503. In some cases, the response may contain a
@@ -55,29 +62,32 @@ pub enum ReqwestError {
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
     /// reqwest needs an instance of its client to perform requests.
-    client: reqwest::Client,
+    client: Client,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-impl Default for ReqwestClient {
-    fn default() -> Self {
-        let client = reqwest::ClientBuilder::new()
-            .timeout(Duration::from_secs(10))
-            .build()
-            // building with these options cannot fail
-            .unwrap();
-        Self { client }
-    }
+fn default_reqwest_client() -> reqwest::Client {
+    reqwest::ClientBuilder::new()
+        .timeout(Duration::from_secs(10))
+        .build()
+        // building with these options cannot fail
+        .unwrap()
 }
 
 #[cfg(target_arch = "wasm32")]
+fn default_reqwest_client() -> reqwest::Client {
+    reqwest::ClientBuilder::new()
+        .build()
+        // building with these options cannot fail
+        .unwrap()
+}
+
+#[cfg(not(feature = "reqwest-middleware"))]
 impl Default for ReqwestClient {
     fn default() -> Self {
-        let client = reqwest::ClientBuilder::new()
-            .build()
-            // building with these options cannot fail
-            .unwrap();
-        Self { client }
+        Self {
+            client: default_reqwest_client(),
+        }
     }
 }
 
@@ -116,7 +126,8 @@ impl ReqwestClient {
 
         // Making sure that the status code is OK
         if response.status().is_success() {
-            response.text().await.map_err(Into::into)
+            #[cfg_attr(not(feature = "reqwest-middleware"), allow(clippy::useless_conversion))]
+            Ok(response.text().await.map_err(Error::from)?)
         } else {
             Err(ReqwestError::StatusCode(response))
         }
@@ -181,5 +192,123 @@ impl BaseHttpClient for ReqwestClient {
     ) -> Result<String, Self::Error> {
         self.request(Method::DELETE, url, headers, |req| req.json(payload))
             .await
+    }
+}
+
+#[cfg(feature = "reqwest-middleware")]
+mod middleware {
+    use std::sync::Arc;
+
+    use super::{default_reqwest_client, ReqwestClient};
+    use reqwest_middleware::{ClientBuilder, Middleware};
+
+    impl Default for ReqwestClient {
+        fn default() -> Self {
+            let reqwest_client = default_reqwest_client();
+            let client = ClientBuilder::new(reqwest_client).build();
+            Self { client }
+        }
+    }
+
+    pub struct ReqwestClientBuilder {
+        builder: ClientBuilder,
+    }
+
+    impl Default for ReqwestClientBuilder {
+        fn default() -> Self {
+            let builder = ClientBuilder::new(default_reqwest_client());
+            Self { builder }
+        }
+    }
+
+    impl ReqwestClientBuilder {
+        pub fn with<M: Middleware>(self, middleware: M) -> Self {
+            Self {
+                builder: self.builder.with(middleware),
+            }
+        }
+
+        pub fn with_arc(self, middleware: Arc<dyn Middleware>) -> Self {
+            Self {
+                builder: self.builder.with_arc(middleware),
+            }
+        }
+
+        pub fn build(self) -> ReqwestClient {
+            ReqwestClient {
+                client: self.builder.build(),
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Tests for reqwest with `reqwest-middleware` enabled
+    #[cfg(feature = "reqwest-middleware")]
+    mod middleware {
+        use super::super::*;
+        use reqwest::{Request, Response};
+        use reqwest_middleware::Next;
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::Arc;
+
+        /// Example middleware that flips `has_run` to `true` after it's handled a request.
+        #[derive(Default)]
+        pub struct TestMiddleware {
+            // this defaults to false
+            has_run: AtomicBool,
+        }
+
+        impl TestMiddleware {
+            fn get_has_run(&self) -> bool {
+                self.has_run.load(Ordering::Relaxed)
+            }
+
+            // called by the `Middleware` implementation when handling a request.
+            fn set_has_run(&self) {
+                self.has_run.store(true, Ordering::Relaxed);
+            }
+        }
+
+        #[async_trait::async_trait]
+        impl Middleware for TestMiddleware {
+            async fn handle(
+                &self,
+                req: Request,
+                extensions: &mut http::Extensions,
+                next: Next<'_>,
+            ) -> Result<Response, Error> {
+                // sets `has_run` to `true` indicating we've handled a request.
+                self.set_has_run();
+                next.run(req, extensions).await
+            }
+        }
+
+        #[tokio::test]
+        pub async fn test_reqwest_middleware_client() {
+            // Client that should run our middleware when handling requests
+            let middleware = Arc::new(TestMiddleware::default());
+            let client = ReqwestClientBuilder::default()
+                .with_arc(middleware.clone())
+                .build();
+
+            // Setup mock server to handle the request
+            let mock_server = wiremock::MockServer::start().await;
+            let mock = wiremock::Mock::given(wiremock::matchers::method("GET"))
+                .and(wiremock::matchers::path("/"))
+                .respond_with(wiremock::ResponseTemplate::new(200));
+            mock_server.register(mock).await;
+
+            // Verify middleware hasn't been run yet (has_run is false before the request)
+            assert!(!middleware.get_has_run());
+
+            // Make request, causing the middleware to run
+            let url = &mock_server.uri();
+            client.get(url, None, &Query::new()).await.unwrap();
+
+            // Verify middleware has run (has_run should have flipped to true)
+            assert!(middleware.get_has_run());
+        }
     }
 }
