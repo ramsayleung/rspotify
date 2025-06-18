@@ -53,6 +53,7 @@ pub struct FullPlaylist {
     pub followers: Followers,
     pub href: String,
     pub id: PlaylistId<'static>,
+    #[serde(deserialize_with = "deserialize_null_default")]
     pub images: Vec<Image>,
     pub name: String,
     pub owner: PublicUser,
