@@ -1,3 +1,13 @@
+## 0.15.0 (2025.07.06)
+**Bugfixes**
+- ([#526](https://github.com/ramsayleung/rspotify/pull/526)) Fix: deserialization of pagination with null items
+- ([#529](https://github.com/ramsayleung/rspotify/pull/529)) Fix: handle null images on FullPlaylist model
+
+**New features**
+- ([#528](https://github.com/ramsayleung/rspotify/pull/528)) Add support for reqwest-middleware
+- ([#531](https://github.com/ramsayleung/rspotify/pull/531)) Add fallback variant to capture unknown variant
+
+
 ## 0.14.0 (2024.12.31)
 **Breaking changes**
 - ([#487](https://github.com/ramsayleung/rspotify/pull/487)) Change the type of `TrackLink.id` from `TrackId<'static>` to `Option<TrackId<'static>>`
