@@ -121,7 +121,7 @@ impl ReqwestClient {
         request = add_data(request);
 
         // Finally performing the request and handling the response
-        log::info!("Making request {:?}", request);
+        log::info!("Making request {request:?}");
         let response = request.send().await?;
 
         // Making sure that the status code is OK
