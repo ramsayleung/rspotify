@@ -1207,6 +1207,23 @@ fn test_collectionyourepisodes_type() {
 
 #[test]
 #[wasm_bindgen_test]
+fn test_fallback_variant_type_to_capture_new_type() {
+    let json = r#"
+{
+	"external_urls": {
+		"spotify": "https://open.spotify.com/collection/episodes"
+	},
+	"href": "https://api.spotify.com/v1/me/episodes",
+	"type": "onlygodknow",
+	"uri": "spotify:user:<username>:collection:your-episodes"
+}
+"#;
+    let context: Context = deserialize(json);
+    assert_eq!(context._type, Type::Unknown("onlygodknow".to_string()));
+}
+
+#[test]
+#[wasm_bindgen_test]
 fn test_null_id_in_tracklink() {
     let json = r#"
 {

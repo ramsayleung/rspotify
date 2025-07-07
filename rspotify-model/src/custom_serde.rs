@@ -40,8 +40,7 @@ pub mod duration_ms {
                     )
                 }),
                 Err(_) => Err(E::custom(format!(
-                    "Conversion error: u64 to i64 conversion failed for value {}",
-                    v
+                    "Conversion error: u64 to i64 conversion failed for value {v}"
                 ))),
             }
         }

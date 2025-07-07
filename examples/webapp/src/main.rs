@@ -131,7 +131,7 @@ fn callback(jar: &CookieJar<'_>, code: String) -> AppResponse {
             AppResponse::Redirect(Redirect::to("/"))
         }
         Err(err) => {
-            error!("Failed to get user token: {:?}", err);
+            error!("Failed to get user token: {err}");
             let mut context = HashMap::new();
             context.insert("err_msg", "Failed to get token!");
             AppResponse::Template(Template::render("error", context))
