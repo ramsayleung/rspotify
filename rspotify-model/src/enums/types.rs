@@ -26,7 +26,7 @@ pub enum AlbumType {
 
 /// Type: `artist`, `album`, `track`, `playlist`, `show` or `episode`
 #[derive(
-    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Display, EnumString, IntoStaticStr,
+    Clone, Serialize, Deserialize, PartialEq, Eq, Debug, Display, EnumString, IntoStaticStr,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -40,6 +40,10 @@ pub enum Type {
     Episode,
     Collection,
     Collectionyourepisodes, // rename to collectionyourepisodes
+    // Fallback variant to capture unknown variants introduced by
+    // Spotify rather than raise a deserialization error.
+    #[serde(untagged)]
+    Unknown(String),
 }
 
 /// Additional typs: `track`, `episode`
