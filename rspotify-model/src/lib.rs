@@ -45,9 +45,20 @@ pub struct Followers {
 pub enum PlayableItem {
     Track(track::FullTrack),
     Episode(show::FullEpisode),
+    // The fallback variant to store the raw JSON for anything that doesn't parse
+    // see https://github.com/ramsayleung/rspotify/issues/525 for
+    // detail
+    Unknown(serde_json::Value),
 }
 
 impl PlayableItem {
+    /// Check if this is an unknown/malformed item that couldn't be parsed as Track or Episode.
+    ///
+    /// Returns `true` if the item was captured as raw JSON due to schema mismatch.
+    pub fn is_unknown(&self) -> bool {
+        matches!(self, PlayableItem::Unknown(_))
+    }
+
     /// Utility to get the ID from either variant in the enum.
     ///
     /// Note that if it's a track and if it's local, it may not have an ID, in
@@ -57,6 +68,18 @@ impl PlayableItem {
         match self {
             PlayableItem::Track(t) => t.id.as_ref().map(|t| PlayableId::Track(t.as_ref())),
             PlayableItem::Episode(e) => Some(PlayableId::Episode(e.id.as_ref())),
+            PlayableItem::Unknown(value) => {
+                let id_str = value.get("id")?.as_str()?;
+                if let Some(type_str) = value.get("type").and_then(|v| v.as_str()) {
+                    match type_str {
+                        "episode" => Some(PlayableId::Episode(EpisodeId::from_id(id_str).ok()?)),
+                        _ => Some(PlayableId::Track(TrackId::from_id(id_str).ok()?)),
+                    }
+                } else {
+                    // Default to track if type is unclear
+                    Some(PlayableId::Track(TrackId::from_id(id_str).ok()?))
+                }
+            }
         }
     }
 }

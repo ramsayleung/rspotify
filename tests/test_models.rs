@@ -1263,3 +1263,114 @@ fn test_null_item_in_page() {
     assert!(page.next.is_none());
     assert!(page.previous.is_none());
 }
+
+#[test]
+#[wasm_bindgen_test]
+fn test_deserialization_playlist_item_with_malformed_episodes() {
+    // To fix https://github.com/ramsayleung/rspotify/issues/525
+    let json = r#"
+{
+  "href": "https://api.spotify.com/v1/playlists/4MAcblnU4nwtIZ267YI24a/tracks?offset=0&limit=100",
+  "items": [
+    {
+      "added_at": "2024-12-14T13:23:53Z",
+      "added_by": {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/user/31rhaare4k4nkr5bngqyiiz4bq6a"
+        },
+        "href": "https://api.spotify.com/v1/users/31rhaare4k4nkr5bngqyiiz4bq6a",
+        "id": "31rhaare4k4nkr5bngqyiiz4bq6a",
+        "type": "user",
+        "uri": "spotify:user:31rhaare4k4nkr5bngqyiiz4bq6a"
+      },
+      "is_local": false,
+      "primary_color": null,
+      "track": {
+        "preview_url": "https://podz-content.spotifycdn.com/audio/clips/3pEQnFvjtRVnJURokrIEaH/clip_46844_106844.mp3",
+        "available_markets": ["AD"],
+        "explicit": false,
+        "type": "episode",
+        "episode": false,
+        "track": true,
+        "album": {
+          "available_markets": ["AD"],
+          "type": "show",
+          "album_type": "compilation",
+          "href": "https://api.spotify.com/v1/shows/4C53FwIBO9tEhJ0dkMN3GN",
+          "id": "4C53FwIBO9tEhJ0dkMN3GN",
+          "images": [
+            {
+              "height": 64,
+              "url": "https://i.scdn.co/image/ab6765630000f68dc5087ef7f8e3caa4fd6e6bcd",
+              "width": 64
+            }
+          ],
+          "name": "REALPODCASTNOTMUSIC123",
+          "release_date": null,
+          "release_date_precision": null,
+          "uri": "spotify:show:4C53FwIBO9tEhJ0dkMN3GN",
+          "artists": [
+            {
+              "external_urls": {
+                "spotify": "https://open.spotify.com/show/4C53FwIBO9tEhJ0dkMN3GN"
+              },
+              "href": "https://api.spotify.com/v1/shows/4C53FwIBO9tEhJ0dkMN3GN",
+              "id": "4C53FwIBO9tEhJ0dkMN3GN",
+              "name": null,
+              "type": "REALPODCASTNOTMUSIC123",
+              "uri": "spotify:show:4C53FwIBO9tEhJ0dkMN3GN"
+            }
+          ],
+          "external_urls": {
+            "spotify": "https://open.spotify.com/album/4C53FwIBO9tEhJ0dkMN3GN"
+          },
+          "total_tracks": 1
+        },
+        "artists": [
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/show/4C53FwIBO9tEhJ0dkMN3GN"
+            },
+            "href": "https://api.spotify.com/v1/shows/4C53FwIBO9tEhJ0dkMN3GN",
+            "id": "4C53FwIBO9tEhJ0dkMN3GN",
+            "name": null,
+            "type": "REALPODCASTNOTMUSIC123",
+            "uri": "spotify:show:4C53FwIBO9tEhJ0dkMN3GN"
+          }
+        ],
+        "disc_number": 0,
+        "track_number": 0,
+        "duration_ms": 119257,
+        "external_ids": {
+          "spotify": "https://open.spotify.com/episode/4IBGQd8aV4j6WGqGOjdJmE"
+        },
+        "external_urls": {
+          "spotify": "https://open.spotify.com/episode/4IBGQd8aV4j6WGqGOjdJmE"
+        },
+        "href": "https://api.spotify.com/v1/episodes/4IBGQd8aV4j6WGqGOjdJmE",
+        "id": "4IBGQd8aV4j6WGqGOjdJmE",
+        "name": "ITS BEGINNING TO LOOK A LOT LIKE CHRISTMAS (Mac Demarco)",
+        "popularity": 0,
+        "uri": "spotify:episode:4IBGQd8aV4j6WGqGOjdJmE",
+        "is_local": false
+      },
+      "video_thumbnail": {
+        "url": null
+      }
+    }
+  ],
+  "limit": 100,
+  "next": null,
+  "offset": 0,
+  "previous": null,
+  "total": 1
+}
+"#;
+    let page: Page<PlaylistItem> = deserialize(json);
+    assert_eq!(page.total, 1);
+    let track = page.items.get(0).unwrap().track.clone().unwrap();
+    assert!(track.is_unknown());
+    let id = track.id().unwrap();
+    assert!(matches!(id, PlayableId::Episode(_)));
+    assert_eq!(id.id(), "4IBGQd8aV4j6WGqGOjdJmE");
+}

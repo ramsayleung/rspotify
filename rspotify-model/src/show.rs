@@ -4,7 +4,7 @@ use chrono::Duration;
 use std::collections::HashMap;
 
 use crate::{
-    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId,
+    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId, Type,
 };
 
 /// Copyright object
@@ -114,6 +114,7 @@ pub struct FullEpisode {
     pub release_date_precision: DatePrecision,
     pub resume_point: Option<ResumePoint>,
     pub show: SimplifiedShow,
+    pub r#type: Type
 }
 
 /// Intermediate episodes feature object wrapped by `Vec`
