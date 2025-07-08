@@ -38,6 +38,7 @@ pub struct FullTrack {
     pub popularity: u32,
     pub preview_url: Option<String>,
     pub track_number: u32,
+    pub r#type: Type,
 }
 
 /// Track link object
