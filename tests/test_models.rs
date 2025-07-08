@@ -1368,7 +1368,7 @@ fn test_deserialization_playlist_item_with_malformed_episodes() {
 "#;
     let page: Page<PlaylistItem> = deserialize(json);
     assert_eq!(page.total, 1);
-    let track = page.items.get(0).unwrap().track.clone().unwrap();
+    let track = page.items.first().unwrap().track.clone().unwrap();
     assert!(track.is_unknown());
     let id = track.id().unwrap();
     assert!(matches!(id, PlayableId::Episode(_)));
