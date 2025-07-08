@@ -1,3 +1,7 @@
+## 0.16.0
+**Bugfixes**
+- ([#533](https://github.com/ramsayleung/rspotify/pull/533)) Fix the malformed JSON response of `get-playlists-tracks` endpoint
+
 ## 0.15.0 (2025.07.06)
 **Bugfixes**
 - ([#526](https://github.com/ramsayleung/rspotify/pull/526)) Fix: deserialization of pagination with null items

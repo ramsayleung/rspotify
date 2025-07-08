@@ -114,7 +114,7 @@ pub struct FullEpisode {
     pub release_date_precision: DatePrecision,
     pub resume_point: Option<ResumePoint>,
     pub show: SimplifiedShow,
-    pub r#type: Type
+    pub r#type: Type,
 }
 
 /// Intermediate episodes feature object wrapped by `Vec`
