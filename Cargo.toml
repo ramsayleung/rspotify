@@ -180,3 +180,8 @@ path = "examples/pagination_sync.rs"
 name = "pagination_async"
 required-features = ["env-file", "cli", "client-reqwest"]
 path = "examples/pagination_async.rs"
+
+[[example]]
+name = "playlist"
+required-features = ["env-file", "cli", "client-reqwest"]
+path = "examples/playlist_with_oauth.rs"

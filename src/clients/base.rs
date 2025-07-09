@@ -637,6 +637,22 @@ where
         convert_result(&result)
     }
 
+    /// Get cover image of a playlist.
+    ///
+    /// Parameters:
+    /// - playlist_id - the playlist ID, URI or URL
+    /// 
+    /// [reference](https://developer.spotify.com/documentation/web-api/reference/get-playlist-cover)
+    async fn playlist_cover_image(
+        &self,
+        playlist_id: PlaylistId<'_>,
+    ) -> ClientResult<Image> {
+        let params = build_map([]);
+        let url = format!("playlists/{}/images", playlist_id.id());
+        let result = self.api_get(&url, &params).await?;
+        convert_result(&result)
+    }
+
     /// Get Spotify catalog information for a single show identified by its unique Spotify ID.
     ///
     /// Path Parameters:
