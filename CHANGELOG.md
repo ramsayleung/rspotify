@@ -1,4 +1,4 @@
-## 0.16.0
+## 0.15.1 (2025.08.27)
 **Bugfixes**
 - ([#533](https://github.com/ramsayleung/rspotify/pull/533)) Fix the malformed JSON response of `get-playlists-tracks` endpoint
 
