@@ -34,7 +34,7 @@ async-stream = { version = "0.3.2", optional = true }
 async-trait = { version = "0.1.51", optional = true }
 base64 = "0.22.0"
 chrono = { version = "0.4.35", features = ["serde"] }
-dotenvy = { version = "0.15.1", optional = true }
+dotenvy = { version = "0.15.7", optional = true }
 futures = { version = "0.3.17", optional = true }
 
 log = "0.4.14"
