@@ -171,7 +171,6 @@ use std::{
 };
 
 use base64::{engine::general_purpose, Engine as _};
-use getrandom::getrandom;
 use thiserror::Error;
 
 pub mod prelude {
@@ -348,7 +347,7 @@ impl Default for Config {
 /// secure random data, ideally backed by hardware entropy sources.
 pub(crate) fn generate_random_string(length: usize, alphabet: &[u8]) -> String {
     let mut buf = vec![0u8; length];
-    getrandom(&mut buf).unwrap();
+    getrandom::fill(&mut buf).unwrap();
     let range = alphabet.len();
 
     buf.iter()
