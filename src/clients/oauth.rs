@@ -10,7 +10,6 @@ use crate::{
     util::{build_map, JsonBuilder},
     ClientError, ClientResult, OAuth, Token,
 };
-
 use std::collections::HashMap;
 use std::{
     io::{BufRead, BufReader, Write},
@@ -19,6 +18,7 @@ use std::{
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::{PlayContextId, PlayableId};
+use rspotify_http::BaseHttpClient;
 use serde_json::{json, Map};
 use url::Url;
 
@@ -331,6 +331,33 @@ pub trait OAuthClient: BaseClient {
         let url = format!("users/{}/playlists", user_id.id());
         let result = self.api_post(&url, &params).await?;
         convert_result(&result)
+    }
+
+    /// Replace the image used to represent a specific playlist
+    ///
+    /// Parameters:
+    /// - playlist_id - the id of the playlist
+    /// - image - Base64 encoded JPEG image data, maximum payload size is 256 KB.
+    /// [Reference] (https://developer.spotify.com/documentation/web-api/reference/upload-custom-playlist-cover)
+    async fn playlist_upload_cover_image(
+        &self,
+        playlist_id: PlaylistId<'_>,
+        image: &str,
+    ) -> ClientResult<String> {
+        let url = format!("playlists/{}/images", playlist_id.id());
+        let url = self.api_url(&url);
+
+        let mut headers = self.auth_headers().await?;
+        let content_type= "Content-Type".to_owned();
+        let value = String::from("image/jpeg");
+        headers.insert(content_type, value);
+
+        let payload= JsonBuilder::new()
+            .required("playlist_id", playlist_id.id())
+            .required("body", image.to_string())
+            .build();
+
+        Ok(self.get_http().put(&url, Some(&headers), &payload).await?)
     }
 
     /// Changes a playlist's name and/or public/private state.

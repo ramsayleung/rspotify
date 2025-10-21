@@ -764,6 +764,23 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
 }
 
 #[maybe_async]
+async fn check_playlist_cover(client: &AuthCodeSpotify, playlist_id: PlaylistId<'_>) {
+    // add playlist cover image
+    let image = "/9j/2wCEABoZGSccJz4lJT5CLy8vQkc9Ozs9R0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0cBHCcnMyYzPSYmPUc9Mj1HR0dEREdHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR//dAAQAAf/uAA5BZG9iZQBkwAAAAAH/wAARCAABAAEDACIAAREBAhEB/8QASwABAQAAAAAAAAAAAAAAAAAAAAYBAQAAAAAAAAAAAAAAAAAAAAAQAQAAAAAAAAAAAAAAAAAAAAARAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwAAARECEQA/AJgAH//Z";
+    client
+        .playlist_upload_cover_image(playlist_id.as_ref(), image)
+        .await
+        .unwrap();
+
+    // check cover image
+    let cover_res = client
+        .playlist_cover_image(playlist_id.as_ref())
+        .await
+        .unwrap();
+    assert_eq!(cover_res.url, image);
+}
+
+#[maybe_async]
 async fn check_num_tracks(client: &AuthCodeSpotify, playlist_id: PlaylistId<'_>, num: i32) {
     let fetched_tracks = fetch_all(client.playlist_items(playlist_id, None, None)).await;
     assert_eq!(fetched_tracks.len() as i32, num);
@@ -896,6 +913,7 @@ async fn test_playlist() {
     let playlist = check_playlist_create(&client).await;
     check_playlist_tracks(&client, &playlist).await;
     check_playlist_follow(&client, &playlist).await;
+    check_playlist_cover(&client, playlist.id).await;
 }
 
 #[maybe_async::test(

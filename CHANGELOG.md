@@ -50,6 +50,7 @@
 
 ## 0.12.0 (2023.08.26)
 **New features**
+- ([#439](https://github.com/ramsayleung/rspotify/pull/439)) Getter and Setter of playlist api endpoint
 - ([#390](https://github.com/ramsayleung/rspotify/pull/390)) The `scopes!` macro supports to split the scope by whitespace.
 - ([#418](https://github.com/ramsayleung/rspotify/pull/418)) Add a user-settable callback function whenever token is updated.
 
