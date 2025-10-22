@@ -152,16 +152,14 @@ pub trait OAuthClient: BaseClient {
     // If the specified `redirect_url` is HTTP, loopback, and contains a port,
     // then the corresponding socket address is returned.
     fn get_socket_address(&self, redirect_url: &str) -> Option<SocketAddr> {
-        let (host, port) = match Url::parse(redirect_url) {
-            Ok(parsed_url) if parsed_url.scheme() == "http" => (
-                String::from(parsed_url.host_str()?),
-                parsed_url.port().unwrap_or(80),
-            ),
-            Ok(parsed_url) if parsed_url.scheme() == "https" => (
-                String::from(parsed_url.host_str()?),
-                parsed_url.port().unwrap_or(443),
-            ),
-            _ => return None,
+        let (host, port) = {
+            let parsed_url = Url::parse(redirect_url).ok()?;
+            let port = match parsed_url.scheme() {
+                "http" => parsed_url.port().unwrap_or(80),
+                "https" => parsed_url.port().unwrap_or(443),
+                _ => return None,
+            };
+            (String::from(parsed_url.host_str()?), port)
         };
 
         // Handle IPv6 addresses (they come with brackets from host_str())
