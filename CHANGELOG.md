@@ -1,6 +1,6 @@
 ## 0.15.2 (2025.10.23)
 
-**New Feature**
+**New features**
 - ([#540](https://github.com/ramsayleung/rspotify/pull/540)) Add support for default port and reverse proxy
 
 ## 0.15.1 (2025.08.27)
