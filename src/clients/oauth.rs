@@ -1445,10 +1445,9 @@ mod tests {
         let localhost_v4_default_http_port = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 80);
         let localhost_v4_default_https_port = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 443);
         let every_v4_default_https_port = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 443);
-        let localhost_v6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8888);
+        let localhost_v6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8888);
         let every_v6 = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 8888);
-        let localhost_v6_default_port =
-            SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 80);
+        let localhost_v6_default_port = SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 80);
 
         assert_eq!(
             spotify.get_socket_address("http://127.0.0.1/foo"),
