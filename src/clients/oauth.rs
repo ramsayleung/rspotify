@@ -13,11 +13,8 @@ use crate::{
 
 use std::{
     collections::HashMap,
-    net::{Ipv4Addr, Ipv6Addr},
-};
-use std::{
     io::{BufRead, BufReader, Write},
-    net::{IpAddr, SocketAddr, TcpListener},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, TcpListener},
 };
 
 use maybe_async::maybe_async;
