@@ -1,3 +1,7 @@
+## 0.15.3 (2025.11.07)
+**Bugfixes**
+- ([#542](https://github.com/ramsayleung/rspotify/pull/542)) Fix: use unspecified ip
+
 ## 0.15.2 (2025.10.23)
 
 **New features**
