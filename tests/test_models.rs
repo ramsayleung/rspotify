@@ -1190,6 +1190,76 @@ fn test_simplified_playlist() {
 
 #[test]
 #[wasm_bindgen_test]
+fn test_category_playlists_with_null_playlist() {
+    let json = r#"
+    {
+      "playlists": {
+        "href": "https://api.spotify.com/v1/browse/categories/test/playlists",
+        "items": [
+          {
+            "collaborative": false,
+            "description": "Test playlist",
+            "external_urls": { "spotify": "https://open.spotify.com/playlist/test" },
+            "href": "https://api.spotify.com/v1/playlists/test",
+            "id": "test",
+            "images": [],
+            "name": "Test Playlist",
+            "owner": {
+              "display_name": "Spotify",
+              "external_urls": { "spotify": "https://open.spotify.com/user/spotify" },
+              "href": "https://api.spotify.com/v1/users/spotify",
+              "id": "spotify",
+              "type": "user",
+              "uri": "spotify:user:spotify"
+            },
+            "public": true,
+            "snapshot_id": "test",
+            "tracks": { "href": "https://api.spotify.com/v1/playlists/test/tracks", "total": 10 },
+            "type": "playlist",
+            "uri": "spotify:playlist:test"
+          },
+          {
+            "collaborative": false,
+            "description": null,
+            "external_urls": { "spotify": "https://open.spotify.com/playlist/null" },
+            "href": null,
+            "id": null,
+            "images": [],
+            "name": null,
+            "owner": {
+              "display_name": null,
+              "external_urls": { "spotify": "https://open.spotify.com/user/null" },
+              "href": null,
+              "id": null,
+              "type": "user",
+              "uri": null
+            },
+            "public": true,
+            "snapshot_id": null,
+            "tracks": { "href": null, "total": null },
+            "type": "playlist",
+            "uri": null
+          }
+        ],
+        "limit": 20,
+        "next": null,
+        "offset": 0,
+        "previous": null,
+        "total": 2
+      }
+    }
+    "#;
+    let category_playlists: CategoryPlaylists = deserialize(json);
+    // Should have only 1 item, the null playlist should be filtered out
+    assert_eq!(category_playlists.playlists.items.len(), 1);
+    // The remaining playlist should have a valid id
+    let playlist = &category_playlists.playlists.items[0];
+    assert_eq!(playlist.id.to_string(), "spotify:playlist:test");
+    assert_eq!(playlist.name, "Test Playlist");
+}
+
+#[test]
+#[wasm_bindgen_test]
 fn test_collectionyourepisodes_type() {
     let json = r#"
 {
