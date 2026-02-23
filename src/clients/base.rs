@@ -1106,7 +1106,7 @@ where
             ("offset", offset.as_deref()),
         ]);
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }

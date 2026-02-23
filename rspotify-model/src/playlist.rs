@@ -68,7 +68,9 @@ pub struct PlaylistItem {
     pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
     pub is_local: bool,
+    #[deprecated = "use items instead"]
     pub track: Option<PlayableItem>,
+    pub item: Option<PlayableItem>,
 }
 
 /// Featured playlists object

@@ -22,6 +22,8 @@ pub struct FullTrack {
     #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub explicit: bool,
+    #[serde(default)]
+    #[deprecated = "use external_urls"]
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,
@@ -35,6 +37,8 @@ pub struct FullTrack {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restriction>,
     pub name: String,
+    #[serde(default)]
+    #[deprecated = "This field has been removed"]
     pub popularity: u32,
     pub preview_url: Option<String>,
     pub track_number: u32,
