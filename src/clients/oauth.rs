@@ -395,7 +395,7 @@ pub trait OAuthClient: BaseClient {
             .optional("position", position)
             .build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_post(&url, &params).await?;
         convert_result(&result)
     }
@@ -416,7 +416,7 @@ pub trait OAuthClient: BaseClient {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = JsonBuilder::new().required("uris", uris).build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         self.api_put(&url, &params).await?;
 
         Ok(())
