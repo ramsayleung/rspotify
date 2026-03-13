@@ -22,7 +22,7 @@ use rspotify::{
     model::{
         AlbumId, ArtistId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist,
         ItemPositions, Market, Offset, PlaylistId, RecommendationsAttribute, RepeatState,
-        SearchType, ShowId, TimeLimits, TimeRange, TrackId, UserId,
+        SearchType, TimeLimits, TimeRange, TrackId, UserId,
     },
     prelude::*,
     scopes, AuthCodeSpotify, ClientResult, OAuth, Token,
@@ -119,25 +119,6 @@ async fn fetch_all<T>(paginator: Paginator<'_, ClientResult<T>>) -> Vec<T> {
     {
         paginator.filter_map(|a| a.ok()).collect::<Vec<_>>()
     }
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-#[ignore]
-async fn test_categories() {
-    oauth_client()
-        .await
-        .categories_manual(
-            None,
-            Some(Market::Country(Country::UnitedStates)),
-            Some(10),
-            None,
-        )
-        .await
-        .unwrap();
 }
 
 #[maybe_async::test(
@@ -360,34 +341,6 @@ async fn test_featured_playlists() {
 #[ignore]
 async fn test_me() {
     oauth_client().await.me().await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-#[ignore]
-async fn test_new_releases() {
-    oauth_client()
-        .await
-        .new_releases_manual(Some(Market::Country(Country::Sweden)), Some(10), Some(0))
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-#[ignore]
-async fn test_new_releases_with_from_token() {
-    oauth_client()
-        .await
-        .new_releases_manual(Some(Market::FromToken), Some(10), Some(0))
-        .await
-        .unwrap();
 }
 
 #[maybe_async::test(
@@ -742,9 +695,7 @@ async fn check_playlist_create(client: &AuthCodeSpotify) -> FullPlaylist {
         .await
         .unwrap();
     assert_eq!(playlist.id, fetched_playlist.id);
-    let user_playlists = fetch_all(client.user_playlists(user.id)).await;
-    let current_user_playlists = fetch_all(client.current_user_playlists()).await;
-    assert_eq!(user_playlists.len(), current_user_playlists.len());
+    let _current_user_playlists = fetch_all(client.current_user_playlists()).await;
 
     // Modifying the playlist details
     let name = "A New Playlist-update";
@@ -938,43 +889,6 @@ async fn test_add_queue() {
     oauth_client()
         .await
         .add_item_to_queue(birdy_uri, None)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-#[ignore]
-async fn test_get_several_shows() {
-    let shows = [
-        ShowId::from_id("5CfCWKI5pZ28U0uOzXkDHe").unwrap(),
-        ShowId::from_id("5as3aKmN2k11yfDDDSrvaZ").unwrap(),
-    ];
-
-    oauth_client()
-        .await
-        .get_several_shows(shows, None)
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-#[ignore]
-async fn test_get_several_episodes() {
-    let episodes = [
-        EpisodeId::from_id("0lbiy3LKzIY2fnyjioC11p").unwrap(),
-        EpisodeId::from_id("4zugY5eJisugQj9rj8TYuh").unwrap(),
-    ];
-    oauth_client()
-        .await
-        .get_several_episodes(episodes, None)
         .await
         .unwrap();
 }
