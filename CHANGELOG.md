@@ -5,6 +5,9 @@
 - ([#558](https://github.com/ramsayleung/rspotify/pull/558)) Migrate deprecated endpoint to new endpoint
 - ([#559](https://github.com/ramsayleung/rspotify/pull/559)) Deprecate renamed/removed fields
 
+**Bugfixes**
+- ([#557](https://github.com/ramsayleung/rspotify/pull/557)) Fix: serialize `Actions` into the same format it is deserialized from, enabling round-trips.
+
 ## 0.15.3 (2025.11.07)
 **Bugfixes**
 - ([#542](https://github.com/ramsayleung/rspotify/pull/542)) Fix: use unspecified ip
