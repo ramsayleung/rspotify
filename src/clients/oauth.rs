@@ -1,12 +1,13 @@
 use crate::{
-    ClientError, ClientResult, OAuth, Token,
     clients::{
-        BaseClient, append_device_id, convert_result,
-        pagination::{Paginator, paginate},
+        append_device_id, convert_result,
+        pagination::{paginate, Paginator},
+        BaseClient,
     },
     http::Query,
     model::*,
-    util::{JsonBuilder, build_map},
+    util::{build_map, JsonBuilder},
+    ClientError, ClientResult, OAuth, Token,
 };
 
 use std::{
@@ -17,7 +18,7 @@ use std::{
 
 use maybe_async::maybe_async;
 use rspotify_model::idtypes::{LibraryId, PlayContextId, PlayableId};
-use serde_json::{Map, json};
+use serde_json::{json, Map};
 use url::Url;
 
 /// This trait implements the methods available strictly to clients with user

@@ -19,7 +19,6 @@
 mod util;
 
 use rspotify::{
-    AuthCodeSpotify, ClientResult, OAuth, Token,
     clients::pagination::Paginator,
     model::{
         AlbumId, ArtistId, Country, CurrentPlaybackContext, Device, EpisodeId, FullPlaylist,
@@ -27,10 +26,10 @@ use rspotify::{
         SearchType, TimeLimits, TimeRange, TrackId, UserId,
     },
     prelude::*,
-    scopes,
+    scopes, AuthCodeSpotify, ClientResult, OAuth, Token,
 };
 
-use chrono::{Duration, prelude::*};
+use chrono::{prelude::*, Duration};
 use maybe_async::maybe_async;
 
 #[cfg(target_arch = "wasm32")]
