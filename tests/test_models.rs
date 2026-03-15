@@ -163,7 +163,7 @@ fn test_private_user() {
           } 
         "#;
     let private_user: PrivateUser = deserialize(json_str);
-    assert_eq!(private_user.country.unwrap(), Country::UnitedStates);
+    assert_eq!(private_user.display_name.unwrap(), "Sergey");
 }
 
 #[test]
@@ -198,7 +198,6 @@ fn test_full_artist() {
         "#;
     let full_artist: FullArtist = deserialize(json_str);
     assert_eq!(full_artist.name, "Band of Horses");
-    assert_eq!(full_artist.followers.total, 833247);
 }
 
 #[test]
@@ -546,7 +545,6 @@ fn test_full_playlist() {
         full_playlist.id.uri(),
         "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
     );
-    assert_eq!(full_playlist.followers.total, 109);
 }
 
 #[test]
@@ -1182,10 +1180,10 @@ fn test_simplified_playlist() {
   "#;
     let simplified_playlist: SimplifiedPlaylist = deserialize(json);
     assert_eq!(
-        simplified_playlist.tracks.href,
+        simplified_playlist.items.href,
         "https://api.spotify.com/v1/playlists/37i9dQZF1DX8mBRYewE6or/tracks"
     );
-    assert_eq!(simplified_playlist.tracks.total, 62);
+    assert_eq!(simplified_playlist.items.total, 62);
 }
 
 #[test]
@@ -1368,9 +1366,9 @@ fn test_deserialization_playlist_item_with_malformed_episodes() {
 "#;
     let page: Page<PlaylistItem> = deserialize(json);
     assert_eq!(page.total, 1);
-    let track = page.items.first().unwrap().track.clone().unwrap();
-    assert!(track.is_unknown());
-    let id = track.id().unwrap();
+    let item = page.items.first().unwrap().item.clone().unwrap();
+    assert!(item.is_unknown());
+    let id = item.id().unwrap();
     assert!(matches!(id, PlayableId::Episode(_)));
     assert_eq!(id.id(), "4IBGQd8aV4j6WGqGOjdJmE");
 }

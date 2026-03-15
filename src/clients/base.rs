@@ -934,6 +934,11 @@ where
     /// of this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-categories-playlists)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
+    #[allow(deprecated)]
     fn category_playlists<'b, 'a: 'b>(
         &'a self,
         category_id: &'a str,
@@ -948,6 +953,10 @@ where
     }
 
     /// The manually paginated version of [`Self::category_playlists`].
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn category_playlists_manual(
         &self,
         category_id: &str,
