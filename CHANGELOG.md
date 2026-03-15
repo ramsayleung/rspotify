@@ -2,7 +2,8 @@
 
 **Spotify Web API changes**
 - ([#556](https://github.com/ramsayleung/rspotify/pull/556)) Deprecate removed endpoints#556
-- ([#558](https://github.com/ramsayleung/rspotify/pull/558)) migrate deprecated endpoint to new endpoint
+- ([#558](https://github.com/ramsayleung/rspotify/pull/558)) Migrate deprecated endpoint to new endpoint
+- ([#559](https://github.com/ramsayleung/rspotify/pull/559)) Deprecate renamed/removed fields
 
 ## 0.15.3 (2025.11.07)
 **Bugfixes**

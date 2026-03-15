@@ -545,6 +545,7 @@ fn test_full_playlist() {
         full_playlist.id.uri(),
         "spotify:playlist:3cEYpjA9oz9GiPac4AsH4n".to_string()
     );
+    assert_eq!(full_playlist.followers.total, 109);
 }
 
 #[test]
