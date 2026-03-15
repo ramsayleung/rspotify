@@ -13,10 +13,18 @@ use crate::{
 /// Simplified Album Object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SimplifiedAlbum {
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub album_group: Option<String>,
     pub album_type: Option<String>,
     pub artists: Vec<SimplifiedArtist>,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub available_markets: Vec<String>,
     pub external_urls: HashMap<String, String>,
@@ -37,6 +45,10 @@ pub struct SimplifiedAlbum {
 pub struct FullAlbum {
     pub artists: Vec<SimplifiedArtist>,
     pub album_type: AlbumType,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     pub available_markets: Option<Vec<String>>,
     pub copyrights: Vec<Copyright>,
     pub external_ids: HashMap<String, String>,
@@ -46,11 +58,20 @@ pub struct FullAlbum {
     pub id: AlbumId<'static>,
     pub images: Vec<Image>,
     pub name: String,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub popularity: u32,
     pub release_date: String,
     pub release_date_precision: DatePrecision,
     pub tracks: Page<SimplifiedTrack>,
     /// Not documented in official Spotify docs, however most albums do contain this field
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     pub label: Option<String>,
 }
 

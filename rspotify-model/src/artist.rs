@@ -19,12 +19,22 @@ pub struct SimplifiedArtist {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullArtist {
     pub external_urls: HashMap<String, String>,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub followers: Followers,
     pub genres: Vec<String>,
     pub href: String,
     pub id: ArtistId<'static>,
     pub images: Vec<Image>,
     pub name: String,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub popularity: u32,
 }
 

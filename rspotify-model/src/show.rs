@@ -18,6 +18,11 @@ pub struct Copyright {
 /// Simplified show object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SimplifiedShow {
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub available_markets: Vec<String>,
     pub copyrights: Vec<Copyright>,
     pub description: String,
@@ -30,6 +35,11 @@ pub struct SimplifiedShow {
     pub languages: Vec<String>,
     pub media_type: String,
     pub name: String,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub publisher: String,
 }
 
@@ -49,6 +59,11 @@ pub struct Show {
 /// Full show object
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullShow {
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub available_markets: Vec<String>,
     pub copyrights: Vec<Copyright>,
     pub description: String,
@@ -62,6 +77,11 @@ pub struct FullShow {
     pub languages: Vec<String>,
     pub media_type: String,
     pub name: String,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub publisher: String,
 }
 

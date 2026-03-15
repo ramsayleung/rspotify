@@ -16,6 +16,10 @@ use crate::{
 pub struct FullTrack {
     pub album: SimplifiedAlbum,
     pub artists: Vec<SimplifiedArtist>,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub available_markets: Vec<String>,
     pub disc_number: i32,
@@ -30,11 +34,20 @@ pub struct FullTrack {
     pub is_local: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_playable: Option<bool>,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub linked_from: Option<TrackLink>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub restrictions: Option<Restriction>,
     pub name: String,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
+    #[serde(default)]
     pub popularity: u32,
     pub preview_url: Option<String>,
     pub track_number: u32,
@@ -67,6 +80,10 @@ pub struct SimplifiedTrack {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub album: Option<SimplifiedAlbum>,
     pub artists: Vec<SimplifiedArtist>,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     pub available_markets: Option<Vec<String>>,
     pub disc_number: i32,
     #[serde(with = "duration_ms", rename = "duration_ms")]
@@ -78,6 +95,10 @@ pub struct SimplifiedTrack {
     pub id: Option<TrackId<'static>>,
     pub is_local: bool,
     pub is_playable: Option<bool>,
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this field. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     pub linked_from: Option<TrackLink>,
     pub restrictions: Option<Restriction>,
     pub name: String,
