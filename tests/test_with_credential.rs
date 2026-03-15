@@ -1,7 +1,7 @@
 mod util;
 
 use rspotify::{
-    model::{AlbumId, AlbumType, ArtistId, Country, Market, PlaylistId, TrackId, UserId},
+    model::{AlbumId, AlbumType, ArtistId, Country, Market, PlaylistId, TrackId},
     prelude::*,
     ClientCredsSpotify,
 };
@@ -15,6 +15,7 @@ use wasm_bindgen_test::*;
 /// Generating a new basic client for the requests.
 #[maybe_async]
 pub async fn creds_client() -> ClientCredsSpotify {
+    let _ = env_logger::builder().is_test(true).try_init();
     let creds = util::get_credentials();
     let spotify = ClientCredsSpotify::new(creds);
     spotify.request_token().await.unwrap();
@@ -26,6 +27,7 @@ pub async fn creds_client() -> ClientCredsSpotify {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_album() {
     let birdy_uri = AlbumId::from_uri("spotify:album:0sNOF9WDwhWunNAHPD3Baj").unwrap();
     creds_client().await.album(birdy_uri, None).await.unwrap();
@@ -36,20 +38,7 @@ async fn test_album() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
-async fn test_albums() {
-    let track_uris = [
-        AlbumId::from_uri("spotify:album:41MnTivkwTO3UUJ8DrqEJJ").unwrap(),
-        AlbumId::from_uri("spotify:album:6JWc4iAiJ9FjyK0B59ABb4").unwrap(),
-        AlbumId::from_uri("spotify:album:6UXCm6bOO4gFlDQZV5yL37").unwrap(),
-    ];
-    creds_client().await.albums(track_uris, None).await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_album_tracks() {
     let birdy_uri = AlbumId::from_uri("spotify:album:6akEvsycLGftJxYudPjmqK").unwrap();
     creds_client()
@@ -64,6 +53,7 @@ async fn test_album_tracks() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_artist() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client().await.artist(birdy_uri).await.unwrap();
@@ -74,6 +64,7 @@ async fn test_artist() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_artists_albums() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
@@ -94,8 +85,9 @@ async fn test_artists_albums() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_artists_albums_with_multiple_album_types() {
-    let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
+    let birdy_uri = ArtistId::from_uri("spotify:artist:0TnOYISbd1XYRBk9myaseg").unwrap();
     let include_groups = [
         AlbumType::Album,
         AlbumType::Single,
@@ -107,7 +99,7 @@ async fn test_artists_albums_with_multiple_album_types() {
         .artist_albums_manual(
             birdy_uri,
             include_groups,
-            Some(Market::Country(Country::UnitedStates)),
+            Some(Market::Country(Country::Spain)),
             Some(10),
             None,
         )
@@ -120,6 +112,7 @@ async fn test_artists_albums_with_multiple_album_types() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_artists_albums_with_zero_album_type() {
     let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
     creds_client()
@@ -140,43 +133,7 @@ async fn test_artists_albums_with_zero_album_type() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
-async fn test_artists() {
-    let artist_uris = [
-        ArtistId::from_uri("spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy").unwrap(),
-        ArtistId::from_uri("spotify:artist:3dBVyJ7JuOMt4GE9607Qin").unwrap(),
-    ];
-    creds_client().await.artists(artist_uris).await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-async fn test_artist_top_tracks() {
-    let birdy_uri = ArtistId::from_uri("spotify:artist:2WX2uTcsvV5OnS0inACecP").unwrap();
-    creds_client()
-        .await
-        .artist_top_tracks(birdy_uri, Some(Market::Country(Country::UnitedStates)))
-        .await
-        .unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
-async fn test_user() {
-    let birdy_uri = UserId::from_id("tuggareutangranser").unwrap();
-    creds_client().await.user(birdy_uri).await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_track() {
     let birdy_uri = TrackId::from_uri("spotify:track:6rqhFgbbKwnb9MLmUQDhG6").unwrap();
     creds_client().await.track(birdy_uri, None).await.unwrap();
@@ -187,19 +144,7 @@ async fn test_track() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
-async fn test_tracks() {
-    let track_uris = [
-        TrackId::from_uri("spotify:track:3n3Ppam7vgaVa1iaRUc9Lp").unwrap(),
-        TrackId::from_uri("spotify:track:3twNvmDtFQtAd5gMKedhLD").unwrap(),
-    ];
-    creds_client().await.tracks(track_uris, None).await.unwrap();
-}
-
-#[maybe_async::test(
-    feature = "__sync",
-    async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
-    async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
-)]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_existing_playlist() {
     let playlist_id = PlaylistId::from_id("0fwsN3jhWKTbJ1J7cR7fgu").unwrap();
     creds_client()
@@ -214,6 +159,7 @@ async fn test_existing_playlist() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_fake_playlist() {
     let playlist_id = PlaylistId::from_id("fakeid").unwrap();
     let playlist = creds_client().await.playlist(playlist_id, None, None).await;
@@ -225,6 +171,7 @@ async fn test_fake_playlist() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_search_album() {
     let query = "album:arrival artist:abba";
     creds_client()
@@ -239,6 +186,7 @@ async fn test_search_album() {
     async(all(feature = "__async", not(target_arch = "wasm32")), tokio::test),
     async(all(feature = "__async", target_arch = "wasm32"), wasm_bindgen_test)
 )]
+#[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
 async fn test_search_multiple_types() {
     let query = "album:arrival artist:abba";
     creds_client()
@@ -275,6 +223,7 @@ pub mod test_pagination {
     /// This test iterates a request of 10 items, with 5 requests of 2 items.
     #[cfg(feature = "__sync")]
     #[test]
+    #[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
     fn test_pagination_sync() {
         let mut client = creds_client();
         client.config.pagination_chunks = 2;
@@ -292,6 +241,7 @@ pub mod test_pagination {
     #[cfg(feature = "__async")]
     #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    #[ignore = "Active premium subscription required for the owner of the app. See https://github.com/ramsayleung/rspotify/issues/550 for more information."]
     async fn test_pagination_async() {
         use futures_util::StreamExt;
 

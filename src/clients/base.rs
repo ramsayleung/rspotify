@@ -117,6 +117,7 @@ where
     async fn api_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let url = self.api_url(url);
         let headers = self.auth_headers().await?;
+        log::debug!("api_get: {url}, {headers:#?}");
         Ok(self.get_http().get(&url, Some(&headers), payload).await?)
     }
 
@@ -224,6 +225,10 @@ where
     /// - market - an ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-several-tracks)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn tracks<'a>(
         &self,
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
@@ -255,6 +260,10 @@ where
     /// - artist_ids - a list of artist IDs, URIs or URLs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-artists)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
@@ -341,6 +350,10 @@ where
     /// - market - limit the response to one particular country.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-an-artists-top-tracks)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn artist_top_tracks(
         &self,
         artist_id: ArtistId<'_>,
@@ -398,6 +411,10 @@ where
     /// - albums_ids - a list of album IDs, URIs or URLs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-albums)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn albums<'a>(
         &self,
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
@@ -561,6 +578,10 @@ where
     /// - user - the id of the usr
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-users-profile)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. Use `me` instead. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn user(&self, user_id: UserId<'_>) -> ClientResult<PublicUser> {
         let url = format!("users/{}", user_id.id());
         let result = self.api_get(&url, &Query::new()).await?;
@@ -662,6 +683,10 @@ where
     /// - market(Optional) An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-shows)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn get_several_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = ShowId<'a>> + Send + 'a,
@@ -752,6 +777,10 @@ where
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-multiple-episodes)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn get_several_episodes<'a>(
         &self,
         ids: impl IntoIterator<Item = EpisodeId<'a>> + Send + 'a,
@@ -838,6 +867,11 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-categories)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
+    #[allow(deprecated)]
     fn categories<'b, 'a: 'b>(
         &'a self,
         locale: Option<&'a str>,
@@ -850,6 +884,10 @@ where
     }
 
     /// The manually paginated version of [`Self::categories`].
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn categories_manual(
         &self,
         locale: Option<&str>,
@@ -970,6 +1008,11 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-new-releases)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
+    #[allow(deprecated)]
     fn new_releases(
         &self,
         country: Option<Market>,
@@ -981,6 +1024,10 @@ where
     }
 
     /// The manually paginated version of [`Self::new_releases`].
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn new_releases_manual(
         &self,
         country: Option<Market>,
@@ -1122,6 +1169,11 @@ where
     /// this.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-list-users-playlists)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. Use `current_user_playlists` instead. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
+    #[allow(deprecated)]
     fn user_playlists<'b, 'a: 'b>(
         &'a self,
         user_id: UserId<'a>,
@@ -1136,6 +1188,10 @@ where
     }
 
     /// The manually paginated version of [`Self::user_playlists`].
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. Use `current_user_playlists` instead. See https://github.com/ramsayleung/rspotify/issues/550 for more information."
+    )]
     async fn user_playlists_manual(
         &self,
         user_id: UserId<'_>,
