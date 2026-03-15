@@ -4,6 +4,7 @@
 //! re-authenticate by refresh_token if set `Token.token_refreshing` to true.
 
 #![allow(clippy::assigning_clones)]
+#![allow(deprecated)]
 
 use chrono::offset::Utc;
 use chrono::Duration;

@@ -554,6 +554,61 @@ impl<'a> PlayableId<'a> {
     }
 }
 
+/// Grouping up multiple kinds of IDs to treat them generically in the library.
+/// This also implements [`Id`] and [`From`] to instantiate it.
+#[enum_dispatch(Id)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
+pub enum LibraryId<'a> {
+    Track(TrackId<'a>),
+    Album(AlbumId<'a>),
+    Episode(EpisodeId<'a>),
+    Show(ShowId<'a>),
+    Artist(ArtistId<'a>),
+    User(UserId<'a>),
+    Playlist(PlaylistId<'a>),
+}
+
+impl<'a> LibraryId<'a> {
+    #[must_use]
+    pub fn as_ref(&'a self) -> Self {
+        match self {
+            LibraryId::Track(x) => LibraryId::Track(x.as_ref()),
+            LibraryId::Album(x) => LibraryId::Album(x.as_ref()),
+            LibraryId::Episode(x) => LibraryId::Episode(x.as_ref()),
+            LibraryId::Show(x) => LibraryId::Show(x.as_ref()),
+            LibraryId::Artist(x) => LibraryId::Artist(x.as_ref()),
+            LibraryId::User(x) => LibraryId::User(x.as_ref()),
+            LibraryId::Playlist(x) => LibraryId::Playlist(x.as_ref()),
+        }
+    }
+
+    #[must_use]
+    pub fn into_static(self) -> LibraryId<'static> {
+        match self {
+            LibraryId::Track(x) => LibraryId::Track(x.into_static()),
+            LibraryId::Album(x) => LibraryId::Album(x.into_static()),
+            LibraryId::Episode(x) => LibraryId::Episode(x.into_static()),
+            LibraryId::Show(x) => LibraryId::Show(x.into_static()),
+            LibraryId::Artist(x) => LibraryId::Artist(x.into_static()),
+            LibraryId::User(x) => LibraryId::User(x.into_static()),
+            LibraryId::Playlist(x) => LibraryId::Playlist(x.into_static()),
+        }
+    }
+
+    #[must_use]
+    pub fn clone_static(&'a self) -> LibraryId<'static> {
+        match self {
+            LibraryId::Track(x) => LibraryId::Track(x.clone_static()),
+            LibraryId::Album(x) => LibraryId::Album(x.clone_static()),
+            LibraryId::Episode(x) => LibraryId::Episode(x.clone_static()),
+            LibraryId::Show(x) => LibraryId::Show(x.clone_static()),
+            LibraryId::Artist(x) => LibraryId::Artist(x.clone_static()),
+            LibraryId::User(x) => LibraryId::User(x.clone_static()),
+            LibraryId::Playlist(x) => LibraryId::Playlist(x.clone_static()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

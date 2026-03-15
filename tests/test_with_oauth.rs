@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Most of tests currently require a Spotify Premium account where the tests
 //! can be ran, which will be ignored in the CI for now. The tests are written
 //! so that no user data is modified (or at least minimizing the changes done to
@@ -82,7 +83,10 @@ pub async fn oauth_client() -> AuthCodeSpotify {
             "user-read-playback-state",
             "user-read-private",
             "user-read-recently-played",
-            "user-top-read"
+            "user-top-read",
+            "user-library-modify",
+            "user-follow-modify",
+            "playlist-modify-public"
         );
         // Using every possible scope
         let oauth = OAuth::from_env(scopes).unwrap();
@@ -102,7 +106,9 @@ pub async fn oauth_client() -> AuthCodeSpotify {
         panic!(
             "No access tokens configured. Please set `RSPOTIFY_ACCESS_TOKEN` \
              or `RSPOTIFY_REFRESH_TOKEN`, which can be obtained with the \
-             `oauth_tokens` example."
+             `oauth_tokens` example: \
+cargo run --example oauth_tokens --features env-file,cli,client-reqwest,reqwest-rustls-tls --no-default-features
+"
         )
     }
 }

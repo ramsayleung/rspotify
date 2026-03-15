@@ -15,6 +15,8 @@
 //! tokens](https://github.com/felix-hilden/tekore/issues/86), so in the case of
 //! Spotify it doesn't seem to revoke them at all.
 
+#![allow(deprecated)]
+
 use rspotify::{
     model::ArtistId, prelude::*, scopes, AuthCodePkceSpotify, AuthCodeSpotify, Credentials, OAuth,
 };
