@@ -53,6 +53,7 @@ fn get_access_tokens() -> (Option<String>, Option<String>) {
 /// Generating a new OAuth client for the requests.
 #[maybe_async]
 pub async fn oauth_client() -> AuthCodeSpotify {
+    let _ = env_logger::builder().is_test(true).try_init();
     let (access_token, refresh_token) = get_access_tokens();
 
     if let Some(access_token) = access_token {

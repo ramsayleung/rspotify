@@ -117,6 +117,7 @@ where
     async fn api_get(&self, url: &str, payload: &Query<'_>) -> ClientResult<String> {
         let url = self.api_url(url);
         let headers = self.auth_headers().await?;
+        log::debug!("api_get: {url}, {headers:#?}");
         Ok(self.get_http().get(&url, Some(&headers), payload).await?)
     }
 
