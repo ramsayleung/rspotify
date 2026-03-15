@@ -34,7 +34,10 @@ async fn main() {
         "user-modify-playback-state",
         "playlist-modify-public",
         "playlist-modify-private",
-        "ugc-image-upload"
+        "ugc-image-upload",
+        "user-library-modify",
+        "user-follow-modify",
+        "playlist-modify-public"
     );
     let oauth = OAuth::from_env(scopes).unwrap();
 

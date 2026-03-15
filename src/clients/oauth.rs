@@ -1,14 +1,12 @@
 use crate::{
+    ClientError, ClientResult, OAuth, Token,
     clients::{
-        append_device_id, convert_result,
-        pagination::{paginate, Paginator},
-        BaseClient,
+        BaseClient, append_device_id, convert_result,
+        pagination::{Paginator, paginate},
     },
     http::Query,
-    join_ids,
     model::*,
-    util::{build_map, JsonBuilder},
-    ClientError, ClientResult, OAuth, Token,
+    util::{JsonBuilder, build_map},
 };
 
 use std::{
@@ -18,8 +16,8 @@ use std::{
 };
 
 use maybe_async::maybe_async;
-use rspotify_model::idtypes::{PlayContextId, PlayableId};
-use serde_json::{json, Map};
+use rspotify_model::idtypes::{LibraryId, PlayContextId, PlayableId};
+use serde_json::{Map, json};
 use url::Url;
 
 /// This trait implements the methods available strictly to clients with user
@@ -317,7 +315,9 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/create-playlist)
     async fn user_playlist_create(
         &self,
-        user_id: UserId<'_>,
+        _user_id: UserId<'_>, // it's not required after Spotify
+        // Web API changes, keep this for
+        // backward compatibility
         name: &str,
         public: Option<bool>,
         collaborative: Option<bool>,
@@ -336,8 +336,8 @@ pub trait OAuthClient: BaseClient {
             .optional("description", description)
             .build();
 
-        let url = format!("users/{}/playlists", user_id.id());
-        let result = self.api_post(&url, &params).await?;
+        let url = "me/playlists";
+        let result = self.api_post(url, &params).await?;
         convert_result(&result)
     }
 
@@ -376,11 +376,13 @@ pub trait OAuthClient: BaseClient {
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/unfollow-playlist)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_remove` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn playlist_unfollow(&self, playlist_id: PlaylistId<'_>) -> ClientResult<()> {
-        let url = format!("playlists/{}/followers", playlist_id.id());
-        self.api_delete(&url, &json!({})).await?;
-
-        Ok(())
+        self.library_remove([LibraryId::Playlist(playlist_id)])
+            .await
     }
 
     /// Adds items to a playlist.
@@ -403,7 +405,7 @@ pub trait OAuthClient: BaseClient {
             .optional("position", position)
             .build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_post(&url, &params).await?;
         convert_result(&result)
     }
@@ -424,7 +426,7 @@ pub trait OAuthClient: BaseClient {
         let uris = items.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
         let params = JsonBuilder::new().required("uris", uris).build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         self.api_put(&url, &params).await?;
 
         Ok(())
@@ -457,7 +459,7 @@ pub trait OAuthClient: BaseClient {
             .optional("snapshot_id", snapshot_id)
             .build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_put(&url, &params).await?;
         convert_result(&result)
     }
@@ -486,11 +488,11 @@ pub trait OAuthClient: BaseClient {
             .collect::<Vec<_>>();
 
         let params = JsonBuilder::new()
-            .required("tracks", tracks)
+            .required("items", tracks)
             .optional("snapshot_id", snapshot_id)
             .build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_delete(&url, &params).await?;
         convert_result(&result)
     }
@@ -541,11 +543,11 @@ pub trait OAuthClient: BaseClient {
             .collect::<Vec<_>>();
 
         let params = JsonBuilder::new()
-            .required("tracks", tracks)
+            .required("items", tracks)
             .optional("snapshot_id", snapshot_id)
             .build();
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_delete(&url, &params).await?;
         convert_result(&result)
     }
@@ -556,18 +558,16 @@ pub trait OAuthClient: BaseClient {
     /// - playlist_id - the id of the playlist
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/follow-playlist)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_add` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn playlist_follow(
         &self,
         playlist_id: PlaylistId<'_>,
-        public: Option<bool>,
+        _public: Option<bool>,
     ) -> ClientResult<()> {
-        let url = format!("playlists/{}/followers", playlist_id.id());
-
-        let params = JsonBuilder::new().optional("public", public).build();
-
-        self.api_put(&url, &params).await?;
-
-        Ok(())
+        self.library_add([LibraryId::Playlist(playlist_id)]).await
     }
 
     /// Get detailed profile information about the current user.
@@ -585,6 +585,65 @@ pub trait OAuthClient: BaseClient {
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/get-current-users-profile)
     async fn current_user(&self) -> ClientResult<PrivateUser> {
         self.me().await
+    }
+
+    /// Save one or more items to the current user's library.
+    ///
+    /// Accepts Spotify URIs for tracks, albums, episodes, shows, audiobooks,
+    /// users, and playlists.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/save-items-library)
+    async fn library_add<'a>(
+        &self,
+        uris: impl IntoIterator<Item = LibraryId<'a>> + Send + 'a,
+    ) -> ClientResult<()> {
+        let uris = uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+        let params = url::form_urlencoded::Serializer::new(String::new())
+            .append_pair("uris", &uris.join(","))
+            .finish();
+        let url = format!("me/library?{params}");
+        self.api_put(&url, &json!({})).await?;
+
+        Ok(())
+    }
+
+    /// Remove one or more items from the current user's library.
+    ///
+    /// Accepts Spotify URIs for tracks, albums, episodes, shows, audiobooks,
+    /// users, and playlists.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/remove-from-library)
+    async fn library_remove<'a>(
+        &self,
+        uris: impl IntoIterator<Item = LibraryId<'a>> + Send + 'a,
+    ) -> ClientResult<()> {
+        let uris = uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+        let params = url::form_urlencoded::Serializer::new(String::new())
+            .append_pair("uris", &uris.join(","))
+            .finish();
+        let url = format!("me/library?{params}");
+        self.api_delete(&url, &json!({})).await?;
+
+        Ok(())
+    }
+
+    /// Check if one or more items are already saved in the current user's library.
+    ///
+    /// Accepts Spotify URIs for tracks, albums, episodes, shows, audiobooks,
+    /// users, and playlists.
+    ///
+    /// [Reference](https://developer.spotify.com/documentation/web-api/reference/check-users-saved-items)
+    async fn library_contains<'a>(
+        &self,
+        uris: impl IntoIterator<Item = LibraryId<'a>> + Send + 'a,
+    ) -> ClientResult<Vec<bool>> {
+        let uris = uris.into_iter().map(|id| id.uri()).collect::<Vec<_>>();
+        let params = url::form_urlencoded::Serializer::new(String::new())
+            .append_pair("uris", &uris.join(","))
+            .finish();
+        let url = format!("me/library/contains?{params}");
+        let result = self.api_get(&url, &Query::new()).await?;
+        convert_result(&result)
     }
 
     /// Get information about the current users currently playing item.
@@ -716,14 +775,19 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-tracks-user)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_remove` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn current_user_saved_tracks_delete<'a>(
         &self,
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/tracks/?ids={}", join_ids(track_ids));
-        self.api_delete(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = track_ids
+            .into_iter()
+            .map(LibraryId::Track)
+            .collect::<Vec<_>>();
+        self.library_remove(uris).await
     }
 
     /// Check if one or more tracks is already saved in the current Spotify
@@ -733,13 +797,19 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-tracks)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_contains` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn current_user_saved_tracks_contains<'a>(
         &self,
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
-        let url = format!("me/tracks/contains/?ids={}", join_ids(track_ids));
-        let result = self.api_get(&url, &Query::new()).await?;
-        convert_result(&result)
+        let uris = track_ids
+            .into_iter()
+            .map(LibraryId::Track)
+            .collect::<Vec<_>>();
+        self.library_contains(uris).await
     }
 
     /// Save one or more tracks to the current user's "Your Music" library.
@@ -748,14 +818,19 @@ pub trait OAuthClient: BaseClient {
     /// - track_ids - a list of track URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/save-tracks-user)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_add` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn current_user_saved_tracks_add<'a>(
         &self,
         track_ids: impl IntoIterator<Item = TrackId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/tracks/?ids={}", join_ids(track_ids));
-        self.api_put(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = track_ids
+            .into_iter()
+            .map(LibraryId::Track)
+            .collect::<Vec<_>>();
+        self.library_add(uris).await
     }
 
     /// Get the current user's top artists.
@@ -877,14 +952,19 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/save-albums-user)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_add` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn current_user_saved_albums_add<'a>(
         &self,
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/albums/?ids={}", join_ids(album_ids));
-        self.api_put(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = album_ids
+            .into_iter()
+            .map(LibraryId::Album)
+            .collect::<Vec<_>>();
+        self.library_add(uris).await
     }
 
     /// Remove one or more albums from the current user's "Your Music" library.
@@ -893,14 +973,19 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-albums-user)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_remove` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn current_user_saved_albums_delete<'a>(
         &self,
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/albums/?ids={}", join_ids(album_ids));
-        self.api_delete(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = album_ids
+            .into_iter()
+            .map(LibraryId::Album)
+            .collect::<Vec<_>>();
+        self.library_remove(uris).await
     }
 
     /// Check if one or more albums is already saved in the current Spotify
@@ -910,13 +995,19 @@ pub trait OAuthClient: BaseClient {
     /// - album_ids - a list of album URIs, URLs or IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-albums)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_contains` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn current_user_saved_albums_contains<'a>(
         &self,
         album_ids: impl IntoIterator<Item = AlbumId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
-        let url = format!("me/albums/contains/?ids={}", join_ids(album_ids));
-        let result = self.api_get(&url, &Query::new()).await?;
-        convert_result(&result)
+        let uris = album_ids
+            .into_iter()
+            .map(LibraryId::Album)
+            .collect::<Vec<_>>();
+        self.library_contains(uris).await
     }
 
     /// Follow one or more artists.
@@ -925,14 +1016,19 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/follow-artists-users)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_add` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn user_follow_artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
-        self.api_put(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = artist_ids
+            .into_iter()
+            .map(LibraryId::Artist)
+            .collect::<Vec<_>>();
+        self.library_add(uris).await
     }
 
     /// Unfollow one or more artists.
@@ -941,14 +1037,19 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/unfollow-artists-users)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_remove` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn user_unfollow_artists<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/following?type=artist&ids={}", join_ids(artist_ids));
-        self.api_delete(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = artist_ids
+            .into_iter()
+            .map(LibraryId::Artist)
+            .collect::<Vec<_>>();
+        self.library_remove(uris).await
     }
 
     /// Check to see if the current user is following one or more artists or
@@ -958,16 +1059,19 @@ pub trait OAuthClient: BaseClient {
     /// - artist_ids - the ids of the users that you want to
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-current-user-follows)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_contains` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn user_artist_check_follow<'a>(
         &self,
         artist_ids: impl IntoIterator<Item = ArtistId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
-        let url = format!(
-            "me/following/contains?type=artist&ids={}",
-            join_ids(artist_ids)
-        );
-        let result = self.api_get(&url, &Query::new()).await?;
-        convert_result(&result)
+        let uris = artist_ids
+            .into_iter()
+            .map(LibraryId::Artist)
+            .collect::<Vec<_>>();
+        self.library_contains(uris).await
     }
 
     /// Follow one or more users.
@@ -976,14 +1080,19 @@ pub trait OAuthClient: BaseClient {
     /// - user_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/follow-artists-users)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_add` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn user_follow_users<'a>(
         &self,
         user_ids: impl IntoIterator<Item = UserId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
-        self.api_put(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = user_ids
+            .into_iter()
+            .map(LibraryId::User)
+            .collect::<Vec<_>>();
+        self.library_add(uris).await
     }
 
     /// Unfollow one or more users.
@@ -992,14 +1101,19 @@ pub trait OAuthClient: BaseClient {
     /// - user_ids - a list of artist IDs
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/unfollow-artists-users)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_remove` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn user_unfollow_users<'a>(
         &self,
         user_ids: impl IntoIterator<Item = UserId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/following?type=user&ids={}", join_ids(user_ids));
-        self.api_delete(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = user_ids
+            .into_iter()
+            .map(LibraryId::User)
+            .collect::<Vec<_>>();
+        self.library_remove(uris).await
     }
 
     /// Get a User’s Available Devices
@@ -1347,14 +1461,19 @@ pub trait OAuthClient: BaseClient {
     ///   be added to the user’s library.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/save-shows-user)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_add` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn save_shows<'a>(
         &self,
         show_ids: impl IntoIterator<Item = ShowId<'a>> + Send + 'a,
     ) -> ClientResult<()> {
-        let url = format!("me/shows/?ids={}", join_ids(show_ids));
-        self.api_put(&url, &json!({})).await?;
-
-        Ok(())
+        let uris = show_ids
+            .into_iter()
+            .map(LibraryId::Show)
+            .collect::<Vec<_>>();
+        self.library_add(uris).await
     }
 
     /// Get a list of shows saved in the current Spotify user’s library.
@@ -1397,14 +1516,16 @@ pub trait OAuthClient: BaseClient {
     /// - ids: Required. A comma-separated list of the Spotify IDs for the shows. Maximum: 50 IDs.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-users-saved-shows)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_contains` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn check_users_saved_shows<'a>(
         &self,
         ids: impl IntoIterator<Item = ShowId<'a>> + Send + 'a,
     ) -> ClientResult<Vec<bool>> {
-        let ids = join_ids(ids);
-        let params = build_map([("ids", Some(&ids))]);
-        let result = self.api_get("me/shows/contains", &params).await?;
-        convert_result(&result)
+        let uris = ids.into_iter().map(LibraryId::Show).collect::<Vec<_>>();
+        self.library_contains(uris).await
     }
 
     /// Delete one or more shows from current Spotify user's library.
@@ -1415,18 +1536,20 @@ pub trait OAuthClient: BaseClient {
     /// - market: Optional. An ISO 3166-1 alpha-2 country code or the string from_token.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/remove-shows-user)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has consolidated this into the Library API. Use `library_remove` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn remove_users_saved_shows<'a>(
         &self,
         show_ids: impl IntoIterator<Item = ShowId<'a>> + Send + 'a,
-        country: Option<Market>,
+        _country: Option<Market>,
     ) -> ClientResult<()> {
-        let url = format!("me/shows?ids={}", join_ids(show_ids));
-        let params = JsonBuilder::new()
-            .optional("country", country.map(<&str>::from))
-            .build();
-        self.api_delete(&url, &params).await?;
-
-        Ok(())
+        let uris = show_ids
+            .into_iter()
+            .map(LibraryId::Show)
+            .collect::<Vec<_>>();
+        self.library_remove(uris).await
     }
 }
 

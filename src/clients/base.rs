@@ -128,6 +128,7 @@ where
     async fn api_post(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.api_url(url);
         let headers = self.auth_headers().await?;
+        log::debug!("api_post: {url}, {headers:#?}");
         Ok(self.get_http().post(&url, Some(&headers), payload).await?)
     }
 
@@ -138,6 +139,7 @@ where
     async fn api_put(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.api_url(url);
         let headers = self.auth_headers().await?;
+        log::debug!("api_put: {url}, {headers:#?}");
         Ok(self.get_http().put(&url, Some(&headers), payload).await?)
     }
 
@@ -148,6 +150,7 @@ where
     async fn api_delete(&self, url: &str, payload: &Value) -> ClientResult<String> {
         let url = self.api_url(url);
         let headers = self.auth_headers().await?;
+        log::debug!("api_delete: {url}, {headers:#?}");
         Ok(self
             .get_http()
             .delete(&url, Some(&headers), payload)
@@ -451,6 +454,9 @@ where
     ///   relevant audio content that is hosted externally.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
+    ///
+    /// NOTE: As of February 2026, the limit parameter maximum value has been
+    /// reduced from 50 to 10, and the default value has been changed from 20 to 5.
     async fn search(
         &self,
         q: &str,
@@ -498,6 +504,9 @@ where
     ///   relevant audio content that is hosted externally.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/search)
+    ///
+    /// NOTE: As of February 2026, the limit parameter maximum value has been
+    /// reduced from 50 to 10, and the default value has been changed from 20 to 5.
     async fn search_multiple(
         &self,
         q: &str,
@@ -640,6 +649,10 @@ where
     ///   follow the playlist. Maximum: 5 ids.
     ///
     /// [Reference](https://developer.spotify.com/documentation/web-api/reference/#/operations/check-if-user-follows-playlist)
+    #[deprecated(
+        since = "0.16.0",
+        note = "Spotify has removed this endpoint. Use `library_contains` in `OAuthClient` instead. See https://github.com/ramsayleung/rspotify/issues/550"
+    )]
     async fn playlist_check_follow(
         &self,
         playlist_id: PlaylistId<'_>,
@@ -1153,7 +1166,7 @@ where
             ("offset", offset.as_deref()),
         ]);
 
-        let url = format!("playlists/{}/tracks", playlist_id.id());
+        let url = format!("playlists/{}/items", playlist_id.id());
         let result = self.api_get(&url, &params).await?;
         convert_result(&result)
     }
