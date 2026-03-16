@@ -82,7 +82,6 @@ impl Serialize for Actions {
     }
 }
 
-
 impl<'de> Deserialize<'de> for Actions {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
