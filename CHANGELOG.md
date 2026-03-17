@@ -7,6 +7,7 @@
 
 **Bugfixes**
 - ([#557](https://github.com/ramsayleung/rspotify/pull/557)) Fix: serialize `Actions` into the same format it is deserialized from, enabling round-trips.
+- ([#560](https://github.com/ramsayleung/rspotify/pull/560)) Fix: accept both item(s) and track(s) from playlist(_items) endpoints
 
 ## 0.15.3 (2025.11.07)
 **Bugfixes**
