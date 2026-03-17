@@ -175,19 +175,22 @@ struct PlaylistItemShadow {
     pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
     pub is_local: bool,
-    #[serde(alias = "track")]
+    #[serde(default)]
     pub item: Option<PlayableItem>,
+    #[serde(default)]
+    pub track: Option<PlayableItem>,
 }
 
 #[allow(deprecated)]
 impl From<PlaylistItemShadow> for PlaylistItem {
     fn from(shadow: PlaylistItemShadow) -> Self {
+        let item = shadow.item.or(shadow.track);
         Self {
             added_at: shadow.added_at,
             added_by: shadow.added_by,
             is_local: shadow.is_local,
-            track: shadow.item.clone(),
-            item: shadow.item,
+            track: item.clone(),
+            item,
         }
     }
 }
