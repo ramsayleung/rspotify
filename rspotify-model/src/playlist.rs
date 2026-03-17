@@ -38,13 +38,19 @@ struct SimplifiedPlaylistShadow {
     pub owner: PublicUser,
     pub public: Option<bool>,
     pub snapshot_id: String,
-    #[serde(alias = "tracks")]
-    pub items: PlaylistTracksRef,
+    #[serde(default)]
+    pub items: Option<PlaylistTracksRef>,
+    #[serde(default)]
+    pub tracks: Option<PlaylistTracksRef>,
 }
 
 #[allow(deprecated)]
 impl From<SimplifiedPlaylistShadow> for SimplifiedPlaylist {
     fn from(shadow: SimplifiedPlaylistShadow) -> Self {
+        let items = shadow
+            .items
+            .or(shadow.tracks)
+            .expect("missing items/tracks");
         Self {
             collaborative: shadow.collaborative,
             external_urls: shadow.external_urls,
@@ -55,8 +61,8 @@ impl From<SimplifiedPlaylistShadow> for SimplifiedPlaylist {
             owner: shadow.owner,
             public: shadow.public,
             snapshot_id: shadow.snapshot_id,
-            tracks: shadow.items.clone(),
-            items: shadow.items,
+            tracks: items.clone(),
+            items,
         }
     }
 }
