@@ -60,9 +60,26 @@ pub struct CurrentUserQueue {
 }
 
 /// Actions object
-#[derive(Clone, Debug, Serialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct Actions {
     pub disallows: Vec<DisallowKey>,
+}
+
+impl Serialize for Actions {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        #[derive(Serialize)]
+        struct OriginalActions {
+            pub disallows: HashMap<DisallowKey, bool>,
+        }
+        let original_actions = OriginalActions {
+            disallows: self.disallows.iter().map(|&key| (key, true)).collect(),
+        };
+
+        original_actions.serialize(serializer)
+    }
 }
 
 impl<'de> Deserialize<'de> for Actions {
