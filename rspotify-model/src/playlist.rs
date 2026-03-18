@@ -38,13 +38,19 @@ struct SimplifiedPlaylistShadow {
     pub owner: PublicUser,
     pub public: Option<bool>,
     pub snapshot_id: String,
-    #[serde(alias = "tracks")]
-    pub items: PlaylistTracksRef,
+    #[serde(default)]
+    pub items: Option<PlaylistTracksRef>,
+    #[serde(default)]
+    pub tracks: Option<PlaylistTracksRef>,
 }
 
 #[allow(deprecated)]
 impl From<SimplifiedPlaylistShadow> for SimplifiedPlaylist {
     fn from(shadow: SimplifiedPlaylistShadow) -> Self {
+        let items = shadow
+            .items
+            .or(shadow.tracks)
+            .expect("missing items/tracks");
         Self {
             collaborative: shadow.collaborative,
             external_urls: shadow.external_urls,
@@ -55,8 +61,8 @@ impl From<SimplifiedPlaylistShadow> for SimplifiedPlaylist {
             owner: shadow.owner,
             public: shadow.public,
             snapshot_id: shadow.snapshot_id,
-            tracks: shadow.items.clone(),
-            items: shadow.items,
+            tracks: items.clone(),
+            items,
         }
     }
 }
@@ -169,19 +175,22 @@ struct PlaylistItemShadow {
     pub added_at: Option<DateTime<Utc>>,
     pub added_by: Option<PublicUser>,
     pub is_local: bool,
-    #[serde(alias = "track")]
+    #[serde(default)]
     pub item: Option<PlayableItem>,
+    #[serde(default)]
+    pub track: Option<PlayableItem>,
 }
 
 #[allow(deprecated)]
 impl From<PlaylistItemShadow> for PlaylistItem {
     fn from(shadow: PlaylistItemShadow) -> Self {
+        let item = shadow.item.or(shadow.track);
         Self {
             added_at: shadow.added_at,
             added_by: shadow.added_by,
             is_local: shadow.is_local,
-            track: shadow.item.clone(),
-            item: shadow.item,
+            track: item.clone(),
+            item,
         }
     }
 }
