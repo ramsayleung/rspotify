@@ -1,4 +1,4 @@
-## 0.16.0 (Unreleased)
+## 0.16.0 (2026.03.22)
 
 **Spotify Web API changes**
 - ([#556](https://github.com/ramsayleung/rspotify/pull/556)) Deprecate removed endpoints#556
