@@ -241,7 +241,25 @@ pub trait OAuthClient: BaseClient {
                 if expired {
                     // Ensure that we actually got a token from the refetch
                     match self.refetch_token().await {
-                        Ok(Some(refreshed_token)) => {
+                        Ok(Some(mut refreshed_token)) => {
+                            // Spotify's refresh-grant response may omit
+                            // `refresh_token`; see
+                            // https://developer.spotify.com/documentation/web-api/tutorials/refreshing-tokens
+                            // "When a refresh token is not returned, continue
+                            // using the existing token." Preserve the cached
+                            // one so the next refresh keeps working.
+                            if refreshed_token.refresh_token.is_none() {
+                                let previous = self
+                                    .get_token()
+                                    .lock()
+                                    .await
+                                    .unwrap()
+                                    .as_ref()
+                                    .and_then(|t| t.refresh_token.clone());
+                                if let Some(previous) = previous {
+                                    refreshed_token.refresh_token = Some(previous);
+                                }
+                            }
                             log::info!("Successfully refreshed expired token from token cache");
                             *self.get_token().lock().await.unwrap() = Some(refreshed_token)
                         }
