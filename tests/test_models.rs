@@ -1341,6 +1341,109 @@ fn test_current_playback_context() {
 
 #[test]
 #[wasm_bindgen_test]
+fn test_current_playback_context_without_external_ids() {
+    // The `/me/player` and `/me/player/currently-playing` endpoints omit
+    // `external_ids` on the track object, unlike `/tracks` or
+    // `/me/player/recently-played`.
+    let json = r#"
+{
+  "device": {
+    "id": "28d0f845293d03a2713392905c6d30b6442719b5",
+    "is_active": true,
+    "is_private_session": false,
+    "is_restricted": false,
+    "name": "Web Player (Firefox)",
+    "type": "Computer",
+    "volume_percent": 100
+  },
+  "shuffle_state": false,
+  "repeat_state": "off",
+  "timestamp": 1607774342714,
+  "context": null,
+  "progress_ms": 42713,
+  "is_playing": true,
+  "item": {
+    "album": {
+      "album_type": "album",
+      "artists": [
+        {
+          "external_urls": {
+            "spotify": "https://open.spotify.com/artist/08td7MxkoHQkXnWAYD8d6Q"
+          },
+          "href": "https://api.spotify.com/v1/artists/08td7MxkoHQkXnWAYD8d6Q",
+          "id": "08td7MxkoHQkXnWAYD8d6Q",
+          "name": "Tania Bowra",
+          "type": "artist",
+          "uri": "spotify:artist:08td7MxkoHQkXnWAYD8d6Q"
+        }
+      ],
+      "external_urls": {
+        "spotify": "https://open.spotify.com/album/6akEvsycLGftJxYudPjmqK"
+      },
+      "href": "https://api.spotify.com/v1/albums/6akEvsycLGftJxYudPjmqK",
+      "id": "6akEvsycLGftJxYudPjmqK",
+      "images": [
+        {
+          "url": "https://i.scdn.co/image/ab67616d0000b2731ae2bdc1378da1b440e1f610",
+          "height": 640,
+          "width": 640
+        }
+      ],
+      "name": "Place In The Sun",
+      "release_date": "2004-02-02",
+      "release_date_precision": "day",
+      "total_tracks": 11,
+      "type": "album",
+      "uri": "spotify:album:6akEvsycLGftJxYudPjmqK"
+    },
+    "artists": [
+      {
+        "external_urls": {
+          "spotify": "https://open.spotify.com/artist/08td7MxkoHQkXnWAYD8d6Q"
+        },
+        "href": "https://api.spotify.com/v1/artists/08td7MxkoHQkXnWAYD8d6Q",
+        "id": "08td7MxkoHQkXnWAYD8d6Q",
+        "name": "Tania Bowra",
+        "type": "artist",
+        "uri": "spotify:artist:08td7MxkoHQkXnWAYD8d6Q"
+      }
+    ],
+    "disc_number": 1,
+    "duration_ms": 276773,
+    "explicit": false,
+    "external_urls": {
+      "spotify": "https://open.spotify.com/track/2TpxZ7JUBn3uw46aR7qd6V"
+    },
+    "href": "https://api.spotify.com/v1/tracks/2TpxZ7JUBn3uw46aR7qd6V",
+    "id": "2TpxZ7JUBn3uw46aR7qd6V",
+    "is_local": false,
+    "name": "All I Want",
+    "preview_url": null,
+    "track_number": 1,
+    "type": "track",
+    "uri": "spotify:track:2TpxZ7JUBn3uw46aR7qd6V"
+  },
+  "currently_playing_type": "track",
+  "actions": {
+    "disallows": {
+      "resuming": true
+    }
+  }
+}
+    "#;
+
+    let context: CurrentPlaybackContext = deserialize(json);
+    match context.item {
+        Some(PlayableItem::Track(track)) => {
+            assert_eq!(track.name, "All I Want");
+            assert!(track.external_ids.is_empty());
+        }
+        other => panic!("expected a track, got {other:?}"),
+    }
+}
+
+#[test]
+#[wasm_bindgen_test]
 fn test_current_user_queue() {
     let json = r#"
   {

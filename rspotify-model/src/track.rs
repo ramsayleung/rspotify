@@ -26,6 +26,9 @@ pub struct FullTrack {
     #[serde(with = "duration_ms", rename = "duration_ms")]
     pub duration: Duration,
     pub explicit: bool,
+    /// Spotify omits this field on the currently playing track returned by
+    /// the `/me/player` and `/me/player/currently-playing` endpoints.
+    #[serde(default)]
     pub external_ids: HashMap<String, String>,
     pub external_urls: HashMap<String, String>,
     pub href: Option<String>,

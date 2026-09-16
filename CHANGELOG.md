@@ -1,3 +1,8 @@
+## Unreleased
+
+**Bugfixes**
+- Fix: `FullTrack`: add default for `external_ids`, which Spotify omits on the currently playing track returned by `/me/player` and `/me/player/currently-playing`.
+
 ## 0.16.1 (2026.04.13)
 Bugfixes
 - ([#564](https://github.com/ramsayleung/rspotify/pull/564)) Fix: FullArtist: deprecate and add default for genres.
