@@ -1,3 +1,7 @@
+## unreleased
+Bugfixes
+- ([#578](https://github.com/ramsayleung/rspotify/pull/578)) Fix: FullTrack: add default for external_ids.
+
 ## 0.16.1 (2026.04.13)
 Bugfixes
 - ([#564](https://github.com/ramsayleung/rspotify/pull/564)) Fix: FullArtist: deprecate and add default for genres.
