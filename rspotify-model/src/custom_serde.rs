@@ -1,5 +1,15 @@
 //! Custom serialization methods used throughout the crate
 
+/// Deserializes `null` as the type's default value. The Web API sometimes
+/// returns `null` for fields documented as always present.
+pub fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    T: Default + serde::Deserialize<'de>,
+    D: serde::Deserializer<'de>,
+{
+    Ok(<Option<T> as serde::Deserialize>::deserialize(deserializer)?.unwrap_or_default())
+}
+
 pub mod duration_ms {
     use chrono::Duration;
     use serde::{de, Serializer};
