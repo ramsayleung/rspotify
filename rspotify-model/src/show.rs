@@ -4,7 +4,8 @@ use chrono::Duration;
 use std::collections::HashMap;
 
 use crate::{
-    custom_serde::duration_ms, CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId, Type,
+    custom_serde::{deserialize_null_default, duration_ms},
+    CopyrightType, DatePrecision, EpisodeId, Image, Page, ShowId, Type,
 };
 
 /// Copyright object
@@ -97,6 +98,7 @@ pub struct SimplifiedEpisode {
     pub href: String,
     pub id: EpisodeId<'static>,
     pub images: Vec<Image>,
+    #[serde(default, deserialize_with = "deserialize_null_default")]
     pub is_externally_hosted: bool,
     pub is_playable: bool,
     #[deprecated(note = "This `language` field is deprecated and might be \
@@ -122,6 +124,7 @@ pub struct FullEpisode {
     pub href: String,
     pub id: EpisodeId<'static>,
     pub images: Vec<Image>,
+    #[serde(default, deserialize_with = "deserialize_null_default")]
     pub is_externally_hosted: bool,
     pub is_playable: bool,
     #[deprecated(note = "This `language` field is deprecated and might be \

@@ -1,6 +1,9 @@
 //! All kinds of playlists objects
 
-use crate::{Followers, Image, Page, PlayableItem, PlaylistId, PublicUser};
+use crate::{
+    custom_serde::deserialize_null_default, Followers, Image, Page, PlayableItem, PlaylistId,
+    PublicUser,
+};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -16,14 +19,6 @@ pub struct PlaylistResult {
 pub struct PlaylistTracksRef {
     pub href: String,
     pub total: u32,
-}
-
-fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-where
-    T: Default + serde::Deserialize<'de>,
-    D: serde::Deserializer<'de>,
-{
-    Ok(Option::deserialize(deserializer)?.unwrap_or_default())
 }
 
 #[derive(Deserialize)]

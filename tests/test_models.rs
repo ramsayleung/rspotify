@@ -249,6 +249,37 @@ fn test_simplified_episode() {
 
 #[test]
 #[wasm_bindgen_test]
+fn test_episode_with_null_is_externally_hosted() {
+    // The Web API sometimes returns `null` here (seen in search results)
+    let json_str = r#"
+        {
+            "audio_preview_url": null,
+            "description": "",
+            "duration_ms": 2685023,
+            "explicit": false,
+            "external_urls": {
+                "spotify": "https://open.spotify.com/episode/3brfPv3PaUhspkm1T9ZVl8"
+            },
+            "href": "https://api.spotify.com/v1/episodes/3brfPv3PaUhspkm1T9ZVl8",
+            "id": "3brfPv3PaUhspkm1T9ZVl8",
+            "images": [],
+            "is_externally_hosted": null,
+            "is_playable": true,
+            "language": "sv",
+            "languages": ["sv"],
+            "name": "På Bellmans bakgata",
+            "release_date": "2020-10-20",
+            "release_date_precision": "day",
+            "type": "episode",
+            "uri": "spotify:episode:3brfPv3PaUhspkm1T9ZVl8"
+        }
+        "#;
+    let simplified_episode: SimplifiedEpisode = deserialize(json_str);
+    assert!(!simplified_episode.is_externally_hosted);
+}
+
+#[test]
+#[wasm_bindgen_test]
 fn test_full_episode() {
     let json_str = r#"
     {
