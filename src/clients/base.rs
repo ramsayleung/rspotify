@@ -85,7 +85,25 @@ where
     /// token will be saved internally.
     async fn refresh_token(&self) -> ClientResult<()> {
         let token = self.refetch_token().await?;
-        *self.get_token().lock().await.unwrap() = token;
+        let token_slot = self.get_token();
+        let mut token_lock = token_slot.lock().await.unwrap();
+        let merged = match (token, token_lock.as_ref()) {
+            // Spotify's refresh-grant response may omit `refresh_token`; see
+            // https://developer.spotify.com/documentation/web-api/tutorials/refreshing-tokens
+            // "When a refresh token is not returned, continue using the
+            // existing token." Preserve the previous one so the next refresh
+            // keeps working; otherwise the token is dropped on refresh and
+            // the following refresh fails with no refresh token available.
+            (Some(mut refreshed), Some(previous)) => {
+                if refreshed.refresh_token.is_none() {
+                    refreshed.refresh_token.clone_from(&previous.refresh_token);
+                }
+                Some(refreshed)
+            }
+            (token, _) => token,
+        };
+        *token_lock = merged;
+        drop(token_lock);
         self.write_token_cache().await
     }
 
