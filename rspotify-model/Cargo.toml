@@ -12,12 +12,13 @@ repository = "https://github.com/ramsayleung/rspotify"
 keywords = ["spotify", "api", "rspotify"]
 categories = ["api-bindings", "multimedia::audio"]
 edition = "2018"
+rust-version = "1.88"
 readme = "../README.md"
 
 [dependencies]
 chrono = { version = "0.4.19", features = ["serde"] }
-enum_dispatch = "0.3.8"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.67"
 strum = { version = "0.27.1", features = ["derive"] }
 thiserror = "2.0.9"
+whichever = "0.4.0"
