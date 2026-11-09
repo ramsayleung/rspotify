@@ -3,6 +3,11 @@
 **Bugfixes**
 - Fix: deserialize `null` `is_externally_hosted` in `SimplifiedEpisode` and `FullEpisode` as `false` instead of failing the whole response
 
+## 0.16.2 (2026.11.10)
+
+**Bugfixes**
+- Add Kosovo (XK) country code to `Country` enum
+
 ## 0.16.1 (2026.04.13)
 Bugfixes
 - ([#564](https://github.com/ramsayleung/rspotify/pull/564)) Fix: FullArtist: deprecate and add default for genres.
