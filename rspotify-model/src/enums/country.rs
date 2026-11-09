@@ -362,6 +362,9 @@ pub enum Country {
     #[strum(serialize = "KR")]
     #[serde(rename = "KR")]
     KoreaRepublicOf,
+    #[strum(serialize = "XK")]
+    #[serde(rename = "XK")]
+    Kosovo,
     #[strum(serialize = "KW")]
     #[serde(rename = "KW")]
     Kuwait,
