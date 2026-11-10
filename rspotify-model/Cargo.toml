@@ -21,4 +21,4 @@ serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.67"
 strum = { version = "0.27.1", features = ["derive"] }
 thiserror = "2.0.9"
-whichever = "0.4.0"
+whichever = "0.7.0"
